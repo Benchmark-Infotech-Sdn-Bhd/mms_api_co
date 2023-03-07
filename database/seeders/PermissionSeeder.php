@@ -1,0 +1,22 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use App\Models\Permission;
+
+class PermissionSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        Permission::create(['id' => 1, 'name' => 'View', 'status' => 1]);
+        Permission::create(['id' => 2, 'name' => 'Add', 'status' => 1]);
+        Permission::create(['id' => 3, 'name' => 'Edit', 'status' => 1]);
+        Permission::create(['id' => 4, 'name' => 'Delete', 'status' => 1]);
+        Permission::create(['id' => 5, 'name' => 'Download', 'status' => 1]);
+    }
+}
