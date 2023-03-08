@@ -12,16 +12,18 @@ use Illuminate\Support\Facades\Validator;
 class AccommodationController extends Controller
 {
     private $accommodationServices;
+    private $accommodation;
 
-    public function __construct(AccommodationServices $accommodationServices,)
+    public function __construct(AccommodationServices $accommodationServices,Accommodation $accommodation)
     {
         $this->accommodationServices = $accommodationServices;
+        $this->accommodation = $accommodation;
     }
 
     public function createAccommodation(Request $request)
     {
         $input = $request->all();
-        $validation = Accommodation::validate($input);
+        $validation = $this->accommodation::validate($input);
         if ($validation !== true) {
             return response()->json(['errors' => $validation], 422);
         }
@@ -40,52 +42,38 @@ class AccommodationController extends Controller
     
     public function showAccommodation()
     {        
-        // $accommodation = Accommodation::paginate(10);
-        $accommodation = Accommodation::with('vendor')->paginate(10);
-        return response()->json($accommodation,200);
+        $response = $this->accommodationServices->show(); 
+        return $response;
     }
 
     public function editAccommodation($id)
-    {        
-        $accommodation = Accommodation::findorfail($id);
-        // $accommodation = Accommodation::find($id);
-        // $vendors = $accommodation->vendor;
-        return response()->json($accommodation,200);
+    {     
+        $response = $this->accommodationServices->edit($id); 
+        return $response; 
     } 
 
     public function updateAccommodation(Request $request, $id)
     {        
-        $accommodation = Accommodation::findorfail($id);
-        $input = $this->getRequest($request);
         
-        $validation = Accommodation::validate($input);
+        $input = $request->all();
+        
+        $validation = $this->accommodation::validate($input);
         if ($validation !== true) {
             return response()->json(['errors' => $validation], 422);
         }
-
-        if (request()->hasFile('attachment')){
-            $uploadedImage = $request->file('attachment');
-            $imageName = time() . '.' . $uploadedImage->getClientOriginalExtension();
-            $destinationPath = storage_path('images');
-            $uploadedImage->move($destinationPath, $imageName);
-            $input['attachment'] = "images/".$imageName;
-        }
-
-        $response = $this->accommodationServices->update($accommodation, $input); 
-        return $response;
+        $response = $this->accommodationServices->update($id, $request); 
+        return $input;
     }
 
     public function deleteAccommodation($id)
-    {       
-        $accommodation = Accommodation::findorfail($id);
-        $response = $this->accommodationServices->delete($accommodation); 
-        return $response;
-        
+    {   
+        $response = $this->accommodationServices->delete($id); 
+        return $response;        
     }
 
     public function searchAccommodation(Request $request)
     {
-        $accommodation = Accommodation::where('accommodation_name', 'like', '%'.$request->name.'%')
+        $accommodation = $this->accommodation::where('accommodation_name', 'like', '%'.$request->name.'%')
              ->get();        
         return $accommodation;        
     }

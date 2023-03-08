@@ -36,10 +36,31 @@ class AccommodationServices
         return response()->json($accommodation,200);
     }
 
-    public function update($data, $request)
+    public function show()
+    {
+        $accommodationData = $this->accommodation::with('vendor')->paginate(10);
+        return response()->json($accommodationData,200);
+    }
+
+    public function edit($id)
+    {
+        $accommodationData = $this->accommodation::findorfail($id);
+        return response()->json($accommodationData,200);
+    }
+
+    public function update($id, $request)
     {     
         try {
-            $accommodation = $data->update($request);
+            $data = $this->accommodation::findorfail($id);
+            $input = $request->all();
+            if (request()->hasFile('attachment')){
+                $uploadedImage = $request->file('attachment');
+                $imageName = time() . '.' . $uploadedImage->getClientOriginalExtension();
+                $destinationPath = storage_path('images');
+                $uploadedImage->move($destinationPath, $imageName);
+                $input['attachment'] = "images/".$imageName;
+            }
+            $accommodationData = $data->update($input);
             return response()->json(['message' => 'Accommodation details updated successfully'],200);
     
         } catch (Exception $exception) {
@@ -47,9 +68,10 @@ class AccommodationServices
         }
     }
     
-    public function delete($data)
+    public function delete($id)
     {     
         try {
+            $data = $this->accommodation::findorfail($id);
             $data->delete();
             return response()->json('deleted success',200);
     

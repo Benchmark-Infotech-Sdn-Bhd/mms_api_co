@@ -11,16 +11,18 @@ use Illuminate\Support\Facades\Validator;
 class FeeRegistrationController extends Controller
 {
     private $feeRegistrationServices;
+    private $feeRegistration;
 
-    public function __construct(FeeRegistrationServices $feeRegistrationServices,)
+    public function __construct(FeeRegistrationServices $feeRegistrationServices,FeeRegistration $feeRegistration)
     {
         $this->feeRegistrationServices = $feeRegistrationServices;
+        $this->feeRegistration = $feeRegistration;
     }
 
     public function createFeeRegistration(Request $request)
     {
         $input = $request->all();
-        $validation = FeeRegistration::validate($input);
+        $validation = $this->feeRegistration::validate($input);
         if ($validation !== true) {
             return response()->json(['errors' => $validation], 422);
         }
@@ -30,33 +32,31 @@ class FeeRegistrationController extends Controller
     
     public function showFeeRegistration()
     {        
-        $feeRegistration = FeeRegistration::paginate(10);
-        return response()->json($feeRegistration,200);
+        $response = $this->feeRegistrationServices->show(); 
+        return $response;
     }
 
     public function editFeeRegistration($id)
-    {        
-        $feeRegistration = FeeRegistration::findorfail($id);
-        return response()->json($feeRegistration,200);
+    {    
+        $response = $this->feeRegistrationServices->edit($id); 
+        return $response;
     } 
 
     public function updateFeeRegistration(Request $request, $id)
     {        
-        $feeRegistration = FeeRegistration::findorfail($id);
         $input = $request->all();
-        $validation = FeeRegistration::validate($input);
+        $validation = $this->feeRegistration::validate($input);
         if ($validation !== true) {
             return response()->json(['errors' => $validation], 422);
-        }
-        $response = $this->feeRegistrationServices->update($feeRegistration, $request); 
+        }        
+        $response = $this->feeRegistrationServices->updateData($id, $request); 
         return $response;
     }
 
     public function deleteFeeRegistration($id)
-    {       
-        $feeRegistration = FeeRegistration::findorfail($id);
-        $response = $this->feeRegistrationServices->delete($feeRegistration); 
-        return $response;
+    {      
+        $response = $this->feeRegistrationServices->delete($id); 
+        return $response;   
         
     }
     

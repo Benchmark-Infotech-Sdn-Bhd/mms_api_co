@@ -33,10 +33,23 @@ class FomemaClinicsServices
         return response()->json($fomemaClinics,200);
     }
 
-    public function update($data, $request)
+    public function show()
+    {
+        $fomemaClinicsData = $this->fomemaClinics::paginate(10);
+        return response()->json($fomemaClinicsData,200);
+    }
+
+    public function edit($id)
+    {
+        $fomemaClinicsData = $this->fomemaClinics::findorfail($id);
+        return response()->json($fomemaClinicsData,200);
+    }
+
+    public function updateData($id, $request)
     {     
         try {
-            $fomemaClinics = $data->update($request->all());
+            $data = $this->fomemaClinics::findorfail($id);
+            $fomemaClinicsData = $data->update($request->all());
             return response()->json(['message' => 'FOMEMAClinic updated successfully'],200);
     
         } catch (Exception $exception) {
@@ -44,9 +57,10 @@ class FomemaClinicsServices
         }
     }
     
-    public function delete($data)
+    public function delete($id)
     {     
         try {
+            $data = $this->fomemaClinics::findorfail($id);
             $data->delete();
             return response()->json('deleted success',200);
     

@@ -12,16 +12,18 @@ use Illuminate\Support\Facades\Validator;
 class InsuranceController extends Controller
 {
     private $insuranceServices;
+    private $insurance;
 
-    public function __construct(InsuranceServices $insuranceServices,)
+    public function __construct(InsuranceServices $insuranceServices,Insurance $insurance)
     {
         $this->insuranceServices = $insuranceServices;
+        $this->insurance = $insurance;
     }
 
     public function createInsurance(Request $request)
     {
         $input = $request->all();
-        $validation = Insurance::validate($input);
+        $validation = $this->insurance::validate($input);
         if ($validation !== true) {
             return response()->json(['errors' => $validation], 422);
         }
@@ -32,35 +34,33 @@ class InsuranceController extends Controller
     public function showInsurance()
     {        
         // $insurance = Insurance::paginate(10);
-        $insurance = Insurance::with('vendor')->paginate(10);
-        return response()->json($insurance,200);
+        $response = $this->insuranceServices->show(); 
+        return $response;   
     }
 
     public function editInsurance($id)
-    {        
-        $insurance = Insurance::findorfail($id);
+    {   
         // $insurance = Insurance::find($id);
         // $vendors = $insurance->vendor;
-        return response()->json($insurance,200);
+        $response = $this->insuranceServices->edit($id); 
+        return $response;      
     } 
 
     public function updateInsurance(Request $request, $id)
     {        
-        $insurance = Insurance::findorfail($id);
         $input = $request->all();
-        $validation = Insurance::validate($input);
+        $validation = $this->insurance::validate($input);
         if ($validation !== true) {
             return response()->json(['errors' => $validation], 422);
         }
-        $response = $this->insuranceServices->update($insurance, $request); 
+        $response = $this->insuranceServices->updateData($id, $request); 
         return $response;
     }
 
     public function deleteInsurance($id)
-    {       
-        $insurance = Insurance::findorfail($id);
-        $response = $this->insuranceServices->delete($insurance); 
-        return $response;
+    {      
+        $response = $this->insuranceServices->delete($id); 
+        return $response; 
         
     }
 }

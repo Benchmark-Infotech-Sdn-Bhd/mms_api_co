@@ -31,9 +31,22 @@ class FeeRegistrationServices
         return response()->json($feeRegistration,200);
     }
 
-    public function update($data, $request)
+    public function show()
+    {
+        $feeRegistrationData = $this->feeRegistration::paginate(10);
+        return response()->json($feeRegistrationData,200);
+    }
+
+    public function edit($id)
+    {
+        $feeRegistrationData = $this->feeRegistration::findorfail($id);
+        return response()->json($feeRegistrationData,200);
+    }
+
+    public function updateData($id, $request)
     {     
         try {
+            $data = $this->feeRegistration::findorfail($id);
             $feeRegistration = $data->update($request->all());
             return response()->json(['message' => 'Fee details updated successfully'],200);
     
@@ -42,9 +55,10 @@ class FeeRegistrationServices
         }
     }
     
-    public function delete($data)
+    public function delete($id)
     {     
         try {
+            $data = $this->feeRegistration::findorfail($id);
             $data->delete();
             return response()->json('deleted success',200);
     

@@ -30,10 +30,28 @@ class VendorServices
         return response()->json($vendor,200);
     }
 
-    public function update($data, $request)
+    public function show()
+    {
+        $vendors = $this->vendor::with('accommodations', 'insurances', 'transportations')->paginate(10);
+        return response()->json($vendors,200);
+    }
+
+    public function edit($id)
+    {    
+        $vendors = $this->vendor::find($id);
+        // $accommodations = $vendors->accommodations;
+        // $insurances = $vendors->insurances;
+        // $transportations = $vendors->transportations;
+        // $vendors = Vendor::findorfail($id);
+        return response()->json($vendors,200);
+    } 
+
+    public function updateData($id, $request)
     {     
+        
         try {
-            $vendor = $data->update($request->all());
+            $vendors = $this->vendor::findorfail($id);
+            $data = $vendors->update($request->all());
             return response()->json(['message' => 'Vendor updated successfully'],200);
     
         } catch (Exception $exception) {
@@ -41,14 +59,15 @@ class VendorServices
         }
     }
     
-    public function delete($data)
+    public function delete($id)
     {     
         try {
             // $data->delete();
-            $data->accommodations()->delete();
-            $data->insurances()->delete();
-            $data->transportations()->delete();
-            $data->delete();
+            $vendors = $this->vendor::find($id);
+            $vendors->accommodations()->delete();
+            $vendors->insurances()->delete();
+            $vendors->transportations()->delete();
+            $vendors->delete();
             return response()->json('deleted success',200);
     
         } catch (Exception $exception) {

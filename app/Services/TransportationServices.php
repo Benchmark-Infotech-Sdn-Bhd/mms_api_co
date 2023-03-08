@@ -21,7 +21,7 @@ class TransportationServices
 
     public function create($request)
     {     
-        $transportation = $this->transportation::create([
+        $transportationData = $this->transportation::create([
             'driver_name' => $request["driver_name"],
             'driver_contact_number' => $request["driver_contact_number"],
             'driver_license_number' => $request["driver_license_number"],
@@ -30,13 +30,26 @@ class TransportationServices
             'vehicle_capacity' => $request["vehicle_capacity"],
             'vendor_id' => $request["vendor_id"],
         ]);
-        return response()->json($transportation,200);
+        return response()->json($transportationData,200);
     }
 
-    public function update($data, $request)
+    public function show()
+    {
+        $transportationData = $this->transportation::with('vendor')->paginate(10);
+        return response()->json($transportationData,200);
+    }
+
+    public function edit($id)
+    {
+        $transportationData = $this->transportation::findorfail($id);
+        return response()->json($transportationData,200);
+    }
+
+    public function updateData($id, $request)
     {     
         try {
-            $transportation = $data->update($request->all());
+            $data = $this->transportation::findorfail($id);
+            $transportationData = $data->update($request->all());
             return response()->json(['message' => 'Transportation details updated successfully'],200);
     
         } catch (Exception $exception) {
@@ -44,9 +57,10 @@ class TransportationServices
         }
     }
     
-    public function delete($data)
+    public function delete($id)
     {     
         try {
+            $data = $this->transportation::findorfail($id);
             $data->delete();
             return response()->json('deleted success',200);
     

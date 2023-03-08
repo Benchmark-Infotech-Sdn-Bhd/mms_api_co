@@ -11,15 +11,17 @@ use Illuminate\Support\Facades\Validator;
 class VendorController extends Controller
 {
     private $vendorServices;
-    public function __construct(VendorServices $vendorServices,)
+    private $vendor;
+    public function __construct(Vendor $vendor,VendorServices $vendorServices,)
     {
         $this->vendorServices = $vendorServices;
+        $this->vendor = $vendor;
     }
 
     public function createVendor(Request $request)
     {
         $input = $request->all();
-        $validation = Vendor::validate($input);
+        $validation = $this->vendor::validate($input);
         if ($validation !== true) {
             return response()->json(['errors' => $validation], 422);
         }
@@ -28,38 +30,31 @@ class VendorController extends Controller
     }
     
     public function showVendors()
-    {        
-        // $vendors = Vendor::paginate(10);
-        $vendors = Vendor::with('accommodations', 'insurances', 'transportations')->paginate(10);
-        return response()->json($vendors,200);
+    {   
+        $response = $this->vendorServices->show(); 
+        return $response;        
     }
 
     public function editVendors($id)
     {        
-        $vendors = Vendor::find($id);
-        // $accommodations = $vendors->accommodations;
-        // $insurances = $vendors->insurances;
-        // $transportations = $vendors->transportations;
-        // $vendors = Vendor::findorfail($id);
-        return response()->json($vendors,200);
+        $response = $this->vendorServices->edit($id); 
+        return $response;          
     } 
 
     public function updateVendors(Request $request, $id)
-    {        
-        $vendors = Vendor::findorfail($id);
+    {                
         $input = $request->all();
-        $validation = Vendor::validate($input);
+        $validation = $this->vendor::validate($input);
         if ($validation !== true) {
             return response()->json(['errors' => $validation], 422);
-        }
-        $response = $this->vendorServices->update($vendors, $request); 
+        }        
+        $response = $this->vendorServices->updateData($id, $request); 
         return $response;
     }
 
     public function deleteVendors($id)
-    {       
-        $vendors = Vendor::find($id);
-        $response = $this->vendorServices->delete($vendors); 
+    {  
+        $response = $this->vendorServices->delete($id); 
         return $response;        
     }
     
