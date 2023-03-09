@@ -20,6 +20,20 @@ class Countries extends Model
      */
     protected $fillable = ['country_name','system_type','fee','created_by','modified_by'];
     /**
+     * @return HasMany
+     */
+    public function embassyAttestationFileCosting()
+    {
+        return $this->hasMany(EmbassyAttestationFileCosting::class, 'country_id');
+    }
+    /**
+     * @return HasMany
+     */
+    public function agents()
+    {
+        return $this->hasMany(Agent::class, 'country_id');
+    }
+    /**
      * The attributes that are required.
      *
      * @var array

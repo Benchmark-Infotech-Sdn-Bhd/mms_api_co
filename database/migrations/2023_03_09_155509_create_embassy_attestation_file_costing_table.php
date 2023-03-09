@@ -11,15 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('agent', function (Blueprint $table) {
+        Schema::create('embassy_attestation_file_costing', function (Blueprint $table) {
             $table->id();
-            $table->string('agent_name',250);
             $table->unsignedBigInteger('country_id');
-            $table->string('city',150)->nullable();
-            $table->string('person_in_charge',255);
-            $table->string('pic_contact_number',20);
-            $table->string('email_address',150);
-            $table->text('company_address');
+            $table->text('title');
+            $table->bigInteger('amount');
             $table->integer('created_by')->default(0);
             $table->integer('modified_by')->default(0);
             $table->timestamps();
@@ -35,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('agent');
+        Schema::dropIfExists('embassy_attestation_file_costing');
     }
 };
