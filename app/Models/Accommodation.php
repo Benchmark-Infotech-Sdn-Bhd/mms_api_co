@@ -43,6 +43,9 @@ class Accommodation extends Model
         return true;
     }
     
+    /**
+     * @return BelongsTo
+     */
     public function vendor()
     {
         return $this->belongsTo('App\Models\Vendor');

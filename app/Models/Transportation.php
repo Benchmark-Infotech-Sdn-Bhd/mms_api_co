@@ -36,7 +36,9 @@ class Transportation extends Model
         }
         return true;
     }
-    
+    /**
+     * @return belongsTo
+     */
     public function vendor()
     {
         return $this->belongsTo('App\Models\Vendor');

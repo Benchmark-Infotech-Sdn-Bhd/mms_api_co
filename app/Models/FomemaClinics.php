@@ -38,7 +38,9 @@ class FomemaClinics extends Model
         }
         return true;
     }
-
+    /**
+     * @return hasMany
+     */
     public function fomemaClinics()
     {
         return $this->hasMany(FomemaClinics::class);

@@ -34,7 +34,9 @@ class FeeRegistration extends Model
         }
         return true;
     }
-
+    /**
+     * @return hasMany
+     */
     public function feeRegistration()
     {
         return $this->hasMany(FeeRegistration::class);

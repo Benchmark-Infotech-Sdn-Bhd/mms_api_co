@@ -12,7 +12,6 @@ class Insurance extends Model
     protected $table = 'insurance';
 
     protected $fillable = [
-        'create_insurance',
         'no_of_worker_from',
         'no_of_worker_to',
         'fee_per_pax',
@@ -20,7 +19,6 @@ class Insurance extends Model
     ];
 
     public static $rules = [
-        'create_insurance' => 'required',
         'no_of_worker_from' => 'required',
         'no_of_worker_to' => 'required',
         'fee_per_pax' => 'required',
@@ -33,7 +31,9 @@ class Insurance extends Model
         }
         return true;
     }
-
+    /**
+     * @return belongsTo
+     */
     public function vendor()
     {
         return $this->belongsTo('App\Models\Vendor');

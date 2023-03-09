@@ -15,7 +15,11 @@ class Vendor extends Model
         'name',
         'state',
         'type',
-        'person_in_charge'
+        'person_in_charge',
+        'contact_number',
+        'email_address',
+        'address',
+
     ];
 
     public static $rules = [
@@ -23,6 +27,9 @@ class Vendor extends Model
         'state' => 'required',
         'type' => 'required',
         'person_in_charge' => 'required',
+        'contact_number' => 'required',
+        'email_address' => 'required',
+        'address' => 'required',
     ];
 
     public static function validate($input) {
@@ -32,15 +39,23 @@ class Vendor extends Model
         }
         return true;
     }
-    
+    /**
+     * @return hasMany
+     */   
     public function accommodations()
     {
         return $this->hasMany('App\Models\Accommodation');
     }
+    /**
+     * @return hasMany
+     */
     public function insurances()
     {
         return $this->hasMany('App\Models\Insurance');
     }
+    /**
+     * @return hasMany
+     */
     public function transportations()
     {
         return $this->hasMany('App\Models\Transportation');

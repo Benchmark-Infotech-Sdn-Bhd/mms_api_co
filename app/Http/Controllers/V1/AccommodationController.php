@@ -11,71 +11,83 @@ use Illuminate\Support\Facades\Validator;
 
 class AccommodationController extends Controller
 {
+    /**
+     * @var accommodationServices
+     */
     private $accommodationServices;
-    private $accommodation;
 
-    public function __construct(AccommodationServices $accommodationServices,Accommodation $accommodation)
+    public function __construct(AccommodationServices $accommodationServices)
     {
         $this->accommodationServices = $accommodationServices;
-        $this->accommodation = $accommodation;
     }
 
+    /**
+     * Show the form for creating a new Accommodation.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function createAccommodation(Request $request)
     {
-        $input = $request->all();
-        $validation = $this->accommodation::validate($input);
-        if ($validation !== true) {
-            return response()->json(['errors' => $validation], 422);
-        }
-
-        if (request()->hasFile('attachment')){
-            $uploadedImage = $request->file('attachment');
-            $imageName = time() . '.' . $uploadedImage->getClientOriginalExtension();
-            $destinationPath = storage_path('images');
-            $uploadedImage->move($destinationPath, $imageName);
-            $input['attachment'] = "images/".$imageName;
-        }
-
-        $response = $this->accommodationServices->create($input); 
+        $response = $this->accommodationServices->create($request); 
         return $response;
     }
     
+    /**
+     * Display a listing of the Accommodation.
+     *
+     * @return JsonResponse
+     */
     public function showAccommodation()
     {        
         $response = $this->accommodationServices->show(); 
         return $response;
     }
 
+    /**
+     * Display the data for edit form by using accommodation id.
+     *
+     * @param $id
+     * @return JsonResponse
+     */
     public function editAccommodation($id)
     {     
         $response = $this->accommodationServices->edit($id); 
         return $response; 
     } 
-
+    /**
+     * Update the specified Accommodation data.
+     *
+     * @param Request $request, $id
+     * @return JsonResponse
+     */
     public function updateAccommodation(Request $request, $id)
-    {        
-        
-        $input = $request->all();
-        
-        $validation = $this->accommodation::validate($input);
-        if ($validation !== true) {
-            return response()->json(['errors' => $validation], 422);
-        }
+    {  
         $response = $this->accommodationServices->update($id, $request); 
-        return $input;
+        return $response;
     }
-
+    /**
+     * delete the specified Accommodation data.
+     *
+     * @param $id
+     * @return JsonResponse
+     */
     public function deleteAccommodation($id)
     {   
         $response = $this->accommodationServices->delete($id); 
         return $response;        
     }
-
+    /**
+     * searching Accommodation data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function searchAccommodation(Request $request)
-    {
-        $accommodation = $this->accommodation::where('accommodation_name', 'like', '%'.$request->name.'%')
-             ->get();        
-        return $accommodation;        
+    {          
+        $response = $this->accommodationServices->search($request); 
+        return $response; 
+        
     }
 
 }

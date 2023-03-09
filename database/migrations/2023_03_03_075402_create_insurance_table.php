@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('insurance', function (Blueprint $table) {
             $table->id();
-            $table->string('create_insurance')->nullable();
             $table->string('no_of_worker_from')->nullable();
             $table->string('no_of_worker_to')->nullable();
             $table->string('fee_per_pax')->nullable();

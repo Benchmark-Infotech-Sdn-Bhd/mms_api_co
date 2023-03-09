@@ -11,33 +11,43 @@ use Illuminate\Support\Facades\Validator;
 
 class InsuranceController extends Controller
 {
+    /**
+     * @var insuranceServices
+     */
     private $insuranceServices;
-    private $insurance;
 
-    public function __construct(InsuranceServices $insuranceServices,Insurance $insurance)
+    public function __construct(InsuranceServices $insuranceServices)
     {
         $this->insuranceServices = $insuranceServices;
-        $this->insurance = $insurance;
     }
-
+	 /**
+     * Show the form for creating a new Insurance.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function createInsurance(Request $request)
     {
-        $input = $request->all();
-        $validation = $this->insurance::validate($input);
-        if ($validation !== true) {
-            return response()->json(['errors' => $validation], 422);
-        }
         $response = $this->insuranceServices->create($request); 
         return $response;
     }
-    
+	 /**
+     * Display a listing of the Insurance.
+     *
+     * @return JsonResponse
+     */    
     public function showInsurance()
     {        
         // $insurance = Insurance::paginate(10);
         $response = $this->insuranceServices->show(); 
         return $response;   
     }
-
+	 /**
+     * Display the data for edit form by using Insurance id.
+     *
+     * @param $id
+     * @return JsonResponse
+     */
     public function editInsurance($id)
     {   
         // $insurance = Insurance::find($id);
@@ -45,18 +55,23 @@ class InsuranceController extends Controller
         $response = $this->insuranceServices->edit($id); 
         return $response;      
     } 
-
+	 /**
+     * Update the specified Insurance data.
+     *
+     * @param Request $request, $id
+     * @return JsonResponse
+     */
     public function updateInsurance(Request $request, $id)
     {        
-        $input = $request->all();
-        $validation = $this->insurance::validate($input);
-        if ($validation !== true) {
-            return response()->json(['errors' => $validation], 422);
-        }
         $response = $this->insuranceServices->updateData($id, $request); 
         return $response;
     }
-
+	 /**
+     * delete the specified Insurance data.
+     *
+     * @param $id
+     * @return JsonResponse
+     */
     public function deleteInsurance($id)
     {      
         $response = $this->insuranceServices->delete($id); 
