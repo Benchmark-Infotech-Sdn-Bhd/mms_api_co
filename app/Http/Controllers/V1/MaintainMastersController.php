@@ -23,13 +23,13 @@ class MaintainMastersController extends Controller
         $this->maintainMastersServices = $maintainMastersServices;
     }
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new country.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function create(Request $request)
+    public function create(Request $request) : JsonResponse
     {
-        return $this->maintainMastersServices->create($request->all());
+        return response()->json($this->maintainMastersServices->create($request->all()));
     }
 }
