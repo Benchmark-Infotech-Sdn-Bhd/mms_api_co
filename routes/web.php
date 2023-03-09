@@ -17,6 +17,6 @@ $router->get('/', function () use ($router) {
     return 'Welcome';//$router->app->version();
 });
 
-$router->group(['prefix' => 'api/v1'], function () use ($router) {
+$router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function () use ($router) {
     $router->post('create', 'V1\MaintainMastersController@create');
 });
