@@ -22,18 +22,24 @@ class VendorServices
         $this->vendor = $vendor;
     }
 	 /**
+     * @param $request
+     * @return true or false
+     */
+
+     public function inputValidation($request)
+     {
+        $input = $request->all();
+        $validation = $this->vendor::validate($input);
+        return $validation;
+     }
+	 /**
      * Show the form for creating a new Vendor.
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return true
      */
     public function create($request)
     {   
-        $input = $request->all();
-        $validation = $this->vendor::validate($input);
-        if ($validation !== true) {
-            return response()->json(['error'=>'true','statusCode'=>422,'statusMessage'=>'Unprocessable Entity Error','data'=>$validation],422);
-        }  
         $vendor = $this->vendor::create([
             'name' => $request["name"],
             'state' => $request["state"],
@@ -43,7 +49,7 @@ class VendorServices
             'email_address' => $request["email_address"],
             'address' => $request["address"],
         ]);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$vendor],200);
+        return true;
 
         
     }
@@ -54,8 +60,7 @@ class VendorServices
      */
     public function show()
     {
-        $vendors = $this->vendor::with('accommodations', 'insurances', 'transportations')->paginate(10);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$vendors],200);
+        return $this->vendor::with('accommodations', 'insurances', 'transportations')->paginate(10);
     }
 	 /**
      * Display the data for edit form by using Vendor id.
@@ -65,40 +70,34 @@ class VendorServices
      */
     public function edit($id)
     {    
-        $vendors = $this->vendor::find($id);
+        return $this->vendor::find($id);
         // $accommodations = $vendors->accommodations;
         // $insurances = $vendors->insurances;
         // $transportations = $vendors->transportations;
         // $vendors = Vendor::findorfail($id);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$vendors],200);
     } 
 	 /**
      * Update the specified Vendor data.
      *
      * @param Request $request, $id
-     * @return JsonResponse
+     * @return true or false
      */
     public function updateData($id, $request)
     {             
         try {
-            $input = $request->all();
-            $validation = $this->vendor::validate($input);
-            if ($validation !== true) {
-                return response()->json(['error'=>'true','statusCode'=>422,'statusMessage'=>'Unprocessable Entity Error','data'=>$validation],422);
-            } 
             $vendors = $this->vendor::findorfail($id);
             $data = $vendors->update($request->all());
-            return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'ok','data'=>$input],200);
+            return true;
     
         } catch (Exception $exception) {
-            return response()->json(['error'=>'false','statusCode'=>400,'statusMessage'=>'Bad Request','data'=>'"message": "You are not authorized to access the api."'],400);
+            return false;
         }
     }
 	 /**
      * delete the specified Vendors data.
      *
      * @param $id
-     * @return JsonResponse
+     * @return true or false
      */    
     public function delete($id)
     {     
@@ -109,10 +108,10 @@ class VendorServices
             $vendors->insurances()->delete();
             $vendors->transportations()->delete();
             $vendors->delete();
-            return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'deleted success','data'=>''],200);
+            return true;
     
         } catch (Exception $exception) {
-            return response()->json(['error'=>'false','statusCode'=>400,'statusMessage'=>'Bad Request','data'=>'"message": "You are not authorized to access the api."'],400);
+            return false;
         }
     }
 

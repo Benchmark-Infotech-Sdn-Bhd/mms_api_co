@@ -29,8 +29,16 @@ class AccommodationController extends Controller
      */
     public function createAccommodation(Request $request)
     {
+        $validation = $this->accommodationServices->inputValidation($request);
+        if ($validation !== true) {
+            return $this->validationError($validation);
+        }
         $response = $this->accommodationServices->create($request); 
-        return $response;
+        if($response == true) {
+            return $this->sendSuccess(['message' => "Successfully Accommodation was created"]);
+        } else {
+            return $this->sendError(['message' => "Accommodation creation was failed"]);
+        }
     }
     
     /**
@@ -41,7 +49,7 @@ class AccommodationController extends Controller
     public function showAccommodation()
     {        
         $response = $this->accommodationServices->show(); 
-        return $response;
+		return $this->sendSuccess(['data' => $response]);
     }
 
     /**
@@ -53,7 +61,7 @@ class AccommodationController extends Controller
     public function editAccommodation($id)
     {     
         $response = $this->accommodationServices->edit($id); 
-        return $response; 
+		return $this->sendSuccess(['data' => $response]);
     } 
     /**
      * Update the specified Accommodation data.
@@ -63,8 +71,16 @@ class AccommodationController extends Controller
      */
     public function updateAccommodation(Request $request, $id)
     {  
+        $validation = $this->accommodationServices->inputValidation($request);
+        if ($validation !== true) {
+            return $this->validationError($validation);
+        }
         $response = $this->accommodationServices->update($id, $request); 
-        return $response;
+        if($response == true) {
+            return $this->sendSuccess(['message' => "Successfully Accommodation was updated"]);
+        } else {
+            return $this->sendError(['message' => 'Accommodation update was failed']);
+        }
     }
     /**
      * delete the specified Accommodation data.
@@ -75,7 +91,11 @@ class AccommodationController extends Controller
     public function deleteAccommodation($id)
     {   
         $response = $this->accommodationServices->delete($id); 
-        return $response;        
+        if($response == true) {
+            return $this->sendSuccess(['message' => "Successfully Accommodation was deleted"]);
+        } else {
+            return $this->sendError(['message' => 'Accommodation delete was failed']);
+        }       
     }
     /**
      * searching Accommodation data.
@@ -86,8 +106,7 @@ class AccommodationController extends Controller
     public function searchAccommodation(Request $request)
     {          
         $response = $this->accommodationServices->search($request); 
-        return $response; 
-        
+		return $this->sendSuccess(['data' => $response]);        
     }
 
 }

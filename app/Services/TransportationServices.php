@@ -22,18 +22,23 @@ class TransportationServices
         $this->transportation = $transportation;
     }
 	 /**
+     * @param $request
+     * @return true or false
+     */
+    public function inputValidation($request)
+    {
+       $input = $request->all();
+       $validation = $this->transportation::validate($input);
+       return $validation;
+    }
+	 /**
      * Show the form for creating a new Transportation.
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return true
      */
     public function create($request)
-    {     
-        $input = $request->all();
-        $validation = $this->transportation::validate($input);
-        if ($validation !== true) {
-            return response()->json(['error'=>'true','statusCode'=>422,'statusMessage'=>'Unprocessable Entity Error','data'=>$validation],422);
-        }
+    {   
         $transportationData = $this->transportation::create([
             'driver_name' => $request["driver_name"],
             'driver_contact_number' => $request["driver_contact_number"],
@@ -43,7 +48,7 @@ class TransportationServices
             'vehicle_capacity' => $request["vehicle_capacity"],
             'vendor_id' => $request["vendor_id"],
         ]);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$transportationData],200);
+        return true;
     }
 	 /**
      * Display a listing of the Transportation.
@@ -52,8 +57,7 @@ class TransportationServices
      */
     public function show()
     {
-        $transportationData = $this->transportation::with('vendor')->paginate(10);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$transportationData],200);
+        return $this->transportation::with('vendor')->paginate(10);
     }
 	 /**
      * Display the data for edit form by using Transportation id.
@@ -63,46 +67,40 @@ class TransportationServices
      */
     public function edit($id)
     {
-        $transportationData = $this->transportation::findorfail($id);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$transportationData],200);
+        return $this->transportation::findorfail($id);
     }
 	 /**
      * Update the specified Transportation data.
      *
      * @param Request $request, $id
-     * @return JsonResponse
+     * @return true or false
      */
     public function updateData($id, $request)
     {     
         try {
-            $input = $request->all();
-            $validation = $this->transportation::validate($input);
-            if ($validation !== true) {
-                return response()->json(['error'=>'true','statusCode'=>422,'statusMessage'=>'Unprocessable Entity Error','data'=>$validation],422);
-            }
             $data = $this->transportation::findorfail($id);
             $transportationData = $data->update($request->all());
-            return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$input],200);
+            return true;
     
         } catch (Exception $exception) {
-            return response()->json(['error'=>'false','statusCode'=>400,'statusMessage'=>'Bad Request','data'=>'"message": "You are not authorized to access the api."'],400);
+            return false;
         }
     }
 	 /**
      * delete the specified Transportation data.
      *
      * @param $id
-     * @return JsonResponse
+     * @return true or false
      */    
     public function delete($id)
     {     
         try {
             $data = $this->transportation::findorfail($id);
             $data->delete();
-            return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>''],200);
+            return true;
     
         } catch (Exception $exception) {
-            return response()->json(['error'=>'false','statusCode'=>400,'statusMessage'=>'Bad Request','data'=>'"message": "You are not authorized to access the api."'],400);
+            return false;
         }
     }
 }

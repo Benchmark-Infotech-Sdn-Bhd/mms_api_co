@@ -28,8 +28,16 @@ class InsuranceController extends Controller
      */
     public function createInsurance(Request $request)
     {
+        $validation = $this->insuranceServices->inputValidation($request);
+        if ($validation !== true) {
+            return $this->validationError($validation);
+        }
         $response = $this->insuranceServices->create($request); 
-        return $response;
+        if($response == true) {
+            return $this->sendSuccess(['message' => "Successfully insurance was created"]);
+        } else {
+            return $this->sendError(['message' => "Insurance creation was failed"]);
+        }
     }
 	 /**
      * Display a listing of the Insurance.
@@ -40,7 +48,7 @@ class InsuranceController extends Controller
     {        
         // $insurance = Insurance::paginate(10);
         $response = $this->insuranceServices->show(); 
-        return $response;   
+        return $this->sendSuccess(['data' => $response]); 
     }
 	 /**
      * Display the data for edit form by using Insurance id.
@@ -53,7 +61,7 @@ class InsuranceController extends Controller
         // $insurance = Insurance::find($id);
         // $vendors = $insurance->vendor;
         $response = $this->insuranceServices->edit($id); 
-        return $response;      
+        return $this->sendSuccess(['data' => $response]);    
     } 
 	 /**
      * Update the specified Insurance data.
@@ -63,8 +71,16 @@ class InsuranceController extends Controller
      */
     public function updateInsurance(Request $request, $id)
     {        
+        $validation = $this->insuranceServices->inputValidation($request);
+        if ($validation !== true) {
+            return $this->validationError($validation);
+        }
         $response = $this->insuranceServices->updateData($id, $request); 
-        return $response;
+        if($response == true) {
+            return $this->sendSuccess(['message' => "Successfully insurance was updated"]);
+        } else {
+            return $this->sendError(['message' => 'Insurance update was failed']);
+        }
     }
 	 /**
      * delete the specified Insurance data.
@@ -75,7 +91,11 @@ class InsuranceController extends Controller
     public function deleteInsurance($id)
     {      
         $response = $this->insuranceServices->delete($id); 
-        return $response; 
+        if($response == true) {
+            return $this->sendSuccess(['message' => "Successfully insurance was deleted"]);
+        } else {
+            return $this->sendError(['message' => 'Insurance delete was failed']);
+        }  
         
     }
 }

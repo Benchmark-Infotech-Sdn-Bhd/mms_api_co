@@ -26,8 +26,17 @@ class VendorController extends Controller
      */
     public function createVendor(Request $request)
     {
+        
+        $validation = $this->vendorServices->inputValidation($request);
+        if ($validation !== true) {
+            return $this->validationError($validation);
+        }
         $response = $this->vendorServices->create($request); 
-        return $response;
+        if($response == true) {
+            return $this->sendSuccess(['message' => "Successfully vendor was created"]);
+        } else {
+            return $this->sendError(['message' => "Vendor creation was failed"]);
+        }
     }
 	 /**
      * Display a listing of the Vendors.
@@ -37,7 +46,7 @@ class VendorController extends Controller
     public function showVendors()
     {   
         $response = $this->vendorServices->show(); 
-        return $response;        
+        return $this->sendSuccess(['data' => $response]);
     }
 	 /**
      * Display the data for edit form by using Vendor id.
@@ -48,7 +57,7 @@ class VendorController extends Controller
     public function editVendors($id)
     {        
         $response = $this->vendorServices->edit($id); 
-        return $response;          
+        return $this->sendSuccess(['data' => $response]);
     } 
 	 /**
      * Update the specified Vendor data.
@@ -57,9 +66,17 @@ class VendorController extends Controller
      * @return JsonResponse
      */
     public function updateVendors(Request $request, $id)
-    {                       
+    {           
+        $validation = $this->vendorServices->inputValidation($request);
+        if ($validation !== true) {
+            return $this->validationError($validation);
+        }            
         $response = $this->vendorServices->updateData($id, $request); 
-        return $response;
+        if($response == true) {
+            return $this->sendSuccess(['message' => "Successfully Vendor was updated"]);
+        } else {
+            return $this->sendError(['message' => 'Vendor update was failed']);
+        }
     }
 	 /**
      * delete the specified Vendors data.
@@ -70,7 +87,11 @@ class VendorController extends Controller
     public function deleteVendors($id)
     {  
         $response = $this->vendorServices->delete($id); 
-        return $response;        
+        if($response == true) {
+            return $this->sendSuccess(['message' => "Successfully Vendor was deleted"]);
+        } else {
+            return $this->sendError(['message' => 'Vendor delete was failed']);
+        }    
     }
     
 }

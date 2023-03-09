@@ -21,19 +21,24 @@ class FomemaClinicsServices
     {
         $this->fomemaClinics = $fomemaClinics;
     }
+        /**
+     * @param $request
+     * @return true or false
+     */
+    public function inputValidation($request)
+    {
+       $input = $request->all();
+       $validation = $this->fomemaClinics::validate($input);
+       return $validation;
+    }
 	 /**
      * Show the form for creating a new Fomema Clinics.
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return true
      */
     public function create($request)
-    {     
-        $input = $request->all();
-        $validation = $this->fomemaClinics::validate($input);
-        if ($validation !== true) {
-            return response()->json(['error'=>'true','statusCode'=>422,'statusMessage'=>'Unprocessable Entity Error','data'=>$validation],422);
-        }
+    { 
         $fomemaClinicsData = $this->fomemaClinics::create([
             'clinic_name' => $request["clinic_name"],
             'person_in_charge' => $request["person_in_charge"],
@@ -43,7 +48,7 @@ class FomemaClinicsServices
             'city' => $request["city"],
             'postcode' => $request["postcode"],
         ]);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$fomemaClinicsData],200);
+        return true;
     }
 	 /**
      * Display a listing of the Fomema Clinics.
@@ -52,8 +57,7 @@ class FomemaClinicsServices
      */ 
     public function show()
     {
-        $fomemaClinicsData = $this->fomemaClinics::paginate(10);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$fomemaClinicsData],200);
+        return $this->fomemaClinics::paginate(10);
     }
 	 /**
      * Display the data for edit form by using Fomema Clinic id.
@@ -63,15 +67,13 @@ class FomemaClinicsServices
      */
     public function edit($id)
     {
-        $fomemaClinicsData = $this->fomemaClinics::findorfail($id);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$fomemaClinicsData],200);
-        
+        return $this->fomemaClinics::findorfail($id);        
     }
 	 /**
      * Update the specified Fomema Clinic data.
      *
      * @param Request $request, $id
-     * @return JsonResponse
+     * @return true or false
      */
     public function updateData($id, $request)
     {     
@@ -83,27 +85,27 @@ class FomemaClinicsServices
             }
             $data = $this->fomemaClinics::findorfail($id);
             $fomemaClinicsData = $data->update($request->all());
-            return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$input],200);
+            return true;
     
         } catch (Exception $exception) {
-            return response()->json(['error'=>'false','statusCode'=>400,'statusMessage'=>'Bad Request','data'=>'"message": "You are not authorized to access the api."'],400);
+            return false;
         }
     }
 	 /**
      * delete the specified FomemaClinic data.
      *
      * @param $id
-     * @return JsonResponse
+     * @return true or false
      */    
     public function delete($id)
     {     
         try {
             $data = $this->fomemaClinics::findorfail($id);
             $data->delete();
-            return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>''],200);
+            return true;
     
         } catch (Exception $exception) {
-            return response()->json(['error'=>'false','statusCode'=>400,'statusMessage'=>'Bad Request','data'=>'"message": "You are not authorized to access the api."'],400);
+            return false;
         }
     }
 }

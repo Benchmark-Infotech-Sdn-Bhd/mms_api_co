@@ -21,26 +21,31 @@ class InsuranceServices
     {
         $this->insurance = $insurance;
     }
+    /**
+     * @param $request
+     * @return true or false
+     */
+    public function inputValidation($request)
+    {
+       $input = $request->all();
+       $validation = $this->insurance::validate($input);
+       return $validation;
+    }
 	 /**
      * Show the form for creating a new Insurance.
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return true
      */
     public function create($request)
-    {     
-        $input = $request->all();
-        $validation = $this->insurance::validate($input);
-        if ($validation !== true) {
-            return response()->json(['error'=>'true','statusCode'=>422,'statusMessage'=>'Unprocessable Entity Error','data'=>$validation],422);
-        }
+    {   
         $insuranceData = $this->insurance::create([
             'no_of_worker_from' => $request["no_of_worker_from"],
             'no_of_worker_to' => $request["no_of_worker_to"],
             'fee_per_pax' => $request["fee_per_pax"],
             'vendor_id' => $request["vendor_id"],
         ]);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$insuranceData],200);
+        return true;
     }
 	 /**
      * Display a listing of the Insurance.
@@ -49,8 +54,7 @@ class InsuranceServices
      */ 
     public function show()
     {
-        $insuranceData = $this->insurance::with('vendor')->paginate(10);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$insuranceData],200);
+        return $this->insurance::with('vendor')->paginate(10);
     }
 	 /**
      * Display the data for edit form by using Insurance id.
@@ -60,14 +64,13 @@ class InsuranceServices
      */
     public function edit($id)
     {
-        $insuranceData = $this->insurance::findorfail($id);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$insuranceData],200);
+        return $this->insurance::findorfail($id);
     }
 	 /**
      * Update the specified Insurance data.
      *
      * @param Request $request, $id
-     * @return JsonResponse
+     * @return true or false
      */
     public function updateData($id, $request)
     {     
@@ -79,27 +82,27 @@ class InsuranceServices
             }
             $data = $this->insurance::findorfail($id);
             $feeRegistration = $data->update($request->all());
-            return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$input],200);
+            return true;
     
         } catch (Exception $exception) {
-            return response()->json(['error'=>'false','statusCode'=>400,'statusMessage'=>'Bad Request','data'=>'"message": "You are not authorized to access the api."'],400);
+            return false;
         }
     }
 	 /**
      * delete the specified Insurance data.
      *
      * @param $id
-     * @return JsonResponse
+     * @return true or false
      */    
     public function delete($id)
     {     
         try {
             $data = $this->insurance::findorfail($id);
             $data->delete();
-            return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>''],200);
+            return true;
     
         } catch (Exception $exception) {
-            return response()->json(['error'=>'false','statusCode'=>400,'statusMessage'=>'Bad Request','data'=>'"message": "You are not authorized to access the api."'],400);
+            return false;
         }
     }
 }

@@ -21,20 +21,25 @@ class AccommodationServices
     {
         $this->accommodation = $accommodation;
     }
+        /**
+     * @param $request
+     * @return true or false
+     */
+    public function inputValidation($request)
+    {
+       $input = $request->all();
+       $validation = $this->accommodation::validate($input);
+       return $validation;
+    }
     /**
      * Show the form for creating a new Accommodation.
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return true
      */
     public function create($request)
     {     
         $input = $request->all();
-        $validation = $this->accommodation::validate($input);
-        if ($validation !== true) {
-            return response()->json(['error'=>'true','statusCode'=>422,'statusMessage'=>'Unprocessable Entity Error','data'=>$validation],422);
-        }
-
         if (request()->hasFile('attachment')){
             $uploadedImage = $request->file('attachment');
             $imageName = time() . '.' . $uploadedImage->getClientOriginalExtension();
@@ -54,7 +59,7 @@ class AccommodationServices
             'rent_advance' => $input["rent_advance"],
             'vendor_id' => $input["vendor_id"],
         ]);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$accommodationData],200);
+        return true;
     }
     /**
      * Display a listing of the Accommodation.
@@ -63,8 +68,7 @@ class AccommodationServices
      */
     public function show()
     {
-        $accommodationData = $this->accommodation::with('vendor')->paginate(10);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$accommodationData],200);
+        return $this->accommodation::with('vendor')->paginate(10);
     }
     /**
      * Display the data for edit form by using accommodation id.
@@ -74,24 +78,19 @@ class AccommodationServices
      */
     public function edit($id)
     {
-        $accommodationData = $this->accommodation::findorfail($id);
-        return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$accommodationData],200);
+        return $this->accommodation::findorfail($id);
     }
     /**
      * Update the specified Accommodation data.
      *
      * @param Request $request, $id
-     * @return JsonResponse
+     * @return true or false
      */
     public function update($id, $request)
     {     
         try {
             $data = $this->accommodation::findorfail($id);
             $input = $request->all();
-            $validation = $this->accommodation::validate($input);
-            if ($validation !== true) {
-                return response()->json(['error'=>'true','statusCode'=>422,'statusMessage'=>'Unprocessable Entity Error','data'=>$validation],422);
-            }
             if (request()->hasFile('attachment')){
                 $uploadedImage = $request->file('attachment');
                 $imageName = time() . '.' . $uploadedImage->getClientOriginalExtension();
@@ -100,27 +99,27 @@ class AccommodationServices
                 $input['attachment'] = "images/".$imageName;
             }
             $accommodationData = $data->update($input);
-            return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>$input],200);
+            return true;
     
         } catch (Exception $exception) {
-            return response()->json(['error'=>'false','statusCode'=>400,'statusMessage'=>'Bad Request','data'=>'"message": "You are not authorized to access the api."'],400);
+            return false;
         }
     }
     /**
      * delete the specified Accommodation data.
      *
      * @param $id
-     * @return JsonResponse
+     * @return true or false
      */    
     public function delete($id)
     {     
         try {
             $data = $this->accommodation::findorfail($id);
             $data->delete();
-            return response()->json(['error'=>'false','statusCode'=>200,'statusMessage'=>'Ok','data'=>''],200);
+            return true;
     
         } catch (Exception $exception) {
-            return response()->json(['error'=>'false','statusCode'=>400,'statusMessage'=>'Bad Request','data'=>'"message": "You are not authorized to access the api."'],400);
+            return false;
         }
     }
     /**
@@ -130,14 +129,8 @@ class AccommodationServices
      * @return JsonResponse
      */
     public function search($request)
-    {     
-        try {
-            $accommodation = $this->accommodation::where('accommodation_name', 'like', '%'.$request->name.'%')->get();   
-            return $accommodation;
-    
-        } catch (Exception $exception) {
-            return response()->json(['error'=>'false','statusCode'=>400,'statusMessage'=>'Bad Request','data'=>'"message": "You are not authorized to access the api."'],400);
-        }
+    {   
+        return $this->accommodation::where('accommodation_name', 'like', '%'.$request->name.'%')->get();   
     }
 
 }
