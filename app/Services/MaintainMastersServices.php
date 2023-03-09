@@ -6,28 +6,30 @@ use App\Models\Countries;
 
 class MaintainMastersServices
 {
+    private Countries $countries;
+
     /**
      * MaintainMastersServices constructor.
-     * @param Countries
+     * @param Countries $countries
      */
     public function __construct(Countries $countries)
     {
         $this->countries = $countries;
     }
+
     /**
      * @param $request
-     * @return JsonResponse
+     * @return mixed
      */
     public function create($request)
     {
         if(!($this->countries->validate($request))){
             return $this->countries->errors();
         }
-        $country = $this->countries->create([
+        return $this->countries->create([
             'country_name' => $request['country_name'] ?? '',
             'system_type' => $request['system_type'] ?? '',
             'fee' => $request['fee'] ?? 0
         ]);
-        return $country;
     }
 }
