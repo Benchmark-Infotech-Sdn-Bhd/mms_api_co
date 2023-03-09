@@ -14,10 +14,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('permissions', function (Blueprint $table) {
+            
+            // Permission id column
             $table->id();
+
+            // Permission name column
             $table->string('permission_name', 150);
+
+            // Permission status column
             $table->tinyInteger('status')->default(1)->unsigned()->index();
+
+            // Permission created time and modified time columns
             $table->timestamps();
+
+            // for soft delete
             $table->softDeletes();
         });
     }
