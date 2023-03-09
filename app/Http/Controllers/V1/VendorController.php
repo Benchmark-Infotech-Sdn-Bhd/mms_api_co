@@ -5,8 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Services\VendorServices;
-use App\Models\Vendor;
-use Illuminate\Support\Facades\Validator;
+use Exception;
 
 class VendorController extends Controller
 {
@@ -14,6 +13,10 @@ class VendorController extends Controller
      * @var vendorServices
      */
     private $vendorServices;
+    /**
+     * VendorServices constructor.
+     * @param VendorServices $vendorServices
+     */
     public function __construct(VendorServices $vendorServices)
     {
         $this->vendorServices = $vendorServices;
@@ -25,17 +28,17 @@ class VendorController extends Controller
      * @return JsonResponse
      */
     public function createVendor(Request $request)
-    {
-        
-        $validation = $this->vendorServices->inputValidation($request);
-        if ($validation !== true) {
-            return $this->validationError($validation);
-        }
-        $response = $this->vendorServices->create($request); 
-        if($response == true) {
+    {     
+        try {   
+            $validation = $this->vendorServices->inputValidation($request);
+            if ($validation) {
+                return $this->validationError($validation);
+            }
+            $this->vendorServices->create($request);             
             return $this->sendSuccess(['message' => "Successfully vendor was created"]);
-        } else {
-            return $this->sendError(['message' => "Vendor creation was failed"]);
+            
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Vendor creation was failed']);
         }
     }
 	 /**
@@ -45,8 +48,12 @@ class VendorController extends Controller
      */   
     public function showVendors()
     {   
-        $response = $this->vendorServices->show(); 
-        return $this->sendSuccess(['data' => $response]);
+        try {
+            $response = $this->vendorServices->show(); 
+            return $this->sendSuccess(['data' => $response]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Show Vendors was failed'], 400);
+        }
     }
 	 /**
      * Display the data for edit form by using Vendor id.
@@ -55,9 +62,13 @@ class VendorController extends Controller
      * @return JsonResponse
      */
     public function editVendors($id)
-    {        
-        $response = $this->vendorServices->edit($id); 
-        return $this->sendSuccess(['data' => $response]);
+    {     
+        try {   
+            $response = $this->vendorServices->edit($id); 
+            return $this->sendSuccess(['data' => $response]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Edit Vendors was failed'], 400);
+        }
     } 
 	 /**
      * Update the specified Vendor data.
@@ -66,16 +77,16 @@ class VendorController extends Controller
      * @return JsonResponse
      */
     public function updateVendors(Request $request, $id)
-    {           
-        $validation = $this->vendorServices->inputValidation($request);
-        if ($validation !== true) {
-            return $this->validationError($validation);
-        }            
-        $response = $this->vendorServices->updateData($id, $request); 
-        if($response == true) {
+    {    
+        try {       
+            $validation = $this->vendorServices->inputValidation($request);
+            if ($validation) {
+                return $this->validationError($validation);
+            }         
+            $this->vendorServices->updateData($id, $request);
             return $this->sendSuccess(['message' => "Successfully Vendor was updated"]);
-        } else {
-            return $this->sendError(['message' => 'Vendor update was failed']);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Vendor update was failed']);
         }
     }
 	 /**
@@ -86,12 +97,12 @@ class VendorController extends Controller
      */
     public function deleteVendors($id)
     {  
-        $response = $this->vendorServices->delete($id); 
-        if($response == true) {
+        try {
+            $this->vendorServices->delete($id); 
             return $this->sendSuccess(['message' => "Successfully Vendor was deleted"]);
-        } else {
-            return $this->sendError(['message' => 'Vendor delete was failed']);
-        }    
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Vendor delete was failed']);
+        }  
     }
     
 }

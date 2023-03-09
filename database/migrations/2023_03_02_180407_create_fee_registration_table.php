@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create('fee_registration', function (Blueprint $table) {
             $table->id();
-            $table->string('item')->nullable();
-            $table->string('fee_per_pax')->nullable();
-            $table->string('type')->nullable();
+            $table->string('item_name',255)->nullable();
+            $table->string('cost')->nullable();
+            $table->string('fee_type',150)->nullable();
             $table->string('applicable_for')->nullable();
-            $table->string('sectors')->nullable();
-            $table->softDeletes();
+            $table->string('sectors',150)->nullable();
+            $table->integer('created_by')->default(0);
+            $table->integer('modified_by')->default(0);            
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

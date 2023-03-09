@@ -13,16 +13,18 @@ return new class extends Migration
     {
         Schema::create('transportation', function (Blueprint $table) {
             $table->id();
-            $table->string('driver_name')->nullable();
-            $table->string('driver_contact_number')->nullable();
-            $table->string('driver_license_number')->nullable();
-            $table->string('vehicle_type')->nullable();
-            $table->string('number_plate')->nullable();
-            $table->string('vehicle_capacity')->nullable();
+            $table->string('driver_name',255)->nullable();
+            $table->string('driver_contact_number',20)->nullable();
+            $table->string('driver_license_number',150)->nullable();
+            $table->string('vehicle_type',150)->nullable();
+            $table->string('number_plate',20)->nullable();
+            $table->string('vehicle_capacity',150)->nullable();
             $table->bigInteger('vendor_id')->unsigned()->nullable();
             $table->foreign('vendor_id')->references('id')->on('vendors')->onDelete('cascade');
-            $table->softDeletes();
+            $table->integer('created_by')->default(0);
+            $table->integer('modified_by')->default(0);            
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

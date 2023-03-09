@@ -23,30 +23,29 @@ class FeeRegistrationServices
     }
     /**
      * @param $request
-     * @return true or false
+     * @return JsonResponse
      */
     public function inputValidation($request)
     {
-       $input = $request->all();
-       $validation = $this->feeRegistration::validate($input);
-       return $validation;
+        if(!($this->feeRegistration->validate($request->all()))){
+            return $this->feeRegistration->errors();
+        }
     }
     /**
      * Show the form for creating a new Fee Registration.
      *
      * @param Request $request
-     * @return true 
+     * @return mixed 
      */
     public function create($request)
     {  
-        $feeRegistrationData = $this->feeRegistration::create([
-            'item' => $request["item"],
-            'fee_per_pax' => $request["fee_per_pax"],
-            'type' => $request["type"],
+        return $this->feeRegistration::create([
+            'item_name' => $request["item_name"],
+            'cost' => $request["cost"],
+            'fee_type' => $request["fee_type"],
             'applicable_for' => $request["applicable_for"],
             'sectors' => $request["sectors"],
         ]);
-        return true;
     }
     /**
      * Display a listing of the Fee Registration data.
@@ -71,39 +70,22 @@ class FeeRegistrationServices
      * Update the specified Fee Registration data.
      *
      * @param Request $request, $id
-     * @return true or false
+     * @return bool
      */
     public function updateData($id, $request)
-    {     
-        try {
-            $input = $request->all();
-            $validation = $this->feeRegistration::validate($input);
-            if ($validation !== true) {
-                return response()->json(['error'=>'true','statusCode'=>422,'statusMessage'=>'Unprocessable Entity Error','data'=>$validation],422);
-            }
-            $data = $this->feeRegistration::findorfail($id);
-            $feeRegistration = $data->update($request->all());
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
-        }
+    {
+        $data = $this->feeRegistration::findorfail($id);
+        return $data->update($request->all());
     }
 	 /**
      * delete the specified Fee Registration data.
      *
      * @param $id
-     * @return true or false
+     * @return bool
      */    
     public function delete($id)
     {     
-        try {
-            $data = $this->feeRegistration::findorfail($id);
-            $data->delete();
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
-        }
+        $data = $this->feeRegistration::findorfail($id);
+        $data->delete();
     }
 }

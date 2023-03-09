@@ -18,8 +18,10 @@ return new class extends Migration
             $table->string('fee_per_pax')->nullable();
             $table->bigInteger('vendor_id')->unsigned()->nullable();
             $table->foreign('vendor_id')->references('id')->on('vendors')->onDelete('cascade');
-            $table->softDeletes();
+            $table->integer('created_by')->default(0);
+            $table->integer('modified_by')->default(0);            
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
