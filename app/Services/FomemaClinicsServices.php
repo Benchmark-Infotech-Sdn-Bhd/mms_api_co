@@ -23,23 +23,23 @@ class FomemaClinicsServices
     }
         /**
      * @param $request
-     * @return true or false
+     * @return JsonResponse
      */
     public function inputValidation($request)
     {
-       $input = $request->all();
-       $validation = $this->fomemaClinics::validate($input);
-       return $validation;
+        if(!($this->fomemaClinics->validate($request->all()))){
+            return $this->fomemaClinics->errors();
+        }
     }
 	 /**
      * Show the form for creating a new Fomema Clinics.
      *
      * @param Request $request
-     * @return true
+     * @return mixed
      */
     public function create($request)
     { 
-        $fomemaClinicsData = $this->fomemaClinics::create([
+        return $this->fomemaClinics::create([
             'clinic_name' => $request["clinic_name"],
             'person_in_charge' => $request["person_in_charge"],
             'pic_contact_number' => $request["pic_contact_number"],
@@ -48,7 +48,6 @@ class FomemaClinicsServices
             'city' => $request["city"],
             'postcode' => $request["postcode"],
         ]);
-        return true;
     }
 	 /**
      * Display a listing of the Fomema Clinics.
@@ -73,39 +72,22 @@ class FomemaClinicsServices
      * Update the specified Fomema Clinic data.
      *
      * @param Request $request, $id
-     * @return true or false
+     * @return bool
      */
     public function updateData($id, $request)
     {     
-        try {
-            $input = $request->all();
-            $validation = $this->fomemaClinics::validate($input);
-            if ($validation !== true) {
-                return response()->json(['error'=>'true','statusCode'=>422,'statusMessage'=>'Unprocessable Entity Error','data'=>$validation],422);
-            }
-            $data = $this->fomemaClinics::findorfail($id);
-            $fomemaClinicsData = $data->update($request->all());
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
-        }
+        $data = $this->fomemaClinics::findorfail($id);
+        return $data->update($request->all());
     }
 	 /**
      * delete the specified FomemaClinic data.
      *
      * @param $id
-     * @return true or false
+     * @return bool
      */    
     public function delete($id)
-    {     
-        try {
-            $data = $this->fomemaClinics::findorfail($id);
-            $data->delete();
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
-        }
+    {    
+        $data = $this->fomemaClinics::findorfail($id);
+        $data->delete();
     }
 }

@@ -23,24 +23,24 @@ class VendorServices
     }
 	 /**
      * @param $request
-     * @return true or false
+     * @return JsonResponse
      */
 
      public function inputValidation($request)
      {
-        $input = $request->all();
-        $validation = $this->vendor::validate($input);
-        return $validation;
+        if(!($this->vendor->validate($request->all()))){
+            return $this->vendor->errors();
+        }
      }
 	 /**
      * Show the form for creating a new Vendor.
      *
      * @param Request $request
-     * @return true
+     * @return mixed
      */
     public function create($request)
-    {   
-        $vendor = $this->vendor::create([
+    {  
+        return $this->vendor::create([
             'name' => $request["name"],
             'state' => $request["state"],
             'type' => $request["type"],
@@ -48,10 +48,7 @@ class VendorServices
             'contact_number' => $request["contact_number"],
             'email_address' => $request["email_address"],
             'address' => $request["address"],
-        ]);
-        return true;
-
-        
+        ]);      
     }
 	 /**
      * Display a listing of the Vendors.
@@ -80,39 +77,26 @@ class VendorServices
      * Update the specified Vendor data.
      *
      * @param Request $request, $id
-     * @return true or false
+     * @return bool
      */
     public function updateData($id, $request)
-    {             
-        try {
-            $vendors = $this->vendor::findorfail($id);
-            $data = $vendors->update($request->all());
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
-        }
+    {  
+        $vendors = $this->vendor::findorfail($id);
+        return $vendors->update($request->all());
     }
 	 /**
      * delete the specified Vendors data.
      *
      * @param $id
-     * @return true or false
+     * @return bool
      */    
     public function delete($id)
     {     
-        try {
-            // $data->delete();
-            $vendors = $this->vendor::find($id);
-            $vendors->accommodations()->delete();
-            $vendors->insurances()->delete();
-            $vendors->transportations()->delete();
-            $vendors->delete();
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
-        }
+        $vendors = $this->vendor::find($id);
+        $vendors->accommodations()->delete();
+        $vendors->insurances()->delete();
+        $vendors->transportations()->delete();
+        $vendors->delete();
     }
 
 }

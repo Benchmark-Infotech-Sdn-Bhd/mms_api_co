@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Response;
 use App\Services\TransportationServices;
-use App\Models\Transportation;
-use Illuminate\Support\Facades\Validator;
+use Exception;
+
 
 class TransportationController extends Controller
 {
@@ -15,7 +15,10 @@ class TransportationController extends Controller
      * @var transportationServices
      */
     private $transportationServices;
-
+    /**
+     * TransportationServices constructor.
+     * @param TransportationServices $transportationServices
+     */
     public function __construct(TransportationServices $transportationServices)
     {
         $this->transportationServices = $transportationServices;
@@ -28,15 +31,15 @@ class TransportationController extends Controller
      */
     public function createTransportation(Request $request)
     {
-        $validation = $this->transportationServices->inputValidation($request);
-        if ($validation !== true) {
-            return $this->validationError($validation);
-        }
-        $response = $this->transportationServices->create($request); 
-        if($response == true) {
+        try {
+            $validation = $this->transportationServices->inputValidation($request);
+            if ($validation) {
+                return $this->validationError($validation);
+            }
+            $this->transportationServices->create($request); 
             return $this->sendSuccess(['message' => "Successfully transportation was created"]);
-        } else {
-            return $this->sendError(['message' => "Transportation creation was failed"]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Transportation creation was failed']);
         }
     }
 	 /**
@@ -46,8 +49,12 @@ class TransportationController extends Controller
      */    
     public function showTransportation()
     {        
-        $response = $this->transportationServices->show(); 
-        return $this->sendSuccess(['data' => $response]);
+        try {
+            $response = $this->transportationServices->show(); 
+            return $this->sendSuccess(['data' => $response]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Show transportation was failed']);
+        }
     }
 	 /**
      * Display the data for edit form by using Transportation id.
@@ -57,8 +64,12 @@ class TransportationController extends Controller
      */
     public function editTransportation($id)
     {      
-        $response = $this->transportationServices->edit($id); 
-        return $this->sendSuccess(['data' => $response]);
+        try {
+            $response = $this->transportationServices->edit($id); 
+            return $this->sendSuccess(['data' => $response]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Edit transportation was failed']);
+        }
     } 
 	 /**
      * Update the specified Transportation data.
@@ -67,16 +78,16 @@ class TransportationController extends Controller
      * @return JsonResponse
      */
     public function updateTransportation(Request $request, $id)
-    {        
-        $validation = $this->transportationServices->inputValidation($request);
-        if ($validation !== true) {
-            return $this->validationError($validation);
-        }
-        $response = $this->transportationServices->updateData($id, $request); 
-        if($response == true) {
+    {   
+        try {     
+            $validation = $this->transportationServices->inputValidation($request);
+            if ($validation) {
+                return $this->validationError($validation);
+            }
+            $this->transportationServices->updateData($id, $request); 
             return $this->sendSuccess(['message' => "Successfully transportation was updated"]);
-        } else {
-            return $this->sendError(['message' => 'Transportation update was failed']);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Transportation update was failed']);
         }
     }
 	 /**
@@ -86,12 +97,12 @@ class TransportationController extends Controller
      * @return JsonResponse
      */
     public function deleteTransportation($id)
-    {       
-        $response = $this->transportationServices->delete($id); 
-        if($response == true) {
+    {     
+        try {  
+            $this->transportationServices->delete($id); 
             return $this->sendSuccess(['message' => "Successfully transportation was deleted"]);
-        } else {
-            return $this->sendError(['message' => 'Transportation delete was failed']);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'delete transportation was failed']);
         }
     }
 }

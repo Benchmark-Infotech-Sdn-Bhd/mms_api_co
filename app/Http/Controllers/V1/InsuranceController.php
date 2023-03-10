@@ -6,8 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Response;
 use App\Services\InsuranceServices;
-use App\Models\Insurance;
-use Illuminate\Support\Facades\Validator;
+use Exception;
 
 class InsuranceController extends Controller
 {
@@ -15,7 +14,10 @@ class InsuranceController extends Controller
      * @var insuranceServices
      */
     private $insuranceServices;
-
+    /**
+     * InsuranceServices constructor.
+     * @param InsuranceServices $insuranceServices
+     */
     public function __construct(InsuranceServices $insuranceServices)
     {
         $this->insuranceServices = $insuranceServices;
@@ -28,15 +30,15 @@ class InsuranceController extends Controller
      */
     public function createInsurance(Request $request)
     {
-        $validation = $this->insuranceServices->inputValidation($request);
-        if ($validation !== true) {
-            return $this->validationError($validation);
-        }
-        $response = $this->insuranceServices->create($request); 
-        if($response == true) {
+        try {
+            $validation = $this->insuranceServices->inputValidation($request);
+            if ($validation) {
+                return $this->validationError($validation);
+            }
+            $this->insuranceServices->create($request);
             return $this->sendSuccess(['message' => "Successfully insurance was created"]);
-        } else {
-            return $this->sendError(['message' => "Insurance creation was failed"]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Insurance creation was failed']);
         }
     }
 	 /**
@@ -45,10 +47,14 @@ class InsuranceController extends Controller
      * @return JsonResponse
      */    
     public function showInsurance()
-    {        
-        // $insurance = Insurance::paginate(10);
-        $response = $this->insuranceServices->show(); 
-        return $this->sendSuccess(['data' => $response]); 
+    {     
+        try {   
+            // $insurance = Insurance::paginate(10);
+            $response = $this->insuranceServices->show(); 
+            return $this->sendSuccess(['data' => $response]); 
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Show insurance was failed']);
+        }
     }
 	 /**
      * Display the data for edit form by using Insurance id.
@@ -58,10 +64,14 @@ class InsuranceController extends Controller
      */
     public function editInsurance($id)
     {   
-        // $insurance = Insurance::find($id);
-        // $vendors = $insurance->vendor;
-        $response = $this->insuranceServices->edit($id); 
-        return $this->sendSuccess(['data' => $response]);    
+        try {
+            // $insurance = Insurance::find($id);
+            // $vendors = $insurance->vendor;
+            $response = $this->insuranceServices->edit($id); 
+            return $this->sendSuccess(['data' => $response]);  
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Edit insurance was failed']);
+        }  
     } 
 	 /**
      * Update the specified Insurance data.
@@ -70,16 +80,16 @@ class InsuranceController extends Controller
      * @return JsonResponse
      */
     public function updateInsurance(Request $request, $id)
-    {        
-        $validation = $this->insuranceServices->inputValidation($request);
-        if ($validation !== true) {
-            return $this->validationError($validation);
-        }
-        $response = $this->insuranceServices->updateData($id, $request); 
-        if($response == true) {
+    {    
+        try {    
+            $validation = $this->insuranceServices->inputValidation($request);
+            if ($validation) {
+                return $this->validationError($validation);
+            }
+            $this->insuranceServices->updateData($id, $request); 
             return $this->sendSuccess(['message' => "Successfully insurance was updated"]);
-        } else {
-            return $this->sendError(['message' => 'Insurance update was failed']);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Insurance update was failed']);
         }
     }
 	 /**
@@ -89,13 +99,12 @@ class InsuranceController extends Controller
      * @return JsonResponse
      */
     public function deleteInsurance($id)
-    {      
-        $response = $this->insuranceServices->delete($id); 
-        if($response == true) {
-            return $this->sendSuccess(['message' => "Successfully insurance was deleted"]);
-        } else {
-            return $this->sendError(['message' => 'Insurance delete was failed']);
-        }  
-        
+    {     
+        try { 
+            $this->insuranceServices->delete($id);
+            return $this->sendSuccess(['message' => "Successfully insurance was deleted"]); 
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'delete insurance was failed']);
+        } 
     }
 }

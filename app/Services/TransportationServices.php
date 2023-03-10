@@ -23,23 +23,23 @@ class TransportationServices
     }
 	 /**
      * @param $request
-     * @return true or false
+     * @return JsonResponse
      */
     public function inputValidation($request)
     {
-       $input = $request->all();
-       $validation = $this->transportation::validate($input);
-       return $validation;
+       if(!($this->transportation->validate($request->all()))){
+           return $this->transportation->errors();
+       }
     }
 	 /**
      * Show the form for creating a new Transportation.
      *
      * @param Request $request
-     * @return true
+     * @return mixed
      */
     public function create($request)
     {   
-        $transportationData = $this->transportation::create([
+        return $this->transportation::create([
             'driver_name' => $request["driver_name"],
             'driver_contact_number' => $request["driver_contact_number"],
             'driver_license_number' => $request["driver_license_number"],
@@ -48,7 +48,6 @@ class TransportationServices
             'vehicle_capacity' => $request["vehicle_capacity"],
             'vendor_id' => $request["vendor_id"],
         ]);
-        return true;
     }
 	 /**
      * Display a listing of the Transportation.
@@ -73,34 +72,22 @@ class TransportationServices
      * Update the specified Transportation data.
      *
      * @param Request $request, $id
-     * @return true or false
+     * @return bool
      */
     public function updateData($id, $request)
     {     
-        try {
-            $data = $this->transportation::findorfail($id);
-            $transportationData = $data->update($request->all());
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
-        }
+        $data = $this->transportation::findorfail($id);
+        return $data->update($request->all());
     }
 	 /**
      * delete the specified Transportation data.
      *
      * @param $id
-     * @return true or false
+     * @return bool
      */    
     public function delete($id)
     {     
-        try {
-            $data = $this->transportation::findorfail($id);
-            $data->delete();
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
-        }
+        $data = $this->transportation::findorfail($id);
+        $data->delete();
     }
 }

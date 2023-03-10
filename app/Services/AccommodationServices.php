@@ -23,19 +23,19 @@ class AccommodationServices
     }
         /**
      * @param $request
-     * @return true or false
+     * @return JsonResponse
      */
     public function inputValidation($request)
     {
-       $input = $request->all();
-       $validation = $this->accommodation::validate($input);
-       return $validation;
+        if(!($this->accommodation->validate($request->all()))){
+            return $this->accommodation->errors();
+        }
     }
     /**
      * Show the form for creating a new Accommodation.
      *
      * @param Request $request
-     * @return true
+     * @return mixed
      */
     public function create($request)
     {     
@@ -47,19 +47,18 @@ class AccommodationServices
             $uploadedImage->move($destinationPath, $imageName);
             $input['attachment'] = "images/".$imageName;
         }
-        $accommodationData = $this->accommodation::create([
+        return $this->accommodation::create([
+            'name' => $input["name"],
+            'location' => $input["location"],
+            'square_feet' => $input["square_feet"],
             'accommodation_name' => $input["accommodation_name"],
-            'number_of_units' => $input["number_of_units"],
-            'number_of_rooms' => $input["number_of_rooms"],
             'maximum_pax_per_room' => $input["maximum_pax_per_room"],
             'cost_per_pax' => $input["cost_per_pax"],
             'attachment' => $input["attachment"],
-            'rent_deposit' => $input["rent_deposit"],
+            'deposit' => $input["rent_deposit"],
             'rent_per_month' => $input["rent_per_month"],
-            'rent_advance' => $input["rent_advance"],
             'vendor_id' => $input["vendor_id"],
         ]);
-        return true;
     }
     /**
      * Display a listing of the Accommodation.
@@ -84,43 +83,31 @@ class AccommodationServices
      * Update the specified Accommodation data.
      *
      * @param Request $request, $id
-     * @return true or false
+     * @return mixed
      */
     public function update($id, $request)
-    {     
-        try {
-            $data = $this->accommodation::findorfail($id);
-            $input = $request->all();
-            if (request()->hasFile('attachment')){
-                $uploadedImage = $request->file('attachment');
-                $imageName = time() . '.' . $uploadedImage->getClientOriginalExtension();
-                $destinationPath = storage_path('images');
-                $uploadedImage->move($destinationPath, $imageName);
-                $input['attachment'] = "images/".$imageName;
-            }
-            $accommodationData = $data->update($input);
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
+    {    
+        $data = $this->accommodation::findorfail($id);
+        $input = $request->all();
+        if (request()->hasFile('attachment')){
+            $uploadedImage = $request->file('attachment');
+            $imageName = time() . '.' . $uploadedImage->getClientOriginalExtension();
+            $destinationPath = storage_path('images');
+            $uploadedImage->move($destinationPath, $imageName);
+            $input['attachment'] = "images/".$imageName;
         }
+        return $data->update($input);
     }
     /**
      * delete the specified Accommodation data.
      *
      * @param $id
-     * @return true or false
+     * @return mixed
      */    
     public function delete($id)
-    {     
-        try {
-            $data = $this->accommodation::findorfail($id);
-            $data->delete();
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
-        }
+    {   
+        $data = $this->accommodation::findorfail($id);
+        $data->delete();
     }
     /**
      * searching Accommodation data.

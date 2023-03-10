@@ -5,8 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Services\FeeRegistrationServices;
-use App\Models\FeeRegistration;
-use Illuminate\Support\Facades\Validator;
+use Exception;
 
 class FeeRegistrationController extends Controller
 {
@@ -14,7 +13,10 @@ class FeeRegistrationController extends Controller
      * @var feeRegistrationServices
      */
     private $feeRegistrationServices;
-
+    /**
+     * FeeRegistrationServices constructor.
+     * @param FeeRegistrationServices $feeRegistrationServices
+     */
     public function __construct(FeeRegistrationServices $feeRegistrationServices)
     {
         $this->feeRegistrationServices = $feeRegistrationServices;
@@ -28,15 +30,15 @@ class FeeRegistrationController extends Controller
      */
     public function createFeeRegistration(Request $request)
     {
-        $validation = $this->feeRegistrationServices->inputValidation($request);
-        if ($validation !== true) {
-            return $this->validationError($validation);
-        }
-        $response = $this->feeRegistrationServices->create($request); 
-        if($response == true) {
+        try {
+            $validation = $this->feeRegistrationServices->inputValidation($request);
+            if ($validation) {
+                return $this->validationError($validation);
+            }
+            $this->feeRegistrationServices->create($request);
             return $this->sendSuccess(['message' => "Successfully Fee Registration was created"]);
-        } else {
-            return $this->sendError(['message' => "Fee Registration creation was failed"]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
         }
     }
     /**
@@ -45,9 +47,13 @@ class FeeRegistrationController extends Controller
      * @return JsonResponse
      */
     public function showFeeRegistration()
-    {        
-        $response = $this->feeRegistrationServices->show(); 
-		return $this->sendSuccess(['data' => $response]);
+    {      
+        try {  
+            $response = $this->feeRegistrationServices->show(); 
+            return $this->sendSuccess(['data' => $response]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Show fee registration was failed']);
+        }
     }
     /**
      * Display the data for edit form by using feeRegistration id.
@@ -57,8 +63,12 @@ class FeeRegistrationController extends Controller
      */
     public function editFeeRegistration($id)
     {    
-        $response = $this->feeRegistrationServices->edit($id); 
-		return $this->sendSuccess(['data' => $response]);
+        try {
+            $response = $this->feeRegistrationServices->edit($id); 
+            return $this->sendSuccess(['data' => $response]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Edit fee registration was failed']);
+        } 
     } 
 	 /**
      * Update the specified Fee Registration data.
@@ -67,16 +77,16 @@ class FeeRegistrationController extends Controller
      * @return JsonResponse
      */
     public function updateFeeRegistration(Request $request, $id)
-    {                
-        $validation = $this->feeRegistrationServices->inputValidation($request);
-        if ($validation !== true) {
-            return $this->validationError($validation);
-        }
-        $response = $this->feeRegistrationServices->updateData($id, $request); 
-        if($response == true) {
+    {             
+        try {   
+            $validation = $this->feeRegistrationServices->inputValidation($request);
+            if ($validation) {
+                return $this->validationError($validation);
+            }
+            $this->feeRegistrationServices->updateData($id, $request); 
             return $this->sendSuccess(['message' => "Successfully Fee Registration was updated"]);
-        } else {
-            return $this->sendError(['message' => 'Fee registration update was failed']);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Fee Registration update was failed']);
         }
     }
 	 /**
@@ -87,11 +97,11 @@ class FeeRegistrationController extends Controller
      */
     public function deleteFeeRegistration($id)
     {      
-        $response = $this->feeRegistrationServices->delete($id); 
-        if($response == true) {
+        try {
+            $this->feeRegistrationServices->delete($id);
             return $this->sendSuccess(['message' => "Successfully Fee Registration was deleted"]);
-        } else {
-            return $this->sendError(['message' => 'Fee Registration delete was failed']);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'delete insurance was failed']);
         } 
     }
     

@@ -23,29 +23,28 @@ class InsuranceServices
     }
     /**
      * @param $request
-     * @return true or false
+     * @return JsonResponse
      */
     public function inputValidation($request)
     {
-       $input = $request->all();
-       $validation = $this->insurance::validate($input);
-       return $validation;
+        if(!($this->insurance->validate($request->all()))){
+            return $this->insurance->errors();
+        }
     }
 	 /**
      * Show the form for creating a new Insurance.
      *
      * @param Request $request
-     * @return true
+     * @return mixed
      */
     public function create($request)
     {   
-        $insuranceData = $this->insurance::create([
+        return $this->insurance::create([
             'no_of_worker_from' => $request["no_of_worker_from"],
             'no_of_worker_to' => $request["no_of_worker_to"],
             'fee_per_pax' => $request["fee_per_pax"],
             'vendor_id' => $request["vendor_id"],
         ]);
-        return true;
     }
 	 /**
      * Display a listing of the Insurance.
@@ -70,39 +69,22 @@ class InsuranceServices
      * Update the specified Insurance data.
      *
      * @param Request $request, $id
-     * @return true or false
+     * @return bool
      */
     public function updateData($id, $request)
-    {     
-        try {
-            $input = $request->all();
-            $validation = $this->insurance::validate($input);
-            if ($validation !== true) {
-                return response()->json(['error'=>'true','statusCode'=>422,'statusMessage'=>'Unprocessable Entity Error','data'=>$validation],422);
-            }
-            $data = $this->insurance::findorfail($id);
-            $feeRegistration = $data->update($request->all());
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
-        }
+    {   
+        $data = $this->insurance::findorfail($id);
+        return $data->update($request->all());
     }
 	 /**
      * delete the specified Insurance data.
      *
      * @param $id
-     * @return true or false
+     * @return bool
      */    
     public function delete($id)
     {     
-        try {
-            $data = $this->insurance::findorfail($id);
-            $data->delete();
-            return true;
-    
-        } catch (Exception $exception) {
-            return false;
-        }
+        $data = $this->insurance::findorfail($id);
+        $data->delete();
     }
 }

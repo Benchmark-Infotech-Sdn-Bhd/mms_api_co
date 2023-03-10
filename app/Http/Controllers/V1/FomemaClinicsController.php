@@ -5,8 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Services\FomemaClinicsServices;
-use App\Models\FomemaClinics;
-use Illuminate\Support\Facades\Validator;
+use Exception;
 
 class FomemaClinicsController extends Controller
 {
@@ -14,7 +13,10 @@ class FomemaClinicsController extends Controller
      * @var fomemaClinicsServices
      */
     private $fomemaClinicsServices;
-
+    /**
+     * FomemaClinicsServices constructor.
+     * @param FomemaClinicsServices $fomemaClinicsServices
+     */
     public function __construct(FomemaClinicsServices $fomemaClinicsServices)
     {
         $this->fomemaClinicsServices = $fomemaClinicsServices;
@@ -27,15 +29,15 @@ class FomemaClinicsController extends Controller
      */
     public function createFomemaClinics(Request $request)
     {
-        $validation = $this->fomemaClinicsServices->inputValidation($request);
-        if ($validation !== true) {
-            return $this->validationError($validation);
-        }
-        $response = $this->fomemaClinicsServices->create($request); 
-        if($response == true) {
+        try {
+            $validation = $this->fomemaClinicsServices->inputValidation($request);
+            if ($validation) {
+                return $this->validationError($validation);
+            }
+            $this->fomemaClinicsServices->create($request); 
             return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was created"]);
-        } else {
-            return $this->sendError(['message' => "FOMEMA Clinics creation was failed"]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
         }
     }
 	 /**
@@ -44,9 +46,13 @@ class FomemaClinicsController extends Controller
      * @return JsonResponse
      */    
     public function showFomemaClinics()
-    {        
-        $response = $this->fomemaClinicsServices->show(); 
-		return $this->sendSuccess(['data' => $response]);
+    {     
+        try {   
+            $response = $this->fomemaClinicsServices->show(); 
+            return $this->sendSuccess(['data' => $response]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Show FOMEMA Clinics was failed']);
+        }
     }
 	 /**
      * Display the data for edit form by using Fomema Clinic id.
@@ -56,8 +62,12 @@ class FomemaClinicsController extends Controller
      */
     public function editFomemaClinics($id)
     {   
-        $response = $this->fomemaClinicsServices->edit($id); 
-		return $this->sendSuccess(['data' => $response]);
+        try {
+            $response = $this->fomemaClinicsServices->edit($id); 
+            return $this->sendSuccess(['data' => $response]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'Edit FOMEMA Clinics was failed']);
+        } 
     } 
 	 /**
      * Update the specified Fomema Clinic data.
@@ -66,16 +76,16 @@ class FomemaClinicsController extends Controller
      * @return JsonResponse
      */
     public function updateFomemaClinics(Request $request, $id)
-    {                
-        $validation = $this->fomemaClinicsServices->inputValidation($request);
-        if ($validation !== true) {
-            return $this->validationError($validation);
-        }
-        $response = $this->fomemaClinicsServices->updateData($id, $request); 
-        if($response == true) {
+    {    
+        try {            
+            $validation = $this->fomemaClinicsServices->inputValidation($request);
+            if ($validation) {
+                return $this->validationError($validation);
+            }
+            $this->fomemaClinicsServices->updateData($id, $request); 
             return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was updated"]);
-        } else {
-            return $this->sendError(['message' => "FOMEMA Clinics creation was failed"]);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'FOMEMA Clinics update was failed']);
         }
     }
 	 /**
@@ -86,11 +96,11 @@ class FomemaClinicsController extends Controller
      */
     public function deleteFomemaClinics($id)
     {    
-        $response = $this->fomemaClinicsServices->delete($id); 
-        if($response == true) {
+        try {
+            $this->fomemaClinicsServices->delete($id); 
             return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was deleted"]);
-        } else {
-            return $this->sendError(['message' => 'FOMEMA Clinics delete was failed']);
+        } catch (Exception $exception) {
+            $this->sendError(['message' => 'delete insurance was failed']);
         }         
     }
     

@@ -13,15 +13,17 @@ return new class extends Migration
     {
         Schema::create('fomema_clinics', function (Blueprint $table) {
             $table->id();
-            $table->string('clinic_name')->nullable();
-            $table->string('person_in_charge')->nullable();
-            $table->string('pic_contact_number')->nullable();
+            $table->string('clinic_name',255)->nullable();
+            $table->string('person_in_charge',255)->nullable();
+            $table->string('pic_contact_number',20)->nullable();
             $table->string('address')->nullable();
-            $table->string('state')->nullable();
-            $table->string('city')->nullable();
+            $table->string('state',150)->nullable();
+            $table->string('city',150)->nullable();
             $table->integer('postcode')->nullable();
-            $table->softDeletes();
+            $table->integer('created_by')->default(0);
+            $table->integer('modified_by')->default(0);            
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
