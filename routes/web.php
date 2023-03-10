@@ -21,20 +21,23 @@ $router->group(['prefix' => 'api/v1'], function () use ($router) {
     Route::post('create_vendor', 'V1\VendorController@createVendor');
     Route::get('show_vendors', 'V1\VendorController@showVendors');
     Route::get('edit_vendors/{id}', 'V1\VendorController@editVendors');
-    Route::put('update_vendors/{id}', 'V1\VendorController@updateVendors');
+    Route::post('update_vendors/{id}', 'V1\VendorController@updateVendors');
     Route::delete('delete_vendors/{id}', 'V1\VendorController@deleteVendors');
+    Route::post('search_vendors', 'V1\VendorController@searchVendors');
 
     Route::post('create_clinic', 'V1\FomemaClinicsController@createFomemaClinics');
     Route::get('show_clinic', 'V1\FomemaClinicsController@showFomemaClinics');
     Route::get('edit_clinic/{id}', 'V1\FomemaClinicsController@editFomemaClinics');
     Route::put('update_clinic/{id}', 'V1\FomemaClinicsController@updateFomemaClinics');
     Route::delete('delete_clinic/{id}', 'V1\FomemaClinicsController@deleteFomemaClinics');
+    Route::post('search_fomema_clinics', 'V1\FomemaClinicsController@searchFomemaClinics');
 
     Route::post('create_fee', 'V1\FeeRegistrationController@createFeeRegistration');
     Route::get('show_fee', 'V1\FeeRegistrationController@showFeeRegistration');
     Route::get('edit_fee/{id}', 'V1\FeeRegistrationController@editFeeRegistration');
     Route::put('update_fee/{id}', 'V1\FeeRegistrationController@updateFeeRegistration');
     Route::delete('delete_fee/{id}', 'V1\FeeRegistrationController@deleteFeeRegistration');
+    Route::post('search_feeRegistration', 'V1\FeeRegistrationController@searchFeeRegistration');
 
     Route::post('create_accommodation', 'V1\AccommodationController@createAccommodation');
     Route::get('show_accommodation', 'V1\AccommodationController@showAccommodation');
@@ -48,11 +51,13 @@ $router->group(['prefix' => 'api/v1'], function () use ($router) {
     Route::get('edit_insurance/{id}', 'V1\InsuranceController@editInsurance');
     Route::put('update_insurance/{id}', 'V1\InsuranceController@updateInsurance');
     Route::delete('delete_insurance/{id}', 'V1\InsuranceController@deleteInsurance');
+    Route::post('search_insurance', 'V1\InsuranceController@searchInsurance');
 
     Route::post('create_transportation', 'V1\TransportationController@createTransportation');
     Route::get('show_transportation', 'V1\TransportationController@showTransportation');
     Route::get('edit_transportation/{id}', 'V1\TransportationController@editTransportation');
     Route::put('update_transportation/{id}', 'V1\TransportationController@updateTransportation');
     Route::delete('delete_transportation/{id}', 'V1\TransportationController@deleteTransportation');
+    Route::post('search_transportation', 'V1\TransportationController@searchTransportation');
     
 });

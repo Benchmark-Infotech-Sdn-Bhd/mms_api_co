@@ -4,11 +4,9 @@
 namespace App\Services;
 
 use App\Models\Accommodation;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class AccommodationServices
 {
@@ -21,9 +19,9 @@ class AccommodationServices
     {
         $this->accommodation = $accommodation;
     }
-        /**
+    /**
      * @param $request
-     * @return JsonResponse
+     * @return mixed | void
      */
     public function inputValidation($request)
     {
@@ -34,18 +32,18 @@ class AccommodationServices
     /**
      * Show the form for creating a new Accommodation.
      *
-     * @param Request $request
+     * @param $request
      * @return mixed
      */
-    public function create($request)
+    public function create($request): mixed
     {     
         $input = $request->all();
         if (request()->hasFile('attachment')){
-            $uploadedImage = $request->file('attachment');
-            $imageName = time() . '.' . $uploadedImage->getClientOriginalExtension();
-            $destinationPath = storage_path('images');
-            $uploadedImage->move($destinationPath, $imageName);
-            $input['attachment'] = "images/".$imageName;
+            $uploadedfile = $request->file('attachment');
+            $fileName = time() . '.' . $uploadedfile->getClientOriginalExtension();
+            $destinationPath = storage_path('uploads');
+            $uploadedfile->move($destinationPath, $fileName);
+            $input['attachment'] = "uploads/".$fileName;
         }
         return $this->accommodation::create([
             'name' => $input["name"],
@@ -55,7 +53,7 @@ class AccommodationServices
             'maximum_pax_per_room' => $input["maximum_pax_per_room"],
             'cost_per_pax' => $input["cost_per_pax"],
             'attachment' => $input["attachment"],
-            'deposit' => $input["rent_deposit"],
+            'deposit' => $input["deposit"],
             'rent_per_month' => $input["rent_per_month"],
             'vendor_id' => $input["vendor_id"],
         ]);
@@ -63,7 +61,7 @@ class AccommodationServices
     /**
      * Display a listing of the Accommodation.
      *
-     * @return JsonResponse
+     * @return LengthAwarePaginator
      */
     public function show()
     {
@@ -82,19 +80,20 @@ class AccommodationServices
     /**
      * Update the specified Accommodation data.
      *
-     * @param Request $request, $id
+     * @param $id
+     * @param $request
      * @return mixed
      */
-    public function update($id, $request)
+    public function update($id, $request): mixed
     {    
         $data = $this->accommodation::findorfail($id);
         $input = $request->all();
         if (request()->hasFile('attachment')){
-            $uploadedImage = $request->file('attachment');
-            $imageName = time() . '.' . $uploadedImage->getClientOriginalExtension();
-            $destinationPath = storage_path('images');
-            $uploadedImage->move($destinationPath, $imageName);
-            $input['attachment'] = "images/".$imageName;
+            $uploadedfile = $request->file('attachment');
+            $fileName = time() . '.' . $uploadedfile->getClientOriginalExtension();
+            $destinationPath = storage_path('uploads');
+            $uploadedfile->move($destinationPath, $fileName);
+            $input['attachment'] = "uploads/".$fileName;
         }
         return $data->update($input);
     }
@@ -102,9 +101,9 @@ class AccommodationServices
      * delete the specified Accommodation data.
      *
      * @param $id
-     * @return mixed
+     * @return void
      */    
-    public function delete($id)
+    public function delete($id): void
     {   
         $data = $this->accommodation::findorfail($id);
         $data->delete();
@@ -112,12 +111,22 @@ class AccommodationServices
     /**
      * searching Accommodation data.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param $request
+     * @return mixed
      */
-    public function search($request)
-    {   
-        return $this->accommodation::where('accommodation_name', 'like', '%'.$request->name.'%')->get();   
+    public function search($request): mixed
+    {
+        return $this->accommodation->where('accommodation_name', 'like', '%' . $request->name . '%')->get(['name',
+            'location',
+            'square_feet',
+            'accommodation_name',
+            'maximum_pax_per_room',
+            'cost_per_pax',
+            'attachment',
+            'deposit',
+            'rent_per_month',
+            'vendor_id',
+            'id']);
     }
 
 }

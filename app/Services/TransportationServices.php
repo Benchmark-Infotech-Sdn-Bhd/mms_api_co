@@ -4,11 +4,9 @@
 namespace App\Services;
 
 use App\Models\Transportation;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class TransportationServices
 {
@@ -21,9 +19,9 @@ class TransportationServices
     {
         $this->transportation = $transportation;
     }
-	 /**
+    /**
      * @param $request
-     * @return JsonResponse
+     * @return mixed | void
      */
     public function inputValidation($request)
     {
@@ -37,7 +35,7 @@ class TransportationServices
      * @param Request $request
      * @return mixed
      */
-    public function create($request)
+    public function create($request): mixed
     {   
         return $this->transportation::create([
             'driver_name' => $request["driver_name"],
@@ -52,7 +50,7 @@ class TransportationServices
 	 /**
      * Display a listing of the Transportation.
      *
-     * @return JsonResponse
+     * @return LengthAwarePaginator
      */
     public function show()
     {
@@ -71,10 +69,11 @@ class TransportationServices
 	 /**
      * Update the specified Transportation data.
      *
-     * @param Request $request, $id
-     * @return bool
+     * @param $id
+     * @param $request
+     * @return mixed
      */
-    public function updateData($id, $request)
+    public function updateData($id, $request): mixed
     {     
         $data = $this->transportation::findorfail($id);
         return $data->update($request->all());
@@ -83,11 +82,28 @@ class TransportationServices
      * delete the specified Transportation data.
      *
      * @param $id
-     * @return bool
+     * @return void
      */    
-    public function delete($id)
+    public function delete($id): void
     {     
         $data = $this->transportation::findorfail($id);
         $data->delete();
+    }
+    /**
+     * searching transportation data.
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function search($request): mixed
+    {
+        return $this->transportation->where('driver_name', 'like', '%' . $request->driver_name . '%')->get(['driver_name',
+            'driver_contact_number',
+            'driver_license_number',
+            'vehicle_type',
+            'number_plate',
+            'vehicle_capacity',
+            'vendor_id',
+            'id']);
     }
 }

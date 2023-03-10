@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('square_feet',150)->nullable();
             $table->string('accommodation_name',255)->nullable();
             $table->string('maximum_pax_per_room',150)->nullable();
-            $table->string('cost_per_pax',150)->nullable();
+            $table->float('cost_per_pax',150)->nullable();
             $table->string('attachment')->nullable();
             $table->string('deposit',150)->nullable();
             $table->string('rent_per_month',150)->nullable();

@@ -1,11 +1,13 @@
 <?php
 
 namespace App\Http\Controllers\V1;
-use App\Http\Controllers\Controller;
+
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use App\Http\Controllers\Controller;
 use App\Services\FeeRegistrationServices;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class FeeRegistrationController extends Controller
 {
@@ -28,7 +30,7 @@ class FeeRegistrationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function createFeeRegistration(Request $request)
+    public function createFeeRegistration(Request $request): JsonResponse
     {
         try {
             $validation = $this->feeRegistrationServices->inputValidation($request);
@@ -38,6 +40,7 @@ class FeeRegistrationController extends Controller
             $this->feeRegistrationServices->create($request);
             return $this->sendSuccess(['message' => "Successfully Fee Registration was created"]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
         }
     }
@@ -46,12 +49,13 @@ class FeeRegistrationController extends Controller
      *
      * @return JsonResponse
      */
-    public function showFeeRegistration()
+    public function showFeeRegistration(): JsonResponse
     {      
         try {  
             $response = $this->feeRegistrationServices->show(); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Show fee registration was failed']);
         }
     }
@@ -61,12 +65,13 @@ class FeeRegistrationController extends Controller
      * @param $id
      * @return JsonResponse
      */
-    public function editFeeRegistration($id)
+    public function editFeeRegistration($id): JsonResponse
     {    
         try {
             $response = $this->feeRegistrationServices->edit($id); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Edit fee registration was failed']);
         } 
     } 
@@ -76,7 +81,7 @@ class FeeRegistrationController extends Controller
      * @param Request $request, $id
      * @return JsonResponse
      */
-    public function updateFeeRegistration(Request $request, $id)
+    public function updateFeeRegistration(Request $request, $id): JsonResponse
     {             
         try {   
             $validation = $this->feeRegistrationServices->inputValidation($request);
@@ -86,6 +91,7 @@ class FeeRegistrationController extends Controller
             $this->feeRegistrationServices->updateData($id, $request); 
             return $this->sendSuccess(['message' => "Successfully Fee Registration was updated"]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Fee Registration update was failed']);
         }
     }
@@ -95,14 +101,32 @@ class FeeRegistrationController extends Controller
      * @param $id
      * @return JsonResponse
      */
-    public function deleteFeeRegistration($id)
+    public function deleteFeeRegistration($id): JsonResponse
     {      
         try {
             $this->feeRegistrationServices->delete($id);
             return $this->sendSuccess(['message' => "Successfully Fee Registration was deleted"]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'delete insurance was failed']);
         } 
+    }
+
+    /**
+     * searching Fee Registration data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchFeeRegistration(Request $request): JsonResponse
+    {
+        try{
+            $response = $this->feeRegistrationServices->search($request);
+            return $this->sendSuccess(['data' => $response]);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'search Fee Registration was failed']);
+        }
     }
     
 }

@@ -65,11 +65,4 @@ class FeeRegistration extends Model
     {
         return $this->errors;
     }
-    /**
-     * @return hasMany
-     */
-    public function feeRegistration()
-    {
-        return $this->hasMany(FeeRegistration::class);
-    }
 }

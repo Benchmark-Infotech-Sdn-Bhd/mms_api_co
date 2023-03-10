@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Vendor extends Model
 {
@@ -22,13 +23,17 @@ class Vendor extends Model
      */
     protected $fillable = [
         'name',
-        'state',
         'type',
-        'person_in_charge',
-        'contact_number',
         'email_address',
+        'contact_number',
+        'person_in_charge',
+        'pic_contact_number',
         'address',
-
+        'state',
+        'city',
+        'postcode',
+        'attachments',
+        'remarks',
     ];
     /**
      * The attributes that are required.
@@ -37,12 +42,16 @@ class Vendor extends Model
      */
     private $rules = [
         'name' => 'required|max:150',
-        'state' => 'required',
         'type' => 'required',
-        'person_in_charge' => 'required',
-        'contact_number' => 'required',
         'email_address' => 'required',
+        'contact_number' => 'required',
+        'person_in_charge' => 'required',
+        'pic_contact_number' => 'required',
         'address' => 'required',
+        'state' => 'required',
+        'city' => 'required',
+        'postcode' => 'required',
+        'attachments' => 'required',
     ];
     /**
      * The attributes that store validation errors.
