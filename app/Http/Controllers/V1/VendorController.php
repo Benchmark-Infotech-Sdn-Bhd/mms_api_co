@@ -14,7 +14,7 @@ class VendorController extends Controller
     /**
      * @var vendorServices
      */
-    private $vendorServices;
+    private VendorServices $vendorServices;
     /**
      * VendorServices constructor.
      * @param VendorServices $vendorServices
@@ -39,7 +39,7 @@ class VendorController extends Controller
             $this->vendorServices->create($request);             
             return $this->sendSuccess(['message' => "Successfully vendor was created"]);
             
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Vendor creation was failed']);
         }
@@ -54,7 +54,7 @@ class VendorController extends Controller
         try {
             $response = $this->vendorServices->show(); 
             return $this->sendSuccess(['data' => $response]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Show Vendors was failed'], 400);
         }
@@ -70,7 +70,7 @@ class VendorController extends Controller
         try {   
             $response = $this->vendorServices->edit($id); 
             return $this->sendSuccess(['data' => $response]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Edit Vendors was failed'], 400);
         }
@@ -90,7 +90,7 @@ class VendorController extends Controller
             }         
             $this->vendorServices->updateData($id, $request);
             return $this->sendSuccess(['message' => "Successfully Vendor was updated"]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Vendor update was failed']);
         }
@@ -106,7 +106,7 @@ class VendorController extends Controller
         try {
             $this->vendorServices->delete($id); 
             return $this->sendSuccess(['message' => "Successfully Vendor was deleted"]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Vendor delete was failed']);
         }  

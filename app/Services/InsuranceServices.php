@@ -13,7 +13,7 @@ class InsuranceServices
     /**
      * @var Insurance
      */
-    private $insurance;
+    private Insurance $insurance;
 
     public function __construct(Insurance $insurance)
     {

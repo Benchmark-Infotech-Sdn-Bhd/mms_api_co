@@ -13,7 +13,7 @@ class AccommodationServices
     /**
      * @var accommodation
      */
-    private $accommodation;
+    private Accommodation   $accommodation;
 
     public function __construct(Accommodation $accommodation)
     {
