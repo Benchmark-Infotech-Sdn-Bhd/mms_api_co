@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use OwenIt\Auditing\Contracts\Auditable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+class Role extends Model implements Auditable
+{
+    use \OwenIt\Auditing\Auditable;
+
+    protected $table = 'roles';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var string[]
+     */
+    protected $fillable = [
+        'role_name', 'system_role', 'status', 'parent_id', 'created_by', 'modified_by'
+    ];
+
+    /**
+     * @return BelongsToMany
+     */
+    public function RoleModules(): BelongsToMany
+    {
+        return $this->belongsToMany(Module::class, 'role_permission', 'role_id', 'module_id');
+    }
+}
