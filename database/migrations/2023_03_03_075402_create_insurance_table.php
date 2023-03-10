@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('insurance', function (Blueprint $table) {
             $table->id();
-            $table->string('no_of_worker_from')->nullable();
-            $table->string('no_of_worker_to')->nullable();
-            $table->string('fee_per_pax')->nullable();
+            $table->integer('no_of_worker_from')->nullable();
+            $table->integer('no_of_worker_to')->nullable();
+            $table->float('fee_per_pax')->nullable();
             $table->bigInteger('vendor_id')->unsigned()->nullable();
             $table->foreign('vendor_id')->references('id')->on('vendors')->onDelete('cascade');
             $table->integer('created_by')->default(0);

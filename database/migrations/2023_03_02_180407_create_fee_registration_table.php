@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('fee_registration', function (Blueprint $table) {
             $table->id();
             $table->string('item_name',255)->nullable();
-            $table->string('cost')->nullable();
+            $table->float('cost')->nullable();
             $table->string('fee_type',150)->nullable();
             $table->string('applicable_for')->nullable();
             $table->string('sectors',150)->nullable();

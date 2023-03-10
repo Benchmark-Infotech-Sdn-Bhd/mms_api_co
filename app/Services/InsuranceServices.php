@@ -4,11 +4,9 @@
 namespace App\Services;
 
 use App\Models\Insurance;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class InsuranceServices
 {
@@ -23,7 +21,7 @@ class InsuranceServices
     }
     /**
      * @param $request
-     * @return JsonResponse
+     * @return mixed | void
      */
     public function inputValidation($request)
     {
@@ -37,7 +35,7 @@ class InsuranceServices
      * @param Request $request
      * @return mixed
      */
-    public function create($request)
+    public function create($request): mixed
     {   
         return $this->insurance::create([
             'no_of_worker_from' => $request["no_of_worker_from"],
@@ -49,7 +47,7 @@ class InsuranceServices
 	 /**
      * Display a listing of the Insurance.
      *
-     * @return JsonResponse
+     * @return LengthAwarePaginator
      */ 
     public function show()
     {
@@ -68,10 +66,11 @@ class InsuranceServices
 	 /**
      * Update the specified Insurance data.
      *
-     * @param Request $request, $id
-     * @return bool
+     * @param $id
+     * @param $request
+     * @return mixed
      */
-    public function updateData($id, $request)
+    public function updateData($id, $request): mixed
     {   
         $data = $this->insurance::findorfail($id);
         return $data->update($request->all());
@@ -80,11 +79,25 @@ class InsuranceServices
      * delete the specified Insurance data.
      *
      * @param $id
-     * @return bool
+     * @return void
      */    
-    public function delete($id)
+    public function delete($id): void
     {     
         $data = $this->insurance::findorfail($id);
         $data->delete();
+    }
+    /**
+     * searching Insurance data.
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function search($request): mixed
+    {
+        return $this->insurance->where('no_of_worker_from', 'like', '%' . $request->no_of_worker_from . '%')->get(['no_of_worker_from',
+            'no_of_worker_to',
+            'fee_per_pax',
+            'vendor_id',
+            'id']);
     }
 }

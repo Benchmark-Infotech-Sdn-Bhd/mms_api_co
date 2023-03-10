@@ -69,11 +69,5 @@ class FomemaClinics extends Model
     {
         return $this->errors;
     }
-    /**
-     * @return hasMany
-     */
-    public function fomemaClinics()
-    {
-        return $this->hasMany(FomemaClinics::class);
-    }
+
 }

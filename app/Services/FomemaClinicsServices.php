@@ -4,11 +4,9 @@
 namespace App\Services;
 
 use App\Models\FomemaClinics;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class FomemaClinicsServices
 {
@@ -21,9 +19,9 @@ class FomemaClinicsServices
     {
         $this->fomemaClinics = $fomemaClinics;
     }
-        /**
+    /**
      * @param $request
-     * @return JsonResponse
+     * @return mixed | void
      */
     public function inputValidation($request)
     {
@@ -37,7 +35,7 @@ class FomemaClinicsServices
      * @param Request $request
      * @return mixed
      */
-    public function create($request)
+    public function create($request): mixed
     { 
         return $this->fomemaClinics::create([
             'clinic_name' => $request["clinic_name"],
@@ -52,7 +50,7 @@ class FomemaClinicsServices
 	 /**
      * Display a listing of the Fomema Clinics.
      *
-     * @return JsonResponse
+     * @return LengthAwarePaginator
      */ 
     public function show()
     {
@@ -71,10 +69,11 @@ class FomemaClinicsServices
 	 /**
      * Update the specified Fomema Clinic data.
      *
-     * @param Request $request, $id
-     * @return bool
+     * @param $id
+     * @param $request
+     * @return mixed
      */
-    public function updateData($id, $request)
+    public function updateData($id, $request): mixed
     {     
         $data = $this->fomemaClinics::findorfail($id);
         return $data->update($request->all());
@@ -83,11 +82,28 @@ class FomemaClinicsServices
      * delete the specified FomemaClinic data.
      *
      * @param $id
-     * @return bool
+     * @return void
      */    
-    public function delete($id)
+    public function delete($id): void
     {    
         $data = $this->fomemaClinics::findorfail($id);
         $data->delete();
+    }
+    /**
+     * searching FOMEMA Clinics data.
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function search($request): mixed
+    {
+        return $this->fomemaClinics->where('clinic_name', 'like', '%' . $request->clinic_name . '%')->get(['clinic_name',
+            'person_in_charge',
+            'pic_contact_number',
+            'address',
+            'state',
+            'city',
+            'postcode',
+            'id']);
     }
 }

@@ -1,11 +1,13 @@
 <?php
 
 namespace App\Http\Controllers\V1;
-use App\Http\Controllers\Controller;
+
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use App\Http\Controllers\Controller;
 use App\Services\VendorServices;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class VendorController extends Controller
 {
@@ -27,7 +29,7 @@ class VendorController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function createVendor(Request $request)
+    public function createVendor(Request $request): JsonResponse
     {     
         try {   
             $validation = $this->vendorServices->inputValidation($request);
@@ -38,6 +40,7 @@ class VendorController extends Controller
             return $this->sendSuccess(['message' => "Successfully vendor was created"]);
             
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Vendor creation was failed']);
         }
     }
@@ -46,12 +49,13 @@ class VendorController extends Controller
      *
      * @return JsonResponse
      */   
-    public function showVendors()
+    public function showVendors(): JsonResponse
     {   
         try {
             $response = $this->vendorServices->show(); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Show Vendors was failed'], 400);
         }
     }
@@ -61,12 +65,13 @@ class VendorController extends Controller
      * @param $id
      * @return JsonResponse
      */
-    public function editVendors($id)
+    public function editVendors($id): JsonResponse
     {     
         try {   
             $response = $this->vendorServices->edit($id); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Edit Vendors was failed'], 400);
         }
     } 
@@ -76,7 +81,7 @@ class VendorController extends Controller
      * @param Request $request, $id
      * @return JsonResponse
      */
-    public function updateVendors(Request $request, $id)
+    public function updateVendors(Request $request, $id): JsonResponse
     {    
         try {       
             $validation = $this->vendorServices->inputValidation($request);
@@ -86,6 +91,7 @@ class VendorController extends Controller
             $this->vendorServices->updateData($id, $request);
             return $this->sendSuccess(['message' => "Successfully Vendor was updated"]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Vendor update was failed']);
         }
     }
@@ -95,14 +101,31 @@ class VendorController extends Controller
      * @param $id
      * @return JsonResponse
      */
-    public function deleteVendors($id)
+    public function deleteVendors($id): JsonResponse
     {  
         try {
             $this->vendorServices->delete($id); 
             return $this->sendSuccess(['message' => "Successfully Vendor was deleted"]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Vendor delete was failed']);
         }  
+    }
+    /**
+     * searching Vendors data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchVendors(Request $request): JsonResponse
+    {
+        try{
+            $response = $this->vendorServices->search($request);
+            return $this->sendSuccess(['data' => $response]);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'search vendor was failed']);
+        }
     }
     
 }

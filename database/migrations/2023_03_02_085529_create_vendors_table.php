@@ -14,12 +14,17 @@ return new class extends Migration
         Schema::create('vendors', function (Blueprint $table) {
             $table->id();
             $table->string('name',255)->nullable();
-            $table->string('state',150)->nullable();
             $table->string('type',150)->nullable();
-            $table->string('person_in_charge',255)->nullable();
-            $table->string('contact_number',20)->nullable();
             $table->string('email_address',150)->nullable();
-            $table->string('address')->nullable();
+            $table->string('contact_number',20)->nullable();
+            $table->string('person_in_charge',255)->nullable();
+            $table->string('pic_contact_number',255)->nullable();
+            $table->string('address',255)->nullable();
+            $table->string('state',150)->nullable();
+            $table->string('city',150)->nullable();
+            $table->string('postcode',20)->nullable();
+            $table->string('attachments')->nullable();
+            $table->string('remarks',150)->nullable();
             $table->integer('created_by')->default(0);
             $table->integer('modified_by')->default(0);            
             $table->timestamps();

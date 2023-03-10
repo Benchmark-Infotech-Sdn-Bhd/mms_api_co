@@ -4,11 +4,9 @@
 namespace App\Services;
 
 use App\Models\FeeRegistration;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class FeeRegistrationServices
 {
@@ -23,7 +21,7 @@ class FeeRegistrationServices
     }
     /**
      * @param $request
-     * @return JsonResponse
+     * @return mixed | void
      */
     public function inputValidation($request)
     {
@@ -37,7 +35,7 @@ class FeeRegistrationServices
      * @param Request $request
      * @return mixed 
      */
-    public function create($request)
+    public function create($request): mixed
     {  
         return $this->feeRegistration::create([
             'item_name' => $request["item_name"],
@@ -50,7 +48,7 @@ class FeeRegistrationServices
     /**
      * Display a listing of the Fee Registration data.
      *
-     * @return JsonResponse
+     * @return LengthAwarePaginator
      */
     public function show()
     {
@@ -69,10 +67,11 @@ class FeeRegistrationServices
 	 /**
      * Update the specified Fee Registration data.
      *
-     * @param Request $request, $id
-     * @return bool
+     * @param $id
+     * @param $request
+     * @return mixed
      */
-    public function updateData($id, $request)
+    public function updateData($id, $request): mixed
     {
         $data = $this->feeRegistration::findorfail($id);
         return $data->update($request->all());
@@ -81,11 +80,29 @@ class FeeRegistrationServices
      * delete the specified Fee Registration data.
      *
      * @param $id
-     * @return bool
+     * @return void
      */    
-    public function delete($id)
+    public function delete($id): void
     {     
         $data = $this->feeRegistration::findorfail($id);
         $data->delete();
+    }
+
+    /**
+     * searching Fee Registration data.
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function search($request): mixed
+    {
+        return $this->feeRegistration->where('item_name', 'like', '%' . $request->item_name . '%')->get(
+            ['id',
+            'item_name',
+            'cost',
+            'fee_type',
+            'applicable_for',
+            'sectors']
+        );
     }
 }

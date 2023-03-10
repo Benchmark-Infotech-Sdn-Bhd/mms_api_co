@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\V1;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Response;
 use App\Services\AccommodationServices;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class AccommodationController extends Controller
 {
@@ -29,9 +30,10 @@ class AccommodationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function createAccommodation(Request $request)
+    public function createAccommodation(Request $request): JsonResponse
     {
         try {
+            
             $validation = $this->accommodationServices->inputValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
@@ -39,6 +41,7 @@ class AccommodationController extends Controller
             $response = $this->accommodationServices->create($request); 
             return $this->sendSuccess(['message' => "Successfully Accommodation was created"]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Accommodation creation was failed']);
         }
     }
@@ -48,12 +51,13 @@ class AccommodationController extends Controller
      *
      * @return JsonResponse
      */
-    public function showAccommodation()
+    public function showAccommodation(): JsonResponse
     {        
         try {
             $response = $this->accommodationServices->show(); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Show accommodation was failed']);
         }
     }
@@ -64,12 +68,13 @@ class AccommodationController extends Controller
      * @param $id
      * @return JsonResponse
      */
-    public function editAccommodation($id)
+    public function editAccommodation($id): JsonResponse
     {     
         try {
             $response = $this->accommodationServices->edit($id); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Edit accommodation was failed']);
         }
     } 
@@ -79,7 +84,7 @@ class AccommodationController extends Controller
      * @param Request $request, $id
      * @return JsonResponse
      */
-    public function updateAccommodation(Request $request, $id)
+    public function updateAccommodation(Request $request, $id): JsonResponse
     {  
         try {
             $validation = $this->accommodationServices->inputValidation($request);
@@ -89,6 +94,7 @@ class AccommodationController extends Controller
             $this->accommodationServices->update($id, $request); 
             return $this->sendSuccess(['message' => "Successfully Accommodation was updated"]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Accommodation update was failed']);
         }
     }
@@ -98,12 +104,13 @@ class AccommodationController extends Controller
      * @param $id
      * @return JsonResponse
      */
-    public function deleteAccommodation($id)
+    public function deleteAccommodation($id): JsonResponse
     {   
         try {
             $this->accommodationServices->delete($id);
             return $this->sendSuccess(['message' => "Successfully Accommodation was deleted"]);
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Delete accommodation was failed']);
         }        
     }
@@ -113,12 +120,13 @@ class AccommodationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function searchAccommodation(Request $request)
+    public function searchAccommodation(Request $request): JsonResponse
     {          
         try{
             $response = $this->accommodationServices->search($request); 
             return $this->sendSuccess(['data' => $response]); 
         } catch (Exception $exception) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'search accommodation was failed']);
         }        
     }

@@ -4,11 +4,9 @@
 namespace App\Services;
 
 use App\Models\Vendor;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class VendorServices
 {
@@ -21,11 +19,10 @@ class VendorServices
     {
         $this->vendor = $vendor;
     }
-	 /**
+    /**
      * @param $request
-     * @return JsonResponse
+     * @return mixed | void
      */
-
      public function inputValidation($request)
      {
         if(!($this->vendor->validate($request->all()))){
@@ -38,22 +35,35 @@ class VendorServices
      * @param Request $request
      * @return mixed
      */
-    public function create($request)
+    public function create($request): mixed
     {  
+        $input = $request->all();
+        if (request()->hasFile('attachments')){
+            $uploadedFile = $request->file('attachments');
+            $fileName = time() . '.' . $uploadedFile->getClientOriginalExtension();
+            $destinationPath = storage_path('uploads');
+            $uploadedFile->move($destinationPath, $fileName);
+            $input['attachments'] = "uploads/".$fileName;
+        }
         return $this->vendor::create([
-            'name' => $request["name"],
-            'state' => $request["state"],
-            'type' => $request["type"],
-            'person_in_charge' => $request["person_in_charge"],
-            'contact_number' => $request["contact_number"],
-            'email_address' => $request["email_address"],
-            'address' => $request["address"],
-        ]);      
+            'name' => $input["name"],
+            'type' => $input["type"],
+            'email_address' => $input["email_address"],
+            'contact_number' => $input["contact_number"],            
+            'person_in_charge' => $input["person_in_charge"],
+            'pic_contact_number' => $input["pic_contact_number"],
+            'address' => $input["address"],
+            'state' => $input["state"],
+            'city' => $input["city"],
+            'postcode' => $input["postcode"],
+            'attachments' => $input["attachments"],
+            'remarks' => $input["remarks"],
+        ]);   
     }
 	 /**
      * Display a listing of the Vendors.
      *
-     * @return JsonResponse
+     * @return LengthAwarePaginator
      */
     public function show()
     {
@@ -76,27 +86,57 @@ class VendorServices
 	 /**
      * Update the specified Vendor data.
      *
-     * @param Request $request, $id
-     * @return bool
+     * @param $id
+     * @param $request
+     * @return mixed
      */
-    public function updateData($id, $request)
+    public function updateData($id, $request): mixed
     {  
+        $input = $request->all();
         $vendors = $this->vendor::findorfail($id);
-        return $vendors->update($request->all());
+        if (request()->hasFile('attachments')){
+            $uploadedFile = $request->file('attachments');
+            $fileName = time() . '.' . $uploadedFile->getClientOriginalExtension();
+            $destinationPath = storage_path('uploads');
+            $uploadedFile->move($destinationPath, $fileName);
+            $input['attachments'] = "uploads/".$fileName;
+        }
+        return $vendors->update($input);
     }
 	 /**
      * delete the specified Vendors data.
      *
      * @param $id
-     * @return bool
+     * @return void
      */    
-    public function delete($id)
+    public function delete($id): void
     {     
         $vendors = $this->vendor::find($id);
         $vendors->accommodations()->delete();
         $vendors->insurances()->delete();
         $vendors->transportations()->delete();
         $vendors->delete();
+    }
+    /**
+     * searching vendor data.
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function search($request): mixed
+    {
+        return $this->vendor->where('name', 'like', '%' . $request->clinic_name . '%')->get(['name',
+            'type',
+            'email_address',
+            'contact_number',
+            'person_in_charge',
+            'pic_contact_number',
+            'address',
+            'state',
+            'city',
+            'postcode',
+            'attachments',
+            'id']);
     }
 
 }
