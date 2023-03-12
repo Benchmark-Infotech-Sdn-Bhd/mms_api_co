@@ -13,7 +13,7 @@ class FomemaClinicsServices
     /**
      * @var fomemaClinics
      */
-    private $fomemaClinics;
+    private FomemaClinics $fomemaClinics;
 
     public function __construct(FomemaClinics $fomemaClinics)
     {

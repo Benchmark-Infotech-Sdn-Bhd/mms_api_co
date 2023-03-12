@@ -13,7 +13,7 @@ class TransportationServices
     /**
      * @var transportation
      */
-    private $transportation;
+    private Transportation $transportation;
 
     public function __construct(Transportation $transportation)
     {

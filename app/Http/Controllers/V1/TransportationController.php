@@ -15,7 +15,7 @@ class TransportationController extends Controller
     /**
      * @var transportationServices
      */
-    private $transportationServices;
+    private TransportationServices $transportationServices;
     /**
      * TransportationServices constructor.
      * @param TransportationServices $transportationServices
@@ -39,7 +39,7 @@ class TransportationController extends Controller
             }
             $this->transportationServices->create($request); 
             return $this->sendSuccess(['message' => "Successfully transportation was created"]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Transportation creation was failed']);
         }
@@ -54,7 +54,7 @@ class TransportationController extends Controller
         try {
             $response = $this->transportationServices->show(); 
             return $this->sendSuccess(['data' => $response]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Show transportation was failed']);
         }
@@ -70,7 +70,7 @@ class TransportationController extends Controller
         try {
             $response = $this->transportationServices->edit($id); 
             return $this->sendSuccess(['data' => $response]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Edit transportation was failed']);
         }
@@ -90,7 +90,7 @@ class TransportationController extends Controller
             }
             $this->transportationServices->updateData($id, $request); 
             return $this->sendSuccess(['message' => "Successfully transportation was updated"]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Transportation update was failed']);
         }
@@ -106,7 +106,7 @@ class TransportationController extends Controller
         try {  
             $this->transportationServices->delete($id); 
             return $this->sendSuccess(['message' => "Successfully transportation was deleted"]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'delete transportation was failed']);
         }

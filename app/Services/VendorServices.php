@@ -11,9 +11,9 @@ use Illuminate\Http\Request;
 class VendorServices
 {
     /**
-     * @var vendorServices
+     * @var vendor
      */
-    private $vendor;
+    private Vendor $vendor;
 
     public function __construct(Vendor $vendor)
     {

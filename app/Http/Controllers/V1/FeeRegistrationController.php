@@ -14,7 +14,7 @@ class FeeRegistrationController extends Controller
     /**
      * @var feeRegistrationServices
      */
-    private $feeRegistrationServices;
+    private FeeRegistrationServices $feeRegistrationServices;
     /**
      * FeeRegistrationServices constructor.
      * @param FeeRegistrationServices $feeRegistrationServices
@@ -39,7 +39,7 @@ class FeeRegistrationController extends Controller
             }
             $this->feeRegistrationServices->create($request);
             return $this->sendSuccess(['message' => "Successfully Fee Registration was created"]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
         }
@@ -54,7 +54,7 @@ class FeeRegistrationController extends Controller
         try {  
             $response = $this->feeRegistrationServices->show(); 
             return $this->sendSuccess(['data' => $response]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Show fee registration was failed']);
         }
@@ -70,7 +70,7 @@ class FeeRegistrationController extends Controller
         try {
             $response = $this->feeRegistrationServices->edit($id); 
             return $this->sendSuccess(['data' => $response]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Edit fee registration was failed']);
         } 
@@ -90,7 +90,7 @@ class FeeRegistrationController extends Controller
             }
             $this->feeRegistrationServices->updateData($id, $request); 
             return $this->sendSuccess(['message' => "Successfully Fee Registration was updated"]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Fee Registration update was failed']);
         }
@@ -106,7 +106,7 @@ class FeeRegistrationController extends Controller
         try {
             $this->feeRegistrationServices->delete($id);
             return $this->sendSuccess(['message' => "Successfully Fee Registration was deleted"]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'delete insurance was failed']);
         } 

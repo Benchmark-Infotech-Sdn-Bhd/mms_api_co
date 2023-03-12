@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->string('state',150)->nullable();
             $table->string('city',150)->nullable();
-            $table->integer('postcode')->nullable();
+            $table->string('postcode')->nullable();
             $table->integer('created_by')->default(0);
             $table->integer('modified_by')->default(0);            
             $table->timestamps();

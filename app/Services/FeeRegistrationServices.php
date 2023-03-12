@@ -13,7 +13,7 @@ class FeeRegistrationServices
     /**
      * @var feeRegistration
      */
-    private $feeRegistration;
+    private FeeRegistration $feeRegistration;
 
     public function __construct(FeeRegistration $feeRegistration)
     {

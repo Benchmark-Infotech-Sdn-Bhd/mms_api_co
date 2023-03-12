@@ -18,9 +18,9 @@ return new class extends Migration
             $table->string('square_feet',150)->nullable();
             $table->string('accommodation_name',255)->nullable();
             $table->string('maximum_pax_per_room',150)->nullable();
-            $table->float('cost_per_pax',150)->nullable();
+            $table->float('cost_per_pax',150)->default(0.0);
             $table->string('attachment')->nullable();
-            $table->string('deposit',150)->nullable();
+            $table->float('deposit',150)->default(0.0);
             $table->string('rent_per_month',150)->nullable();
             $table->bigInteger('vendor_id')->unsigned()->nullable();
             $table->foreign('vendor_id')->references('id')->on('vendors')->onDelete('cascade');  

@@ -38,8 +38,8 @@ class InsuranceController extends Controller
             }
             $this->insuranceServices->create($request);
             return $this->sendSuccess(['message' => "Successfully insurance was created"]);
-        } catch (Exception $exception) {
-            // Log::error('Error - ' . print_r($e->getMessage(), true));
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Insurance creation was failed']);
         }
     }
@@ -54,7 +54,7 @@ class InsuranceController extends Controller
             // $insurance = Insurance::paginate(10);
             $response = $this->insuranceServices->show(); 
             return $this->sendSuccess(['data' => $response]); 
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Show insurance was failed']);
         }
@@ -72,7 +72,7 @@ class InsuranceController extends Controller
             // $vendors = $insurance->vendor;
             $response = $this->insuranceServices->edit($id); 
             return $this->sendSuccess(['data' => $response]);  
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Edit insurance was failed']);
         }  
@@ -92,7 +92,7 @@ class InsuranceController extends Controller
             }
             $this->insuranceServices->updateData($id, $request); 
             return $this->sendSuccess(['message' => "Successfully insurance was updated"]);
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'Insurance update was failed']);
         }
@@ -108,7 +108,7 @@ class InsuranceController extends Controller
         try { 
             $this->insuranceServices->delete($id);
             return $this->sendSuccess(['message' => "Successfully insurance was deleted"]); 
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'delete insurance was failed']);
         } 
