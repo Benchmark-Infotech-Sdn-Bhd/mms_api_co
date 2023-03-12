@@ -18,5 +18,15 @@ $router->get('/', function () use ($router) {
 });
 
 $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function () use ($router) {
-    $router->post('create', 'V1\MaintainMastersController@create');
+
+    /**
+     * Routes for Countries.
+     */
+    $router->group(['prefix' => 'country'], function () use ($router) {
+        $router->post('create', 'V1\CountriesController@create');
+        $router->put('update', 'V1\CountriesController@update');
+        $router->post('delete', 'V1\CountriesController@delete');
+        $router->post('retrieve', 'V1\CountriesController@retrieve');
+        $router->get('retrieveAll', 'V1\CountriesController@retrieveAll');
+    });
 });

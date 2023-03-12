@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Validator;
 
 class Countries extends Model
 {
@@ -38,33 +37,18 @@ class Countries extends Model
      *
      * @var array
      */
-    private $rules = [
+    public $rules = [
         'country_name' => 'required|max:150',
         'system_type' => 'required'
     ];
     /**
-     * The attributes that store validation errors.
+     * The attributes that are required for updation.
+     *
+     * @var array
      */
-    protected $errors;
-    /**
-     * Validate method for model.
-     */
-    public function validate($data){
-        // make a new validator object
-        $validator = Validator::make($data,$this->rules);
-        // check for failure
-        if($validator->fails()){
-            // set errors and return false
-            $this->errors = $validator->errors();
-            return false;
-        }
-        // validation pass
-        return true;
-    }
-    
-    // Returns Validation errors
-    public function errors()
-    {
-        return $this->errors;
-    }
+    public $rulesForUpdation = [
+        'id' => 'required',
+        'country_name' => 'required|max:150',
+        'system_type' => 'required'
+    ];
 }

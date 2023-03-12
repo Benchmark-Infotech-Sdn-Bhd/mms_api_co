@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Validator;
 
 class Sectors extends Model
 {
@@ -31,33 +30,8 @@ class Sectors extends Model
      *
      * @var array
      */
-    private $rules = [
+    public $rules = [
         'sector_name' => 'required|max:255',
         'sub_sector_name' => 'max|255'
     ];
-    /**
-     * The attributes that store validation errors.
-     */
-    protected $errors;
-    /**
-     * Validate method for model.
-     */
-    public function validate($data){
-        // make a new validator object
-        $validator = Validator::make($data,$this->rules);
-        // check for failure
-        if($validator->fails()){
-            // set errors and return false
-            $this->errors = $validator->errors();
-            return false;
-        }
-        // validation pass
-        return true;
-    }
-    
-    // Returns Validation errors
-    public function errors()
-    {
-        return $this->errors;
-    }
 }

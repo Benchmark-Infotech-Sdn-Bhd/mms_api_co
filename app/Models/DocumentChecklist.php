@@ -30,33 +30,8 @@ class DocumentChecklist extends Model
      *
      * @var array
      */
-    private $rules = [
+    public $rules = [
         'sector_id' => 'required',
         'document_title' => 'required'
     ];
-    /**
-     * The attributes that store validation errors.
-     */
-    protected $errors;
-    /**
-     * Validate method for model.
-     */
-    public function validate($data){
-        // make a new validator object
-        $validator = Validator::make($data,$this->rules);
-        // check for failure
-        if($validator->fails()){
-            // set errors and return false
-            $this->errors = $validator->errors();
-            return false;
-        }
-        // validation pass
-        return true;
-    }
-    
-    // Returns Validation errors
-    public function errors()
-    {
-        return $this->errors;
-    }
 }
