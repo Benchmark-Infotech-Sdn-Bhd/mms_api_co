@@ -29,4 +29,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('retrieve', 'V1\CountriesController@retrieve');
         $router->get('retrieveAll', 'V1\CountriesController@retrieveAll');
     });
+    /**
+     * Routes for EmbassyAttestationFileCosting.
+     */
+    $router->group(['prefix' => 'embassyAttestationFile'], function () use ($router) {
+        $router->post('create', 'V1\EmbassyAttestationFileCostingController@create');
+        $router->put('update', 'V1\EmbassyAttestationFileCostingController@update');
+        $router->post('delete', 'V1\EmbassyAttestationFileCostingController@delete');
+        $router->post('retrieveByCountry', 'V1\EmbassyAttestationFileCostingController@retrieveByCountry');
+    });
 });

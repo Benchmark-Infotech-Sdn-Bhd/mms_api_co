@@ -35,4 +35,15 @@ class EmbassyAttestationFileCosting extends Model
         'title' => 'required',
         'amount' => 'required'
     ];
+    /**
+     * The attributes that are required for updation.
+     *
+     * @var array
+     */
+    public $rulesForUpdation = [
+        'id' => 'required',
+        'country_id' => 'required',
+        'title' => 'required',
+        'amount' => 'required'
+    ];
 }
