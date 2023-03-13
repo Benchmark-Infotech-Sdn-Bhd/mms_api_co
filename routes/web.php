@@ -38,4 +38,23 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('delete', 'V1\EmbassyAttestationFileCostingController@delete');
         $router->post('retrieveByCountry', 'V1\EmbassyAttestationFileCostingController@retrieveByCountry');
     });
+    /**
+     * Routes for Sectors.
+     */
+    $router->group(['prefix' => 'sector'], function () use ($router) {
+        $router->post('create', 'V1\SectorsController@create');
+        $router->put('update', 'V1\SectorsController@update');
+        $router->post('delete', 'V1\SectorsController@delete');
+        $router->post('retrieve', 'V1\SectorsController@retrieve');
+        $router->get('retrieveAll', 'V1\SectorsController@retrieveAll');
+    });
+    /**
+     * Routes for DocumentChecklist.
+     */
+    $router->group(['prefix' => 'documentChecklist'], function () use ($router) {
+        $router->post('create', 'V1\DocumentChecklistController@create');
+        $router->put('update', 'V1\DocumentChecklistController@update');
+        $router->post('delete', 'V1\DocumentChecklistController@delete');
+        $router->post('retrieveBySector', 'V1\DocumentChecklistController@retrieveBySector');
+    });
 });

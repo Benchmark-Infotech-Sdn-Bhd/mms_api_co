@@ -2,21 +2,21 @@
 
 namespace App\Services;
 
-use App\Models\Countries;
+use App\Models\Sectors;
 use App\Services\ValidationServices;
 
-class CountriesServices
+class SectorsServices
 {
-    private Countries $countries;
+    private Sectors $sectors;
     private ValidationServices $validationServices;
     /**
-     * CountriesServices constructor.
-     * @param Countries $countries
+     * SectorsServices constructor.
+     * @param Sectors $sectors
      * @param ValidationServices $validationServices
      */
-    public function __construct(Countries $countries,ValidationServices $validationServices)
+    public function __construct(Sectors $sectors,ValidationServices $validationServices)
     {
-        $this->countries = $countries;
+        $this->sectors = $sectors;
         $this->validationServices = $validationServices;
     }
 
@@ -26,13 +26,12 @@ class CountriesServices
      */
     public function create($request) : mixed
     {
-        if(!($this->validationServices->validate($request,$this->countries->rules))){
+        if(!($this->validationServices->validate($request,$this->sectors->rules))){
             return $this->validationServices->errors();
         }
-        return $this->countries->create([
-            'country_name' => $request['country_name'] ?? '',
-            'system_type' => $request['system_type'] ?? '',
-            'fee' => $request['fee'] ?? 0
+        return $this->sectors->create([
+            'sector_name' => $request['sector_name'] ?? '',
+            'sub_sector_name' => $request['sub_sector_name'] ?? ''
         ]);
     }
     /**
@@ -41,18 +40,17 @@ class CountriesServices
      */
     public function update($request) : mixed
     {
-        if(!($this->validationServices->validate($request,$this->countries->rulesForUpdation))){
+        if(!($this->validationServices->validate($request,$this->sectors->rulesForUpdation))){
             return $this->validationServices->errors();
         }
-        $country = $this->countries->find($request['id']);
-        if(is_null($country)){
+        $sector = $this->sectors->find($request['id']);
+        if(is_null($sector)){
             return "Data not found.";
         }
-        return $country->update([
+        return $sector->update([
             'id' => $request['id'],
-            'country_name' => $request['country_name'] ?? '',
-            'system_type' => $request['system_type'] ?? '',
-            'fee' => $request['fee'] ?? 0
+            'sector_name' => $request['sector_name'] ?? '',
+            'sub_sector_name' => $request['sub_sector_name'] ?? ''
         ]);
     }
     /**
@@ -64,11 +62,11 @@ class CountriesServices
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return $this->validationServices->errors();
         }
-        $country = $this->countries->find($request['id']);
-        if(is_null($country)){
+        $sector = $this->sectors->find($request['id']);
+        if(is_null($sector)){
             return true;
         }
-        return $country->delete();
+        return $sector->delete();
     }
     /**
      * @param $request
@@ -79,13 +77,13 @@ class CountriesServices
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return $this->validationServices->errors();
         }
-        return $this->countries->findOrFail($request['id']);
+        return $this->sectors->findOrFail($request['id']);
     }
     /**
      * @return mixed
      */
     public function retrieveAll() : mixed
     {
-        return $this->countries->get();
+        return $this->sectors->get();
     }
 }

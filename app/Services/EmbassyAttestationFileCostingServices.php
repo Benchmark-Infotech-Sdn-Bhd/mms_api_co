@@ -61,14 +61,14 @@ class EmbassyAttestationFileCostingServices
      */
     public function delete($request) : mixed
     {
-        if(isset($request['id']) && !is_null($request['id'])){
-            $embassyAttestationFileCosting = $this->embassyAttestationFileCosting->find($request['id']);
-            if(is_null($embassyAttestationFileCosting)){
-                return true;
-            }
-            return $embassyAttestationFileCosting->delete();
+        if(!($this->validationServices->validate($request,['id' => 'required']))){
+            return $this->validationServices->errors();
         }
-        return false;
+        $embassyAttestationFileCosting = $this->embassyAttestationFileCosting->find($request['id']);
+        if(is_null($embassyAttestationFileCosting)){
+            return true;
+        }
+        return $embassyAttestationFileCosting->delete();
     }
     /**
      * @param $request
@@ -76,6 +76,9 @@ class EmbassyAttestationFileCostingServices
      */
     public function retrieveByCountry($request) : mixed
     {
+        if(!($this->validationServices->validate($request,['country_id' => 'required']))){
+            return $this->validationServices->errors();
+        }
         return $this->embassyAttestationFileCosting->where('country_id',$request['country_id'])->get();
     }
 }

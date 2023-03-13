@@ -6,26 +6,26 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Services\EmbassyAttestationFileCostingServices;
+use App\Services\SectorsServices;
 use Illuminate\Support\Facades\Log;
 
-class EmbassyAttestationFileCostingController extends Controller
+class SectorsController extends Controller
 {
     /**
-     * @var EmbassyAttestationFileCostingServices
+     * @var SectorsServices
      */
-    private EmbassyAttestationFileCostingServices $embassyAttestationFileCostingServices;
+    private SectorsServices $sectorsServices;
 
     /**
-     * EmbassyAttestationFileCostingController constructor.
-     * @param EmbassyAttestationFileCostingServices $embassyAttestationFileCostingServices
+     * SectorsController constructor.
+     * @param SectorsServices $sectorsServices
      */
-    public function __construct(EmbassyAttestationFileCostingServices $embassyAttestationFileCostingServices)
+    public function __construct(SectorsServices $sectorsServices)
     {
-        $this->embassyAttestationFileCostingServices = $embassyAttestationFileCostingServices;
+        $this->sectorsServices = $sectorsServices;
     }
     /**
-     * Show the form for creating a new EmbassyAttestationFileCosting.
+     * Show the form for creating a new Sector.
      *
      * @param Request $request
      * @return JsonResponse
@@ -34,7 +34,7 @@ class EmbassyAttestationFileCostingController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->embassyAttestationFileCostingServices->create($params);
+            $data = $this->sectorsServices->create($params);
             return response()->json(['result' => $this->sendResponse($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -43,7 +43,7 @@ class EmbassyAttestationFileCostingController extends Controller
         }
     }
     /**
-     * Show the form for updating a EmbassyAttestationFileCosting.
+     * Show the form for updating a Sector.
      *
      * @param Request $request
      * @return JsonResponse
@@ -52,7 +52,7 @@ class EmbassyAttestationFileCostingController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->embassyAttestationFileCostingServices->update($params);
+            $data = $this->sectorsServices->update($params);
             return response()->json(['result' => $this->sendResponse($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -61,7 +61,7 @@ class EmbassyAttestationFileCostingController extends Controller
         }
     }
     /**
-     * Remove the specified EmbassyAttestationFileCosting.
+     * Remove the specified sector.
      *
      * @param Request $request
      * @return JsonResponse
@@ -70,7 +70,7 @@ class EmbassyAttestationFileCostingController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->embassyAttestationFileCostingServices->delete($params);
+            $data = $this->sectorsServices->delete($params);
             return response()->json(['result' => $this->sendResponse($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -79,20 +79,36 @@ class EmbassyAttestationFileCostingController extends Controller
         }
     }
     /**
-     * Retrieve the specified EmbassyAttestationFileCosting based on Country.
+     * Retrieve the specified sector.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieveByCountry(Request $request): JsonResponse
+    public function retrieve(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->embassyAttestationFileCostingServices->retrieveByCountry($params);
+            $data = $this->sectorsServices->retrieve($params);
             return response()->json(['result' => $this->sendResponse($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
+    /**
+     * Retrieve all sectors.
+     *
+     * @return JsonResponse
+     */
+    public function retrieveAll(): JsonResponse
+    {
+        try {
+            $data = $this->sectorsServices->retrieveAll();
+            return response()->json(['result' => $this->sendResponse($data)]);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve All failed. Please retry.';
             return $this->sendError(['message' => $data['error']]);
         }
     }

@@ -34,4 +34,14 @@ class DocumentChecklist extends Model
         'sector_id' => 'required',
         'document_title' => 'required'
     ];
+    /**
+     * The attributes that are required for updation.
+     *
+     * @var array
+     */
+    public $rulesForUpdation = [
+        'id' => 'required',
+        'sector_id' => 'required',
+        'document_title' => 'required'
+    ];
 }

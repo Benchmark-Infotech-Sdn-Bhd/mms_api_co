@@ -6,26 +6,26 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Services\EmbassyAttestationFileCostingServices;
+use App\Services\DocumentChecklistServices;
 use Illuminate\Support\Facades\Log;
 
-class EmbassyAttestationFileCostingController extends Controller
+class DocumentChecklistController extends Controller
 {
     /**
-     * @var EmbassyAttestationFileCostingServices
+     * @var DocumentChecklistServices
      */
-    private EmbassyAttestationFileCostingServices $embassyAttestationFileCostingServices;
+    private DocumentChecklistServices $documentChecklistServices;
 
     /**
-     * EmbassyAttestationFileCostingController constructor.
-     * @param EmbassyAttestationFileCostingServices $embassyAttestationFileCostingServices
+     * DocumentChecklistController constructor.
+     * @param DocumentChecklistServices $documentChecklistServices
      */
-    public function __construct(EmbassyAttestationFileCostingServices $embassyAttestationFileCostingServices)
+    public function __construct(DocumentChecklistServices $documentChecklistServices)
     {
-        $this->embassyAttestationFileCostingServices = $embassyAttestationFileCostingServices;
+        $this->documentChecklistServices = $documentChecklistServices;
     }
     /**
-     * Show the form for creating a new EmbassyAttestationFileCosting.
+     * Show the form for creating a new DocumentChecklist.
      *
      * @param Request $request
      * @return JsonResponse
@@ -34,7 +34,7 @@ class EmbassyAttestationFileCostingController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->embassyAttestationFileCostingServices->create($params);
+            $data = $this->documentChecklistServices->create($params);
             return response()->json(['result' => $this->sendResponse($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -43,7 +43,7 @@ class EmbassyAttestationFileCostingController extends Controller
         }
     }
     /**
-     * Show the form for updating a EmbassyAttestationFileCosting.
+     * Show the form for updating a DocumentChecklist.
      *
      * @param Request $request
      * @return JsonResponse
@@ -52,7 +52,7 @@ class EmbassyAttestationFileCostingController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->embassyAttestationFileCostingServices->update($params);
+            $data = $this->documentChecklistServices->update($params);
             return response()->json(['result' => $this->sendResponse($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -61,7 +61,7 @@ class EmbassyAttestationFileCostingController extends Controller
         }
     }
     /**
-     * Remove the specified EmbassyAttestationFileCosting.
+     * Remove the specified DocumentChecklist.
      *
      * @param Request $request
      * @return JsonResponse
@@ -70,7 +70,7 @@ class EmbassyAttestationFileCostingController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->embassyAttestationFileCostingServices->delete($params);
+            $data = $this->documentChecklistServices->delete($params);
             return response()->json(['result' => $this->sendResponse($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -79,16 +79,16 @@ class EmbassyAttestationFileCostingController extends Controller
         }
     }
     /**
-     * Retrieve the specified EmbassyAttestationFileCosting based on Country.
+     * Retrieve the specified DocumentChecklist based on Sectors.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieveByCountry(Request $request): JsonResponse
+    public function retrieveBySector(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->embassyAttestationFileCostingServices->retrieveByCountry($params);
+            $data = $this->documentChecklistServices->retrieveBySector($params);
             return response()->json(['result' => $this->sendResponse($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
