@@ -17,6 +17,10 @@ $router->get('/', function () use ($router) {
     return 'Welcome';//$router->app->version();
 });
 
+$router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function () use ($router) {
+    $router->post('create', 'V1\MaintainMastersController@create');
+});
+
 $router->group(['prefix' => 'api/v1'], function () use ($router) {
     Route::post('create_vendor', 'V1\VendorController@createVendor');
     Route::get('show_vendors', 'V1\VendorController@showVendors');
@@ -60,6 +64,6 @@ $router->group(['prefix' => 'api/v1'], function () use ($router) {
     Route::delete('delete_transportation/{id}', 'V1\TransportationController@deleteTransportation');
     Route::post('search_transportation', 'V1\TransportationController@searchTransportation');
 
-    Route::post('delete_file', 'V1\AccommodationController@deleteFile');
+    Route::post('image_upload', 'V1\AccommodationController@uploadImage');
     
 });
