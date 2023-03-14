@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Accommodation extends Model
 {
@@ -23,12 +24,7 @@ class Accommodation extends Model
      */
     protected $fillable = [
         'name',
-        'location',
-        'square_feet',
-        'accommodation_name',
-        'maximum_pax_per_room',
-        'cost_per_pax',
-        'attachment',
+        'maximum_pax_per_unit',
         'deposit',
         'rent_per_month',
         'vendor_id',
@@ -40,11 +36,7 @@ class Accommodation extends Model
      */
     private $rules = [
         'name' => 'required',
-        'location' => 'required',
-        'square_feet' => 'required',
-        'accommodation_name' => 'required',
-        'maximum_pax_per_room' => 'required',
-        'cost_per_pax' => 'required',
+        'maximum_pax_per_unit' => 'required',
         'attachment' => 'required',
         'deposit' => 'required',
         'rent_per_month' => 'required',
@@ -82,5 +74,12 @@ class Accommodation extends Model
     public function vendor()
     {
         return $this->belongsTo('App\Models\Vendor');
+    }
+    /**
+     * @return hasMany
+     */
+    public function accommodationAttachments()
+    {
+        return $this->hasMany('App\Models\AccommodationAttachments');
     }
 }

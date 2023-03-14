@@ -14,7 +14,7 @@ class InsuranceController extends Controller
     /**
      * @var insuranceServices
      */
-    private $insuranceServices;
+    private InsuranceServices $insuranceServices;
     /**
      * InsuranceServices constructor.
      * @param InsuranceServices $insuranceServices
@@ -40,7 +40,7 @@ class InsuranceController extends Controller
             return $this->sendSuccess(['message' => "Successfully insurance was created"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Insurance creation was failed']);
+            return $this->sendError(['message' => 'Insurance creation was failed']);
         }
     }
 	 /**
@@ -56,7 +56,7 @@ class InsuranceController extends Controller
             return $this->sendSuccess(['data' => $response]); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Show insurance was failed']);
+            return $this->sendError(['message' => 'Show insurance was failed']);
         }
     }
 	 /**
@@ -74,7 +74,7 @@ class InsuranceController extends Controller
             return $this->sendSuccess(['data' => $response]);  
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Edit insurance was failed']);
+            return $this->sendError(['message' => 'Edit insurance was failed']);
         }  
     } 
 	 /**
@@ -110,7 +110,7 @@ class InsuranceController extends Controller
             return $this->sendSuccess(['message' => "Successfully insurance was deleted"]); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'delete insurance was failed']);
+            return $this->sendError(['message' => 'delete insurance was failed']);
         } 
     }
     /**

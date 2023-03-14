@@ -59,5 +59,7 @@ $router->group(['prefix' => 'api/v1'], function () use ($router) {
     Route::put('update_transportation/{id}', 'V1\TransportationController@updateTransportation');
     Route::delete('delete_transportation/{id}', 'V1\TransportationController@deleteTransportation');
     Route::post('search_transportation', 'V1\TransportationController@searchTransportation');
+
+    Route::post('delete_file', 'V1\AccommodationController@deleteFile');
     
 });

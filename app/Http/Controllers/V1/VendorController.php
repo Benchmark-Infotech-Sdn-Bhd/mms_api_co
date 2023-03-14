@@ -41,7 +41,7 @@ class VendorController extends Controller
             
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Vendor creation was failed']);
+            return $this->sendError(['message' => 'Vendor creation was failed']);
         }
     }
 	 /**
@@ -56,7 +56,7 @@ class VendorController extends Controller
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Show Vendors was failed'], 400);
+            return $this->sendError(['message' => 'Show Vendors was failed'], 400);
         }
     }
 	 /**
@@ -72,7 +72,7 @@ class VendorController extends Controller
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Edit Vendors was failed'], 400);
+            return $this->sendError(['message' => 'Edit Vendors was failed'], 400);
         }
     } 
 	 /**
@@ -92,7 +92,7 @@ class VendorController extends Controller
             return $this->sendSuccess(['message' => "Successfully Vendor was updated"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Vendor update was failed']);
+            return $this->sendError(['message' => 'Vendor update was failed']);
         }
     }
 	 /**
@@ -108,7 +108,7 @@ class VendorController extends Controller
             return $this->sendSuccess(['message' => "Successfully Vendor was deleted"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Vendor delete was failed']);
+            return $this->sendError(['message' => 'Vendor delete was failed']);
         }  
     }
     /**

@@ -41,7 +41,7 @@ class TransportationController extends Controller
             return $this->sendSuccess(['message' => "Successfully transportation was created"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Transportation creation was failed']);
+            return $this->sendError(['message' => 'Transportation creation was failed']);
         }
     }
 	 /**
@@ -56,7 +56,7 @@ class TransportationController extends Controller
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Show transportation was failed']);
+            return $this->sendError(['message' => 'Show transportation was failed']);
         }
     }
 	 /**
@@ -72,7 +72,7 @@ class TransportationController extends Controller
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Edit transportation was failed']);
+            return $this->sendError(['message' => 'Edit transportation was failed']);
         }
     } 
 	 /**
@@ -92,7 +92,7 @@ class TransportationController extends Controller
             return $this->sendSuccess(['message' => "Successfully transportation was updated"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Transportation update was failed']);
+            return $this->sendError(['message' => 'Transportation update was failed']);
         }
     }
 	 /**
@@ -108,7 +108,7 @@ class TransportationController extends Controller
             return $this->sendSuccess(['message' => "Successfully transportation was deleted"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'delete transportation was failed']);
+            return $this->sendError(['message' => 'delete transportation was failed']);
         }
     }
 

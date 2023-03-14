@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('vehicle_capacity',150)->nullable();
             $table->bigInteger('vendor_id')->unsigned()->nullable();
             $table->foreign('vendor_id')->references('id')->on('vendors')->onDelete('cascade');
+            $table->index(['vendor_id']); 
             $table->integer('created_by')->default(0);
             $table->integer('modified_by')->default(0);            
             $table->timestamps();

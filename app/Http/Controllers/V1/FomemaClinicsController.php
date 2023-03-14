@@ -40,7 +40,7 @@ class FomemaClinicsController extends Controller
             return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was created"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
+            return $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
         }
     }
 	 /**
@@ -55,7 +55,7 @@ class FomemaClinicsController extends Controller
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Show FOMEMA Clinics was failed']);
+            return $this->sendError(['message' => 'Show FOMEMA Clinics was failed']);
         }
     }
 	 /**
@@ -71,7 +71,7 @@ class FomemaClinicsController extends Controller
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Edit FOMEMA Clinics was failed']);
+            return $this->sendError(['message' => 'Edit FOMEMA Clinics was failed']);
         } 
     } 
 	 /**
@@ -91,7 +91,7 @@ class FomemaClinicsController extends Controller
             return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was updated"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'FOMEMA Clinics update was failed']);
+            return $this->sendError(['message' => 'FOMEMA Clinics update was failed']);
         }
     }
 	 /**
@@ -107,7 +107,7 @@ class FomemaClinicsController extends Controller
             return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was deleted"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'delete insurance was failed']);
+            return $this->sendError(['message' => 'delete insurance was failed']);
         }         
     }
 

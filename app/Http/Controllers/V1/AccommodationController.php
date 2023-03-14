@@ -42,7 +42,7 @@ class AccommodationController extends Controller
             return $this->sendSuccess(['message' => "Successfully Accommodation was created"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Accommodation creation was failed']);
+            return $this->sendError(['message' => 'Accommodation creation was failed']);
         }
     }
     
@@ -58,7 +58,7 @@ class AccommodationController extends Controller
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Show accommodation was failed']);
+            return $this->sendError(['message' => 'Show accommodation was failed']);
         }
     }
 
@@ -75,7 +75,7 @@ class AccommodationController extends Controller
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Edit accommodation was failed']);
+            return $this->sendError(['message' => 'Edit accommodation was failed']);
         }
     } 
     /**
@@ -95,7 +95,7 @@ class AccommodationController extends Controller
             return $this->sendSuccess(['message' => "Successfully Accommodation was updated"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Accommodation update was failed']);
+            return $this->sendError(['message' => 'Accommodation update was failed']);
         }
     }
     /**
@@ -111,7 +111,7 @@ class AccommodationController extends Controller
             return $this->sendSuccess(['message' => "Successfully Accommodation was deleted"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Delete accommodation was failed']);
+            return $this->sendError(['message' => 'Delete accommodation was failed']);
         }        
     }
     /**
@@ -127,8 +127,14 @@ class AccommodationController extends Controller
             return $this->sendSuccess(['data' => $response]); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'search accommodation was failed']);
+            return $this->sendError(['message' => 'search accommodation was failed']);
         }        
+    }
+
+    public function deleteFile(Request $request)
+    {
+        $response = $this->accommodationServices->deleteFile($request); 
+        return $response;
     }
 
 }

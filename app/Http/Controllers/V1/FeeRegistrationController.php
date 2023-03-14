@@ -41,7 +41,7 @@ class FeeRegistrationController extends Controller
             return $this->sendSuccess(['message' => "Successfully Fee Registration was created"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
+            return $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
         }
     }
     /**
@@ -56,7 +56,7 @@ class FeeRegistrationController extends Controller
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Show fee registration was failed']);
+            return $this->sendError(['message' => 'Show fee registration was failed']);
         }
     }
     /**
@@ -72,7 +72,7 @@ class FeeRegistrationController extends Controller
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Edit fee registration was failed']);
+            return $this->sendError(['message' => 'Edit fee registration was failed']);
         } 
     } 
 	 /**
@@ -92,7 +92,7 @@ class FeeRegistrationController extends Controller
             return $this->sendSuccess(['message' => "Successfully Fee Registration was updated"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Fee Registration update was failed']);
+            return $this->sendError(['message' => 'Fee Registration update was failed']);
         }
     }
 	 /**
@@ -108,7 +108,7 @@ class FeeRegistrationController extends Controller
             return $this->sendSuccess(['message' => "Successfully Fee Registration was deleted"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'delete insurance was failed']);
+            return $this->sendError(['message' => 'delete insurance was failed']);
         } 
     }
 
