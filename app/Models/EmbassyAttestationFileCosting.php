@@ -19,7 +19,7 @@ class EmbassyAttestationFileCosting extends Model
      *
      * @var array
      */
-    protected $fillable = ['country_id','title','fee','created_by','modified_by'];
+    protected $fillable = ['country_id','title','amount','created_by','modified_by'];
     /**
      * @return BelongsTo
      */

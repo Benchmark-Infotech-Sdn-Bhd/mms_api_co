@@ -18,8 +18,8 @@ class CountriesTest extends TestCase
         $this->faker = Factory::create();
         $payload =  [
             'country_name' => $this->faker->country,
-             'system_type' => 'FWCMS',
-             'fee' => random_int(10, 1000)
+            'system_type' => 'FWCMS',
+            'fee' => random_int(10, 1000)
         ];
         $response = $this->post('/api/v1/country/create',$payload);
         $response->seeStatusCode(200);
@@ -46,8 +46,8 @@ class CountriesTest extends TestCase
         $payload =  [
             'id' => 5,
             'country_name' => $this->faker->country,
-             'system_type' => 'Embassy',
-             'fee' => random_int(10, 1000)
+            'system_type' => 'Embassy',
+            'fee' => random_int(10, 1000)
         ];
         $response = $this->put('/api/v1/country/update',$payload);
         $response->seeStatusCode(200);
