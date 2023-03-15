@@ -32,7 +32,6 @@ class Vendor extends Model
         'state',
         'city',
         'postcode',
-        'attachments',
         'remarks',
     ];
     /**
@@ -51,7 +50,6 @@ class Vendor extends Model
         'state' => 'required',
         'city' => 'required',
         'postcode' => 'required',
-        'attachments' => 'required',
     ];
     /**
      * The attributes that store validation errors.
@@ -99,5 +97,12 @@ class Vendor extends Model
     public function transportations()
     {
         return $this->hasMany('App\Models\Transportation');
+    }
+    /**
+     * @return hasMany
+     */
+    public function vendorAttachments()
+    {
+        return $this->hasMany('App\Models\VendorAttachments', 'file_id');
     }
 }

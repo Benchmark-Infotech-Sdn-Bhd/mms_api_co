@@ -24,6 +24,7 @@ class Accommodation extends Model
      */
     protected $fillable = [
         'name',
+        'location',
         'maximum_pax_per_unit',
         'deposit',
         'rent_per_month',
@@ -37,7 +38,6 @@ class Accommodation extends Model
     private $rules = [
         'name' => 'required',
         'maximum_pax_per_unit' => 'required',
-        'attachment' => 'required',
         'deposit' => 'required',
         'rent_per_month' => 'required',
     ];
@@ -80,6 +80,6 @@ class Accommodation extends Model
      */
     public function accommodationAttachments()
     {
-        return $this->hasMany('App\Models\AccommodationAttachments');
+        return $this->hasMany('App\Models\AccommodationAttachments', 'file_id');
     }
 }

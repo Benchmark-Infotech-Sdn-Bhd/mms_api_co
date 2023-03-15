@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('accommodation_attachments', function (Blueprint $table) {
+        Schema::create('vendor_attachments', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('file_id')->unsigned()->nullable();
-            $table->foreign('file_id')->references('id')->on('accommodation')->onDelete('cascade');
+            $table->foreign('file_id')->references('id')->on('vendors')->onDelete('cascade');
             $table->string('file_name', 255);
             $table->string('file_type', 255);
             $table->text('file_url')->nullable();
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('accommodation_attachments');
+        Schema::dropIfExists('vendor_attachments');
     }
 };

@@ -30,7 +30,7 @@ class FeeRegistrationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function createFeeRegistration(Request $request): JsonResponse
+    public function create(Request $request): JsonResponse
     {
         try {
             $validation = $this->feeRegistrationServices->inputValidation($request);
@@ -49,10 +49,10 @@ class FeeRegistrationController extends Controller
      *
      * @return JsonResponse
      */
-    public function showFeeRegistration(): JsonResponse
+    public function retrieveAll(): JsonResponse
     {      
         try {  
-            $response = $this->feeRegistrationServices->show(); 
+            $response = $this->feeRegistrationServices->retrieveAll(); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -62,13 +62,14 @@ class FeeRegistrationController extends Controller
     /**
      * Display the data for edit form by using feeRegistration id.
      *
-     * @param $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function editFeeRegistration($id): JsonResponse
+    public function retrieve(Request $request): JsonResponse
     {    
         try {
-            $response = $this->feeRegistrationServices->edit($id); 
+            $params = $this->getRequest($request);
+            $response = $this->feeRegistrationServices->retrieve($params); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -78,17 +79,17 @@ class FeeRegistrationController extends Controller
 	 /**
      * Update the specified Fee Registration data.
      *
-     * @param Request $request, $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function updateFeeRegistration(Request $request, $id): JsonResponse
+    public function update(Request $request): JsonResponse
     {             
         try {   
             $validation = $this->feeRegistrationServices->inputValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->feeRegistrationServices->updateData($id, $request); 
+            $this->feeRegistrationServices->update($request); 
             return $this->sendSuccess(['message' => "Successfully Fee Registration was updated"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -98,13 +99,14 @@ class FeeRegistrationController extends Controller
 	 /**
      * delete the specified Fee Registration data.
      *
-     * @param $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function deleteFeeRegistration($id): JsonResponse
+    public function delete(Request $request): JsonResponse
     {      
         try {
-            $this->feeRegistrationServices->delete($id);
+            $params = $this->getRequest($request);
+            $this->feeRegistrationServices->delete($params);
             return $this->sendSuccess(['message' => "Successfully Fee Registration was deleted"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -118,7 +120,7 @@ class FeeRegistrationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function searchFeeRegistration(Request $request): JsonResponse
+    public function search(Request $request): JsonResponse
     {
         try{
             $response = $this->feeRegistrationServices->search($request);

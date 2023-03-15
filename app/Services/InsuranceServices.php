@@ -30,7 +30,6 @@ class InsuranceServices
         }
     }
 	 /**
-     * Show the form for creating a new Insurance.
      *
      * @param Request $request
      * @return mixed
@@ -45,49 +44,43 @@ class InsuranceServices
         ]);
     }
 	 /**
-     * Display a listing of the Insurance.
      *
      * @return LengthAwarePaginator
      */ 
-    public function show()
+    public function retrieveAll()
     {
         return $this->insurance::with('vendor')->paginate(10);
     }
 	 /**
-     * Display the data for edit form by using Insurance id.
      *
-     * @param $id
-     * @return JsonResponse
-     */
-    public function edit($id)
-    {
-        return $this->insurance::findorfail($id);
-    }
-	 /**
-     * Update the specified Insurance data.
-     *
-     * @param $id
      * @param $request
      * @return mixed
      */
-    public function updateData($id, $request): mixed
-    {   
-        $data = $this->insurance::findorfail($id);
+    public function retrieve($request) : mixed
+    {
+        return $this->insurance::findorfail($request['id']);
+    }
+	 /**
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function update($request): mixed
+    {           
+        $data = $this->insurance::findorfail($request['id']);
         return $data->update($request->all());
     }
 	 /**
-     * delete the specified Insurance data.
      *
-     * @param $id
+     * @param $request
      * @return void
      */    
-    public function delete($id): void
+    public function delete($request) : void
     {     
-        $data = $this->insurance::findorfail($id);
+        $data = $this->insurance::find($request['id']);
         $data->delete();
     }
     /**
-     * searching Insurance data.
      *
      * @param $request
      * @return mixed

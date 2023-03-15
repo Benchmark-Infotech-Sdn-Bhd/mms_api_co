@@ -29,19 +29,21 @@ class VendorController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function createVendor(Request $request): JsonResponse
+    public function create(Request $request): JsonResponse
     {     
         try {   
             $validation = $this->vendorServices->inputValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->vendorServices->create($request);             
+            $this->vendorServices->create($request);       
             return $this->sendSuccess(['message' => "Successfully vendor was created"]);
             
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Vendor creation was failed']);
+            $data['error'] = 'creation failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+            // return $this->sendError(['message' => 'Vendor creation was failed']);
         }
     }
 	 /**
@@ -49,10 +51,10 @@ class VendorController extends Controller
      *
      * @return JsonResponse
      */   
-    public function showVendors(): JsonResponse
+    public function retrieveAll(): JsonResponse
     {   
         try {
-            $response = $this->vendorServices->show(); 
+            $response = $this->vendorServices->retrieveAll(); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -62,13 +64,14 @@ class VendorController extends Controller
 	 /**
      * Display the data for edit form by using Vendor id.
      *
-     * @param $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function editVendors($id): JsonResponse
+    public function retrieve(Request $request): JsonResponse
     {     
         try {   
-            $response = $this->vendorServices->edit($id); 
+            $params = $this->getRequest($request);
+            $response = $this->vendorServices->retrieve($params); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -78,17 +81,17 @@ class VendorController extends Controller
 	 /**
      * Update the specified Vendor data.
      *
-     * @param Request $request, $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function updateVendors(Request $request, $id): JsonResponse
+    public function update(Request $request): JsonResponse
     {    
-        try {       
+        try {    
             $validation = $this->vendorServices->inputValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }         
-            $this->vendorServices->updateData($id, $request);
+            $this->vendorServices->update($request);
             return $this->sendSuccess(['message' => "Successfully Vendor was updated"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -98,13 +101,14 @@ class VendorController extends Controller
 	 /**
      * delete the specified Vendors data.
      *
-     * @param $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function deleteVendors($id): JsonResponse
+    public function delete(Request $request): JsonResponse
     {  
         try {
-            $this->vendorServices->delete($id); 
+            $params = $this->getRequest($request);
+            $this->vendorServices->delete($params); 
             return $this->sendSuccess(['message' => "Successfully Vendor was deleted"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -117,7 +121,7 @@ class VendorController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function searchVendors(Request $request): JsonResponse
+    public function search(Request $request): JsonResponse
     {
         try{
             $response = $this->vendorServices->search($request);

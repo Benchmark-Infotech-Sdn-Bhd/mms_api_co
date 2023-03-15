@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class AccommodationAttachments extends Model
+class VendorAttachments extends Model
 {
     use SoftDeletes;
     /**
@@ -15,7 +15,7 @@ class AccommodationAttachments extends Model
      *
      * @var string
      */
-    protected $table = 'accommodation_attachments';
+    protected $table = 'vendor_attachments';
     /**
      * The attributes that are mass assignable.
      *
@@ -26,8 +26,8 @@ class AccommodationAttachments extends Model
     /**
      * @return BelongsTo
      */
-    public function accommodation()
+    public function vendor()
     {
-        return $this->belongsTo('App\Models\Accommodation');
+        return $this->belongsTo('App\Models\Vendor');
     }
 }

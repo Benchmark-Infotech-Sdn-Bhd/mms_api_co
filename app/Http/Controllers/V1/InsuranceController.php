@@ -29,7 +29,7 @@ class InsuranceController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function createInsurance(Request $request)
+    public function create(Request $request): JsonResponse
     {
         try {
             $validation = $this->insuranceServices->inputValidation($request);
@@ -48,11 +48,11 @@ class InsuranceController extends Controller
      *
      * @return JsonResponse
      */    
-    public function showInsurance(): JsonResponse
+    public function retrieveAll(): JsonResponse
     {     
         try {   
             // $insurance = Insurance::paginate(10);
-            $response = $this->insuranceServices->show(); 
+            $response = $this->insuranceServices->retrieveAll(); 
             return $this->sendSuccess(['data' => $response]); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -62,15 +62,15 @@ class InsuranceController extends Controller
 	 /**
      * Display the data for edit form by using Insurance id.
      *
-     * @param $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function editInsurance($id): JsonResponse
+    public function retrieve(Request $request): JsonResponse
     {   
         try {
             // $insurance = Insurance::find($id);
             // $vendors = $insurance->vendor;
-            $response = $this->insuranceServices->edit($id); 
+            $response = $this->insuranceServices->retrieve($request); 
             return $this->sendSuccess(['data' => $response]);  
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -80,17 +80,17 @@ class InsuranceController extends Controller
 	 /**
      * Update the specified Insurance data.
      *
-     * @param Request $request, $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function updateInsurance(Request $request, $id): JsonResponse
+    public function update(Request $request): JsonResponse
     {    
         try {    
             $validation = $this->insuranceServices->inputValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->insuranceServices->updateData($id, $request); 
+            $this->insuranceServices->update($request); 
             return $this->sendSuccess(['message' => "Successfully insurance was updated"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -100,13 +100,14 @@ class InsuranceController extends Controller
 	 /**
      * delete the specified Insurance data.
      *
-     * @param $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function deleteInsurance($id): JsonResponse
+    public function delete(Request $request): JsonResponse
     {     
         try { 
-            $this->insuranceServices->delete($id);
+            $params = $this->getRequest($request);
+            $this->insuranceServices->delete($params);
             return $this->sendSuccess(['message' => "Successfully insurance was deleted"]); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -119,7 +120,7 @@ class InsuranceController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function searchInsurance(Request $request): JsonResponse
+    public function search(Request $request): JsonResponse
     {
         try{
             $response = $this->insuranceServices->search($request);

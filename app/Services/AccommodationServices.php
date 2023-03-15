@@ -15,7 +15,7 @@ class AccommodationServices
      * @var accommodation
      */
     private Accommodation $accommodation;
-        /**
+    /**
      * @var accommodationAttachments
      */
     private AccommodationAttachments $accommodationAttachments;
@@ -36,24 +36,16 @@ class AccommodationServices
         }
     }
     /**
-     * Show the form for creating a new Accommodation.
      *
      * @param $request
      * @return mixed
      */
     public function create($request): mixed
     {     
-        $input = $request->all();
-        // if (request()->hasFile('attachment')){
-        //     $uploadedfile = $request->file('attachment');
-        //     $fileName = time() . '.' . $uploadedfile->getClientOriginalExtension();
-        //     $destinationPath = storage_path('uploads');
-        //     $uploadedfile->move($destinationPath, $fileName);
-        //     $input['attachment'] = "uploads/".$fileName;
-        // }
-        
+        $input = $request->all();        
         $accommodationData = $this->accommodation::create([
             'name' => $input["name"],
+            'location' => $input["location"],
             'maximum_pax_per_unit' => $input["maximum_pax_per_unit"],
             'deposit' => $input["deposit"],
             'rent_per_month' => $input["rent_per_month"],
@@ -61,126 +53,94 @@ class AccommodationServices
         ]);
         $accommodationId = $accommodationData->id;
         if (request()->hasFile('attachment')){
-            foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();                    
-                // $fileName = time() . '.' . $file->getClientOriginalExtension();                 
+            foreach($request->file('attachment') as $file){                
+                $fileName = $file->getClientOriginalName();                 
                 $filePath = '/vendor/accommodation/' . $fileName; 
-                // if (!Storage::disk('s3')->exists($filePath)) {
-                    Storage::disk('s3')-> setvisibility($filePath, visibility: 'public'); 
-                    $s3 = Storage::disk('s3'); 
-                    $s3->put($filePath, file_get_contents($file)); 
-                    $s3Path = Storage::disk('s3')->url($filePath);
-                    echo $s3Path;
-                    $data=$this->accommodationAttachments::create([
-                            "file_id" => $accommodationId,
-                            "file_name" => $fileName,
-                            "file_type" => 'accommodation',
-                            "file_url" => Storage::disk('s3')->url($filePath)                
-                        ]);  
-                // }         
+                $linode = Storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = Storage::disk('linode')->url($filePath);
+                $data=$this->accommodationAttachments::create([
+                        "file_id" => $accommodationId,
+                        "file_name" => $fileName,
+                        "file_type" => 'accommodation',
+                        "file_url" =>  $fileUrl          
+                    ]);  
             }
         }
         return $accommodationData;
         
     }
     /**
-     * Display a listing of the Accommodation.
      *
      * @return LengthAwarePaginator
      */
-    public function show()
+    public function retrieveAll()
     {
         return $this->accommodation::with('vendor')->paginate(10);
     }
     /**
-     * Display the data for edit form by using accommodation id.
      *
-     * @param $id
-     * @return JsonResponse
-     */
-    public function edit($id)
-    {
-        return $this->accommodation::with('accommodationData')->findorfail($id);
-    }
-    /**
-     * Update the specified Accommodation data.
-     *
-     * @param $id
      * @param $request
      * @return mixed
      */
-    public function update($id, $request): mixed
+    public function  retrieve($request) : mixed
+    {
+        return $this->accommodation::with('accommodationAttachments')->findorfail($request['id']);
+    }
+    /**
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function update($request): mixed
     {    
-        $data = $this->accommodation::findorfail($id);
+        $data = $this->accommodation::findorfail($request['id']);
         $input = $request->all();
         if (request()->hasFile('attachment')){
-            $uploadedfile = $request->file('attachment');
-            $fileName = time() . '.' . $uploadedfile->getClientOriginalExtension();
-            $destinationPath = storage_path('uploads');
-            $uploadedfile->move($destinationPath, $fileName);
-            $input['attachment'] = "uploads/".$fileName;
-
-            if (request()->hasFile('attachment')){
-                foreach($request->file('attachment') as $file){
-                    $fileName = $file->getClientOriginalName();                    
-                    // $fileName = time() . '.' . $file->getClientOriginalExtension();                 
-                    $filePath = '/vendor/accommodation/' . $fileName; 
-                    if (!Storage::disk('s3')->exists($filePath)) {
-                        echo "test";
-                        Storage::disk('s3')-> setvisibility($filePath, visibility: 'public'); 
-                        $s3 = Storage::disk('s3'); 
-                        $s3->put($filePath, file_get_contents($file)); 
-                        $s3Path = Storage::disk('s3')->url($filePath);
-                        $data=$this->accommodationAttachments::create([
-                                "file_id" => $id,
-                                "file_name" => $fileName,
-                                "file_type" => 'accommodation',
-                                "file_url" => Storage::disk('s3')->url($filePath)                
-                            ]); 
-                    }    
-                }
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();                 
+                $filePath = '/vendor/accommodation/' . $fileName; 
+                if (!Storage::disk('linode')->exists($filePath)) {
+                    $linode = Storage::disk('linode');
+                    $linode->put($filePath, file_get_contents($file));
+                    $fileUrl = Storage::disk('linode')->url($filePath);
+                    $data=$this->accommodationAttachments::create([
+                            "file_id" => $request['id'],
+                            "file_name" => $fileName,
+                            "file_type" => 'accommodation',
+                            "file_url" => $fileUrl                
+                        ]); 
+                }    
             }
         }
         return $data->update($input);
     }
     /**
-     * delete the specified Accommodation data.
      *
-     * @param $id
+     * @param $request
      * @return void
      */    
-    public function delete($id): void
+    public function delete($request): void
     {   
-        $data = $this->accommodation::findorfail($id);
+        $data = $this->accommodation::find($request['id']);        
+        $data->accommodationAttachments()->delete();
         $data->delete();
     }
     /**
-     * searching Accommodation data.
      *
      * @param $request
      * @return mixed
      */
-    public function search($request)
+    public function search($request): mixed
     {
-        return $this->accommodation->where('accommodation_name', 'like', '%' . $request->name . '%')->get(['name',
+        return $this->accommodation->where('name', 'like', '%' . $request->name . '%')
+        ->get(['name',
             'location',
-            'square_feet',
-            'accommodation_name',
-            'maximum_pax_per_room',
-            'cost_per_pax',
-            'attachment',
+            'maximum_pax_per_unit',
             'deposit',
             'rent_per_month',
             'vendor_id',
             'id']);
-    }
-
-    public function deleteFile($request) { 
-        // https://hcm-storage.s3.ap-south-1.amazonaws.com/vendor/accommodation/illustration-indian-army-soilder-holding-falg-india-pride-indian-army-soilder-holding-falg-india-pride-106768059.jpg
-        $filePath = '/vendor/accommodation/illustration-indian-army-soilder-holding-falg-india-pride-indian-army-soilder-holding-falg-india-pride-106768059.jpg'; 
-        $s3 = Storage::disk('s3'); 
-        $s3->delete($filePath); 
-    return $s3->url($filePath);
     }
 
 }

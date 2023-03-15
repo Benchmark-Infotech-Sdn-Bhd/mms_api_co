@@ -4,9 +4,10 @@
 namespace App\Services;
 
 use App\Models\Vendor;
+use App\Models\VendorAttachments;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class VendorServices
 {
@@ -14,10 +15,15 @@ class VendorServices
      * @var vendor
      */
     private Vendor $vendor;
+    /**
+     * @var vendorAttachments
+     */
+    private VendorAttachments $vendorAttachments;
 
-    public function __construct(Vendor $vendor)
+    public function __construct(Vendor $vendor,VendorAttachments $vendorAttachments)
     {
         $this->vendor = $vendor;
+        $this->vendorAttachments = $vendorAttachments;
     }
     /**
      * @param $request
@@ -32,20 +38,13 @@ class VendorServices
 	 /**
      * Show the form for creating a new Vendor.
      *
-     * @param Request $request
+     * @param $request
      * @return mixed
      */
     public function create($request): mixed
     {  
         $input = $request->all();
-        if (request()->hasFile('attachments')){
-            $uploadedFile = $request->file('attachments');
-            $fileName = time() . '.' . $uploadedFile->getClientOriginalExtension();
-            $destinationPath = storage_path('uploads');
-            $uploadedFile->move($destinationPath, $fileName);
-            $input['attachments'] = "uploads/".$fileName;
-        }
-        return $this->vendor::create([
+        $vendorData = $this->vendor::create([
             'name' => $input["name"],
             'type' => $input["type"],
             'email_address' => $input["email_address"],
@@ -56,28 +55,44 @@ class VendorServices
             'state' => $input["state"],
             'city' => $input["city"],
             'postcode' => $input["postcode"],
-            'attachments' => $input["attachments"],
             'remarks' => $input["remarks"],
         ]);   
+        $vendorDataId = $vendorData->id;
+        if (request()->hasFile('attachment')){
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/vendor/' . $fileName; 
+                $linode = Storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = Storage::disk('linode')->url($filePath);
+                $data=$this->vendorAttachments::create([
+                        "file_id" => $vendorDataId,
+                        "file_name" => $fileName,
+                        "file_type" => 'vendor',
+                        "file_url" =>  $fileUrl         
+                    ]);  
+            }
+        }
+        return $vendorData;
     }
 	 /**
      * Display a listing of the Vendors.
      *
      * @return LengthAwarePaginator
      */
-    public function show()
+    public function retrieveAll()
     {
         return $this->vendor::with('accommodations', 'insurances', 'transportations')->paginate(10);
     }
 	 /**
      * Display the data for edit form by using Vendor id.
      *
-     * @param $id
-     * @return JsonResponse
+     * @param $request
+     * @return mixed
      */
-    public function edit($id)
+    public function retrieve($request): mixed
     {    
-        return $this->vendor::find($id);
+        return $this->vendor::with('vendorAttachments')->findOrFail($request['id']);
         // $accommodations = $vendors->accommodations;
         // $insurances = $vendors->insurances;
         // $transportations = $vendors->transportations;
@@ -86,35 +101,47 @@ class VendorServices
 	 /**
      * Update the specified Vendor data.
      *
-     * @param $id
      * @param $request
      * @return mixed
      */
-    public function updateData($id, $request): mixed
+    public function update($request): mixed
     {  
         $input = $request->all();
-        $vendors = $this->vendor::findorfail($id);
-        if (request()->hasFile('attachments')){
-            $uploadedFile = $request->file('attachments');
-            $fileName = time() . '.' . $uploadedFile->getClientOriginalExtension();
-            $destinationPath = storage_path('uploads');
-            $uploadedFile->move($destinationPath, $fileName);
-            $input['attachments'] = "uploads/".$fileName;
+        $vendors = $this->vendor::findorfail($input['id']);
+
+        if (request()->hasFile('attachment')){
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();                    
+                // $fileName = time() . '.' . $file->getClientOriginalExtension();                 
+                $filePath = '/vendor/' . $fileName; 
+                if (!Storage::disk('linode')->exists($filePath)) {
+                    $linode = Storage::disk('linode');
+                    $linode->put($filePath, file_get_contents($file));
+                    $fileUrl = Storage::disk('linode')->url($filePath);
+                    $data=$this->vendorAttachments::create([
+                            "file_id" => $input['id'],
+                            "file_name" => $fileName,
+                            "file_type" => 'vendor',
+                            "file_url" => $filePath               
+                        ]); 
+                }    
+            }
         }
         return $vendors->update($input);
     }
 	 /**
      * delete the specified Vendors data.
      *
-     * @param $id
+     * @param $request
      * @return void
      */    
-    public function delete($id): void
-    {     
-        $vendors = $this->vendor::find($id);
+    public function delete($request)
+    {   
+        $vendors = $this->vendor::find($request['id']);
         $vendors->accommodations()->delete();
         $vendors->insurances()->delete();
         $vendors->transportations()->delete();
+        $vendors->vendorAttachments()->delete();
         $vendors->delete();
     }
     /**
@@ -135,7 +162,6 @@ class VendorServices
             'state',
             'city',
             'postcode',
-            'attachments',
             'id']);
     }
 

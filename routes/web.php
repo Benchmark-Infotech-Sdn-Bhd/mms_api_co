@@ -18,52 +18,75 @@ $router->get('/', function () use ($router) {
 });
 
 $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function () use ($router) {
-    $router->post('create', 'V1\MaintainMastersController@create');
-});
+    /**
+     * Routes for Vendors.
+     */
+    $router->group(['prefix' => 'vendor'], function () use ($router) {
+        $router->post('create', 'V1\VendorController@create');
+        $router->post('update', 'V1\VendorController@update');
+        $router->post('delete', 'V1\VendorController@delete');
+        $router->post('retrieve', 'V1\VendorController@retrieve');
+        $router->get('retrieveAll', 'V1\VendorController@retrieveAll');
+        $router->post('search', 'V1\VendorController@search');
+    });
 
-$router->group(['prefix' => 'api/v1'], function () use ($router) {
-    Route::post('create_vendor', 'V1\VendorController@createVendor');
-    Route::get('show_vendors', 'V1\VendorController@showVendors');
-    Route::get('edit_vendors/{id}', 'V1\VendorController@editVendors');
-    Route::post('update_vendors/{id}', 'V1\VendorController@updateVendors');
-    Route::delete('delete_vendors/{id}', 'V1\VendorController@deleteVendors');
-    Route::post('search_vendors', 'V1\VendorController@searchVendors');
+    /**
+     * Routes for FOMEMA Clinics.
+     */
+    $router->group(['prefix' => 'fomemaClinics'], function () use ($router) {
+        $router->post('create', 'V1\FomemaClinicsController@create');
+        $router->put('update', 'V1\FomemaClinicsController@update');
+        $router->post('delete', 'V1\FomemaClinicsController@delete');
+        $router->post('retrieve', 'V1\FomemaClinicsController@retrieve');
+        $router->get('retrieveAll', 'V1\FomemaClinicsController@retrieveAll');
+        $router->post('search', 'V1\FomemaClinicsController@search');
+    });
 
-    Route::post('create_clinic', 'V1\FomemaClinicsController@createFomemaClinics');
-    Route::get('show_clinic', 'V1\FomemaClinicsController@showFomemaClinics');
-    Route::get('edit_clinic/{id}', 'V1\FomemaClinicsController@editFomemaClinics');
-    Route::put('update_clinic/{id}', 'V1\FomemaClinicsController@updateFomemaClinics');
-    Route::delete('delete_clinic/{id}', 'V1\FomemaClinicsController@deleteFomemaClinics');
-    Route::post('search_fomema_clinics', 'V1\FomemaClinicsController@searchFomemaClinics');
+    /**
+     * Routes for Fee Registration.
+     */
+    $router->group(['prefix' => 'feeRegistration'], function () use ($router) {
+        $router->post('create', 'V1\FeeRegistrationController@create');
+        $router->put('update', 'V1\FeeRegistrationController@update');
+        $router->post('delete', 'V1\FeeRegistrationController@delete');
+        $router->post('retrieve', 'V1\FeeRegistrationController@retrieve');
+        $router->get('retrieveAll', 'V1\FeeRegistrationController@retrieveAll');
+        $router->post('search', 'V1\FeeRegistrationController@search');
+    });
 
-    Route::post('create_fee', 'V1\FeeRegistrationController@createFeeRegistration');
-    Route::get('show_fee', 'V1\FeeRegistrationController@showFeeRegistration');
-    Route::get('edit_fee/{id}', 'V1\FeeRegistrationController@editFeeRegistration');
-    Route::put('update_fee/{id}', 'V1\FeeRegistrationController@updateFeeRegistration');
-    Route::delete('delete_fee/{id}', 'V1\FeeRegistrationController@deleteFeeRegistration');
-    Route::post('search_feeRegistration', 'V1\FeeRegistrationController@searchFeeRegistration');
+    /**
+     * Routes for Accommodation.
+     */
+    $router->group(['prefix' => 'accommodation'], function () use ($router) {
+        $router->post('create', 'V1\AccommodationController@create');
+        $router->post('update', 'V1\AccommodationController@update');
+        $router->post('delete', 'V1\AccommodationController@delete');
+        $router->post('retrieve', 'V1\AccommodationController@retrieve');
+        $router->get('retrieveAll', 'V1\AccommodationController@retrieveAll');
+        $router->post('search', 'V1\AccommodationController@search');
+    });
 
-    Route::post('create_accommodation', 'V1\AccommodationController@createAccommodation');
-    Route::get('show_accommodation', 'V1\AccommodationController@showAccommodation');
-    Route::get('edit_accommodation/{id}', 'V1\AccommodationController@editAccommodation');
-    Route::post('update_accommodation/{id}', 'V1\AccommodationController@updateAccommodation');
-    Route::delete('delete_accommodation/{id}', 'V1\AccommodationController@deleteAccommodation');
-    Route::post('search_accommodation', 'V1\AccommodationController@searchAccommodation');
+    /**
+     * Routes for Insurance.
+     */
+    $router->group(['prefix' => 'insurance'], function () use ($router) {
+        $router->post('create', 'V1\InsuranceController@create');
+        $router->put('update', 'V1\InsuranceController@update');
+        $router->post('delete', 'V1\InsuranceController@delete');
+        $router->post('retrieve', 'V1\InsuranceController@retrieve');
+        $router->get('retrieveAll', 'V1\InsuranceController@retrieveAll');
+        $router->post('search', 'V1\InsuranceController@search');
+    });
 
-    Route::post('create_insurance', 'V1\InsuranceController@createInsurance');
-    Route::get('show_insurance', 'V1\InsuranceController@showInsurance');
-    Route::get('edit_insurance/{id}', 'V1\InsuranceController@editInsurance');
-    Route::put('update_insurance/{id}', 'V1\InsuranceController@updateInsurance');
-    Route::delete('delete_insurance/{id}', 'V1\InsuranceController@deleteInsurance');
-    Route::post('search_insurance', 'V1\InsuranceController@searchInsurance');
-
-    Route::post('create_transportation', 'V1\TransportationController@createTransportation');
-    Route::get('show_transportation', 'V1\TransportationController@showTransportation');
-    Route::get('edit_transportation/{id}', 'V1\TransportationController@editTransportation');
-    Route::put('update_transportation/{id}', 'V1\TransportationController@updateTransportation');
-    Route::delete('delete_transportation/{id}', 'V1\TransportationController@deleteTransportation');
-    Route::post('search_transportation', 'V1\TransportationController@searchTransportation');
-
-    Route::post('image_upload', 'V1\AccommodationController@uploadImage');
-    
+    /**
+     * Routes for Transportation.
+     */
+    $router->group(['prefix' => 'transportation'], function () use ($router) {
+        $router->post('create', 'V1\TransportationController@create');
+        $router->put('update', 'V1\TransportationController@update');
+        $router->post('delete', 'V1\TransportationController@delete');
+        $router->post('retrieve', 'V1\TransportationController@retrieve');
+        $router->get('retrieveAll', 'V1\TransportationController@retrieveAll');
+        $router->post('search', 'V1\TransportationController@search');
+    });
 });

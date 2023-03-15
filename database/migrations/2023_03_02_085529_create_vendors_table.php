@@ -23,7 +23,6 @@ return new class extends Migration
             $table->string('state',150)->nullable();
             $table->string('city',150)->nullable();
             $table->string('postcode',20)->nullable();
-            $table->string('attachments')->nullable();
             $table->string('remarks',150)->nullable();
             $table->integer('created_by')->default(0);
             $table->integer('modified_by')->default(0);            

@@ -30,7 +30,7 @@ class TransportationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function createTransportation(Request $request): JsonResponse
+    public function create(Request $request): JsonResponse
     {
         try {
             $validation = $this->transportationServices->inputValidation($request);
@@ -49,10 +49,10 @@ class TransportationController extends Controller
      *
      * @return JsonResponse
      */    
-    public function showTransportation(): JsonResponse
+    public function retrieveAll(): JsonResponse
     {        
         try {
-            $response = $this->transportationServices->show(); 
+            $response = $this->transportationServices->retrieveAll(); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -62,13 +62,14 @@ class TransportationController extends Controller
 	 /**
      * Display the data for edit form by using Transportation id.
      *
-     * @param $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function editTransportation($id): JsonResponse
+    public function retrieve(Request $request): JsonResponse
     {      
         try {
-            $response = $this->transportationServices->edit($id); 
+            $params = $this->getRequest($request);
+            $response = $this->transportationServices->retrieve($request); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -78,17 +79,17 @@ class TransportationController extends Controller
 	 /**
      * Update the specified Transportation data.
      *
-     * @param Request $request, $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function updateTransportation(Request $request, $id): JsonResponse
+    public function update(Request $request): JsonResponse
     {   
         try {     
             $validation = $this->transportationServices->inputValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->transportationServices->updateData($id, $request); 
+            $this->transportationServices->update($request); 
             return $this->sendSuccess(['message' => "Successfully transportation was updated"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -98,13 +99,14 @@ class TransportationController extends Controller
 	 /**
      * delete the specified Transportation data.
      *
-     * @param $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function deleteTransportation($id): JsonResponse
+    public function delete(Request $request): JsonResponse
     {     
         try {  
-            $this->transportationServices->delete($id); 
+            $params = $this->getRequest($request);
+            $this->transportationServices->delete($params); 
             return $this->sendSuccess(['message' => "Successfully transportation was deleted"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -118,7 +120,7 @@ class TransportationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function searchTransportation(Request $request): JsonResponse
+    public function search(Request $request): JsonResponse
     {
         try{
             $response = $this->transportationServices->search($request);
