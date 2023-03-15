@@ -41,7 +41,7 @@ class Countries extends Model
         // check for failure
         if($validator->fails()){
             // set errors and return false
-            $this->errors = $validator->errors;
+            $this->errors = $validator->errors();
             return false;
         }
         // validation pass

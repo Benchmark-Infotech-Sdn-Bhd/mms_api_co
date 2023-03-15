@@ -7,7 +7,6 @@ use App\Models\Countries;
 class MaintainMastersServices
 {
     private Countries $countries;
-
     /**
      * MaintainMastersServices constructor.
      * @param Countries $countries
@@ -21,7 +20,7 @@ class MaintainMastersServices
      * @param $request
      * @return mixed
      */
-    public function create($request)
+    public function create($request) : mixed
     {
         if(!($this->countries->validate($request))){
             return $this->countries->errors();

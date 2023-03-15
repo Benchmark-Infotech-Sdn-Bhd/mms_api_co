@@ -25,7 +25,7 @@ class MaintainMastersController extends Controller
         $this->maintainMastersServices = $maintainMastersServices;
     }
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new country.
      *
      * @param Request $request
      * @return JsonResponse
