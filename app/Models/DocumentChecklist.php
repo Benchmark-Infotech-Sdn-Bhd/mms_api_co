@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Sectors extends Model
+class DocumentChecklist extends Model
 {
     use SoftDeletes;
     /**
@@ -13,19 +13,19 @@ class Sectors extends Model
      *
      * @var string
      */
-    protected $table = 'sectors';
+    protected $table = 'document_checklist';
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $fillable = ['sector_name','sub_sector_name','created_by','modified_by'];
+    protected $fillable = ['sector_id','document_title','created_by','modified_by'];
     /**
-     * @return HasMany
+     * @return BelongsTo
      */
-    public function documentChecklist()
+    public function sectors()
     {
-        return $this->hasMany(DocumentChecklist::class, 'sector_id');
+        return $this->belongsTo(Sectors::class, 'sector_id');
     }
     /**
      * The attributes that are required.
@@ -33,8 +33,8 @@ class Sectors extends Model
      * @var array
      */
     public $rules = [
-        'sector_name' => 'required|max:255',
-        'sub_sector_name' => 'max:255'
+        'sector_id' => 'required',
+        'document_title' => 'required'
     ];
     /**
      * The attributes that are required for updation.
@@ -43,7 +43,7 @@ class Sectors extends Model
      */
     public $rulesForUpdation = [
         'id' => 'required',
-        'sector_name' => 'required|max:255',
-        'sub_sector_name' => 'max:255'
+        'sector_id' => 'required',
+        'document_title' => 'required'
     ];
 }

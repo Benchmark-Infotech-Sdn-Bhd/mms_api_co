@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Agent extends Model
+class EmbassyAttestationFileCosting extends Model
 {
     use SoftDeletes;
     /**
@@ -13,14 +13,13 @@ class Agent extends Model
      *
      * @var string
      */
-    protected $table = 'agent';
+    protected $table = 'embassy_attestation_file_costing';
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $fillable = ['agent_name','country_id','city','person_in_charge','pic_contact_number',
-    'email_address','company_address','created_by','modified_by'];
+    protected $fillable = ['country_id','title','amount','created_by','modified_by'];
     /**
      * @return BelongsTo
      */
@@ -34,12 +33,19 @@ class Agent extends Model
      * @var array
      */
     public $rules = [
-        'agent_name' => 'required|max:250',
         'country_id' => 'required',
-        'city' => 'max:150',
-        'person_in_charge' => 'required|max:255',
-        'pic_contact_number' => 'required|max:20',
-        'email_address' => 'required|email',
-        'company_address' => 'required'
+        'title' => 'required',
+        'amount' => 'required'
+    ];
+    /**
+     * The attributes that are required for updation.
+     *
+     * @var array
+     */
+    public $rulesForUpdation = [
+        'id' => 'required',
+        'country_id' => 'required',
+        'title' => 'required',
+        'amount' => 'required'
     ];
 }
