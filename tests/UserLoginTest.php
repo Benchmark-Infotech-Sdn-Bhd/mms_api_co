@@ -2,11 +2,16 @@
 
 namespace Tests;
 
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
-
 class UserLoginTest extends TestCase
 {
+    protected $email;
+
+    public function setUp(): void
+    {
+        parent::setUp();    
+        $this->email = $this->createEmail();
+    }
+
     /**
      * A test method for user login
      *
@@ -19,7 +24,6 @@ class UserLoginTest extends TestCase
             'password' => 'Test1234$'
         ];
         $response = $this->post('/api/v1/login', $payload);
-        // dd($response);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -40,11 +44,10 @@ class UserLoginTest extends TestCase
     public function testUserLoginWithInvalidCredentials()
     {
         $payload =  [
-            'email' => 'valarmathi@codtesma.com',
-            'password' => 'Test1234$$'
+            'email' =>  $this->email,
+            'password' => '12345'
         ];
         $response = $this->post('/api/v1/login', $payload);
-        // dd($response);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
