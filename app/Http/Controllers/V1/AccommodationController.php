@@ -23,7 +23,6 @@ class AccommodationController extends Controller
     {
         $this->accommodationServices = $accommodationServices;
     }
-
     /**
      * Show the form for creating a new Accommodation.
      *

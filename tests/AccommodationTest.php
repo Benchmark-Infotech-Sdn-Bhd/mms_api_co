@@ -23,9 +23,6 @@ class AccommodationTest extends TestCase
              'rent_per_month' => random_int(10, 1000),
              'vendor_id' => 1
         ];
-
-
-
         $response = $this->post('/api/v1/accommodation/create',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
@@ -92,7 +89,6 @@ class AccommodationTest extends TestCase
                 ]
         ]);
     }
-
     /**
      * A test method for delete existing accommodation.
      *

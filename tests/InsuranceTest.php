@@ -88,7 +88,6 @@ class InsuranceTest extends TestCase
                 ]
         ]);
     }
-
     /**
      * A test method for delete existing insurance.
      *

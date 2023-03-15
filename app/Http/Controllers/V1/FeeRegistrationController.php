@@ -23,7 +23,6 @@ class FeeRegistrationController extends Controller
     {
         $this->feeRegistrationServices = $feeRegistrationServices;
     }
-
     /**
      * Show the form for creating a new Fee Registration.
      *
@@ -113,7 +112,6 @@ class FeeRegistrationController extends Controller
             return $this->sendError(['message' => 'delete insurance was failed']);
         } 
     }
-
     /**
      * searching Fee Registration data.
      *

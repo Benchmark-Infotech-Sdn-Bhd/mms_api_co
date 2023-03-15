@@ -19,11 +19,16 @@ class VendorServices
      * @var vendorAttachments
      */
     private VendorAttachments $vendorAttachments;
+    /**
+     * @var Storage
+     */
+    private Storage $storage;
 
-    public function __construct(Vendor $vendor,VendorAttachments $vendorAttachments)
+    public function __construct(Vendor $vendor,VendorAttachments $vendorAttachments, Storage $storage)
     {
         $this->vendor = $vendor;
         $this->vendorAttachments = $vendorAttachments;
+        $this->storage = $storage;
     }
     /**
      * @param $request
@@ -62,9 +67,9 @@ class VendorServices
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
                 $filePath = '/vendor/' . $fileName; 
-                $linode = Storage::disk('linode');
+                $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
-                $fileUrl = Storage::disk('linode')->url($filePath);
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
                 $data=$this->vendorAttachments::create([
                         "file_id" => $vendorDataId,
                         "file_name" => $fileName,
@@ -111,8 +116,7 @@ class VendorServices
 
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();                    
-                // $fileName = time() . '.' . $file->getClientOriginalExtension();                 
+                $fileName = $file->getClientOriginalName();               
                 $filePath = '/vendor/' . $fileName; 
                 if (!Storage::disk('linode')->exists($filePath)) {
                     $linode = Storage::disk('linode');

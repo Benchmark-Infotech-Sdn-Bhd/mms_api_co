@@ -29,7 +29,6 @@ class VendorsTest extends TestCase
              'postcode' => random_int(10, 1000),
              'remarks' => 'test',
         ];
-
         $response = $this->post('/api/v1/vendor/create',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
@@ -102,7 +101,6 @@ class VendorsTest extends TestCase
                 ]
         ]);
     }
-
     /**
      * A test method for delete existing vendor.
      *

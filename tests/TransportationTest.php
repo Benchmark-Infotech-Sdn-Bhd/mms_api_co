@@ -25,24 +25,14 @@ class TransportationTest extends TestCase
              'vehicle_capacity' => random_int(10, 1000),
              'vendor_id' => 1
         ];
-
         $response = $this->post('/api/v1/transportation/create',$payload);
         $response->seeStatusCode(200);
-        // $response->seeJsonStructure([
-        //     'data' =>
-        //         [
-        //             'id',
-        //             'driver_name',
-        //             'driver_contact_number',
-        //             'driver_license_number',
-        //             'vehicle_type',
-        //             'number_plate',
-        //             'vehicle_capacity',
-        //             'vendor_id',
-        //             'created_at',
-        //             'updated_at',
-        //         ]
-        // ]);
+        $response->seeJsonStructure([
+            'data' =>
+                [
+                    'message'
+                ]
+        ]);
 
     }
     /**
@@ -54,7 +44,7 @@ class TransportationTest extends TestCase
     {
         $this->faker = Factory::create();
         $payload =  [
-            'id' => 2,
+            'id' => 1,
             'driver_name' => $this->faker->name,
             'driver_contact_number' => random_int(10, 1000),
             'driver_license_number' => random_int(10, 1000),
@@ -65,9 +55,12 @@ class TransportationTest extends TestCase
         ];
         $response = $this->put('/api/v1/transportation/update',$payload);
         $response->seeStatusCode(200);
-        // $response->seeJsonStructure([
-        //     'result'
-        // ]);
+        $response->seeJsonStructure([
+            'data' =>
+                [
+                    'message'
+                ]
+        ]);
     }
     /**
      * A test method for retrieve all transportation.
@@ -78,22 +71,12 @@ class TransportationTest extends TestCase
     {
         $response = $this->get("/api/v1/transportation/retrieveAll");
         $response->seeStatusCode(200);
-        // $response->seeJsonStructure([
-        //     'result' => ['*' =>
-        //         [
-        //             'id',
-        //             'driver_name',
-        //             'driver_contact_number',
-        //             'driver_license_number',
-        //             'vehicle_type',
-        //             'number_plate',
-        //             'vehicle_capacity',
-        //             'vendor_id',
-        //             'created_at',
-        //             'updated_at',
-        //         ]
-        //     ],
-        // ]);
+        $response->seeJsonStructure([
+            'data' =>
+                [
+                    'message'
+                ]
+        ]);
     }
     /**
      * A test method for retrieve specific transportation.
@@ -104,22 +87,12 @@ class TransportationTest extends TestCase
     {
         $response = $this->post("/api/v1/transportation/retrieve",['id' => 2]);
         $response->seeStatusCode(200);
-        // $response->seeJsonStructure([
-        //     'result' => ['*' =>
-        //         [
-        //             'id',
-        //             'driver_name',
-        //             'driver_contact_number',
-        //             'driver_license_number',
-        //             'vehicle_type',
-        //             'number_plate',
-        //             'vehicle_capacity',
-        //             'vendor_id',
-        //             'created_at',
-        //             'updated_at',
-        //         ]
-        //     ],
-        // ]);
+        $response->seeJsonStructure([
+            'data' =>
+                [
+                    'message'
+                ]
+        ]);
     }
 
     /**
@@ -130,12 +103,15 @@ class TransportationTest extends TestCase
     public function testDeleteTransportation()
     {
         $payload =  [
-            'id' => 2
+            'id' => 1
         ];
         $response = $this->post('/api/v1/transportation/delete',$payload);
         $response->seeStatusCode(200);
-        // $response->seeJsonStructure([
-        //     'result'
-        // ]);
+        $response->seeJsonStructure([
+            'data' =>
+                [
+                    'message'
+                ]
+        ]);
     }
 }

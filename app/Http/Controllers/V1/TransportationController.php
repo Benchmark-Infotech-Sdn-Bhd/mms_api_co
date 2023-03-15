@@ -113,7 +113,6 @@ class TransportationController extends Controller
             return $this->sendError(['message' => 'delete transportation was failed']);
         }
     }
-
     /**
      * searching transportation data.
      *

@@ -19,11 +19,16 @@ class AccommodationServices
      * @var accommodationAttachments
      */
     private AccommodationAttachments $accommodationAttachments;
+    /**
+     * @var Storage
+     */
+    private Storage $storage;
 
-    public function __construct(Accommodation $accommodation, AccommodationAttachments $accommodationAttachments)
+    public function __construct(Accommodation $accommodation, AccommodationAttachments $accommodationAttachments, Storage $storage)
     {
         $this->accommodation = $accommodation;
         $this->accommodationAttachments = $accommodationAttachments;
+        $this->storage = $storage;
     }
     /**
      * @param $request
@@ -56,9 +61,9 @@ class AccommodationServices
             foreach($request->file('attachment') as $file){                
                 $fileName = $file->getClientOriginalName();                 
                 $filePath = '/vendor/accommodation/' . $fileName; 
-                $linode = Storage::disk('linode');
+                $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
-                $fileUrl = Storage::disk('linode')->url($filePath);
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
                 $data=$this->accommodationAttachments::create([
                         "file_id" => $accommodationId,
                         "file_name" => $fileName,
@@ -100,10 +105,10 @@ class AccommodationServices
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();                 
                 $filePath = '/vendor/accommodation/' . $fileName; 
-                if (!Storage::disk('linode')->exists($filePath)) {
-                    $linode = Storage::disk('linode');
+                if (!$this->storage::disk('linode')->exists($filePath)) {
+                    $linode = $this->storage::disk('linode');
                     $linode->put($filePath, file_get_contents($file));
-                    $fileUrl = Storage::disk('linode')->url($filePath);
+                    $fileUrl = $this->storage::disk('linode')->url($filePath);
                     $data=$this->accommodationAttachments::create([
                             "file_id" => $request['id'],
                             "file_name" => $fileName,
