@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('agent', function (Blueprint $table) {
             $table->id();
             $table->string('agent_name',250);
-            $table->string('country',150);
+            $table->unsignedBigInteger('country_id');
             $table->string('city',150)->nullable();
             $table->string('person_in_charge',255);
             $table->string('pic_contact_number',20);
@@ -24,7 +24,9 @@ return new class extends Migration
             $table->integer('modified_by')->default(0);
             $table->timestamps();
             $table->softDeletes();
-            $table->index(['country']);
+            $table->foreign('country_id')
+              ->references('id')->on('countries')->onDelete('cascade');
+            $table->index(['country_id']);
         });
     }
 
