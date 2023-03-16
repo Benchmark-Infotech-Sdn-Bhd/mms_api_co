@@ -8,8 +8,11 @@ use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
@@ -96,11 +99,14 @@ class AuthController extends Controller
             if (!$user = JWTAuth::parseToken()->authenticate()) {
                 $this->sendError(['message' => 'user not found'], 404);
             }
-        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+        } catch (TokenExpiredException $e) {
+            Log::error('TokenExpiredException - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'token expired'], 404);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+        } catch (TokenInvalidException $e) {
+            Log::error('TokenInvalidException - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'token invalid'], 404);
-        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
+        } catch (JWTException $e) {
+            Log::error('JWTException - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'token absent'], 404);
         }
         return $this->sendSuccess(compact('user'));

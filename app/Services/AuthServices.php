@@ -4,16 +4,8 @@
 namespace App\Services;
 
 use App\Http\Controllers\Controller;
-use App\Mail\AccountCreationMail;
-use App\Mail\ForgotMail;
-use App\Models\PasswordResets;
 use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Http\Request;
 
 class AuthServices extends Controller
 {
@@ -23,19 +15,12 @@ class AuthServices extends Controller
     private $user;
 
     /**
-     * @var Request
-     */
-    private $request;
-
-    /**
      * AuthServices constructor.
      * @param User $user
-     * @param Request $request
      */
-    public function __construct(User $user, Request $request)
+    public function __construct(User $user)
     {
         $this->user = $user;
-        $this->request = $request;
     }
 
     /**
