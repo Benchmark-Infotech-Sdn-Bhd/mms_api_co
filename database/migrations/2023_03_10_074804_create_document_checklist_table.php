@@ -11,16 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('countries', function (Blueprint $table) {
+        Schema::create('document_checklist', function (Blueprint $table) {
             $table->id();
-            $table->string('country_name',150);
-            $table->enum('system_type',['Embassy','FWCMS'])->default('FWCMS');
-            $table->float('fee')->nullable();
+            $table->unsignedBigInteger('sector_id');
+            $table->text('document_title');
             $table->integer('created_by')->default(0);
             $table->integer('modified_by')->default(0);
             $table->timestamps();
             $table->softDeletes();
-            $table->index(['system_type','country_name']);
+            $table->foreign('sector_id')
+              ->references('id')->on('sectors')->onDelete('cascade');
+            $table->index(['sector_id']);
         });
     }
 
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('countries');
+        Schema::dropIfExists('document_checklist');
     }
 };
