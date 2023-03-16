@@ -30,7 +30,6 @@ class TransportationServices
        }
     }
 	 /**
-     * Show the form for creating a new Transportation.
      *
      * @param Request $request
      * @return mixed
@@ -48,49 +47,43 @@ class TransportationServices
         ]);
     }
 	 /**
-     * Display a listing of the Transportation.
      *
      * @return LengthAwarePaginator
      */
-    public function show()
+    public function retrieveAll()
     {
         return $this->transportation::with('vendor')->paginate(10);
     }
 	 /**
-     * Display the data for edit form by using Transportation id.
      *
-     * @param $id
-     * @return JsonResponse
-     */
-    public function edit($id)
-    {
-        return $this->transportation::findorfail($id);
-    }
-	 /**
-     * Update the specified Transportation data.
-     *
-     * @param $id
      * @param $request
      * @return mixed
      */
-    public function updateData($id, $request): mixed
+    public function retrieve($request) : mixed
+    {
+        return $this->transportation::findorfail($request['id']);
+    }
+	 /**
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function update($request): mixed
     {     
-        $data = $this->transportation::findorfail($id);
+        $data = $this->transportation::findorfail($request['id']);
         return $data->update($request->all());
     }
 	 /**
-     * delete the specified Transportation data.
      *
-     * @param $id
+     * @param $request
      * @return void
      */    
-    public function delete($id): void
+    public function delete($request): void
     {     
-        $data = $this->transportation::findorfail($id);
+        $data = $this->transportation::findorfail($request['id']);
         $data->delete();
     }
     /**
-     * searching transportation data.
      *
      * @param $request
      * @return mixed

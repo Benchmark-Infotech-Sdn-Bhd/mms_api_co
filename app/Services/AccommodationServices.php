@@ -4,20 +4,31 @@
 namespace App\Services;
 
 use App\Models\Accommodation;
+use App\Models\AccommodationAttachments;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AccommodationServices
 {
     /**
      * @var accommodation
      */
-    private Accommodation   $accommodation;
+    private Accommodation $accommodation;
+    /**
+     * @var accommodationAttachments
+     */
+    private AccommodationAttachments $accommodationAttachments;
+    /**
+     * @var Storage
+     */
+    private Storage $storage;
 
-    public function __construct(Accommodation $accommodation)
+    public function __construct(Accommodation $accommodation, AccommodationAttachments $accommodationAttachments, Storage $storage)
     {
         $this->accommodation = $accommodation;
+        $this->accommodationAttachments = $accommodationAttachments;
+        $this->storage = $storage;
     }
     /**
      * @param $request
@@ -30,99 +41,107 @@ class AccommodationServices
         }
     }
     /**
-     * Show the form for creating a new Accommodation.
      *
      * @param $request
      * @return mixed
      */
     public function create($request): mixed
     {     
-        $input = $request->all();
-        if (request()->hasFile('attachment')){
-            $uploadedfile = $request->file('attachment');
-            $fileName = time() . '.' . $uploadedfile->getClientOriginalExtension();
-            $destinationPath = storage_path('uploads');
-            $uploadedfile->move($destinationPath, $fileName);
-            $input['attachment'] = "uploads/".$fileName;
-        }
-        return $this->accommodation::create([
+        $input = $request->all();        
+        $accommodationData = $this->accommodation::create([
             'name' => $input["name"],
             'location' => $input["location"],
-            'square_feet' => $input["square_feet"],
-            'accommodation_name' => $input["accommodation_name"],
-            'maximum_pax_per_room' => $input["maximum_pax_per_room"],
-            'cost_per_pax' => $input["cost_per_pax"],
-            'attachment' => $input["attachment"],
+            'maximum_pax_per_unit' => $input["maximum_pax_per_unit"],
             'deposit' => $input["deposit"],
             'rent_per_month' => $input["rent_per_month"],
             'vendor_id' => $input["vendor_id"],
         ]);
+        $accommodationId = $accommodationData->id;
+        if (request()->hasFile('attachment')){
+            foreach($request->file('attachment') as $file){                
+                $fileName = $file->getClientOriginalName();                 
+                $filePath = '/vendor/accommodation/' . $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $data=$this->accommodationAttachments::create([
+                        "file_id" => $accommodationId,
+                        "file_name" => $fileName,
+                        "file_type" => 'accommodation',
+                        "file_url" =>  $fileUrl          
+                    ]);  
+            }
+        }
+        return $accommodationData;
+        
     }
     /**
-     * Display a listing of the Accommodation.
      *
      * @return LengthAwarePaginator
      */
-    public function show()
+    public function retrieveAll()
     {
         return $this->accommodation::with('vendor')->paginate(10);
     }
     /**
-     * Display the data for edit form by using accommodation id.
      *
-     * @param $id
-     * @return JsonResponse
-     */
-    public function edit($id)
-    {
-        return $this->accommodation::findorfail($id);
-    }
-    /**
-     * Update the specified Accommodation data.
-     *
-     * @param $id
      * @param $request
      * @return mixed
      */
-    public function update($id, $request): mixed
+    public function  retrieve($request) : mixed
+    {
+        return $this->accommodation::with('accommodationAttachments')->findorfail($request['id']);
+    }
+    /**
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function update($request): mixed
     {    
-        $data = $this->accommodation::findorfail($id);
+        $data = $this->accommodation::findorfail($request['id']);
         $input = $request->all();
         if (request()->hasFile('attachment')){
-            $uploadedfile = $request->file('attachment');
-            $fileName = time() . '.' . $uploadedfile->getClientOriginalExtension();
-            $destinationPath = storage_path('uploads');
-            $uploadedfile->move($destinationPath, $fileName);
-            $input['attachment'] = "uploads/".$fileName;
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();                 
+                $filePath = '/vendor/accommodation/' . $fileName; 
+                if (!$this->storage::disk('linode')->exists($filePath)) {
+                    $linode = $this->storage::disk('linode');
+                    $linode->put($filePath, file_get_contents($file));
+                    $fileUrl = $this->storage::disk('linode')->url($filePath);
+                    $data=$this->accommodationAttachments::create([
+                            "file_id" => $request['id'],
+                            "file_name" => $fileName,
+                            "file_type" => 'accommodation',
+                            "file_url" => $fileUrl                
+                        ]); 
+                }    
+            }
         }
         return $data->update($input);
     }
     /**
-     * delete the specified Accommodation data.
      *
-     * @param $id
+     * @param $request
      * @return void
      */    
-    public function delete($id): void
+    public function delete($request): void
     {   
-        $data = $this->accommodation::findorfail($id);
+        $data = $this->accommodation::find($request['id']);        
+        $data->accommodationAttachments()->delete();
         $data->delete();
     }
     /**
-     * searching Accommodation data.
      *
      * @param $request
      * @return mixed
      */
     public function search($request): mixed
     {
-        return $this->accommodation->where('accommodation_name', 'like', '%' . $request->name . '%')->get(['name',
+        return $this->accommodation->where('name', 'like', '%' . $request->name . '%')
+        ->get(['name',
             'location',
-            'square_feet',
-            'accommodation_name',
-            'maximum_pax_per_room',
-            'cost_per_pax',
-            'attachment',
+            'maximum_pax_per_unit',
             'deposit',
             'rent_per_month',
             'vendor_id',
@@ -130,3 +149,5 @@ class AccommodationServices
     }
 
 }
+
+

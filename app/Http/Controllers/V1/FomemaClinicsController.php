@@ -29,7 +29,7 @@ class FomemaClinicsController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function createFomemaClinics(Request $request): JsonResponse
+    public function create(Request $request): JsonResponse
     {
         try {
             $validation = $this->fomemaClinicsServices->inputValidation($request);
@@ -40,7 +40,7 @@ class FomemaClinicsController extends Controller
             return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was created"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
+            return $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
         }
     }
 	 /**
@@ -48,66 +48,68 @@ class FomemaClinicsController extends Controller
      *
      * @return JsonResponse
      */    
-    public function showFomemaClinics(): JsonResponse
+    public function retrieveAll(): JsonResponse
     {     
         try {   
-            $response = $this->fomemaClinicsServices->show(); 
+            $response = $this->fomemaClinicsServices->retrieveAll(); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Show FOMEMA Clinics was failed']);
+            return $this->sendError(['message' => 'Show FOMEMA Clinics was failed']);
         }
     }
 	 /**
      * Display the data for edit form by using Fomema Clinic id.
      *
-     * @param $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function editFomemaClinics($id): JsonResponse
+    public function retrieve(Request $request): JsonResponse
     {   
         try {
-            $response = $this->fomemaClinicsServices->edit($id); 
+            $params = $this->getRequest($request);
+            $response = $this->fomemaClinicsServices->retrieve($params); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Edit FOMEMA Clinics was failed']);
+            return $this->sendError(['message' => 'Edit FOMEMA Clinics was failed']);
         } 
     } 
 	 /**
      * Update the specified Fomema Clinic data.
      *
-     * @param Request $request, $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function updateFomemaClinics(Request $request, $id): JsonResponse
+    public function update(Request $request): JsonResponse
     {    
         try {            
             $validation = $this->fomemaClinicsServices->inputValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->fomemaClinicsServices->updateData($id, $request); 
+            $this->fomemaClinicsServices->update($request); 
             return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was updated"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'FOMEMA Clinics update was failed']);
+            return $this->sendError(['message' => 'FOMEMA Clinics update was failed']);
         }
     }
 	 /**
      * delete the specified FomemaClinic data.
      *
-     * @param $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function deleteFomemaClinics($id): JsonResponse
+    public function delete(Request $request): JsonResponse
     {    
         try {
-            $this->fomemaClinicsServices->delete($id); 
+            $params = $this->getRequest($request);
+            $this->fomemaClinicsServices->delete($params); 
             return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was deleted"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'delete insurance was failed']);
+            return $this->sendError(['message' => 'delete insurance was failed']);
         }         
     }
 
@@ -117,7 +119,7 @@ class FomemaClinicsController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function searchFomemaClinics(Request $request): JsonResponse
+    public function search(Request $request): JsonResponse
     {
         try{
             $response = $this->fomemaClinicsServices->search($request);

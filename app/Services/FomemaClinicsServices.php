@@ -30,9 +30,8 @@ class FomemaClinicsServices
         }
     }
 	 /**
-     * Show the form for creating a new Fomema Clinics.
      *
-     * @param Request $request
+     * @param $request
      * @return mixed
      */
     public function create($request): mixed
@@ -48,49 +47,43 @@ class FomemaClinicsServices
         ]);
     }
 	 /**
-     * Display a listing of the Fomema Clinics.
      *
      * @return LengthAwarePaginator
      */ 
-    public function show()
+    public function retrieveAll()
     {
         return $this->fomemaClinics::paginate(10);
     }
 	 /**
-     * Display the data for edit form by using Fomema Clinic id.
      *
-     * @param $id
-     * @return JsonResponse
-     */
-    public function edit($id)
-    {
-        return $this->fomemaClinics::findorfail($id);        
-    }
-	 /**
-     * Update the specified Fomema Clinic data.
-     *
-     * @param $id
      * @param $request
      * @return mixed
      */
-    public function updateData($id, $request): mixed
+    public function retrieve($request) : mixed
+    {
+        return $this->fomemaClinics::findorfail($request['id']);        
+    }
+	 /**
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function update($request): mixed
     {     
-        $data = $this->fomemaClinics::findorfail($id);
+        $data = $this->fomemaClinics::findorfail($request['id']);
         return $data->update($request->all());
     }
 	 /**
-     * delete the specified FomemaClinic data.
      *
-     * @param $id
+     * @param $request
      * @return void
      */    
-    public function delete($id): void
+    public function delete($request): void
     {    
-        $data = $this->fomemaClinics::findorfail($id);
+        $data = $this->fomemaClinics::find($request['id']);
         $data->delete();
     }
     /**
-     * searching FOMEMA Clinics data.
      *
      * @param $request
      * @return mixed

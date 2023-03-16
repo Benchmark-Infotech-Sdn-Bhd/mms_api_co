@@ -30,9 +30,8 @@ class FeeRegistrationServices
         }
     }
     /**
-     * Show the form for creating a new Fee Registration.
      *
-     * @param Request $request
+     * @param $request
      * @return mixed 
      */
     public function create($request): mixed
@@ -46,50 +45,44 @@ class FeeRegistrationServices
         ]);
     }
     /**
-     * Display a listing of the Fee Registration data.
      *
      * @return LengthAwarePaginator
      */
-    public function show()
+    public function retrieveAll()
     {
         return $this->feeRegistration::paginate(10);
     }
     /**
-     * Display the data for edit form by using feeRegistration id.
      *
-     * @param $id
-     * @return JsonResponse
-     */
-    public function edit($id)
-    {
-        return $this->feeRegistration::findorfail($id);
-    }
-	 /**
-     * Update the specified Fee Registration data.
-     *
-     * @param $id
      * @param $request
      * @return mixed
      */
-    public function updateData($id, $request): mixed
+    public function retrieve($request) : mixed
     {
-        $data = $this->feeRegistration::findorfail($id);
+        return $this->feeRegistration::findorfail($request['id']);
+    }
+	 /**
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function update($request): mixed
+    {
+        $data = $this->feeRegistration::findorfail($request['id']);
         return $data->update($request->all());
     }
 	 /**
-     * delete the specified Fee Registration data.
      *
-     * @param $id
+     * @param $request
      * @return void
      */    
-    public function delete($id): void
+    public function delete($request): void
     {     
-        $data = $this->feeRegistration::findorfail($id);
+        $data = $this->feeRegistration::find($request['id']);
         $data->delete();
     }
 
     /**
-     * searching Fee Registration data.
      *
      * @param $request
      * @return mixed
