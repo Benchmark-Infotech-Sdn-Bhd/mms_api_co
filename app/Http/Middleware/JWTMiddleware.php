@@ -3,35 +3,36 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
 use Exception;
 
-class JWTMiddleware extends BaseMiddleware
+class JWTMiddleware
 {
     /**
      * Handle an incoming request.
      *
      * @param  Request  $request
-     * @param  \Closure  $next
+     * @param  Closure  $next
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
     {
         try {
             JWTAuth::parseToken()->authenticate();
+        } catch (TokenInvalidException $e) {
+            Log::error('TokenExpiredException - ' . print_r($e->getMessage(), true));
+            return response()->json($this->frameResponse(['message' => 'Token is Invalid']));
+        } catch (TokenExpiredException $e) {
+            Log::error('TokenExpiredException - ' . print_r($e->getMessage(), true));
+            return response()->json($this->frameResponse(['message' => 'Token is Expired']));
         } catch (Exception $e) {
-            if ($e instanceof TokenInvalidException) {
-                return response()->json($this->frameResponse(['message' => 'Token is Invalid']));
-            } else if ($e instanceof TokenExpiredException) {
-                return response()->json($this->frameResponse(['message' => 'Token is Expired']));
-            } else {
-                return response()->json($this->frameResponse(['message' => 'Authorization Token not found']));
-            }
+            Log::error('Exception - ' . print_r($e->getMessage(), true));
+            return response()->json($this->frameResponse(['message' => 'Authorization Token not found']));
         }
         return $next($request);
     }
