@@ -35,7 +35,7 @@ class EmbassyAttestationFileCostingController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->embassyAttestationFileCostingServices->create($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return response()->json(['result' => $this->sendSuccess($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'creation failed. Please retry.';
@@ -53,7 +53,7 @@ class EmbassyAttestationFileCostingController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->embassyAttestationFileCostingServices->update($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return response()->json(['result' => $this->sendSuccess($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'updation failed. Please retry.';
@@ -71,7 +71,7 @@ class EmbassyAttestationFileCostingController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->embassyAttestationFileCostingServices->delete($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return response()->json(['result' => $this->sendSuccess($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Deletion failed. Please retry.';
@@ -89,7 +89,7 @@ class EmbassyAttestationFileCostingController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->embassyAttestationFileCostingServices->retrieveByCountry($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return response()->json(['result' => $this->sendSuccess($data)]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';

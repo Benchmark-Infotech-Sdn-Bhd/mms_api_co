@@ -6,8 +6,9 @@ use Faker\Generator;
 
 class CountriesTest extends TestCase
 {
-    
     private Generator $faker;
+    // System type
+    private $systemTypes = ["Embassy","FWCMS"];
     /**
      * A test method for create new country.
      *
@@ -18,7 +19,7 @@ class CountriesTest extends TestCase
         $this->faker = Factory::create();
         $payload =  [
             'country_name' => $this->faker->country,
-            'system_type' => 'FWCMS',
+            'system_type' => $this->systemTypes[array_rand($this->systemTypes,1)],
             'fee' => random_int(10, 1000)
         ];
         $response = $this->post('/api/v1/country/create',$payload);
@@ -26,12 +27,15 @@ class CountriesTest extends TestCase
         $response->seeJsonStructure([
             'result' =>
                 [
-                    'id',
-                    'country_name',
-                    'system_type',
-                    'created_at',
-                    'updated_at',
-                    'fee'
+                    'headers',
+                    'original' => [
+                        "error",
+                        "statusCode",
+                        "statusMessage",
+                        "data",
+                        "responseTime"
+                    ],
+                    'exception'
                 ]
         ]);
     }
@@ -46,13 +50,24 @@ class CountriesTest extends TestCase
         $payload =  [
             'id' => 5,
             'country_name' => $this->faker->country,
-            'system_type' => 'Embassy',
+            'system_type' => $this->systemTypes[array_rand($this->systemTypes,1)],
             'fee' => random_int(10, 1000)
         ];
         $response = $this->put('/api/v1/country/update',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result'
+            'result' =>
+                [
+                    'headers',
+                    'original' => [
+                        "error",
+                        "statusCode",
+                        "statusMessage",
+                        "data",
+                        "responseTime"
+                    ],
+                    'exception'
+                ]
         ]);
     }
     /**
@@ -68,7 +83,18 @@ class CountriesTest extends TestCase
         $response = $this->post('/api/v1/country/delete',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result'
+            'result' =>
+                [
+                    'headers',
+                    'original' => [
+                        "error",
+                        "statusCode",
+                        "statusMessage",
+                        "data",
+                        "responseTime"
+                    ],
+                    'exception'
+                ]
         ]);
     }
     /**
@@ -81,16 +107,18 @@ class CountriesTest extends TestCase
         $response = $this->get("/api/v1/country/retrieveAll");
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' => ['*' =>
+            'result' =>
                 [
-                    'id',
-                    'country_name',
-                    'system_type',
-                    'created_at',
-                    'updated_at',
-                    'fee'
+                    'headers',
+                    'original' => [
+                        "error",
+                        "statusCode",
+                        "statusMessage",
+                        "data",
+                        "responseTime"
+                    ],
+                    'exception'
                 ]
-            ],
         ]);
     }
     /**
@@ -105,12 +133,15 @@ class CountriesTest extends TestCase
         $response->seeJsonStructure([
             'result' =>
                 [
-                    'id',
-                    'country_name',
-                    'system_type',
-                    'created_at',
-                    'updated_at',
-                    'fee'
+                    'headers',
+                    'original' => [
+                        "error",
+                        "statusCode",
+                        "statusMessage",
+                        "data",
+                        "responseTime"
+                    ],
+                    'exception'
                 ]
         ]);
     }

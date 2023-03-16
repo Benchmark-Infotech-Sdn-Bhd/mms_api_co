@@ -4,23 +4,24 @@ namespace Tests;
 use Faker\Factory;
 use Faker\Generator;
 
-class EmbassyAttestationFileCostingTest extends TestCase
+class SectorsTest extends TestCase
 {
     private Generator $faker;
+    // Sector Enum
+    private $sectors = ["Agriculture","Construction","Electrical","Plumbing"];
     /**
-     * A test method for create new EmbassyAttestationFileCosting.
+     * A test method for create new sector.
      *
      * @return void
      */
-    public function testNewEmbassyAttestationFileCosting()
+    public function testNewSector()
     {
         $this->faker = Factory::create();
         $payload =  [
-            'country_id' => 1,
-            'title' => $this->faker->text(),
-            'amount' => random_int(10, 1000)
+            'sector_name' => $this->sectors[array_rand($this->sectors,1)],
+            'sub_sector_name' => $this->faker->text()
         ];
-        $response = $this->post('/api/v1/embassyAttestationFile/create',$payload);
+        $response = $this->post('/api/v1/sector/create',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'result' =>
@@ -38,20 +39,19 @@ class EmbassyAttestationFileCostingTest extends TestCase
         ]);
     }
     /**
-     * A test method for update existing EmbassyAttestationFileCosting.
+     * A test method for update existing sector.
      *
      * @return void
      */
-    public function testUpdateEmbassyAttestationFileCosting()
+    public function testUpdateSector()
     {
         $this->faker = Factory::create();
         $payload =  [
-            'id' => 2,
-            'country_id' => 1,
-            'title' => $this->faker->text(),
-            'amount' => random_int(10, 1000)
+            'id' => 5,
+            'sector_name' => $this->sectors[array_rand($this->sectors,1)],
+            'sub_sector_name' => $this->faker->text()
         ];
-        $response = $this->put('/api/v1/embassyAttestationFile/update',$payload);
+        $response = $this->put('/api/v1/sector/update',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'result' =>
@@ -69,16 +69,16 @@ class EmbassyAttestationFileCostingTest extends TestCase
         ]);
     }
     /**
-     * A test method for delete existing EmbassyAttestationFileCosting.
+     * A test method for delete existing sector.
      *
      * @return void
      */
-    public function testDeleteEmbassyAttestationFileCosting()
+    public function testDeleteSector()
     {
         $payload =  [
-            'id' => 3
+            'id' => 5
         ];
-        $response = $this->post('/api/v1/embassyAttestationFile/delete',$payload);
+        $response = $this->post('/api/v1/sector/delete',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'result' =>
@@ -96,13 +96,37 @@ class EmbassyAttestationFileCostingTest extends TestCase
         ]);
     }
     /**
-     * A test method for retrieve EmbassyAttestationFileCosting based on country.
+     * A test method for retrieve all sectors.
      *
      * @return void
      */
-    public function testShouldReturnEmbassyAttestationFileCostingByCountry()
+    public function testShouldReturnAllSectors()
     {
-        $response = $this->post("/api/v1/embassyAttestationFile/retrieveByCountry",['country_id' => 2]);
+        $response = $this->get("/api/v1/sector/retrieveAll");
+        $response->seeStatusCode(200);
+        $response->seeJsonStructure([
+            'result' =>
+                [
+                    'headers',
+                    'original' => [
+                        "error",
+                        "statusCode",
+                        "statusMessage",
+                        "data",
+                        "responseTime"
+                    ],
+                    'exception'
+                ]
+        ]);
+    }
+    /**
+     * A test method for retrieve specific Sector.
+     *
+     * @return void
+     */
+    public function testShouldReturnSpecificSector()
+    {
+        $response = $this->post("/api/v1/sector/retrieve",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'result' =>
