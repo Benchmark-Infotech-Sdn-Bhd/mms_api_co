@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
 class Controller extends BaseController
@@ -27,6 +28,21 @@ class Controller extends BaseController
         500 => 'Internal Server Error',
         501 => 'Not Implemented'
     ];
+
+    /**
+     * @param $token
+     * @param array $user
+     * @return JsonResponse
+     */
+    protected function respondWithToken($token, $user=[])
+    {
+        return $this->sendSuccess([
+            'token' => $token,
+            'user' => $user,
+            'token_type' => 'bearer',
+            'expires_in' => Auth::factory()->getTTL() * 60
+        ]);
+    }
 
     /**
      * @param $request
