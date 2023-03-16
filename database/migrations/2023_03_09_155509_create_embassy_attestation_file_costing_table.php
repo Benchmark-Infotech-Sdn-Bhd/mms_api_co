@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('country_id');
             $table->text('title');
-            $table->bigInteger('amount')->default(0);
+            $table->float('amount')->default(0);
             $table->integer('created_by')->default(0);
             $table->integer('modified_by')->default(0);
             $table->timestamps();
