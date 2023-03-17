@@ -19,7 +19,6 @@ $router->get('/', function () use ($router) {
 
 $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function () use ($router) {
 
-    $router->post('create', 'V1\MaintainMastersController@create');
     $router->post('login', 'V1\AuthController@login');
     $router->group(['middleware' => ['jwt.verify']], function () use ($router) {
         $router->group(['prefix' => 'user'], function () use ($router) {
@@ -65,5 +64,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->put('update', 'V1\DocumentChecklistController@update');
         $router->post('delete', 'V1\DocumentChecklistController@delete');
         $router->post('retrieveBySector', 'V1\DocumentChecklistController@retrieveBySector');
+    });
+    /**
+     * Routes for Agent.
+     */
+    $router->group(['prefix' => 'agent'], function () use ($router) {
+        $router->post('create', 'V1\AgentController@create');
+        $router->put('update', 'V1\AgentController@update');
+        $router->post('delete', 'V1\AgentController@delete');
+        $router->post('retrieve', 'V1\AgentController@retrieve');
+        $router->get('retrieveAll', 'V1\AgentController@retrieveAll');
+        $router->post('retrieveByCountry', 'V1\AgentController@retrieveByCountry');
     });
 });
