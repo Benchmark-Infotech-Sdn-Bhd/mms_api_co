@@ -63,6 +63,7 @@ $app->singleton(
 */
 
 $app->configure('app');
+$app->configure('jwt');
 
 /*
 |--------------------------------------------------------------------------
@@ -75,13 +76,14 @@ $app->configure('app');
 |
 */
 
- $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
- ]);
+$app->middleware([
+    Illuminate\Session\Middleware\StartSession::class
+]);
 
  $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class,
-     'dbSelection' => DBSelectionMiddleware::class,
+    'auth' => App\Http\Middleware\Authenticate::class,
+    'dbSelection' => DBSelectionMiddleware::class,
+    'jwt.verify' => App\Http\Middleware\JwtMiddleware::class,
  ]);
 
 /*
@@ -98,6 +100,7 @@ $app->configure('app');
  $app->register(App\Providers\AppServiceProvider::class);
  $app->register(App\Providers\AuthServiceProvider::class);
  $app->register(App\Providers\EventServiceProvider::class);
+ $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
