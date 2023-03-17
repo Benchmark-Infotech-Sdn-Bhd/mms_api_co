@@ -5,8 +5,6 @@ namespace App\Services;
 
 use App\Models\Transportation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class TransportationServices
 {
@@ -31,7 +29,7 @@ class TransportationServices
     }
 	 /**
      *
-     * @param Request $request
+     * @param $request
      * @return mixed
      */
     public function create($request): mixed

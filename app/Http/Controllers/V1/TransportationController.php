@@ -68,7 +68,6 @@ class TransportationController extends Controller
     public function retrieve(Request $request): JsonResponse
     {      
         try {
-            $params = $this->getRequest($request);
             $response = $this->transportationServices->retrieve($request); 
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {

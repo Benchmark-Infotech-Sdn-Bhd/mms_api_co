@@ -5,8 +5,6 @@ namespace App\Services;
 
 use App\Models\FeeRegistration;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class FeeRegistrationServices
 {

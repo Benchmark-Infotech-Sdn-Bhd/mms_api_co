@@ -6,7 +6,6 @@ namespace App\Services;
 use App\Models\Accommodation;
 use App\Models\AccommodationAttachments;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 
 class AccommodationServices
@@ -64,7 +63,7 @@ class AccommodationServices
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $data=$this->accommodationAttachments::create([
+                $this->accommodationAttachments::create([
                         "file_id" => $accommodationId,
                         "file_name" => $fileName,
                         "file_type" => 'accommodation',
