@@ -19,4 +19,12 @@ $router->get('/', function () use ($router) {
 
 $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function () use ($router) {
     $router->post('create', 'V1\MaintainMastersController@create');
+    $router->group(['prefix' => 'role'], function () use ($router) {
+        $router->post('list', 'V1\RolesController@list');
+        $router->post('show', 'V1\RolesController@show');
+        $router->post('dropDown', 'V1\RolesController@dropDown');
+        $router->post('create', 'V1\RolesController@create');
+        $router->post('update', 'V1\RolesController@update');
+        $router->post('updateStatus', 'V1\RolesController@updateStatus');
+    });
 });

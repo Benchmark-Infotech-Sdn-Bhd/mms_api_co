@@ -39,9 +39,7 @@ class RolesController extends Controller
         try {
             $params = $this->getRequest($request);
             // $user = JWTAuth::parseToken()->authenticate();
-            // app('logServices')->startApiLog($user, $params);
-            $response = $this->rolesServices->getList(/*$user,*/ $params);
-            // app('logServices')->endApiLog();
+            $response = $this->rolesServices->list();
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -60,9 +58,7 @@ class RolesController extends Controller
         try {
             $params = $this->getRequest($request);
             // $user = JWTAuth::parseToken()->authenticate();
-            // app('logServices')->startApiLog($user, $params);
-            $response = $this->rolesServices->show(/*$user,*/ $params);
-            // app('logServices')->endApiLog();
+            $response = $this->rolesServices->show($params);
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -81,13 +77,16 @@ class RolesController extends Controller
         try {
             $params = $this->getRequest($request);
             // $user = JWTAuth::parseToken()->authenticate();
-            // app('logServices')->startApiLog($user, $params);
-            $response = $this->rolesServices->create(/*$user,*/ $params);
-            // app('logServices')->endApiLog();
-            return $this->sendSuccess(['message' => $response['message']]);
+            // $params['created_by'] = $user['id'];
+            $validator = Validator::make($params, $this->rolesServices->createValidation());
+            if ($validator->fails()) {
+                return $this->validationError($validator->errors());
+            }
+            $response = $this->rolesServices->create($params);
+            return $this->sendSuccess(['message' => 'Rloe Created Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to List Roles']);
+            return $this->sendError(['message' => 'Failed to Create Role']);
         }
     }
 
@@ -102,9 +101,31 @@ class RolesController extends Controller
         try {
             $params = $this->getRequest($request);
             // $user = JWTAuth::parseToken()->authenticate();
-            // app('logServices')->startApiLog($user, $params);
-            $response = $this->rolesServices->update(/*$user,*/ $params);
-            // app('logServices')->endApiLog();
+            // $params['modified_by'] = $user['id'];
+            $validator = Validator::make($params, $this->rolesServices->updateValidation());
+            if ($validator->fails()) {
+                return $this->validationError($validator->errors());
+            }
+            $response = $this->rolesServices->update($params);
+            return $this->sendSuccess(['message' => 'Role Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update Role']);
+        }
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateStatus(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            // $user = JWTAuth::parseToken()->authenticate();
+            $response = $this->rolesServices->updateStatus(/*$user,*/ $params);
             return $this->sendSuccess(['message' => $response['message']]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -112,21 +133,19 @@ class RolesController extends Controller
         }
     }
 
-        /**
+    /**
      * Display a listing of the resource.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function delete(Request $request) : JsonResponse
+    public function dropDown(Request $request) : JsonResponse
     {
         try {
             $params = $this->getRequest($request);
             // $user = JWTAuth::parseToken()->authenticate();
-            // app('logServices')->startApiLog($user, $params);
-            $response = $this->rolesServices->delete(/*$user,*/ $params);
-            // app('logServices')->endApiLog();
-            return $this->sendSuccess(['message' => $response['message']]);
+            $response = $this->rolesServices->dropDown();
+            return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Roles']);
