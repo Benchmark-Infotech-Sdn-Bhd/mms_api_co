@@ -94,7 +94,7 @@ class InsuranceController extends Controller
             return $this->sendSuccess(['message' => "Successfully insurance was updated"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'Insurance update was failed']);
+            return $this->sendError(['message' => 'Insurance update was failed']);
         }
     }
 	 /**

@@ -6,7 +6,6 @@ namespace App\Services;
 use App\Models\Vendor;
 use App\Models\VendorAttachments;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 
 class VendorServices
@@ -70,7 +69,7 @@ class VendorServices
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $data=$this->vendorAttachments::create([
+                $this->vendorAttachments::create([
                         "file_id" => $vendorDataId,
                         "file_name" => $fileName,
                         "file_type" => 'vendor',
@@ -122,11 +121,11 @@ class VendorServices
                     $linode = Storage::disk('linode');
                     $linode->put($filePath, file_get_contents($file));
                     $fileUrl = Storage::disk('linode')->url($filePath);
-                    $data=$this->vendorAttachments::create([
+                    $this->vendorAttachments::create([
                             "file_id" => $input['id'],
                             "file_name" => $fileName,
                             "file_type" => 'vendor',
-                            "file_url" => $filePath               
+                            "file_url" => $fileUrl               
                         ]); 
                 }    
             }

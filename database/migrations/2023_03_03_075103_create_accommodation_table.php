@@ -23,7 +23,7 @@ return new class extends Migration
             // accommodation deposit column
             $table->float('deposit',150)->default(0.0);
             // accommodation rent per month column
-            $table->float('rent_per_month',150)->nullable();
+            $table->float('rent_per_month',150)->default(0.0);
             // accommodation vendor_id column
             $table->bigInteger('vendor_id')->unsigned()->nullable();
             // Foreign key from vendors table

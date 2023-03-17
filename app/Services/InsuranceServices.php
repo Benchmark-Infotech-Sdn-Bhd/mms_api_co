@@ -5,7 +5,6 @@ namespace App\Services;
 
 use App\Models\Insurance;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class InsuranceServices
