@@ -7,7 +7,7 @@ use Faker\Generator;
 class VendorsTest extends TestCase
 {
     
-    private Generator $faker;
+    protected Generator $faker;
     /**
      * A test method for create new vendor.
      *
@@ -34,7 +34,7 @@ class VendorsTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ]
         ]);
     }
@@ -65,7 +65,7 @@ class VendorsTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ]
         ]);
     }
@@ -81,7 +81,7 @@ class VendorsTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ]
         ]);
     }
@@ -92,12 +92,12 @@ class VendorsTest extends TestCase
      */
     public function testRetrieveSpecificVendor()
     {
-        $response = $this->post("/api/v1/vendor/retrieve",['id' => 12]);
+        $response = $this->post("/api/v1/vendor/retrieve",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ]
         ]);
     }
@@ -116,7 +116,7 @@ class VendorsTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ]
         ]);
     }

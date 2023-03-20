@@ -69,7 +69,10 @@ class TransportationServices
     public function update($request): mixed
     {     
         $data = $this->transportation::findorfail($request['id']);
-        return $data->update($request->all());
+        return  [
+            "isUpdated" => $data->update($request->all()),
+            "message" => "Updated Successfully"
+        ];
     }
 	 /**
      *
@@ -84,17 +87,12 @@ class TransportationServices
     /**
      *
      * @param $request
-     * @return mixed
+     * @return LengthAwarePaginator
      */
-    public function search($request): mixed
+    public function search($request)
     {
-        return $this->transportation->where('driver_name', 'like', '%' . $request->driver_name . '%')->get(['driver_name',
-            'driver_contact_number',
-            'driver_license_number',
-            'vehicle_type',
-            'number_plate',
-            'vehicle_capacity',
-            'vendor_id',
-            'id']);
+        return $this->transportation->where('driver_name', 'like', '%' . $request->driver_name . '%')
+        ->orWhere('vehicle_type', 'like', '%' . $request->search . '%')
+        ->paginate(10);
     }
 }
