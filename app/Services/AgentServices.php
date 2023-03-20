@@ -41,9 +41,9 @@ class AgentServices
     }
     /**
      * @param $request
-     * @return mixed
+     * @return array
      */
-    public function update($request) : mixed
+    public function update($request) : array
     {
         if(!($this->validationServices->validate($request,$this->agent->rulesForUpdation))){
             return $this->validationServices->errors();
@@ -71,9 +71,9 @@ class AgentServices
     }
     /**
      * @param $request
-     * @return mixed
+     * @return array
      */
-    public function delete($request) : mixed
+    public function delete($request) : array
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return $this->validationServices->errors();
