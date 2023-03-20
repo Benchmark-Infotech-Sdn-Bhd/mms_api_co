@@ -40,7 +40,7 @@ class RolesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $response = $this->rolesServices->list();
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Roles']);
@@ -59,7 +59,7 @@ class RolesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $response = $this->rolesServices->show($params);
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Show Role']);
@@ -127,10 +127,10 @@ class RolesController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
             $response = $this->rolesServices->updateStatus($params);
-            return $this->sendSuccess(['message' => $response['message']]);
+            return $this->sendSuccess(['message' => 'Role Status Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to List Roles']);
+            return $this->sendError(['message' => 'Failed to Update Role']);
         }
     }
 
@@ -146,7 +146,7 @@ class RolesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $response = $this->rolesServices->dropDown();
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Roles']);

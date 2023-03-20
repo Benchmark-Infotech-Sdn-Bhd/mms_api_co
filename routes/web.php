@@ -42,6 +42,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         });
 
         /**
+         * Routes for Modules.
+         */
+        $router->group(['prefix' => 'module'], function () use ($router) {
+            $router->post('list', 'V1\ModulesController@list');
+            $router->post('show', 'V1\ModulesController@show');
+            $router->post('dropDown', 'V1\ModulesController@dropDown');
+        });
+
+
+        /**
          * Routes for Countries.
          */
         $router->group(['prefix' => 'country'], function () use ($router) {
