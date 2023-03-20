@@ -46,14 +46,20 @@ class CountriesServices
         }
         $country = $this->countries->find($request['id']);
         if(is_null($country)){
-            return "Data not found.";
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
         }
-        return $country->update([
-            'id' => $request['id'],
-            'country_name' => $request['country_name'] ?? '',
-            'system_type' => $request['system_type'] ?? '',
-            'fee' => $request['fee'] ?? 0
-        ]);
+        return  [
+            "isUpdated" => $country->update([
+                'id' => $request['id'],
+                'country_name' => $request['country_name'] ?? '',
+                'system_type' => $request['system_type'] ?? '',
+                'fee' => $request['fee'] ?? 0
+            ]),
+            "message" => "Updated Successfully"
+        ];
     }
     /**
      * @param $request
@@ -66,9 +72,15 @@ class CountriesServices
         }
         $country = $this->countries->find($request['id']);
         if(is_null($country)){
-            return true;
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
         }
-        return $country->delete();
+        return [
+            "isDeleted" => $country->delete(),
+            "message" => "Deleted Successfully"
+        ];
     }
     /**
      * @param $request

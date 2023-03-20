@@ -45,13 +45,19 @@ class SectorsServices
         }
         $sector = $this->sectors->find($request['id']);
         if(is_null($sector)){
-            return "Data not found.";
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
         }
-        return $sector->update([
-            'id' => $request['id'],
-            'sector_name' => $request['sector_name'] ?? '',
-            'sub_sector_name' => $request['sub_sector_name'] ?? ''
-        ]);
+        return [
+            "isUpdated" => $sector->update([
+                'id' => $request['id'],
+                'sector_name' => $request['sector_name'] ?? '',
+                'sub_sector_name' => $request['sub_sector_name'] ?? ''
+            ]),
+            "message"=> "Updated Successfully"
+        ];
     }
     /**
      * @param $request
@@ -64,9 +70,15 @@ class SectorsServices
         }
         $sector = $this->sectors->find($request['id']);
         if(is_null($sector)){
-            return true;
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
         }
-        return $sector->delete();
+        return [
+            "isDeleted" => $sector->delete(),
+            "message" => "Deleted Successfully"
+        ];
     }
     /**
      * @param $request

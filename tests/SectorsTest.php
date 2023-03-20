@@ -4,25 +4,24 @@ namespace Tests;
 use Faker\Factory;
 use Faker\Generator;
 
-class CountriesTest extends TestCase
+class SectorsTest extends TestCase
 {
     protected Generator $faker;
-    // System type
-    private $systemTypes = ["Embassy","FWCMS"];
+    // Sector Enum
+    private $sectors = ["Agriculture","Construction","Electrical","Plumbing"];
     /**
-     * A test method for create new country.
+     * A test method for create new sector.
      *
      * @return void
      */
-    public function testNewCountry()
+    public function testNewSector()
     {
         $this->faker = Factory::create();
         $payload =  [
-            'country_name' => $this->faker->country,
-            'system_type' => $this->systemTypes[array_rand($this->systemTypes,1)],
-            'fee' => random_int(10, 1000)
+            'sector_name' => $this->sectors[array_rand($this->sectors,1)],
+            'sub_sector_name' => $this->faker->text()
         ];
-        $response = $this->post('/api/v1/country/create',$payload);
+        $response = $this->post('/api/v1/sector/create',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             "error",
@@ -33,20 +32,19 @@ class CountriesTest extends TestCase
         ]);
     }
     /**
-     * A test method for update existing country.
+     * A test method for update existing sector.
      *
      * @return void
      */
-    public function testUpdateCountry()
+    public function testUpdateSector()
     {
         $this->faker = Factory::create();
         $payload =  [
             'id' => 5,
-            'country_name' => $this->faker->country,
-            'system_type' => $this->systemTypes[array_rand($this->systemTypes,1)],
-            'fee' => random_int(10, 1000)
+            'sector_name' => $this->sectors[array_rand($this->sectors,1)],
+            'sub_sector_name' => $this->faker->text()
         ];
-        $response = $this->put('/api/v1/country/update',$payload);
+        $response = $this->put('/api/v1/sector/update',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             "error",
@@ -57,16 +55,16 @@ class CountriesTest extends TestCase
         ]);
     }
     /**
-     * A test method for delete existing country.
+     * A test method for delete existing sector.
      *
      * @return void
      */
-    public function testDeleteCountry()
+    public function testDeleteSector()
     {
         $payload =  [
             'id' => 5
         ];
-        $response = $this->post('/api/v1/country/delete',$payload);
+        $response = $this->post('/api/v1/sector/delete',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             "error",
@@ -77,13 +75,13 @@ class CountriesTest extends TestCase
         ]);
     }
     /**
-     * A test method for retrieve all countries.
+     * A test method for retrieve all sectors.
      *
      * @return void
      */
-    public function testShouldReturnAllCountries()
+    public function testShouldReturnAllSectors()
     {
-        $response = $this->get("/api/v1/country/retrieveAll");
+        $response = $this->get("/api/v1/sector/retrieveAll");
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             "error",
@@ -94,13 +92,13 @@ class CountriesTest extends TestCase
         ]);
     }
     /**
-     * A test method for retrieve specific country.
+     * A test method for retrieve specific Sector.
      *
      * @return void
      */
-    public function testShouldReturnSpecificCountry()
+    public function testShouldReturnSpecificSector()
     {
-        $response = $this->post("/api/v1/country/retrieve",['id' => 1]);
+        $response = $this->post("/api/v1/sector/retrieve",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             "error",

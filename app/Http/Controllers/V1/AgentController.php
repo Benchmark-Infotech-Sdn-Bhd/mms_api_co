@@ -6,26 +6,26 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Services\SectorsServices;
+use App\Services\AgentServices;
 use Illuminate\Support\Facades\Log;
 
-class SectorsController extends Controller
+class AgentController extends Controller
 {
     /**
-     * @var SectorsServices
+     * @var AgentServices
      */
-    private SectorsServices $sectorsServices;
+    private AgentServices $agentServices;
 
     /**
-     * SectorsController constructor.
-     * @param SectorsServices $sectorsServices
+     * AgentController constructor.
+     * @param AgentServices $agentServices
      */
-    public function __construct(SectorsServices $sectorsServices)
+    public function __construct(AgentServices $agentServices)
     {
-        $this->sectorsServices = $sectorsServices;
+        $this->agentServices = $agentServices;
     }
     /**
-     * Show the form for creating a new Sector.
+     * Show the form for creating a new agent.
      *
      * @param Request $request
      * @return JsonResponse
@@ -34,7 +34,7 @@ class SectorsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->sectorsServices->create($params);
+            $data = $this->agentServices->create($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -43,7 +43,7 @@ class SectorsController extends Controller
         }
     }
     /**
-     * Show the form for updating a Sector.
+     * Show the form for updating a agent.
      *
      * @param Request $request
      * @return JsonResponse
@@ -52,7 +52,7 @@ class SectorsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->sectorsServices->update($params);
+            $data = $this->agentServices->update($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -61,7 +61,7 @@ class SectorsController extends Controller
         }
     }
     /**
-     * Remove the specified sector.
+     * Remove the specified agent.
      *
      * @param Request $request
      * @return JsonResponse
@@ -70,7 +70,7 @@ class SectorsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->sectorsServices->delete($params);
+            $data = $this->agentServices->delete($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -79,7 +79,7 @@ class SectorsController extends Controller
         }
     }
     /**
-     * Retrieve the specified sector.
+     * Retrieve the specified agent.
      *
      * @param Request $request
      * @return JsonResponse
@@ -88,7 +88,7 @@ class SectorsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->sectorsServices->retrieve($params);
+            $data = $this->agentServices->retrieve($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -97,18 +97,35 @@ class SectorsController extends Controller
         }
     }
     /**
-     * Retrieve all sectors.
+     * Retrieve all agents.
      *
      * @return JsonResponse
      */
     public function retrieveAll(): JsonResponse
     {
         try {
-            $data = $this->sectorsServices->retrieveAll();
+            $data = $this->agentServices->retrieveAll();
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve All failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
+    /**
+     * Retrieve all agents by country.
+     *
+     * @return JsonResponse
+     */
+    public function retrieveByCountry(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->agentServices->retrieveByCountry($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve By Country failed. Please retry.';
             return $this->sendError(['message' => $data['error']]);
         }
     }
