@@ -37,8 +37,8 @@ class TransportationController extends Controller
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->transportationServices->create($request); 
-            return $this->sendSuccess(['message' => "Successfully transportation was created"]);
+            $response = $this->transportationServices->create($request); 
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Transportation creation was failed']);
@@ -53,7 +53,7 @@ class TransportationController extends Controller
     {        
         try {
             $response = $this->transportationServices->retrieveAll(); 
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Show transportation was failed']);
@@ -69,7 +69,7 @@ class TransportationController extends Controller
     {      
         try {
             $response = $this->transportationServices->retrieve($request); 
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Edit transportation was failed']);
@@ -88,8 +88,8 @@ class TransportationController extends Controller
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->transportationServices->update($request); 
-            return $this->sendSuccess(['message' => "Successfully transportation was updated"]);
+            $response = $this->transportationServices->update($request); 
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Transportation update was failed']);
@@ -105,8 +105,8 @@ class TransportationController extends Controller
     {     
         try {  
             $params = $this->getRequest($request);
-            $this->transportationServices->delete($params); 
-            return $this->sendSuccess(['message' => "Successfully transportation was deleted"]);
+            $response = $this->transportationServices->delete($params); 
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'delete transportation was failed']);
@@ -122,7 +122,7 @@ class TransportationController extends Controller
     {
         try{
             $response = $this->transportationServices->search($request);
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'search transportation was failed']);

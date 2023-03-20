@@ -36,8 +36,8 @@ class InsuranceController extends Controller
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->insuranceServices->create($request);
-            return $this->sendSuccess(['message' => "Successfully insurance was created"]);
+            $response = $this->insuranceServices->create($request);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Insurance creation was failed']);
@@ -53,7 +53,7 @@ class InsuranceController extends Controller
         try {   
             // $insurance = Insurance::paginate(10);
             $response = $this->insuranceServices->retrieveAll(); 
-            return $this->sendSuccess(['data' => $response]); 
+            return $this->sendSuccess($response); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Show insurance was failed']);
@@ -71,7 +71,7 @@ class InsuranceController extends Controller
             // $insurance = Insurance::find($id);
             // $vendors = $insurance->vendor;
             $response = $this->insuranceServices->retrieve($request); 
-            return $this->sendSuccess(['data' => $response]);  
+            return $this->sendSuccess($response);  
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Edit insurance was failed']);
@@ -90,8 +90,8 @@ class InsuranceController extends Controller
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->insuranceServices->update($request); 
-            return $this->sendSuccess(['message' => "Successfully insurance was updated"]);
+            $response = $this->insuranceServices->update($request); 
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Insurance update was failed']);
@@ -107,8 +107,8 @@ class InsuranceController extends Controller
     {     
         try { 
             $params = $this->getRequest($request);
-            $this->insuranceServices->delete($params);
-            return $this->sendSuccess(['message' => "Successfully insurance was deleted"]); 
+            $response = $this->insuranceServices->delete($params);
+            return $this->sendSuccess($response); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'delete insurance was failed']);
@@ -124,7 +124,7 @@ class InsuranceController extends Controller
     {
         try{
             $response = $this->insuranceServices->search($request);
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'search insurance was failed']);

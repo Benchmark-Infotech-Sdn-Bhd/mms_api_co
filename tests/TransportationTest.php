@@ -7,7 +7,7 @@ use Faker\Generator;
 class TransportationTest extends TestCase
 {
     
-    private Generator $faker;
+    protected Generator $faker;
     /**
      * A test method for create new transportation.
      *
@@ -30,7 +30,7 @@ class TransportationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ]
         ]);
 
@@ -58,7 +58,7 @@ class TransportationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ]
         ]);
     }
@@ -74,7 +74,7 @@ class TransportationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ]
         ]);
     }
@@ -90,7 +90,7 @@ class TransportationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ]
         ]);
     }
@@ -110,7 +110,7 @@ class TransportationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ]
         ]);
     }
