@@ -38,7 +38,7 @@ class RolesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            // $user = JWTAuth::parseToken()->authenticate();
+            $user = JWTAuth::parseToken()->authenticate();
             $response = $this->rolesServices->list();
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
@@ -57,7 +57,7 @@ class RolesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            // $user = JWTAuth::parseToken()->authenticate();
+            $user = JWTAuth::parseToken()->authenticate();
             $response = $this->rolesServices->show($params);
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {
@@ -76,8 +76,8 @@ class RolesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            // $user = JWTAuth::parseToken()->authenticate();
-            // $params['created_by'] = $user['id'];
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['created_by'] = $user['id'];
             $validator = Validator::make($params, $this->rolesServices->createValidation());
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());
@@ -100,8 +100,8 @@ class RolesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            // $user = JWTAuth::parseToken()->authenticate();
-            // $params['modified_by'] = $user['id'];
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
             $validator = Validator::make($params, $this->rolesServices->updateValidation());
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());
@@ -124,8 +124,9 @@ class RolesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            // $user = JWTAuth::parseToken()->authenticate();
-            $response = $this->rolesServices->updateStatus(/*$user,*/ $params);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $response = $this->rolesServices->updateStatus($params);
             return $this->sendSuccess(['message' => $response['message']]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -143,7 +144,7 @@ class RolesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            // $user = JWTAuth::parseToken()->authenticate();
+            $user = JWTAuth::parseToken()->authenticate();
             $response = $this->rolesServices->dropDown();
             return $this->sendSuccess(['data' => $response]);
         } catch (Exception $e) {

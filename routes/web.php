@@ -20,11 +20,18 @@ $router->get('/', function () use ($router) {
 $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function () use ($router) {
     $router->post('login', 'V1\AuthController@login');
     $router->group(['middleware' => ['jwt.verify']], function () use ($router) {
+        
+        /**
+         * Routes for Users.
+         */
         $router->group(['prefix' => 'user'], function () use ($router) {
             $router->post('register', 'V1\AuthController@register');
             $router->get('logout', 'V1\AuthController@logout');
         });
 
+        /**
+         * Routes for Roles.
+         */
         $router->group(['prefix' => 'role'], function () use ($router) {
             $router->post('list', 'V1\RolesController@list');
             $router->post('show', 'V1\RolesController@show');
