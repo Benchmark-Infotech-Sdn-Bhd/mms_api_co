@@ -117,7 +117,10 @@ class AccommodationServices
                 }    
             }
         }
-        return $data->update($input);
+        return  [
+            "isUpdated" => $data->update($input),
+            "message" => "Updated Successfully"
+        ];
     }
     /**
      *
@@ -137,7 +140,8 @@ class AccommodationServices
      */
     public function search($request): mixed
     {
-        return $this->accommodation->where('name', 'like', '%' . $request->name . '%')
+        return $this->accommodation->where('name', 'like', '%' . $request->search . '%')
+        ->orWhere('location', 'like', '%' . $request->search . '%')
         ->get(['name',
             'location',
             'maximum_pax_per_unit',
