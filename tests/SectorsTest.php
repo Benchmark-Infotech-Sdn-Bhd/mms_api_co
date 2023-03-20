@@ -6,7 +6,7 @@ use Faker\Generator;
 
 class SectorsTest extends TestCase
 {
-    private Generator $faker;
+    protected Generator $faker;
     // Sector Enum
     private $sectors = ["Agriculture","Construction","Electrical","Plumbing"];
     /**
@@ -24,18 +24,11 @@ class SectorsTest extends TestCase
         $response = $this->post('/api/v1/sector/create',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -54,18 +47,11 @@ class SectorsTest extends TestCase
         $response = $this->put('/api/v1/sector/update',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -81,18 +67,11 @@ class SectorsTest extends TestCase
         $response = $this->post('/api/v1/sector/delete',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -105,18 +84,11 @@ class SectorsTest extends TestCase
         $response = $this->get("/api/v1/sector/retrieveAll");
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -129,18 +101,11 @@ class SectorsTest extends TestCase
         $response = $this->post("/api/v1/sector/retrieve",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
 }

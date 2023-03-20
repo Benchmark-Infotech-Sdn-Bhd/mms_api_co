@@ -6,7 +6,7 @@ use Faker\Generator;
 
 class EmbassyAttestationFileCostingTest extends TestCase
 {
-    private Generator $faker;
+    protected Generator $faker;
     /**
      * A test method for create new EmbassyAttestationFileCosting.
      *
@@ -23,18 +23,11 @@ class EmbassyAttestationFileCostingTest extends TestCase
         $response = $this->post('/api/v1/embassyAttestationFile/create',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -54,18 +47,11 @@ class EmbassyAttestationFileCostingTest extends TestCase
         $response = $this->put('/api/v1/embassyAttestationFile/update',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -81,18 +67,11 @@ class EmbassyAttestationFileCostingTest extends TestCase
         $response = $this->post('/api/v1/embassyAttestationFile/delete',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -105,18 +84,11 @@ class EmbassyAttestationFileCostingTest extends TestCase
         $response = $this->post("/api/v1/embassyAttestationFile/retrieveByCountry",['country_id' => 2]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
 }

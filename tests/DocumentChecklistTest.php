@@ -6,7 +6,7 @@ use Faker\Generator;
 
 class DocumentChecklistTest extends TestCase
 {
-    private Generator $faker;
+    protected Generator $faker;
     /**
      * A test method for create new DocumentChecklist.
      *
@@ -22,18 +22,11 @@ class DocumentChecklistTest extends TestCase
         $response = $this->post('/api/v1/documentChecklist/create',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -52,18 +45,11 @@ class DocumentChecklistTest extends TestCase
         $response = $this->put('/api/v1/documentChecklist/update',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -79,18 +65,11 @@ class DocumentChecklistTest extends TestCase
         $response = $this->post('/api/v1/documentChecklist/delete',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -103,18 +82,11 @@ class DocumentChecklistTest extends TestCase
         $response = $this->post("/api/v1/documentChecklist/retrieveBySector",['sector_id' => 2]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
 }

@@ -6,7 +6,7 @@ use Faker\Generator;
 
 class CountriesTest extends TestCase
 {
-    private Generator $faker;
+    protected Generator $faker;
     // System type
     private $systemTypes = ["Embassy","FWCMS"];
     /**
@@ -25,18 +25,11 @@ class CountriesTest extends TestCase
         $response = $this->post('/api/v1/country/create',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -56,18 +49,11 @@ class CountriesTest extends TestCase
         $response = $this->put('/api/v1/country/update',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -83,18 +69,11 @@ class CountriesTest extends TestCase
         $response = $this->post('/api/v1/country/delete',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -107,18 +86,11 @@ class CountriesTest extends TestCase
         $response = $this->get("/api/v1/country/retrieveAll");
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
     /**
@@ -131,18 +103,11 @@ class CountriesTest extends TestCase
         $response = $this->post("/api/v1/country/retrieve",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
-            'result' =>
-                [
-                    'headers',
-                    'original' => [
-                        "error",
-                        "statusCode",
-                        "statusMessage",
-                        "data",
-                        "responseTime"
-                    ],
-                    'exception'
-                ]
+            "error",
+            "statusCode",
+            "statusMessage",
+            "data",
+            "responseTime"
         ]);
     }
 }

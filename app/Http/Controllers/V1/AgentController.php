@@ -35,7 +35,7 @@ class AgentController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->agentServices->create($params);
-            return response()->json(['result' => $this->sendSuccess($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'creation failed. Please retry.';
@@ -53,7 +53,7 @@ class AgentController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->agentServices->update($params);
-            return response()->json(['result' => $this->sendSuccess($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'updation failed. Please retry.';
@@ -71,7 +71,7 @@ class AgentController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->agentServices->delete($params);
-            return response()->json(['result' => $this->sendSuccess($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Deletion failed. Please retry.';
@@ -89,7 +89,7 @@ class AgentController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->agentServices->retrieve($params);
-            return response()->json(['result' => $this->sendSuccess($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
@@ -105,7 +105,7 @@ class AgentController extends Controller
     {
         try {
             $data = $this->agentServices->retrieveAll();
-            return response()->json(['result' => $this->sendSuccess($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve All failed. Please retry.';
@@ -122,7 +122,7 @@ class AgentController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->agentServices->retrieveByCountry($params);
-            return response()->json(['result' => $this->sendSuccess($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve By Country failed. Please retry.';
