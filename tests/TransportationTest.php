@@ -30,7 +30,13 @@ class TransportationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'data'
+                    'driver_name',
+                    'driver_contact_number',
+                    'driver_license_number',
+                    'vehicle_type',
+                    'number_plate',
+                    'vehicle_capacity',
+                    'vendor_id',
                 ]
         ]);
 
@@ -58,7 +64,7 @@ class TransportationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'data'
+                    'message'
                 ]
         ]);
     }
@@ -90,7 +96,13 @@ class TransportationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'data'
+                    'driver_name',
+                    'driver_contact_number',
+                    'driver_license_number',
+                    'vehicle_type',
+                    'number_plate',
+                    'vehicle_capacity',
+                    'vendor_id',
                 ]
         ]);
     }
@@ -110,7 +122,7 @@ class TransportationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'data'
+                    'message'
                 ]
         ]);
     }
