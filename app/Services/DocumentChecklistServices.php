@@ -45,13 +45,19 @@ class DocumentChecklistServices
         }
         $documentChecklist = $this->documentChecklist->find($request['id']);
         if(is_null($documentChecklist)){
-            return "Data not found.";
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
         }
-        return $documentChecklist->update([
-            'id' => $request['id'],
-            'sector_id' => $request['sector_id'] ?? 0,
-            'document_title' => $request['document_title'] ?? ''
-        ]);
+        return [
+            "isUpdated" => $documentChecklist->update([
+                'id' => $request['id'],
+                'sector_id' => $request['sector_id'] ?? 0,
+                'document_title' => $request['document_title'] ?? ''
+            ]),
+            "message"=> "Updated Successfully"
+        ];
     }
     /**
      * @param $request
@@ -64,9 +70,15 @@ class DocumentChecklistServices
         }
         $documentChecklist = $this->documentChecklist->find($request['id']);
         if(is_null($documentChecklist)){
-            return true;
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
         }
-        return $documentChecklist->delete();
+        return [
+            "isDeleted" => $documentChecklist->delete(),
+            "message" => "Deleted Successfully"
+        ];
     }
     /**
      * @param $request

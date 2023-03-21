@@ -35,7 +35,7 @@ class DocumentChecklistController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->documentChecklistServices->create($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'creation failed. Please retry.';
@@ -53,7 +53,7 @@ class DocumentChecklistController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->documentChecklistServices->update($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'updation failed. Please retry.';
@@ -71,7 +71,7 @@ class DocumentChecklistController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->documentChecklistServices->delete($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Deletion failed. Please retry.';
@@ -89,7 +89,7 @@ class DocumentChecklistController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->documentChecklistServices->retrieveBySector($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
