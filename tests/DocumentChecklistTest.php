@@ -4,23 +4,22 @@ namespace Tests;
 use Faker\Factory;
 use Faker\Generator;
 
-class EmbassyAttestationFileCostingTest extends TestCase
+class DocumentChecklistTest extends TestCase
 {
     protected Generator $faker;
     /**
-     * A test method for create new EmbassyAttestationFileCosting.
+     * A test method for create new DocumentChecklist.
      *
      * @return void
      */
-    public function testNewEmbassyAttestationFileCosting()
+    public function testNewDocumentChecklist()
     {
         $this->faker = Factory::create();
         $payload =  [
-            'country_id' => 1,
-            'title' => $this->faker->text(),
-            'amount' => random_int(10, 1000)
+            'sector_id' => 1,
+            'document_title' => $this->faker->text()
         ];
-        $response = $this->post('/api/v1/embassyAttestationFile/create',$payload);
+        $response = $this->post('/api/v1/documentChecklist/create',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             "error",
@@ -31,20 +30,19 @@ class EmbassyAttestationFileCostingTest extends TestCase
         ]);
     }
     /**
-     * A test method for update existing EmbassyAttestationFileCosting.
+     * A test method for update existing DocumentChecklist.
      *
      * @return void
      */
-    public function testUpdateEmbassyAttestationFileCosting()
+    public function testUpdateDocumentChecklist()
     {
         $this->faker = Factory::create();
         $payload =  [
             'id' => 2,
-            'country_id' => 1,
-            'title' => $this->faker->text(),
-            'amount' => random_int(10, 1000)
+            'sector_id' => 2,
+            'document_title' => $this->faker->text()
         ];
-        $response = $this->put('/api/v1/embassyAttestationFile/update',$payload);
+        $response = $this->put('/api/v1/documentChecklist/update',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             "error",
@@ -55,16 +53,16 @@ class EmbassyAttestationFileCostingTest extends TestCase
         ]);
     }
     /**
-     * A test method for delete existing EmbassyAttestationFileCosting.
+     * A test method for delete existing DocumentChecklist.
      *
      * @return void
      */
-    public function testDeleteEmbassyAttestationFileCosting()
+    public function testDeleteDocumentChecklist()
     {
         $payload =  [
             'id' => 3
         ];
-        $response = $this->post('/api/v1/embassyAttestationFile/delete',$payload);
+        $response = $this->post('/api/v1/documentChecklist/delete',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             "error",
@@ -75,13 +73,13 @@ class EmbassyAttestationFileCostingTest extends TestCase
         ]);
     }
     /**
-     * A test method for retrieve EmbassyAttestationFileCosting based on country.
+     * A test method for retrieve DocumentChecklist based on Sector.
      *
      * @return void
      */
-    public function testShouldReturnEmbassyAttestationFileCostingByCountry()
+    public function testShouldReturnDocumentChecklistBySector()
     {
-        $response = $this->post("/api/v1/embassyAttestationFile/retrieveByCountry",['country_id' => 2]);
+        $response = $this->post("/api/v1/documentChecklist/retrieveBySector",['sector_id' => 2]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             "error",

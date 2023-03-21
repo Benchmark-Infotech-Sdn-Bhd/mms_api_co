@@ -35,7 +35,7 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->create($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'creation failed. Please retry.';
@@ -53,7 +53,7 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->update($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'updation failed. Please retry.';
@@ -71,7 +71,7 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->delete($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Deletion failed. Please retry.';
@@ -89,7 +89,7 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->retrieve($params);
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
@@ -105,7 +105,7 @@ class CountriesController extends Controller
     {
         try {
             $data = $this->countriesServices->retrieveAll();
-            return response()->json(['result' => $this->sendResponse($data)]);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve All failed. Please retry.';
