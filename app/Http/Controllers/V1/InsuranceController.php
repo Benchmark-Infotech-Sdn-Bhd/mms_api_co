@@ -56,7 +56,7 @@ class InsuranceController extends Controller
             return $this->sendSuccess($response); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Show insurance was failed']);
+            return $this->sendError(['message' => 'Retrieve all insurance data was failed']);
         }
     }
 	 /**
@@ -74,7 +74,7 @@ class InsuranceController extends Controller
             return $this->sendSuccess($response);  
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Edit insurance was failed']);
+            return $this->sendError(['message' => 'Retrieve insurance Data was failed']);
         }  
     } 
 	 /**
@@ -111,7 +111,7 @@ class InsuranceController extends Controller
             return $this->sendSuccess($response); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'delete insurance was failed']);
+            return $this->sendError(['message' => 'Delete insurance was failed']);
         } 
     }
     /**
@@ -127,7 +127,7 @@ class InsuranceController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'search insurance was failed']);
+            return $this->sendError(['message' => 'Search insurance was failed']);
         }
     }
 }

@@ -75,12 +75,15 @@ class InsuranceServices
 	 /**
      *
      * @param $request
-     * @return void
+     * @return mixed
      */    
-    public function delete($request) : void
+    public function delete($request) : mixed
     {     
         $data = $this->insurance::find($request['id']);
         $data->delete();
+        return  [
+            "message" => "Deleted Successfully"
+        ];
     }
     /**
      *

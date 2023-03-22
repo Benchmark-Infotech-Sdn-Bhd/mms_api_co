@@ -4,73 +4,61 @@ namespace Tests;
 use Faker\Factory;
 use Faker\Generator;
 
-class VendorsTest extends TestCase
+class FomemaClinicsTest extends TestCase
 {
-    
     protected Generator $faker;
     /**
-     * A test method for create new vendor.
+     * A test method for create new Fomema Clinics.
      *
      * @return void
      */
-    public function testCreateVendor()
+    public function testCreateFomemaClinics()
     {
         $this->faker = Factory::create();
         $payload =  [
-             'name' => $this->faker->name,
-             'type' => 'type',
-             'email_address' => $this->faker->unique()->safeEmail,
-             'contact_number' => random_int(10, 1000),
-             'person_in_charge' => 'test',
+             'clinic_name' => $this->faker->name,
+             'person_in_charge' => $this->faker->name,
              'pic_contact_number' => random_int(10, 1000),
              'address' => $this->faker->address,
              'state' => $this->faker->state,
              'city' => $this->faker->city,
              'postcode' => random_int(10, 1000),
-             'remarks' => 'test',
         ];
-        $response = $this->post('/api/v1/vendor/create',$payload);
+
+        $response = $this->post('/api/v1/fomemaClinics/create',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'name',
-                    'type',
-                    'email_address',
-                    'contact_number',
+                    'clinic_name',
                     'person_in_charge',
                     'pic_contact_number',
                     'address',
                     'state',
                     'city',
                     'postcode',
-                    'remarks',
                 ]
         ]);
     }
     /**
-     * A test method for update vendor.
+     * A test method for update Fomema Clinics.
      *
      * @return void
      */
-    public function testUpdateVendor()
+    public function testUpdateFomemaClinics()
     {
         $this->faker = Factory::create();
         $payload =  [
             'id' => 1,
-            'name' => $this->faker->name,
-             'type' => 'type',
-             'email_address' => $this->faker->unique()->safeEmail,
-             'contact_number' => random_int(10, 1000),
-             'person_in_charge' => 'test',
-             'pic_contact_number' => random_int(10, 1000),
-             'address' => $this->faker->address,
-             'state' => $this->faker->state,
-             'city' => $this->faker->city,
-             'postcode' => random_int(10, 1000),
-             'remarks' => 'test',
+            'clinic_name' => $this->faker->name,
+            'person_in_charge' => $this->faker->name,
+            'pic_contact_number' => random_int(10, 1000),
+            'address' => $this->faker->address,
+            'state' => $this->faker->state,
+            'city' => $this->faker->city,
+            'postcode' => random_int(10, 1000),
         ];
-        $response = $this->post('/api/v1/vendor/update',$payload);
+        $response = $this->put('/api/v1/fomemaClinics/update',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -80,13 +68,13 @@ class VendorsTest extends TestCase
         ]);
     }
     /**
-     * A test method for retrieve all Vendor.
+     * A test method for retrieve all Fomema Clinics.
      *
      * @return void
      */
-    public function testRetrieveAllVendors()
+    public function testRetrieveAllFomemaClinics()
     {
-        $response = $this->get("/api/v1/vendor/retrieveAll");
+        $response = $this->get("/api/v1/fomemaClinics/retrieveAll");
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -96,42 +84,38 @@ class VendorsTest extends TestCase
         ]);
     }
     /**
-     * A test method for retrieve specific Vendor.
+     * A test method for retrieve specific Fomema Clinics.
      *
      * @return void
      */
-    public function testRetrieveSpecificVendor()
+    public function testRetrieveSpecificFomemaClinics()
     {
-        $response = $this->post("/api/v1/vendor/retrieve",['id' => 1]);
+        $response = $this->post("/api/v1/fomemaClinics/retrieve",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'name',
-                    'type',
-                    'email_address',
-                    'contact_number',
+                    'clinic_name',
                     'person_in_charge',
                     'pic_contact_number',
                     'address',
                     'state',
                     'city',
-                    'postcode',
-                    'remarks',
+                    'postcode'
                 ]
         ]);
     }
     /**
-     * A test method for delete existing vendor.
+     * A test method for delete existing Fomema Clinics.
      *
      * @return void
      */
-    public function testDeleteVendor()
+    public function testDeleteFomemaClinics()
     {
         $payload =  [
             'id' => 1
         ];
-        $response = $this->post('/api/v1/vendor/delete',$payload);
+        $response = $this->post('/api/v1/fomemaClinics/delete',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>

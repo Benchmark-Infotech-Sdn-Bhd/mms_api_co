@@ -77,12 +77,15 @@ class TransportationServices
 	 /**
      *
      * @param $request
-     * @return void
+     * @return mixed
      */    
-    public function delete($request): void
+    public function delete($request): mixed
     {     
         $data = $this->transportation::findorfail($request['id']);
         $data->delete();
+        return  [
+            "message" => "Deleted Successfully"
+        ];
     }
     /**
      *
