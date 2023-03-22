@@ -114,7 +114,8 @@ class AgentController extends Controller
     }
     /**
      * Retrieve all agents by country.
-     *
+     * 
+     * @param Request $request
      * @return JsonResponse
      */
     public function retrieveByCountry(Request $request): JsonResponse
