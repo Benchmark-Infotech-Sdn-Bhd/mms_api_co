@@ -36,8 +36,8 @@ class FomemaClinicsController extends Controller
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->fomemaClinicsServices->create($request); 
-            return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was created"]);
+            $response = $this->fomemaClinicsServices->create($request); 
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
@@ -52,10 +52,10 @@ class FomemaClinicsController extends Controller
     {     
         try {   
             $response = $this->fomemaClinicsServices->retrieveAll(); 
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Show FOMEMA Clinics was failed']);
+            return $this->sendError(['message' => 'Retrieve All FOMEMA Clinics data was failed']);
         }
     }
 	 /**
@@ -69,10 +69,10 @@ class FomemaClinicsController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->fomemaClinicsServices->retrieve($params); 
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Edit FOMEMA Clinics was failed']);
+            return $this->sendError(['message' => 'Retrieve FOMEMA Clinics data was failed']);
         } 
     } 
 	 /**
@@ -88,8 +88,8 @@ class FomemaClinicsController extends Controller
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->fomemaClinicsServices->update($request); 
-            return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was updated"]);
+            $response = $this->fomemaClinicsServices->update($request); 
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'FOMEMA Clinics update was failed']);
@@ -105,11 +105,11 @@ class FomemaClinicsController extends Controller
     {    
         try {
             $params = $this->getRequest($request);
-            $this->fomemaClinicsServices->delete($params); 
-            return $this->sendSuccess(['message' => "Successfully FOMEMA Clinics was deleted"]);
+            $response = $this->fomemaClinicsServices->delete($params); 
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'delete insurance was failed']);
+            return $this->sendError(['message' => 'Delete Fomema Clinics was failed']);
         }         
     }
 
@@ -123,10 +123,10 @@ class FomemaClinicsController extends Controller
     {
         try{
             $response = $this->fomemaClinicsServices->search($request);
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'search Fomema Clinics was failed']);
+            return $this->sendError(['message' => 'Search Fomema Clinics was failed']);
         }
     }
     

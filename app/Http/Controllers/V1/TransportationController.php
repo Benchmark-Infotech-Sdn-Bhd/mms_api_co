@@ -56,7 +56,7 @@ class TransportationController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Show transportation was failed']);
+            return $this->sendError(['message' => 'Retrieve all transportation data was failed']);
         }
     }
 	 /**
@@ -72,7 +72,7 @@ class TransportationController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Edit transportation was failed']);
+            return $this->sendError(['message' => 'Retrieve transportation data was failed']);
         }
     } 
 	 /**
@@ -109,7 +109,7 @@ class TransportationController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'delete transportation was failed']);
+            return $this->sendError(['message' => 'Delete transportation was failed']);
         }
     }
     /**
@@ -125,7 +125,7 @@ class TransportationController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'search transportation was failed']);
+            return $this->sendError(['message' => 'Search transportation was failed']);
         }
     }
 }

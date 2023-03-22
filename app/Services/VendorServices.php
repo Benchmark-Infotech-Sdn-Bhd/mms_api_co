@@ -139,9 +139,9 @@ class VendorServices
      * delete the specified Vendors data.
      *
      * @param $request
-     * @return void
+     * @return mixed
      */    
-    public function delete($request)
+    public function delete($request): mixed
     {   
         $vendors = $this->vendor::find($request['id']);
         $vendors->accommodations()->delete();
@@ -149,6 +149,9 @@ class VendorServices
         $vendors->transportations()->delete();
         $vendors->vendorAttachments()->delete();
         $vendors->delete();
+        return  [
+            "message" => "Deleted Successfully"
+        ];
     }
     /**
      * searching vendor data.
