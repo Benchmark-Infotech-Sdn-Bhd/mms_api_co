@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Model implements AuthenticatableContract, AuthorizableContract, JWTSubject
 {
-    use  Authenticatable, Authorizable, HasFactory;
+    use Authenticatable, Authorizable, HasFactory;
 
     protected $table = 'users';
 

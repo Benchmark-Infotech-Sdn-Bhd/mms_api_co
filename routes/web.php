@@ -50,6 +50,14 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('dropDown', 'V1\ModulesController@dropDown');
         });
 
+        /**
+         * Routes for AccessManagement.
+         */
+        $router->group(['prefix' => 'accessManagement'], function () use ($router) {
+            $router->post('list', 'V1\AccessManagementController@list');
+            $router->post('show', 'V1\AccessManagementController@show');
+            $router->post('create', 'V1\AccessManagementController@create');
+        });
 
         /**
          * Routes for Countries.
