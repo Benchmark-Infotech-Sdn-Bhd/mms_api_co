@@ -69,32 +69,34 @@ class FomemaClinicsServices
     public function update($request): mixed
     {     
         $data = $this->fomemaClinics::findorfail($request['id']);
-        return $data->update($request->all());
+        return  [
+            "isUpdated" => $data->update($request->all()),
+            "message" => "Updated Successfully"
+        ];
     }
 	 /**
      *
      * @param $request
-     * @return void
+     * @return mixed
      */    
-    public function delete($request): void
+    public function delete($request): mixed
     {    
         $data = $this->fomemaClinics::find($request['id']);
         $data->delete();
+        return  [
+            "message" => "Deleted Successfully"
+        ];
     }
     /**
      *
      * @param $request
-     * @return mixed
+     * @return LengthAwarePaginator
      */
-    public function search($request): mixed
+    public function search($request)
     {
-        return $this->fomemaClinics->where('clinic_name', 'like', '%' . $request->clinic_name . '%')->get(['clinic_name',
-            'person_in_charge',
-            'pic_contact_number',
-            'address',
-            'state',
-            'city',
-            'postcode',
-            'id']);
+        return $this->fomemaClinics->where('clinic_name', 'like', '%' . $request->clinic_name . '%')
+        ->orWhere('state', 'like', '%' . $request->clinic_name . '%')
+        ->orWhere('city', 'like', '%' . $request->clinic_name . '%')
+        ->paginate(10);
     }
 }

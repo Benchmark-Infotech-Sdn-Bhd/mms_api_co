@@ -57,7 +57,7 @@ class AccommodationController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Show accommodation was failed']);
+            return $this->sendError(['message' => 'Retrieve all accommodation data was failed']);
         }
     }
 
@@ -75,7 +75,7 @@ class AccommodationController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Edit accommodation was failed']);
+            return $this->sendError(['message' => 'Retrieve accommodation data was failed']);
         }
     } 
     /**
@@ -127,7 +127,7 @@ class AccommodationController extends Controller
             return $this->sendSuccess($response); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'search accommodation was failed']);
+            return $this->sendError(['message' => 'Search accommodation was failed']);
         }        
     }
 

@@ -23,7 +23,10 @@ class InsuranceTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'data'
+                    'no_of_worker_from',
+                    'no_of_worker_to',
+                    'fee_per_pax',
+                    'vendor_id',
                 ]
         ]);
     }
@@ -46,7 +49,7 @@ class InsuranceTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'data'
+                    'message'
                 ]
         ]);
     }
@@ -78,7 +81,10 @@ class InsuranceTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'data'
+                    'no_of_worker_from',
+                    'no_of_worker_to',
+                    'fee_per_pax',
+                    'vendor_id',
                 ]
         ]);
     }
@@ -97,7 +103,7 @@ class InsuranceTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'data'
+                    'message'
                 ]
         ]);
     }
