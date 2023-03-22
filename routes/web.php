@@ -30,6 +30,67 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         });
 
         /**
+         * Routes for Countries.
+         */
+        $router->group(['prefix' => 'country'], function () use ($router) {
+            $router->post('create', 'V1\CountriesController@create');
+            $router->put('update', 'V1\CountriesController@update');
+            $router->post('delete', 'V1\CountriesController@delete');
+            $router->post('retrieve', 'V1\CountriesController@retrieve');
+            $router->get('retrieveAll', 'V1\CountriesController@retrieveAll');
+        });
+        /**
+         * Routes for EmbassyAttestationFileCosting.
+         */
+        $router->group(['prefix' => 'embassyAttestationFile'], function () use ($router) {
+            $router->post('create', 'V1\EmbassyAttestationFileCostingController@create');
+            $router->put('update', 'V1\EmbassyAttestationFileCostingController@update');
+            $router->post('delete', 'V1\EmbassyAttestationFileCostingController@delete');
+            $router->post('retrieveByCountry', 'V1\EmbassyAttestationFileCostingController@retrieveByCountry');
+        });
+        /**
+         * Routes for Sectors.
+         */
+        $router->group(['prefix' => 'sector'], function () use ($router) {
+            $router->post('create', 'V1\SectorsController@create');
+            $router->put('update', 'V1\SectorsController@update');
+            $router->post('delete', 'V1\SectorsController@delete');
+            $router->post('retrieve', 'V1\SectorsController@retrieve');
+            $router->get('retrieveAll', 'V1\SectorsController@retrieveAll');
+        });
+        /**
+         * Routes for DocumentChecklist.
+         */
+        $router->group(['prefix' => 'documentChecklist'], function () use ($router) {
+            $router->post('create', 'V1\DocumentChecklistController@create');
+            $router->put('update', 'V1\DocumentChecklistController@update');
+            $router->post('delete', 'V1\DocumentChecklistController@delete');
+            $router->post('retrieveBySector', 'V1\DocumentChecklistController@retrieveBySector');
+        });
+        /**
+         * Routes for Agent.
+         */
+        $router->group(['prefix' => 'agent'], function () use ($router) {
+            $router->post('create', 'V1\AgentController@create');
+            $router->put('update', 'V1\AgentController@update');
+            $router->post('delete', 'V1\AgentController@delete');
+            $router->post('retrieve', 'V1\AgentController@retrieve');
+            $router->get('retrieveAll', 'V1\AgentController@retrieveAll');
+            $router->post('retrieveByCountry', 'V1\AgentController@retrieveByCountry');
+        });
+        /**
+         * Routes for Vendors.
+         */
+        $router->group(['prefix' => 'vendor'], function () use ($router) {
+            $router->post('create', 'V1\VendorController@create');
+            $router->post('update', 'V1\VendorController@update');
+            $router->post('delete', 'V1\VendorController@delete');
+            $router->post('retrieve', 'V1\VendorController@retrieve');
+            $router->get('retrieveAll', 'V1\VendorController@retrieveAll');
+            $router->post('search', 'V1\VendorController@search');
+        });
+
+        /**
          * Routes for Roles.
          */
         $router->group(['prefix' => 'role'], function () use ($router) {

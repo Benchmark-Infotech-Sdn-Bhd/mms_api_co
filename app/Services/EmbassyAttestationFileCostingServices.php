@@ -46,14 +46,20 @@ class EmbassyAttestationFileCostingServices
         }
         $embassyAttestationFileCosting = $this->embassyAttestationFileCosting->find($request['id']);
         if(is_null($embassyAttestationFileCosting)){
-            return "Data not found.";
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
         }
-        return $embassyAttestationFileCosting->update([
-            'id' => $request['id'],
-            'country_id' => $request['country_id'] ?? 0,
-            'title' => $request['title'] ?? '',
-            'amount' => $request['amount'] ?? 0
-        ]);
+        return [
+            "isUpdated" => $embassyAttestationFileCosting->update([
+                'id' => $request['id'],
+                'country_id' => $request['country_id'] ?? 0,
+                'title' => $request['title'] ?? '',
+                'amount' => $request['amount'] ?? 0
+            ]),
+            "message"=> "Updated Successfully"
+        ];
     }
     /**
      * @param $request
@@ -66,9 +72,15 @@ class EmbassyAttestationFileCostingServices
         }
         $embassyAttestationFileCosting = $this->embassyAttestationFileCosting->find($request['id']);
         if(is_null($embassyAttestationFileCosting)){
-            return true;
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
         }
-        return $embassyAttestationFileCosting->delete();
+        return [
+            "isDeleted" => $embassyAttestationFileCosting->delete(),
+            "message" => "Deleted Successfully"
+        ];
     }
     /**
      * @param $request

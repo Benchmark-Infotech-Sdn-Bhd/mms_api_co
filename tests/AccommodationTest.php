@@ -5,9 +5,8 @@ use Faker\Factory;
 use Faker\Generator;
 
 class AccommodationTest extends TestCase
-{
-    
-    private Generator $faker;
+{    
+    protected Generator $faker;
     /**
      * A test method for create new Accommodation.
      *
@@ -18,6 +17,7 @@ class AccommodationTest extends TestCase
         $this->faker = Factory::create();
         $payload =  [
              'name' => $this->faker->name,
+             'location' => $this->faker->address,
              'maximum_pax_per_unit' => random_int(10, 1000),
              'deposit' => random_int(10, 1000),
              'rent_per_month' => random_int(10, 1000),
@@ -28,7 +28,12 @@ class AccommodationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'name',
+                    'location',
+                    'maximum_pax_per_unit',
+                    'deposit',
+                    'rent_per_month',
+                    'vendor_id',
                 ]
         ]);
     }
@@ -69,7 +74,7 @@ class AccommodationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ],
         ]);
     }
@@ -85,7 +90,12 @@ class AccommodationTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'name',
+                    'location',
+                    'maximum_pax_per_unit',
+                    'deposit',
+                    'rent_per_month',
+                    'vendor_id',
                 ]
         ]);
     }

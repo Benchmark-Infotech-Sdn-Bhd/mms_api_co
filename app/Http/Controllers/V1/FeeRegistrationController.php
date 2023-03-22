@@ -36,11 +36,11 @@ class FeeRegistrationController extends Controller
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->feeRegistrationServices->create($request);
-            return $this->sendSuccess(['message' => "Successfully Fee Registration was created"]);
+            $response = $this->feeRegistrationServices->create($request);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'FOMEMA Clinics creation was failed']);
+            return $this->sendError(['message' => 'Fee Registration creation was failed']);
         }
     }
     /**
@@ -52,10 +52,10 @@ class FeeRegistrationController extends Controller
     {      
         try {  
             $response = $this->feeRegistrationServices->retrieveAll(); 
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Show fee registration was failed']);
+            return $this->sendError(['message' => 'Retrieve all fee registration data was failed']);
         }
     }
     /**
@@ -69,10 +69,10 @@ class FeeRegistrationController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->feeRegistrationServices->retrieve($params); 
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Edit fee registration was failed']);
+            return $this->sendError(['message' => 'Retrieve fee registration data was failed']);
         } 
     } 
 	 /**
@@ -88,8 +88,8 @@ class FeeRegistrationController extends Controller
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->feeRegistrationServices->update($request); 
-            return $this->sendSuccess(['message' => "Successfully Fee Registration was updated"]);
+            $response = $this->feeRegistrationServices->update($request); 
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Fee Registration update was failed']);
@@ -105,11 +105,11 @@ class FeeRegistrationController extends Controller
     {      
         try {
             $params = $this->getRequest($request);
-            $this->feeRegistrationServices->delete($params);
-            return $this->sendSuccess(['message' => "Successfully Fee Registration was deleted"]);
+            $response = $this->feeRegistrationServices->delete($params);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'delete insurance was failed']);
+            return $this->sendError(['message' => 'Delete Fee Registration was failed']);
         } 
     }
     /**
@@ -122,10 +122,10 @@ class FeeRegistrationController extends Controller
     {
         try{
             $response = $this->feeRegistrationServices->search($request);
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'search Fee Registration was failed']);
+            return $this->sendError(['message' => 'Search Fee Registration was failed']);
         }
     }
     

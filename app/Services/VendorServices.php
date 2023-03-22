@@ -130,15 +130,18 @@ class VendorServices
                 }    
             }
         }
-        return $vendors->update($input);
+        return  [
+            "isUpdated" => $vendors->update($input),
+            "message" => "Updated Successfully"
+        ];
     }
 	 /**
      * delete the specified Vendors data.
      *
      * @param $request
-     * @return void
+     * @return mixed
      */    
-    public function delete($request)
+    public function delete($request): mixed
     {   
         $vendors = $this->vendor::find($request['id']);
         $vendors->accommodations()->delete();
@@ -146,26 +149,23 @@ class VendorServices
         $vendors->transportations()->delete();
         $vendors->vendorAttachments()->delete();
         $vendors->delete();
+        return  [
+            "message" => "Deleted Successfully"
+        ];
     }
     /**
      * searching vendor data.
      *
      * @param $request
-     * @return mixed
+     * @return LengthAwarePaginator
      */
-    public function search($request): mixed
+    public function search($request)
     {
-        return $this->vendor->where('name', 'like', '%' . $request->clinic_name . '%')->get(['name',
-            'type',
-            'email_address',
-            'contact_number',
-            'person_in_charge',
-            'pic_contact_number',
-            'address',
-            'state',
-            'city',
-            'postcode',
-            'id']);
+        return $this->vendor->where('name', 'like', '%' . $request->search . '%')
+        ->orWhere('type', 'like', '%' . $request->search . '%')
+        ->orWhere('state', 'like', '%' . $request->search . '%')
+        ->orWhere('city', 'like', '%' . $request->search . '%')
+        ->paginate(10);
     }
 
 }

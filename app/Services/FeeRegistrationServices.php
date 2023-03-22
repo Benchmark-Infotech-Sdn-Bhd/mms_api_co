@@ -67,33 +67,33 @@ class FeeRegistrationServices
     public function update($request): mixed
     {
         $data = $this->feeRegistration::findorfail($request['id']);
-        return $data->update($request->all());
+        return  [
+            "isUpdated" => $data->update($request->all()),
+            "message" => "Updated Successfully"
+        ];
     }
 	 /**
      *
      * @param $request
-     * @return void
+     * @return mixed
      */    
-    public function delete($request): void
+    public function delete($request): mixed
     {     
         $data = $this->feeRegistration::find($request['id']);
         $data->delete();
+        return  [
+            "message" => "Deleted Successfully"
+        ];
     }
 
     /**
      *
      * @param $request
-     * @return mixed
+     * @return LengthAwarePaginator
      */
-    public function search($request): mixed
+    public function search($request)
     {
-        return $this->feeRegistration->where('item_name', 'like', '%' . $request->item_name . '%')->get(
-            ['id',
-            'item_name',
-            'cost',
-            'fee_type',
-            'applicable_for',
-            'sectors']
-        );
+        return $this->feeRegistration->where('item_name', 'like', '%' . $request->item_name . '%')
+        ->paginate(10);
     }
 }

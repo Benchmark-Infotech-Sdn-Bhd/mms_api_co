@@ -67,29 +67,34 @@ class InsuranceServices
     public function update($request): mixed
     {           
         $data = $this->insurance::findorfail($request['id']);
-        return $data->update($request->all());
+        return  [
+            "isUpdated" => $data->update($request->all()),
+            "message" => "Updated Successfully"
+        ];
     }
 	 /**
      *
      * @param $request
-     * @return void
+     * @return mixed
      */    
-    public function delete($request) : void
+    public function delete($request) : mixed
     {     
         $data = $this->insurance::find($request['id']);
         $data->delete();
+        return  [
+            "message" => "Deleted Successfully"
+        ];
     }
     /**
      *
      * @param $request
-     * @return mixed
+     * @return LengthAwarePaginator
      */
-    public function search($request): mixed
+    public function search($request)
     {
-        return $this->insurance->where('no_of_worker_from', 'like', '%' . $request->no_of_worker_from . '%')->get(['no_of_worker_from',
-            'no_of_worker_to',
-            'fee_per_pax',
-            'vendor_id',
-            'id']);
+        return $this->insurance->where('no_of_worker_from', 'like', '%' . $request->search . '%')
+        ->orWhere('no_of_worker_to', 'like', '%' . $request->search . '%')
+        ->orWhere('fee_per_pax', 'like', '%' . $request->search . '%')
+        ->paginate(10);
     }
 }

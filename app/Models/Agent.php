@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Countries;
 
 class Agent extends Model
 {
@@ -39,7 +40,22 @@ class Agent extends Model
         'country_id' => 'required',
         'city' => 'max:150',
         'person_in_charge' => 'required|max:255',
-        'pic_contact_number' => 'required|max:20',
+        'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
+        'email_address' => 'required|email',
+        'company_address' => 'required'
+    ];
+    /**
+     * The attributes that are required for updation.
+     *
+     * @var array
+     */
+    public $rulesForUpdation = [
+        'id' => 'required',
+        'agent_name' => 'required|max:250',
+        'country_id' => 'required',
+        'city' => 'max:150',
+        'person_in_charge' => 'required|max:255',
+        'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
         'email_address' => 'required|email',
         'company_address' => 'required'
     ];

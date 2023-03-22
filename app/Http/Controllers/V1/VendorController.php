@@ -36,8 +36,8 @@ class VendorController extends Controller
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $this->vendorServices->create($request);       
-            return $this->sendSuccess(['message' => "Successfully vendor was created"]);
+            $response = $this->vendorServices->create($request);       
+            return $this->sendSuccess($response);
             
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -55,10 +55,10 @@ class VendorController extends Controller
     {   
         try {
             $response = $this->vendorServices->retrieveAll(); 
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Show Vendors was failed'], 400);
+            return $this->sendError(['message' => 'Retrieve all Vendors data was failed'], 400);
         }
     }
 	 /**
@@ -72,10 +72,10 @@ class VendorController extends Controller
         try {   
             $params = $this->getRequest($request);
             $response = $this->vendorServices->retrieve($params); 
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Edit Vendors was failed'], 400);
+            return $this->sendError(['message' => 'Retrieve Vendors data was failed'], 400);
         }
     } 
 	 /**
@@ -91,8 +91,8 @@ class VendorController extends Controller
             if ($validation) {
                 return $this->validationError($validation);
             }         
-            $this->vendorServices->update($request);
-            return $this->sendSuccess(['message' => "Successfully Vendor was updated"]);
+            $response = $this->vendorServices->update($request);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Vendor update was failed']);
@@ -108,11 +108,11 @@ class VendorController extends Controller
     {  
         try {
             $params = $this->getRequest($request);
-            $this->vendorServices->delete($params); 
-            return $this->sendSuccess(['message' => "Successfully Vendor was deleted"]);
+            $response = $this->vendorServices->delete($params); 
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Vendor delete was failed']);
+            return $this->sendError(['message' => 'Delete Vendor was failed']);
         }  
     }
     /**
@@ -125,10 +125,10 @@ class VendorController extends Controller
     {
         try{
             $response = $this->vendorServices->search($request);
-            return $this->sendSuccess(['data' => $response]);
+            return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'search vendor was failed']);
+            return $this->sendError(['message' => 'Search vendor was failed']);
         }
     }
     

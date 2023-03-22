@@ -117,34 +117,35 @@ class AccommodationServices
                 }    
             }
         }
-        return $data->update($input);
-    }
-    /**
-     *
-     * @param $request
-     * @return void
-     */    
-    public function delete($request): void
-    {   
-        $data = $this->accommodation::find($request['id']);        
-        $data->accommodationAttachments()->delete();
-        $data->delete();
+        return  [
+            "isUpdated" => $data->update($input),
+            "message" => "Updated Successfully"
+        ];
     }
     /**
      *
      * @param $request
      * @return mixed
+     */    
+    public function delete($request): mixed
+    {   
+        $data = $this->accommodation::find($request['id']);        
+        $data->accommodationAttachments()->delete();
+        $data->delete();
+        return  [
+            "message" => "Deleted Successfully"
+        ];
+    }
+    /**
+     *
+     * @param $request
+     * @return LengthAwarePaginator
      */
-    public function search($request): mixed
+    public function search($request)
     {
-        return $this->accommodation->where('name', 'like', '%' . $request->name . '%')
-        ->get(['name',
-            'location',
-            'maximum_pax_per_unit',
-            'deposit',
-            'rent_per_month',
-            'vendor_id',
-            'id']);
+        return $this->accommodation->where('name', 'like', '%' . $request->search . '%')
+        ->orWhere('location', 'like', '%' . $request->search . '%')
+        ->paginate(10);
     }
 
 }

@@ -1,13 +1,9 @@
 <?php
 
 namespace Tests;
-use Faker\Factory;
-use Faker\Generator;
 
 class InsuranceTest extends TestCase
 {
-    
-    private Generator $faker;
     /**
      * A test method for create new insurance.
      *
@@ -15,7 +11,6 @@ class InsuranceTest extends TestCase
      */
     public function testCreateInsurance()
     {
-        $this->faker = Factory::create();
         $payload =  [
              'no_of_worker_from' => random_int(10, 1000),
              'no_of_worker_to' => random_int(10, 1000),
@@ -28,7 +23,10 @@ class InsuranceTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'no_of_worker_from',
+                    'no_of_worker_to',
+                    'fee_per_pax',
+                    'vendor_id',
                 ]
         ]);
     }
@@ -39,7 +37,6 @@ class InsuranceTest extends TestCase
      */
     public function testUpdateInsurance()
     {
-        $this->faker = Factory::create();
         $payload =  [
             'id' => 1,
             'no_of_worker_from' => random_int(10, 1000),
@@ -68,7 +65,7 @@ class InsuranceTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'data'
                 ]
         ]);
     }
@@ -84,7 +81,10 @@ class InsuranceTest extends TestCase
         $response->seeJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'no_of_worker_from',
+                    'no_of_worker_to',
+                    'fee_per_pax',
+                    'vendor_id',
                 ]
         ]);
     }
