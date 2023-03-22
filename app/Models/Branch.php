@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Branch extends Model
 {
@@ -20,15 +19,8 @@ class Branch extends Model
      *
      * @var array
      */
-    protected $fillable = ['branch_name','state','city','branch_address','postcode','service_id',
+    protected $fillable = ['branch_name','state','city','branch_address','postcode',
     'remarks','created_by','modified_by'];
-    /**
-     * @return HasMany
-     */
-    public function services()
-    {
-        return $this->hasMany(Service::class, 'service_id');
-    }
     /**
      * The attributes that are required.
      *
@@ -39,8 +31,7 @@ class Branch extends Model
         'state' => 'required|max:150',
         'city' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
         'branch_address' => 'required',
-        'postcode' => 'required|regex:/^[0-9]+$/|max:5',
-        'service_id' => 'required'
+        'postcode' => 'required|regex:/^[0-9]+$/|max:5'
     ];
     /**
      * The attributes that are required for updation.
@@ -53,7 +44,6 @@ class Branch extends Model
         'state' => 'required|max:150',
         'city' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
         'branch_address' => 'required',
-        'postcode' => 'required|regex:/^[0-9]+$/|max:5',
-        'service_id' => 'required'
+        'postcode' => 'required|regex:/^[0-9]+$/|max:5'
     ];
 }
