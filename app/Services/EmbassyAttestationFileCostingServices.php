@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\EmbassyAttestationFileCosting;
 use App\Services\ValidationServices;
+use Illuminate\Support\Facades\Config;
 
 class EmbassyAttestationFileCostingServices
 {
@@ -99,6 +100,7 @@ class EmbassyAttestationFileCostingServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->embassyAttestationFileCosting->where('country_id',$request['country_id'])->get();
+        return $this->embassyAttestationFileCosting->where('country_id',$request['country_id'])->orderBy('embassy_attestation_file_costing.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
 }

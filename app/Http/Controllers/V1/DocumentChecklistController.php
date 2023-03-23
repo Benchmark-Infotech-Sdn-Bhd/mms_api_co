@@ -35,6 +35,9 @@ class DocumentChecklistController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->documentChecklistServices->create($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -53,6 +56,9 @@ class DocumentChecklistController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->documentChecklistServices->update($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -71,6 +77,9 @@ class DocumentChecklistController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->documentChecklistServices->delete($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -89,6 +98,9 @@ class DocumentChecklistController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->documentChecklistServices->retrieveBySector($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

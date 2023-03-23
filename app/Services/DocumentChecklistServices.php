@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\DocumentChecklist;
 use App\Services\ValidationServices;
+use Illuminate\Support\Facades\Config;
 
 class DocumentChecklistServices
 {
@@ -27,7 +28,9 @@ class DocumentChecklistServices
     public function create($request) : mixed
     {
         if(!($this->validationServices->validate($request,$this->documentChecklist->rules))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         return $this->documentChecklist->create([
             'sector_id' => $request['sector_id'] ?? 0,
@@ -41,7 +44,9 @@ class DocumentChecklistServices
     public function update($request) : mixed
     {
         if(!($this->validationServices->validate($request,$this->documentChecklist->rulesForUpdation))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $documentChecklist = $this->documentChecklist->find($request['id']);
         if(is_null($documentChecklist)){
@@ -66,7 +71,9 @@ class DocumentChecklistServices
     public function delete($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $documentChecklist = $this->documentChecklist->find($request['id']);
         if(is_null($documentChecklist)){
@@ -87,8 +94,11 @@ class DocumentChecklistServices
     public function retrieveBySector($request) : mixed
     {
         if(!($this->validationServices->validate($request,['sector_id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
-        return $this->documentChecklist->where('sector_id',$request['sector_id'])->get();
+        return $this->documentChecklist->where('sector_id',$request['sector_id'])->orderBy('document_checklist.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
 }

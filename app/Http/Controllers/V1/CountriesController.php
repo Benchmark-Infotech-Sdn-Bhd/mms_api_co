@@ -35,7 +35,7 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->create($params);
-            if($data['validate']){
+            if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
             return $this->sendSuccess($data);
@@ -56,7 +56,7 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->update($params);
-            if($data['validate']){
+            if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
             return $this->sendSuccess($data);
@@ -77,7 +77,7 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->delete($params);
-            if($data['validate']){
+            if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
             return $this->sendSuccess($data);
@@ -98,7 +98,7 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->retrieve($params);
-            if($data['validate']){
+            if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
             return $this->sendSuccess($data);
@@ -135,7 +135,7 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->updateCostingStatus($params);
-            if($data['validate']){
+            if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
             return $this->sendSuccess($data);
@@ -156,7 +156,7 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->searchCountries($params);
-            if($data['validate']){
+            if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
             return $this->sendSuccess($data);

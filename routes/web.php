@@ -58,6 +58,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('delete', 'V1\SectorsController@delete');
         $router->post('retrieve', 'V1\SectorsController@retrieve');
         $router->get('retrieveAll', 'V1\SectorsController@retrieveAll');
+        $router->put('updateChecklistStatus', 'V1\SectorsController@updateChecklistStatus');
+        $router->post('searchSectors', 'V1\SectorsController@searchSectors');
     });
     /**
      * Routes for DocumentChecklist.
@@ -78,6 +80,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('retrieve', 'V1\AgentController@retrieve');
         $router->get('retrieveAll', 'V1\AgentController@retrieveAll');
         $router->post('retrieveByCountry', 'V1\AgentController@retrieveByCountry');
+        $router->post('searchAgents', 'V1\AgentController@searchAgents');
     });
     /**
      * Routes for Vendors.

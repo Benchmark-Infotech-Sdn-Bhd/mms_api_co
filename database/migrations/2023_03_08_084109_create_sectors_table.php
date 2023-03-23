@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('sector_name',255);
             $table->string('sub_sector_name',255)->nullable();
+            $table->enum('checklist_status',['Pending','Done'])->default('Pending');
             $table->integer('created_by')->default(0);
             $table->integer('modified_by')->default(0);
             $table->timestamps();

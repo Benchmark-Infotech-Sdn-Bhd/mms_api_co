@@ -130,9 +130,9 @@ class CountriesServices
                 "message"=> "Data not found"
             ];
         }
-        $country->status = $request['costing_status'];
+        $country->costing_status = $request['costing_status'];
         return  [
-            "isUpdated" => $country->save(),
+            "isUpdated" => $country->save() == 1 ? true:false,
             "message" => "Updated Successfully"
         ];
     }
