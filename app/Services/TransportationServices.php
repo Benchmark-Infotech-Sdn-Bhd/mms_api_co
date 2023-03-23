@@ -27,6 +27,16 @@ class TransportationServices
            return $this->transportation->errors();
        }
     }
+    /**
+     * @param $request
+     * @return mixed | void
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->transportation->validateUpdation($request->all()))){
+            return $this->transportation->errors();
+        }
+    }
 	 /**
      *
      * @param $request

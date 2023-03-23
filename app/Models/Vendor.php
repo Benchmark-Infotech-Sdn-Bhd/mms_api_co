@@ -40,16 +40,34 @@ class Vendor extends Model
      * @var array
      */
     private $rules = [
-        'name' => 'required|max:150',
+        'name' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
         'type' => 'required',
-        'email_address' => 'required',
-        'contact_number' => 'required',
-        'person_in_charge' => 'required',
-        'pic_contact_number' => 'required',
+        'email_address' => 'required|email|regex:/(.+)@(.+)\.(.+)/i',
+        'contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
+        'person_in_charge' => 'required|regex:/^[a-zA-Z @&$]*$/u|max:150',
+        'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
         'address' => 'required',
-        'state' => 'required',
-        'city' => 'required',
-        'postcode' => 'required',
+        'state' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
+        'city' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
+        'postcode' => 'required|regex:/^[0-9]*$/|max:5',
+    ];
+    /**
+     * The attributes that are required for updation.
+     *
+     * @var array
+     */
+    public $rulesForUpdation = [
+        'id' => 'required',
+        'name' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
+        'type' => 'required',
+        'email_address' => 'required|email|regex:/(.+)@(.+)\.(.+)/i',
+        'contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
+        'person_in_charge' => 'required|regex:/^[a-zA-Z]+$/u|max:150',
+        'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
+        'address' => 'required',
+        'state' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
+        'city' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
+        'postcode' => 'required|regex:/^[0-9]*$/|max:5',
     ];
     /**
      * The attributes that store validation errors.
@@ -70,7 +88,21 @@ class Vendor extends Model
         // validation pass
         return true;
     }
-    
+    /**
+     * Validate method for model.
+     */
+    public function validateUpdation($input){
+        // make a new validator object
+        $validator = Validator::make($input,$this->rulesForUpdation);
+        // check for failure
+        if($validator->fails()){
+            // set errors and return false
+            $this->errors = $validator->errors();
+            return false;
+        }
+        // validation pass
+        return true;
+    }
     // Returns Validation errors
     public function errors()
     {

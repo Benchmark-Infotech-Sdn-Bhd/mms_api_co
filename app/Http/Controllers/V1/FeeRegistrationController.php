@@ -84,7 +84,7 @@ class FeeRegistrationController extends Controller
     public function update(Request $request): JsonResponse
     {             
         try {   
-            $validation = $this->feeRegistrationServices->inputValidation($request);
+            $validation = $this->feeRegistrationServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
