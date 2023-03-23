@@ -28,6 +28,16 @@ class FeeRegistrationServices
         }
     }
     /**
+     * @param $request
+     * @return mixed | void
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->feeRegistration->validateUpdation($request->all()))){
+            return $this->feeRegistration->errors();
+        }
+    }
+    /**
      *
      * @param $request
      * @return mixed 
@@ -93,7 +103,10 @@ class FeeRegistrationServices
      */
     public function search($request)
     {
-        return $this->feeRegistration->where('item_name', 'like', '%' . $request->item_name . '%')
+        return $this->feeRegistration->where('item_name', 'like', '%' . $request->search . '%')
+        ->orWhere('fee_type', 'like', '%' . $request->search . '%')
+        ->orWhere('applicable_for', 'like', '%' . $request->search . '%')
+        ->orWhere('sectors', 'like', '%' . $request->search . '%')
         ->paginate(10);
     }
 }

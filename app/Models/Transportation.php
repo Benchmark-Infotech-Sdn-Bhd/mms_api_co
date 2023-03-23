@@ -37,12 +37,26 @@ class Transportation extends Model
      * @var array
      */
     private $rules = [
-        'driver_name' => 'required',
-        'driver_contact_number' => 'required',
+        'driver_name' => 'required|regex:/^[a-zA-Z @&$]*$/u|max:150',
+        'driver_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
         'driver_license_number' => 'required',
-        'vehicle_type' => 'required',
-        'number_plate' => 'required',
-        'vehicle_capacity' => 'required',
+        'vehicle_type' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
+        'number_plate' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
+        'vehicle_capacity' => 'required|regex:/^[0-9]*$/',
+    ];
+    /**
+     * The attributes that are required for updation.
+     *
+     * @var array
+     */
+    public $rulesForUpdation = [
+        'id' => 'required',
+        'driver_name' => 'required|regex:/^[a-zA-Z @&$]*$/u|max:150',
+        'driver_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
+        'driver_license_number' => 'required',
+        'vehicle_type' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
+        'number_plate' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
+        'vehicle_capacity' => 'required|regex:/^[0-9]*$/',
     ];
     /**
      * The attributes that store validation errors.
@@ -54,6 +68,21 @@ class Transportation extends Model
     public function validate($input){
         // make a new validator object
         $validator = Validator::make($input,$this->rules);
+        // check for failure
+        if($validator->fails()){
+            // set errors and return false
+            $this->errors = $validator->errors();
+            return false;
+        }
+        // validation pass
+        return true;
+    }
+    /**
+     * Validate method for model.
+     */
+    public function validateUpdation($input){
+        // make a new validator object
+        $validator = Validator::make($input,$this->rulesForUpdation);
         // check for failure
         if($validator->fails()){
             // set errors and return false

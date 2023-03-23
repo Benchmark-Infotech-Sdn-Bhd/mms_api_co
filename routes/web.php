@@ -86,6 +86,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('retrieve', 'V1\VendorController@retrieve');
         $router->get('retrieveAll', 'V1\VendorController@retrieveAll');
         $router->post('search', 'V1\VendorController@search');
+        $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
     });
 
     /**
@@ -122,6 +123,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('retrieve', 'V1\AccommodationController@retrieve');
         $router->get('retrieveAll', 'V1\AccommodationController@retrieveAll');
         $router->post('search', 'V1\AccommodationController@search');
+        $router->post('deleteAttachment', 'V1\AccommodationController@deleteAttachment');
     });
 
     /**

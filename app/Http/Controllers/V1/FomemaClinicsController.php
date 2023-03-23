@@ -84,7 +84,7 @@ class FomemaClinicsController extends Controller
     public function update(Request $request): JsonResponse
     {    
         try {            
-            $validation = $this->fomemaClinicsServices->inputValidation($request);
+            $validation = $this->fomemaClinicsServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
