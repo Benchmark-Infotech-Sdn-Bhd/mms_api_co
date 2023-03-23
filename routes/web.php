@@ -24,6 +24,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'user'], function () use ($router) {
             $router->post('register', 'V1\AuthController@register');
             $router->get('logout', 'V1\AuthController@logout');
+            $router->get('refresh', 'V1\AuthController@refresh');
         });
     });
 
