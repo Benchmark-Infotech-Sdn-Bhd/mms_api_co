@@ -35,6 +35,9 @@ class EmbassyAttestationFileCostingController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->embassyAttestationFileCostingServices->create($params);
+            if($data['validate']){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -53,6 +56,9 @@ class EmbassyAttestationFileCostingController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->embassyAttestationFileCostingServices->update($params);
+            if($data['validate']){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -71,6 +77,9 @@ class EmbassyAttestationFileCostingController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->embassyAttestationFileCostingServices->delete($params);
+            if($data['validate']){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -89,6 +98,9 @@ class EmbassyAttestationFileCostingController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->embassyAttestationFileCostingServices->retrieveByCountry($params);
+            if($data['validate']){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

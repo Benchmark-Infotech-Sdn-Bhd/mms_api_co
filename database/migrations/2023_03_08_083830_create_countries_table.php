@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('country_name',150);
             $table->enum('system_type',['Embassy','FWCMS'])->default('FWCMS');
+            $table->enum('costing_status',['Pending','Done'])->default('Pending');
             $table->float('fee')->nullable();
             $table->integer('created_by')->default(0);
             $table->integer('modified_by')->default(0);

@@ -27,7 +27,9 @@ class EmbassyAttestationFileCostingServices
     public function create($request) : mixed
     {
         if(!($this->validationServices->validate($request,$this->embassyAttestationFileCosting->rules))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         return $this->embassyAttestationFileCosting->create([
             'country_id' => $request['country_id'] ?? 0,
@@ -42,7 +44,9 @@ class EmbassyAttestationFileCostingServices
     public function update($request) : mixed
     {
         if(!($this->validationServices->validate($request,$this->embassyAttestationFileCosting->rulesForUpdation))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $embassyAttestationFileCosting = $this->embassyAttestationFileCosting->find($request['id']);
         if(is_null($embassyAttestationFileCosting)){
@@ -68,7 +72,9 @@ class EmbassyAttestationFileCostingServices
     public function delete($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $embassyAttestationFileCosting = $this->embassyAttestationFileCosting->find($request['id']);
         if(is_null($embassyAttestationFileCosting)){
@@ -89,7 +95,9 @@ class EmbassyAttestationFileCostingServices
     public function retrieveByCountry($request) : mixed
     {
         if(!($this->validationServices->validate($request,['country_id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         return $this->embassyAttestationFileCosting->where('country_id',$request['country_id'])->get();
     }

@@ -36,6 +36,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('delete', 'V1\CountriesController@delete');
         $router->post('retrieve', 'V1\CountriesController@retrieve');
         $router->get('retrieveAll', 'V1\CountriesController@retrieveAll');
+        $router->put('updateCostingStatus', 'V1\CountriesController@updateCostingStatus');
+        $router->post('searchCountries', 'V1\CountriesController@searchCountries');
     });
     /**
      * Routes for EmbassyAttestationFileCosting.

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class CountriesController extends Controller
 {
     /**
-     * @var CountriesServices
+     * @var countriesServices
      */
     private CountriesServices $countriesServices;
 
@@ -35,6 +35,9 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->create($params);
+            if($data['validate']){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -53,6 +56,9 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->update($params);
+            if($data['validate']){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -71,6 +77,9 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->delete($params);
+            if($data['validate']){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -89,6 +98,9 @@ class CountriesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->countriesServices->retrieve($params);
+            if($data['validate']){
+                return $this->validationError($data['validate']); 
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -109,6 +121,48 @@ class CountriesController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve All failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
+    /**
+     * Update the costing status.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateCostingStatus(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->countriesServices->updateCostingStatus($params);
+            if($data['validate']){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Updation failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
+    /**
+     * Search & Retrieve all the countries based on country name.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchCountries(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->countriesServices->searchCountries($params);
+            if($data['validate']){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
             return $this->sendError(['message' => $data['error']]);
         }
     }
