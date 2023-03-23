@@ -28,6 +28,16 @@ class InsuranceServices
             return $this->insurance->errors();
         }
     }
+    /**
+     * @param $request
+     * @return mixed | void
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->insurance->validateUpdation($request->all()))){
+            return $this->insurance->errors();
+        }
+    }
 	 /**
      *
      * @param Request $request

@@ -40,6 +40,17 @@ class AccommodationServices
         }
     }
     /**
+     * @param $request
+     * @return mixed | void
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->accommodation->validateUpdation($request->all()))){
+            return $this->accommodation->errors();
+        }
+    }
+    
+    /**
      *
      * @param $request
      * @return mixed
@@ -131,6 +142,19 @@ class AccommodationServices
     {   
         $data = $this->accommodation::find($request['id']);        
         $data->accommodationAttachments()->delete();
+        $data->delete();
+        return  [
+            "message" => "Deleted Successfully"
+        ];
+    }
+    /**
+     *
+     * @param $request
+     * @return mixed
+     */    
+    public function deleteAttachment($request): mixed
+    {   
+        $data = $this->accommodationAttachments::find($request['id']); 
         $data->delete();
         return  [
             "message" => "Deleted Successfully"

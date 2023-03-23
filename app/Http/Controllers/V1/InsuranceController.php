@@ -86,7 +86,7 @@ class InsuranceController extends Controller
     public function update(Request $request): JsonResponse
     {    
         try {    
-            $validation = $this->insuranceServices->inputValidation($request);
+            $validation = $this->insuranceServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }

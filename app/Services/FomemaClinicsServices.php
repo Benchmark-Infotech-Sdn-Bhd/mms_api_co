@@ -27,6 +27,16 @@ class FomemaClinicsServices
             return $this->fomemaClinics->errors();
         }
     }
+    /**
+     * @param $request
+     * @return mixed | void
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->fomemaClinics->validateUpdation($request->all()))){
+            return $this->fomemaClinics->errors();
+        }
+    }
 	 /**
      *
      * @param $request
@@ -94,9 +104,9 @@ class FomemaClinicsServices
      */
     public function search($request)
     {
-        return $this->fomemaClinics->where('clinic_name', 'like', '%' . $request->clinic_name . '%')
-        ->orWhere('state', 'like', '%' . $request->clinic_name . '%')
-        ->orWhere('city', 'like', '%' . $request->clinic_name . '%')
+        return $this->fomemaClinics->where('clinic_name', 'like', '%' . $request->search . '%')
+        ->orWhere('state', 'like', '%' . $request->search . '%')
+        ->orWhere('city', 'like', '%' . $request->search . '%')
         ->paginate(10);
     }
 }

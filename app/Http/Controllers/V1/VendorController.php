@@ -87,7 +87,7 @@ class VendorController extends Controller
     public function update(Request $request): JsonResponse
     {    
         try {    
-            $validation = $this->vendorServices->inputValidation($request);
+            $validation = $this->vendorServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }         
@@ -130,6 +130,23 @@ class VendorController extends Controller
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Search vendor was failed']);
         }
+    }
+    /**
+     * delete the specified Attachment data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteAttachment(Request $request): JsonResponse
+    {   
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->vendorServices->deleteAttachment($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Delete attachments was failed']);
+        }        
     }
     
 }
