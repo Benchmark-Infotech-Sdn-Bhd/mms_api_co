@@ -60,7 +60,7 @@ class FomemaClinicsServices
      */ 
     public function retrieveAll()
     {
-        return $this->fomemaClinics::paginate(10);
+        return $this->fomemaClinics::orderBy('fomema_clinics.created_at','DESC')->paginate(10);
     }
 	 /**
      *
@@ -92,8 +92,14 @@ class FomemaClinicsServices
     public function delete($request): mixed
     {    
         $data = $this->fomemaClinics::find($request['id']);
-        $data->delete();
-        return  [
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        return [
+            "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
     }
@@ -107,6 +113,7 @@ class FomemaClinicsServices
         return $this->fomemaClinics->where('clinic_name', 'like', '%' . $request->search . '%')
         ->orWhere('state', 'like', '%' . $request->search . '%')
         ->orWhere('city', 'like', '%' . $request->search . '%')
+        ->orderBy('fomema_clinics.created_at','DESC')
         ->paginate(10);
     }
 }

@@ -88,6 +88,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->get('retrieveAll', 'V1\VendorController@retrieveAll');
         $router->post('search', 'V1\VendorController@search');
         $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
+        $router->post('filter', 'V1\VendorController@filter');
     });
 
     /**
@@ -149,5 +150,17 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('retrieve', 'V1\TransportationController@retrieve');
         $router->get('retrieveAll', 'V1\TransportationController@retrieveAll');
         $router->post('search', 'V1\TransportationController@search');
+    });
+
+    /**
+     * Routes for Branch.
+     */
+    $router->group(['prefix' => 'branch'], function () use ($router) {
+        $router->post('create', 'V1\BranchController@create');
+        $router->put('update', 'V1\BranchController@update');
+        $router->post('delete', 'V1\BranchController@delete');
+        $router->post('retrieve', 'V1\BranchController@retrieve');
+        $router->get('retrieveAll', 'V1\BranchController@retrieveAll');
+        $router->post('search', 'V1\BranchController@search');
     });
 });

@@ -3,19 +3,19 @@
 
 namespace App\Services;
 
-use App\Models\Insurance;
+use App\Models\Branch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-class InsuranceServices
+class BranchServices
 {
     /**
-     * @var Insurance
+     * @var branch
      */
-    private Insurance $insurance;
+    private Branch $branch;
 
-    public function __construct(Insurance $insurance)
+    public function __construct(Branch $branch)
     {
-        $this->insurance = $insurance;
+        $this->branch = $branch;
     }
     /**
      * @param $request
@@ -23,8 +23,8 @@ class InsuranceServices
      */
     public function inputValidation($request)
     {
-        if(!($this->insurance->validate($request->all()))){
-            return $this->insurance->errors();
+        if(!($this->branch->validate($request->all()))){
+            return $this->branch->errors();
         }
     }
     /**
@@ -33,8 +33,8 @@ class InsuranceServices
      */
     public function updateValidation($request)
     {
-        if(!($this->insurance->validateUpdation($request->all()))){
-            return $this->insurance->errors();
+        if(!($this->branch->validateUpdation($request->all()))){
+            return $this->branch->errors();
         }
     }
 	 /**
@@ -44,11 +44,14 @@ class InsuranceServices
      */
     public function create($request): mixed
     {   
-        return $this->insurance::create([
-            'no_of_worker_from' => $request["no_of_worker_from"],
-            'no_of_worker_to' => $request["no_of_worker_to"],
-            'fee_per_pax' => $request["fee_per_pax"],
-            'vendor_id' => $request["vendor_id"],
+        return $this->branch::create([
+            'branch_name' => $request["branch_name"],
+            'state' => $request["state"],
+            'city' => $request["city"],
+            'branch_address' => $request["branch_address"],
+            'service_type' => $request["service_type"],
+            'postcode' => $request["postcode"],
+            'remarks' => $request["remarks"],
         ]);
     }
 	 /**
@@ -57,7 +60,7 @@ class InsuranceServices
      */ 
     public function retrieveAll()
     {
-        return $this->insurance::with('vendor')->orderBy('insurance.created_at','DESC')->paginate(10);
+        return $this->branch::orderBy('branch.created_at','DESC')->paginate(10);
     }
 	 /**
      *
@@ -66,7 +69,7 @@ class InsuranceServices
      */
     public function retrieve($request) : mixed
     {
-        return $this->insurance::findorfail($request['id']);
+        return $this->branch::findorfail($request['id']);
     }
 	 /**
      *
@@ -75,7 +78,7 @@ class InsuranceServices
      */
     public function update($request): mixed
     {           
-        $data = $this->insurance::findorfail($request['id']);
+        $data = $this->branch::findorfail($request['id']);
         return  [
             "isUpdated" => $data->update($request->all()),
             "message" => "Updated Successfully"
@@ -88,7 +91,7 @@ class InsuranceServices
      */    
     public function delete($request) : mixed
     {     
-        $data = $this->insurance::find($request['id']);
+        $data = $this->branch::find($request['id']);
         if(is_null($data)){
             return [
                 "isDeleted" => false,
@@ -107,10 +110,10 @@ class InsuranceServices
      */
     public function search($request)
     {
-        return $this->insurance->where('no_of_worker_from', 'like', '%' . $request->search . '%')
-        ->orWhere('no_of_worker_to', 'like', '%' . $request->search . '%')
-        ->orWhere('fee_per_pax', 'like', '%' . $request->search . '%')
-        ->orderBy('insurance.created_at','DESC')
+        return $this->branch->where('branch_name', 'like', '%' . $request->search . '%')
+        ->orWhere('state', 'like', '%' . $request->search . '%')
+        ->orWhere('city', 'like', '%' . $request->search . '%')
+        ->orderBy('branch.created_at','DESC')
         ->paginate(10);
     }
 }
