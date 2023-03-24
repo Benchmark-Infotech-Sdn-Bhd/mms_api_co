@@ -88,13 +88,7 @@ class AccessManagementServices
      */
     public function update($request): bool
     {
-        $role = $this->role->findOrFail($request['id']);
-        $role->role_name    = $request['name'] ?? $role->role_name;
-        $role->system_role  = $request['system_role'] ?? $role->system_role;
-        $role->status       = $request['status'] ?? $role->status;
-        $role->parent_id    = $request['parent_id'] ?? $role->parent_id;
-        $role->modified_by  = $request['modified_by'] ?? $role->modified_by;
-        $role->save();
-        return true;
+        $rolePermission = $this->rolePermission->where('role_id', $request['role_id'])->delete();
+        return $this->create($request);
     }
 }

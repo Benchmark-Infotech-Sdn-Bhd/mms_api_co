@@ -27,7 +27,7 @@ class RolesServices
     public function createValidation(): array
     {
         return [
-            'name' => 'required|max:250',
+            'name' => 'required|regex:/^[a-zA-Z ]*$/|max:250',
         ];
     }
 
@@ -38,16 +38,22 @@ class RolesServices
     {
         return [
             'id' => 'required',
-            'name' => 'required|max:250'
+            'name' => 'required|regex:/^[a-zA-Z ]*$/|max:250'
         ];
     }
 
     /**
+     * @param $request
      * @return mixed
      */
-    public function list() 
+    public function list($request): mixed
     {
         return $this->role->where('status', 1)
+            ->where(function ($query) use ($request) {
+                if(isset($request['search']) && !empty($request['search'])) {
+                    $query->where('role_name', 'like', '%'.$request['search'].'%');
+                }
+            })
             ->select('id', 'role_name', 'status')
             ->paginate(Config::get('services.paginate_row'));
     }
@@ -56,7 +62,7 @@ class RolesServices
      * @param $request
      * @return mixed
      */
-    public function show($request) 
+    public function show($request): mixed
     {
         return $this->role->findOrFail($request['id']);
     }
@@ -65,9 +71,9 @@ class RolesServices
      * @param $request
      * @return bool
      */
-    public function create($request)
+    public function create($request): bool
     {
-        $role = $this->role->create([
+        return $this->role->create([
             'role_name'     => $request['name'] ?? '',
             'system_role'   => $request['system_role'] ?? 0,
             'status'        => $request['status'] ?? 1,
@@ -75,7 +81,6 @@ class RolesServices
             'created_by'    => $request['created_by'] ?? 0,
             'modified_by'   => $request['created_by'] ?? 0
         ]);
-        return true;
     }
 
     /**
@@ -98,12 +103,9 @@ class RolesServices
      * @param $request
      * @return bool
      */
-    public function updateStatus($request): bool
+    public function delete($request): bool
     {
-        $role = $this->role->findOrFail($request['id']);
-        $role->status = $request['status'] ?? $role->status;
-        $role->save();
-        return true;
+        return $this->role->where('id', $request['id'])->delete();
     }
 
     /**

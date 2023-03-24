@@ -39,7 +39,7 @@ class RolesController extends Controller
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $response = $this->rolesServices->list();
+            $response = $this->rolesServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -120,17 +120,17 @@ class RolesController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function updateStatus(Request $request) : JsonResponse
+    public function delete(Request $request) : JsonResponse
     {
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
-            $response = $this->rolesServices->updateStatus($params);
-            return $this->sendSuccess(['message' => 'Role Status Updated Successfully']);
+            $response = $this->rolesServices->delete($params);
+            return $this->sendSuccess(['message' => 'Role Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Update Role']);
+            return $this->sendError(['message' => 'Failed to Delete Role']);
         }
     }
 

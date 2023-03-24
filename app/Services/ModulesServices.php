@@ -24,28 +24,10 @@ class ModulesServices
     /**
      * @return mixed
      */
-    public function list() 
-    {
-        return $this->module->where('status', 1)
-            ->select('id', 'module_name', 'status')
-            ->paginate(Config::get('services.paginate_row'));
-    }
-
-    /**
-     * @param $request
-     * @return mixed
-     */
-    public function show($request) 
-    {
-        return $this->module->findOrFail($request['id']);
-    }
-
-    /**
-     * @return mixed
-     */
     public function dropDown(): mixed
     {
         return $this->module->where('status', 1)
+            ->where('parent_id', 0)
             ->select('id', 'module_name')
             ->get();
     }
