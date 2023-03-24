@@ -39,6 +39,16 @@ class VendorServices
             return $this->vendor->errors();
         }
      }
+    /**
+     * @param $request
+     * @return mixed | void
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->vendor->validateUpdation($request->all()))){
+            return $this->vendor->errors();
+        }
+    }
 	 /**
      * Show the form for creating a new Vendor.
      *
@@ -166,6 +176,19 @@ class VendorServices
         ->orWhere('state', 'like', '%' . $request->search . '%')
         ->orWhere('city', 'like', '%' . $request->search . '%')
         ->paginate(10);
+    }
+    /**
+     *
+     * @param $request
+     * @return mixed
+     */    
+    public function deleteAttachment($request): mixed
+    {   
+        $data = $this->vendorAttachments::find($request['id']); 
+        $data->delete();
+        return  [
+            "message" => "Deleted Successfully"
+        ];
     }
 
 }

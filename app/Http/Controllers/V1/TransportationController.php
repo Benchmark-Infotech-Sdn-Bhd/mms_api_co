@@ -84,7 +84,7 @@ class TransportationController extends Controller
     public function update(Request $request): JsonResponse
     {   
         try {     
-            $validation = $this->transportationServices->inputValidation($request);
+            $validation = $this->transportationServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }

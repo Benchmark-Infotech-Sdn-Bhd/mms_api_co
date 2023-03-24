@@ -12,21 +12,35 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('agent', function (Blueprint $table) {
+            // Agent Id column
             $table->id();
+            // Agent name column
             $table->string('agent_name',250);
+            // Agent country Id column
             $table->unsignedBigInteger('country_id');
+            // Agent city column
             $table->string('city',150)->nullable();
+            // Agent Person in charge column
             $table->string('person_in_charge',255);
+            // Agent PIC contact number column
             $table->string('pic_contact_number',11);
+            // Agent email address column
             $table->string('email_address',150);
+            // Agent company address column
             $table->text('company_address');
+            // Column for user Id, who created the agent
             $table->integer('created_by')->default(0);
+            // Column for user Id, who modified the agent
             $table->integer('modified_by')->default(0);
+            // Agents created_at and updated_at columns
             $table->timestamps();
+            // softdelete for agent
             $table->softDeletes();
+            // Foreign key from countries table
             $table->foreign('country_id')
               ->references('id')->on('countries')->onDelete('cascade');
-            $table->index(['country_id']);
+            // Indexing for Agent based on Id,Name, Country Id, city, PIC columns
+            $table->index(['id','agent_name','country_id','city','person_in_charge']);
         });
     }
 
