@@ -134,13 +134,11 @@ class RolesController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @param Request $request
      * @return JsonResponse
      */
-    public function dropDown(Request $request) : JsonResponse
+    public function dropDown(): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
             $response = $this->rolesServices->dropDown();
             return $this->sendSuccess($response);
         } catch (Exception $e) {

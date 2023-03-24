@@ -5,7 +5,6 @@ namespace App\Http\Controllers\V1;
 use App\Http\Controllers\Controller;
 use App\Services\ModulesServices;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -28,13 +27,11 @@ class ModulesController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @param Request $request
      * @return JsonResponse
      */
-    public function dropDown(Request $request) : JsonResponse
+    public function dropDown(): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
             $response = $this->modulesServices->dropDown();
             return $this->sendSuccess($response);
         } catch (Exception $e) {
