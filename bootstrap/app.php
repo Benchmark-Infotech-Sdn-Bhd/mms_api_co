@@ -83,7 +83,7 @@ $app->middleware([
  $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'dbSelection' => DBSelectionMiddleware::class,
-    'jwt.verify' => App\Http\Middleware\JwtMiddleware::class,
+    'jwt.verify' => App\Http\Middleware\JWTMiddleware::class,
  ]);
 
 /*
