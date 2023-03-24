@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Validator;
 
 class Branch extends Model
 {
@@ -19,7 +20,7 @@ class Branch extends Model
      *
      * @var array
      */
-    protected $fillable = ['branch_name','state','city','branch_address','postcode',
+    protected $fillable = ['branch_name','state','city','branch_address','postcode','service_type',
     'remarks','created_by','modified_by'];
     /**
      * The attributes that are required.
@@ -46,4 +47,45 @@ class Branch extends Model
         'branch_address' => 'required',
         'postcode' => 'required|regex:/^[0-9]+$/|max:5'
     ];
+
+    /**
+     * The attributes that store validation errors.
+     */
+    protected $errors;
+    /**
+     * Validate method for model.
+     */
+    public function validate($input){
+        // make a new validator object
+        $validator = Validator::make($input,$this->rules);
+        // check for failure
+        if($validator->fails()){
+            // set errors and return false
+            $this->errors = $validator->errors();
+            return false;
+        }
+        // validation pass
+        return true;
+    }
+    /**
+     * Validate method for model.
+     */
+    public function validateUpdation($input){
+        // make a new validator object
+        $validator = Validator::make($input,$this->rulesForUpdation);
+        // check for failure
+        if($validator->fails()){
+            // set errors and return false
+            $this->errors = $validator->errors();
+            return false;
+        }
+        // validation pass
+        return true;
+    }
+    
+    // Returns Validation errors
+    public function errors()
+    {
+        return $this->errors;
+    }
 }

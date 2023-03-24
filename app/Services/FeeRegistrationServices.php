@@ -58,7 +58,7 @@ class FeeRegistrationServices
      */
     public function retrieveAll()
     {
-        return $this->feeRegistration::paginate(10);
+        return $this->feeRegistration::orderBy('fee_registration.created_at','DESC')->paginate(10);
     }
     /**
      *
@@ -90,8 +90,14 @@ class FeeRegistrationServices
     public function delete($request): mixed
     {     
         $data = $this->feeRegistration::find($request['id']);
-        $data->delete();
-        return  [
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        return [
+            "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
     }
@@ -107,6 +113,7 @@ class FeeRegistrationServices
         ->orWhere('fee_type', 'like', '%' . $request->search . '%')
         ->orWhere('applicable_for', 'like', '%' . $request->search . '%')
         ->orWhere('sectors', 'like', '%' . $request->search . '%')
+        ->orderBy('fee_registration.created_at','DESC')
         ->paginate(10);
     }
 }
