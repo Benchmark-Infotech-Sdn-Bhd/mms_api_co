@@ -22,13 +22,13 @@ return new class extends Migration
             $table->bigInteger('user_id')->unsigned();
 
             // Foreign key from user table
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             // Column for user role id
             $table->bigInteger('role_id')->unsigned();
 
             // Foreign key from Role table
-            $table->foreign('role_id')->references('id')->on('roles');
+            $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
 
             // User role type status column
             $table->tinyInteger('status')->default(1)->unsigned()->index();

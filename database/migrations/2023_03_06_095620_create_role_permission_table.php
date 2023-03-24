@@ -22,13 +22,13 @@ return new class extends Migration
             $table->bigInteger('role_id')->unsigned();
 
             // Foreign key from user table
-            $table->foreign('role_id')->references('id')->on('roles');
+            $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
 
             // Column for module id
             $table->bigInteger('module_id')->unsigned();
 
             // Foreign key from module table
-            $table->foreign('module_id')->references('id')->on('modules');
+            $table->foreign('module_id')->references('id')->on('modules')->onDelete('cascade');
 
             // Permission id column
             $table->bigInteger('permission_id')->unsigned();
