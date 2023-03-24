@@ -33,11 +33,21 @@ class Insurance extends Model
      * @var array
      */
     private $rules = [
-        'no_of_worker_from' => 'required',
-        'no_of_worker_to' => 'required',
-        'fee_per_pax' => 'required',
+        'no_of_worker_from' => 'required|regex:/^[0-9]*$/',
+        'no_of_worker_to' => 'required|regex:/^[0-9]*$/',
+        'fee_per_pax' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
     ];
-
+    /**
+     * The attributes that are required for updation.
+     *
+     * @var array
+     */
+    public $rulesForUpdation = [
+        'id' => 'required',
+        'no_of_worker_from' => 'required|regex:/^[0-9]*$/',
+        'no_of_worker_to' => 'required|regex:/^[0-9]*$/',
+        'fee_per_pax' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+    ];
     /**
      * The attributes that store validation errors.
      */
@@ -57,7 +67,21 @@ class Insurance extends Model
         // validation pass
         return true;
     }
-    
+    /**
+     * Validate method for model.
+     */
+    public function validateUpdation($input){
+        // make a new validator object
+        $validator = Validator::make($input,$this->rulesForUpdation);
+        // check for failure
+        if($validator->fails()){
+            // set errors and return false
+            $this->errors = $validator->errors();
+            return false;
+        }
+        // validation pass
+        return true;
+    }
     // Returns Validation errors
     public function errors()
     {
