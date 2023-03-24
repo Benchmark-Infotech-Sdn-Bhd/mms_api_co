@@ -6,9 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Services\ModulesServices;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Tymon\JWTAuth\Exceptions\JWTException;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -38,7 +35,6 @@ class ModulesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $user = JWTAuth::parseToken()->authenticate();
             $response = $this->modulesServices->dropDown();
             return $this->sendSuccess($response);
         } catch (Exception $e) {

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Module;
-use Illuminate\Support\Facades\Config;
 
 class ModulesServices
 {
