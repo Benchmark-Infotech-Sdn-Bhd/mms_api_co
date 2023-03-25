@@ -3,8 +3,6 @@
 namespace App\Services;
 
 use App\Models\RolePermission;
-use App\Models\Module;
-use Illuminate\Support\Facades\Config;
 
 class AccessManagementServices
 {
@@ -14,19 +12,12 @@ class AccessManagementServices
     private RolePermission $rolePermission;
 
     /**
-     * @var `Module`
-     */
-    private Module $module;
-
-    /**
      * AccessManagementServices constructor.
      * @param RolePermission $rolePermission
-     * @param Module $module
      */
-    public function __construct(RolePermission $rolePermission, Module $module)
+    public function __construct(RolePermission $rolePermission)
     {
         $this->rolePermission   = $rolePermission;
-        $this->module           = $module;
     }
 
     /**
@@ -88,7 +79,7 @@ class AccessManagementServices
      */
     public function update($request): bool
     {
-        $rolePermission = $this->rolePermission->where('role_id', $request['role_id'])->delete();
+        $this->rolePermission->where('role_id', $request['role_id'])->delete();
         return $this->create($request);
     }
 }

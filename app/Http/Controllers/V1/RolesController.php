@@ -7,7 +7,6 @@ use App\Services\RolesServices;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -38,7 +37,6 @@ class RolesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $user = JWTAuth::parseToken()->authenticate();
             $response = $this->rolesServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -57,7 +55,6 @@ class RolesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $user = JWTAuth::parseToken()->authenticate();
             $response = $this->rolesServices->show($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -82,8 +79,8 @@ class RolesController extends Controller
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());
             }
-            $response = $this->rolesServices->create($params);
-            return $this->sendSuccess(['message' => 'Rloe Created Successfully']);
+            $this->rolesServices->create($params);
+            return $this->sendSuccess(['message' => 'Role Created Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Create Role']);
@@ -106,7 +103,7 @@ class RolesController extends Controller
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());
             }
-            $response = $this->rolesServices->update($params);
+            $this->rolesServices->update($params);
             return $this->sendSuccess(['message' => 'Role Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -126,7 +123,7 @@ class RolesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
-            $response = $this->rolesServices->delete($params);
+            $this->rolesServices->delete($params);
             return $this->sendSuccess(['message' => 'Role Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -137,14 +134,11 @@ class RolesController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @param Request $request
      * @return JsonResponse
      */
-    public function dropDown(Request $request) : JsonResponse
+    public function dropDown(): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
-            $user = JWTAuth::parseToken()->authenticate();
             $response = $this->rolesServices->dropDown();
             return $this->sendSuccess($response);
         } catch (Exception $e) {

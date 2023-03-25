@@ -73,7 +73,7 @@ class RolesServices
      */
     public function create($request): bool
     {
-        return $this->role->create([
+        $this->role->create([
             'role_name'     => $request['name'] ?? '',
             'system_role'   => $request['system_role'] ?? 0,
             'status'        => $request['status'] ?? 1,
@@ -81,6 +81,7 @@ class RolesServices
             'created_by'    => $request['created_by'] ?? 0,
             'modified_by'   => $request['created_by'] ?? 0
         ]);
+        return true;
     }
 
     /**
