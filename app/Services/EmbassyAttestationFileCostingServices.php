@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\EmbassyAttestationFileCosting;
 use App\Services\ValidationServices;
+use Illuminate\Support\Facades\Config;
 
 class EmbassyAttestationFileCostingServices
 {
@@ -27,7 +28,9 @@ class EmbassyAttestationFileCostingServices
     public function create($request) : mixed
     {
         if(!($this->validationServices->validate($request,$this->embassyAttestationFileCosting->rules))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         return $this->embassyAttestationFileCosting->create([
             'country_id' => $request['country_id'] ?? 0,
@@ -42,7 +45,9 @@ class EmbassyAttestationFileCostingServices
     public function update($request) : mixed
     {
         if(!($this->validationServices->validate($request,$this->embassyAttestationFileCosting->rulesForUpdation))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $embassyAttestationFileCosting = $this->embassyAttestationFileCosting->find($request['id']);
         if(is_null($embassyAttestationFileCosting)){
@@ -68,7 +73,9 @@ class EmbassyAttestationFileCostingServices
     public function delete($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $embassyAttestationFileCosting = $this->embassyAttestationFileCosting->find($request['id']);
         if(is_null($embassyAttestationFileCosting)){
@@ -86,11 +93,35 @@ class EmbassyAttestationFileCostingServices
      * @param $request
      * @return mixed
      */
+    public function retrieve($request) : mixed
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        return $this->embassyAttestationFileCosting->findOrFail($request['id']);
+    }
+    /**
+     * @return mixed
+     */
+    public function retrieveAll() : mixed
+    {
+        return $this->embassyAttestationFileCosting->orderBy('embassy_attestation_file_costing.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
     public function retrieveByCountry($request) : mixed
     {
         if(!($this->validationServices->validate($request,['country_id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
-        return $this->embassyAttestationFileCosting->where('country_id',$request['country_id'])->get();
+        return $this->embassyAttestationFileCosting->where('country_id',$request['country_id'])->orderBy('embassy_attestation_file_costing.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
 }

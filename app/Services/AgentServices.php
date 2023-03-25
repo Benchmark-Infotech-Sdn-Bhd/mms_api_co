@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Agent;
 use App\Services\ValidationServices;
+use Illuminate\Support\Facades\Config;
 
 class AgentServices
 {
@@ -27,7 +28,9 @@ class AgentServices
     public function create($request) : mixed
     {
         if(!($this->validationServices->validate($request,$this->agent->rules))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         return $this->agent->create([
             'agent_name' => $request['agent_name'] ?? '',
@@ -46,7 +49,9 @@ class AgentServices
     public function update($request) : array
     {
         if(!($this->validationServices->validate($request,$this->agent->rulesForUpdation))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $agent = $this->agent->find($request['id']);
         if(is_null($agent)){
@@ -76,7 +81,9 @@ class AgentServices
     public function delete($request) : array
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $agent = $this->agent->find($request['id']);
         if(is_null($agent)){
@@ -97,7 +104,9 @@ class AgentServices
     public function retrieve($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         return $this->agent->with('countries')->findOrFail($request['id']);
     }
@@ -106,7 +115,8 @@ class AgentServices
      */
     public function retrieveAll() : mixed
     {
-        return $this->agent->with('countries')->get();
+        return $this->agent->with('countries')->orderBy('agent.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
     /**
      * @param $request
@@ -115,8 +125,31 @@ class AgentServices
     public function retrieveByCountry($request) : mixed
     {
         if(!($this->validationServices->validate($request,['country_id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
-        return $this->agent->with('countries')->where('country_id',$request['country_id'])->get();
+        return $this->agent->with('countries')->where('country_id',$request['country_id'])->orderBy('agent.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function searchAgents($request) : mixed
+    {
+        if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        return $this->agent->with('countries')->join('countries', 'countries.id', '=', 'agent.country_id')
+        ->where(function($query) use ($request) {
+            $query->where('agent_name', 'LIKE', '%'.$request['search_param'].'%')
+                ->orWhere('countries.country_name', 'LIKE', '%'.$request['search_param'].'%')
+                ->orWhere('city', 'LIKE', '%'.$request['search_param'].'%')
+                ->orWhere('person_in_charge', 'LIKE', '%'.$request['search_param'].'%');
+        })->orderBy('agent.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
 }
