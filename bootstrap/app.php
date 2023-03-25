@@ -83,7 +83,7 @@ $app->middleware([
  $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'dbSelection' => DBSelectionMiddleware::class,
-    'jwt.verify' => App\Http\Middleware\JwtMiddleware::class,
+    'jwt.verify' => App\Http\Middleware\JWTMiddleware::class,
  ]);
 
 /*
@@ -101,6 +101,7 @@ $app->middleware([
  $app->register(App\Providers\AuthServiceProvider::class);
  $app->register(App\Providers\EventServiceProvider::class);
  $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
+ $app->register(OwenIt\Auditing\AuditingServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
