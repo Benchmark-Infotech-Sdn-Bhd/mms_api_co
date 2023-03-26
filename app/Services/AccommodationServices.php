@@ -91,7 +91,7 @@ class AccommodationServices
      */
     public function retrieveAll()
     {
-        return $this->accommodation::with('vendor')->paginate(10);
+        return $this->accommodation::with('vendor')->orderBy('accommodation.created_at','DESC')->paginate(10);
     }
     /**
      *
@@ -155,8 +155,14 @@ class AccommodationServices
     public function deleteAttachment($request): mixed
     {   
         $data = $this->accommodationAttachments::find($request['id']); 
-        $data->delete();
-        return  [
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        return [
+            "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
     }
@@ -169,6 +175,7 @@ class AccommodationServices
     {
         return $this->accommodation->where('name', 'like', '%' . $request->search . '%')
         ->orWhere('location', 'like', '%' . $request->search . '%')
+        ->orderBy('accommodation.created_at','DESC')
         ->paginate(10);
     }
 

@@ -148,5 +148,21 @@ class VendorController extends Controller
             return $this->sendError(['message' => 'Delete attachments was failed']);
         }        
     }
+    /**
+     * searching Vendors data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function filter(Request $request): JsonResponse
+    {
+        try{
+            $response = $this->vendorServices->filter($request);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Filter the vendor type was failed']);
+        }
+    }
     
 }
