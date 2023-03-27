@@ -96,7 +96,7 @@ class VendorServices
      */
     public function retrieveAll()
     {
-        return $this->vendor::with('accommodations', 'insurances', 'transportations')->paginate(10);
+        return $this->vendor::with('accommodations', 'insurances', 'transportations')->orderBy('vendors.created_at','DESC')->paginate(10);
     }
 	 /**
      * Display the data for edit form by using Vendor id.
@@ -175,6 +175,7 @@ class VendorServices
         ->orWhere('type', 'like', '%' . $request->search . '%')
         ->orWhere('state', 'like', '%' . $request->search . '%')
         ->orWhere('city', 'like', '%' . $request->search . '%')
+        ->orderBy('vendors.created_at','DESC')
         ->paginate(10);
     }
     /**
@@ -185,10 +186,27 @@ class VendorServices
     public function deleteAttachment($request): mixed
     {   
         $data = $this->vendorAttachments::find($request['id']); 
-        $data->delete();
-        return  [
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        return [
+            "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
+    }
+    /**
+     *
+     * @param $request
+     * @return LengthAwarePaginator
+     */
+    public function filter($request)
+    {
+        return $this->vendor::with('accommodations', 'insurances', 'transportations')->where('type', '=', $request->filter)
+        ->orderBy('vendors.created_at','DESC')
+        ->paginate(10);
     }
 
 }
