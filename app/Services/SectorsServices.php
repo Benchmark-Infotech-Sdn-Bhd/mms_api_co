@@ -34,7 +34,8 @@ class SectorsServices
         }
         return $this->sectors->create([
             'sector_name' => $request['sector_name'] ?? '',
-            'sub_sector_name' => $request['sub_sector_name'] ?? ''
+            'sub_sector_name' => $request['sub_sector_name'] ?? '',
+            'checklist_status' => "Pending"
         ]);
     }
     /**
@@ -59,7 +60,8 @@ class SectorsServices
             "isUpdated" => $sector->update([
                 'id' => $request['id'],
                 'sector_name' => $request['sector_name'] ?? '',
-                'sub_sector_name' => $request['sub_sector_name'] ?? ''
+                'sub_sector_name' => $request['sub_sector_name'] ?? '',
+                'checklist_status' => $request['checklist_status']
             ]),
             "message"=> "Updated Successfully"
         ];

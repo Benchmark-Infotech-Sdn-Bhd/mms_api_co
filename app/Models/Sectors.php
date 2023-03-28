@@ -35,8 +35,7 @@ class Sectors extends Model
      */
     public $rules = [
         'sector_name' => 'required|max:255',
-        'sub_sector_name' => 'max:255',
-        'checklist_status' => 'required'
+        'sub_sector_name' => 'max:255'
     ];
     /**
      * The attributes that are required for updation.
