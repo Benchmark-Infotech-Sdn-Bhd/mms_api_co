@@ -5,20 +5,24 @@ namespace App\Services;
 use App\Models\EmbassyAttestationFileCosting;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
+use App\Services\CountriesServices;
 
 class EmbassyAttestationFileCostingServices
 {
     private EmbassyAttestationFileCosting $embassyAttestationFileCosting;
     private ValidationServices $validationServices;
+    private CountriesServices $countriesServices;
     /**
      * EmbassyAttestationFileCostingServices constructor.
      * @param EmbassyAttestationFileCosting $embassyAttestationFileCosting
      * @param ValidationServices $validationServices
+     * @param CountriesServices $countriesServices
      */
-    public function __construct(EmbassyAttestationFileCosting $embassyAttestationFileCosting,ValidationServices $validationServices)
+    public function __construct(EmbassyAttestationFileCosting $embassyAttestationFileCosting,ValidationServices $validationServices,CountriesServices $countriesServices)
     {
         $this->embassyAttestationFileCosting = $embassyAttestationFileCosting;
         $this->validationServices = $validationServices;
+        $this->countriesServices = $countriesServices;
     }
 
     /**
@@ -32,11 +36,16 @@ class EmbassyAttestationFileCostingServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->embassyAttestationFileCosting->create([
+        $filecosting = $this->embassyAttestationFileCosting->create([
             'country_id' => $request['country_id'] ?? 0,
             'title' => $request['title'] ?? '',
             'amount' => $request['amount'] ?? 0
         ]);
+        $count = $this->embassyAttestationFileCosting->whereNull('deleted_at')->count('id');
+        if($count == 1){
+          $result =  $this->countriesServices->updateCostingStatus([ 'id' => $request['country_id'], 'costing_status' => 'Done' ]);
+        }
+        return $filecosting;
     }
     /**
      * @param $request
@@ -84,10 +93,17 @@ class EmbassyAttestationFileCostingServices
                 "message" => "Data not found"
             ];
         }
-        return [
+        $res = [
             "isDeleted" => $embassyAttestationFileCosting->delete(),
             "message" => "Deleted Successfully"
         ];
+        if($res['isDeleted']){
+            $count = $this->embassyAttestationFileCosting->whereNull('deleted_at')->count('id');
+            if($count == 0){
+            $result =  $this->countriesServices->updateCostingStatus([ 'id' => $embassyAttestationFileCosting['country_id'], 'costing_status' => 'Pending' ]);
+            }
+        }
+        return $res;
     }
     /**
      * @param $request

@@ -5,20 +5,24 @@ namespace App\Services;
 use App\Models\DocumentChecklist;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
+use App\Services\SectorsServices;
 
 class DocumentChecklistServices
 {
     private DocumentChecklist $documentChecklist;
     private ValidationServices $validationServices;
+    private SectorsServices $sectorsServices;
     /**
      * DocumentChecklistServices constructor.
      * @param DocumentChecklist $documentChecklist
      * @param ValidationServices $validationServices
+     * @param SectorsServices $sectorsServices
      */
-    public function __construct(DocumentChecklist $documentChecklist,ValidationServices $validationServices)
+    public function __construct(DocumentChecklist $documentChecklist,ValidationServices $validationServices,SectorsServices $sectorsServices)
     {
         $this->documentChecklist = $documentChecklist;
         $this->validationServices = $validationServices;
+        $this->sectorsServices = $sectorsServices;
     }
 
     /**
@@ -32,10 +36,15 @@ class DocumentChecklistServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->documentChecklist->create([
+        $checklist = $this->documentChecklist->create([
             'sector_id' => $request['sector_id'] ?? 0,
             'document_title' => $request['document_title'] ?? ''
         ]);
+        $count = $this->documentChecklist->whereNull('deleted_at')->count('id');
+        if($count == 1){
+        $result =  $this->sectorsServices->updateChecklistStatus([ 'id' => $request['sector_id'], 'checklist_status' => 'Done' ]);
+        }
+        return $checklist;
     }
     /**
      * @param $request
@@ -82,10 +91,17 @@ class DocumentChecklistServices
                 "message" => "Data not found"
             ];
         }
-        return [
+        $res = [
             "isDeleted" => $documentChecklist->delete(),
             "message" => "Deleted Successfully"
         ];
+        if($res['isDeleted']){
+            $count = $this->documentChecklist->whereNull('deleted_at')->count('id');
+            if($count == 0){
+            $result =  $this->sectorsServices->updateChecklistStatus([ 'id' => $documentChecklist['sector_id'], 'checklist_status' => 'Pending' ]);
+            }
+        }
+        return $res;
     }
     /**
      * @param $request
