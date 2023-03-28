@@ -60,7 +60,7 @@ class InsuranceTest extends TestCase
      */
     public function testRetrieveAllInsurance()
     {
-        $response = $this->get("/api/v1/insurance/retrieveAll");
+        $response = $this->post("/api/v1/insurance/retrieveAll",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
