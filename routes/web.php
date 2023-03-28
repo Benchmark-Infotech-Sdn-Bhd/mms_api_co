@@ -53,6 +53,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('create', 'V1\AccessManagementController@create');
             $router->post('update', 'V1\AccessManagementController@update');
         });
+        /**
+         * Routes for Services.
+         */
+        $router->group(['prefix' => 'service'], function () use ($router) {
+            $router->post('list', 'V1\ServicesController@list');
+            $router->post('dropDown', 'V1\ServicesController@dropDown');
+        });
     });
     /**
      * Routes for Countries.
