@@ -42,8 +42,7 @@ class Countries extends Model
      */
     public $rules = [
         'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
-        'system_type' => 'required',
-        'costing_status' => 'required'
+        'system_type' => 'required'
     ];
     /**
      * The attributes that are required for updation.
