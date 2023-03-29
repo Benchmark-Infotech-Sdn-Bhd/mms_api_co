@@ -20,7 +20,7 @@ class Sectors extends Model
      *
      * @var array
      */
-    protected $fillable = ['sector_name','sub_sector_name','created_by','modified_by'];
+    protected $fillable = ['sector_name','sub_sector_name','checklist_status','created_by','modified_by'];
     /**
      * @return HasMany
      */
@@ -45,6 +45,7 @@ class Sectors extends Model
     public $rulesForUpdation = [
         'id' => 'required',
         'sector_name' => 'required|max:255',
-        'sub_sector_name' => 'max:255'
+        'sub_sector_name' => 'max:255',
+        'checklist_status' => 'required'
     ];
 }

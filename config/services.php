@@ -40,4 +40,6 @@ return [
         ],
     ],
 
+    'paginate_row' => env('PAGINATE_ROW', 10),
+
 ];

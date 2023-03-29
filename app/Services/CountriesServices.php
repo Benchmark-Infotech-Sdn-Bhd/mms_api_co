@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Countries;
 use App\Services\ValidationServices;
+use Illuminate\Support\Facades\Config;
 
 class CountriesServices
 {
@@ -27,22 +28,27 @@ class CountriesServices
     public function create($request) : mixed
     {
         if(!($this->validationServices->validate($request,$this->countries->rules))){
-            return $this->validationServices->errors();
+            return [
+              'validate' => $this->validationServices->errors()
+            ];
         }
         return $this->countries->create([
             'country_name' => $request['country_name'] ?? '',
             'system_type' => $request['system_type'] ?? '',
+            'costing_status' => "Pending",
             'fee' => $request['fee'] ?? 0
         ]);
     }
     /**
      * @param $request
-     * @return mixed
+     * @return array
      */
-    public function update($request) : mixed
+    public function update($request) : array
     {
         if(!($this->validationServices->validate($request,$this->countries->rulesForUpdation))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $country = $this->countries->find($request['id']);
         if(is_null($country)){
@@ -56,6 +62,7 @@ class CountriesServices
                 'id' => $request['id'],
                 'country_name' => $request['country_name'] ?? '',
                 'system_type' => $request['system_type'] ?? '',
+                'costing_status' => $request['costing_status'],
                 'fee' => $request['fee'] ?? 0
             ]),
             "message" => "Updated Successfully"
@@ -63,12 +70,14 @@ class CountriesServices
     }
     /**
      * @param $request
-     * @return mixed
+     * @return array
      */
-    public function delete($request) : mixed
+    public function delete($request) : array
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $country = $this->countries->find($request['id']);
         if(is_null($country)){
@@ -89,7 +98,9 @@ class CountriesServices
     public function retrieve($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         return $this->countries->findOrFail($request['id']);
     }
@@ -98,6 +109,45 @@ class CountriesServices
      */
     public function retrieveAll() : mixed
     {
-        return $this->countries->get();
+        return $this->countries->orderBy('countries.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateCostingStatus($request) : array
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required','costing_status' => 'required']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        $country = $this->countries->find($request['id']);
+        if(is_null($country)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        $country->costing_status = $request['costing_status'];
+        return  [
+            "isUpdated" => $country->save() == 1 ? true:false,
+            "message" => "Updated Successfully"
+        ];
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function searchCountries($request) : mixed
+    {
+        if(!($this->validationServices->validate($request,['search_param' => 'required|regex:/^[a-zA-Z ]*$/|min:3']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        return $this->countries->where('country_name', 'like', "%{$request['search_param']}%")->orderBy('countries.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
 }

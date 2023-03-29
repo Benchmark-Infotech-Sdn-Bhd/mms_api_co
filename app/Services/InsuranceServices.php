@@ -5,7 +5,6 @@ namespace App\Services;
 
 use App\Models\Insurance;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\Request;
 
 class InsuranceServices
 {
@@ -28,9 +27,19 @@ class InsuranceServices
             return $this->insurance->errors();
         }
     }
+    /**
+     * @param $request
+     * @return mixed | void
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->insurance->validateUpdation($request->all()))){
+            return $this->insurance->errors();
+        }
+    }
 	 /**
      *
-     * @param Request $request
+     * @param $request
      * @return mixed
      */
     public function create($request): mixed
@@ -48,7 +57,7 @@ class InsuranceServices
      */ 
     public function retrieveAll()
     {
-        return $this->insurance::with('vendor')->paginate(10);
+        return $this->insurance::with('vendor')->orderBy('insurance.created_at','DESC')->paginate(10);
     }
 	 /**
      *
@@ -80,8 +89,14 @@ class InsuranceServices
     public function delete($request) : mixed
     {     
         $data = $this->insurance::find($request['id']);
-        $data->delete();
-        return  [
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        return [
+            "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
     }
@@ -95,6 +110,7 @@ class InsuranceServices
         return $this->insurance->where('no_of_worker_from', 'like', '%' . $request->search . '%')
         ->orWhere('no_of_worker_to', 'like', '%' . $request->search . '%')
         ->orWhere('fee_per_pax', 'like', '%' . $request->search . '%')
+        ->orderBy('insurance.created_at','DESC')
         ->paginate(10);
     }
 }

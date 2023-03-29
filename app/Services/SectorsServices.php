@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Sectors;
 use App\Services\ValidationServices;
+use Illuminate\Support\Facades\Config;
 
 class SectorsServices
 {
@@ -27,11 +28,14 @@ class SectorsServices
     public function create($request) : mixed
     {
         if(!($this->validationServices->validate($request,$this->sectors->rules))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         return $this->sectors->create([
             'sector_name' => $request['sector_name'] ?? '',
-            'sub_sector_name' => $request['sub_sector_name'] ?? ''
+            'sub_sector_name' => $request['sub_sector_name'] ?? '',
+            'checklist_status' => "Pending"
         ]);
     }
     /**
@@ -41,7 +45,9 @@ class SectorsServices
     public function update($request) : mixed
     {
         if(!($this->validationServices->validate($request,$this->sectors->rulesForUpdation))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $sector = $this->sectors->find($request['id']);
         if(is_null($sector)){
@@ -54,7 +60,8 @@ class SectorsServices
             "isUpdated" => $sector->update([
                 'id' => $request['id'],
                 'sector_name' => $request['sector_name'] ?? '',
-                'sub_sector_name' => $request['sub_sector_name'] ?? ''
+                'sub_sector_name' => $request['sub_sector_name'] ?? '',
+                'checklist_status' => $request['checklist_status']
             ]),
             "message"=> "Updated Successfully"
         ];
@@ -66,7 +73,9 @@ class SectorsServices
     public function delete($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         $sector = $this->sectors->find($request['id']);
         if(is_null($sector)){
@@ -87,7 +96,9 @@ class SectorsServices
     public function retrieve($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return $this->validationServices->errors();
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
         }
         return $this->sectors->findOrFail($request['id']);
     }
@@ -96,6 +107,45 @@ class SectorsServices
      */
     public function retrieveAll() : mixed
     {
-        return $this->sectors->get();
+        return $this->sectors->orderBy('sectors.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateChecklistStatus($request) : array
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required','checklist_status' => 'required']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        $sector = $this->sectors->find($request['id']);
+        if(is_null($sector)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        $sector->checklist_status = $request['checklist_status'];
+        return  [
+            "isUpdated" => $sector->save() == 1 ? true:false,
+            "message" => "Updated Successfully"
+        ];
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function searchSectors($request) : mixed
+    {
+        if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        return $this->sectors->where('sector_name', 'like', "%{$request['search_param']}%")->orderBy('sectors.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
 }

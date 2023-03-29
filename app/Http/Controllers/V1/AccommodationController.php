@@ -87,7 +87,7 @@ class AccommodationController extends Controller
     public function update(Request $request): JsonResponse
     {  
         try {
-            $validation = $this->accommodationServices->inputValidation($request);
+            $validation = $this->accommodationServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
@@ -128,6 +128,22 @@ class AccommodationController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Search accommodation was failed']);
+        }        
+    }
+    /**
+     * delete the specified Attachment data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteAttachment(Request $request): JsonResponse
+    {   
+        try {
+            $response = $this->accommodationServices->deleteAttachment($request);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Delete attachments was failed']);
         }        
     }
 

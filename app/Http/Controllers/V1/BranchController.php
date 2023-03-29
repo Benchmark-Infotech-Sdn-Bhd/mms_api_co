@@ -5,62 +5,61 @@ namespace App\Http\Controllers\V1;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Services\InsuranceServices;
+use App\Services\BranchServices;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
-class InsuranceController extends Controller
+class BranchController extends Controller
 {
     /**
-     * @var insuranceServices
+     * @var branchServices
      */
-    private InsuranceServices $insuranceServices;
+    private BranchServices $branchServices;
     /**
-     * InsuranceServices constructor.
-     * @param InsuranceServices $insuranceServices
+     * branchServices constructor.
+     * @param BranchServices $branchServices
      */
-    public function __construct(InsuranceServices $insuranceServices)
+    public function __construct(BranchServices $branchServices)
     {
-        $this->insuranceServices = $insuranceServices;
+        $this->branchServices = $branchServices;
     }
 	 /**
-     * Show the form for creating a new Insurance.
+     * Show the form for creating a new Branch.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function create(Request $request): JsonResponse
+    public function create(Request $request)
     {
         try {
-            $validation = $this->insuranceServices->inputValidation($request);
+            $validation = $this->branchServices->inputValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $response = $this->insuranceServices->create($request);
+            $response = $this->branchServices->create($request);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Insurance creation was failed']);
+            return $this->sendError(['message' => 'Branch creation was failed']);
         }
     }
 	 /**
-     * Display a listing of the Insurance.
+     * Display a listing of the Branch.
      *
      * @return JsonResponse
      */    
     public function retrieveAll(): JsonResponse
     {     
         try {   
-            // $insurance = Insurance::paginate(10);
-            $response = $this->insuranceServices->retrieveAll(); 
+            $response = $this->branchServices->retrieveAll(); 
             return $this->sendSuccess($response); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Retrieve all insurance data was failed']);
+            return $this->sendError(['message' => 'Retrieve all branch data was failed']);
         }
     }
 	 /**
-     * Display the data for edit form by using Insurance id.
+     * Display the data for edit form by using branch id.
      *
      * @param Request $request
      * @return JsonResponse
@@ -68,17 +67,15 @@ class InsuranceController extends Controller
     public function retrieve(Request $request): JsonResponse
     {   
         try {
-            // $insurance = Insurance::find($id);
-            // $vendors = $insurance->vendor;
-            $response = $this->insuranceServices->retrieve($request); 
+            $response = $this->branchServices->retrieve($request); 
             return $this->sendSuccess($response);  
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Retrieve insurance Data was failed']);
+            return $this->sendError(['message' => 'Retrieve branch Data was failed']);
         }  
     } 
 	 /**
-     * Update the specified Insurance data.
+     * Update the specified branch data.
      *
      * @param Request $request
      * @return JsonResponse
@@ -86,19 +83,19 @@ class InsuranceController extends Controller
     public function update(Request $request): JsonResponse
     {    
         try {    
-            $validation = $this->insuranceServices->updateValidation($request);
+            $validation = $this->branchServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $response = $this->insuranceServices->update($request); 
+            $response = $this->branchServices->update($request); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Insurance update was failed']);
+            return $this->sendError(['message' => 'Branch update was failed']);
         }
     }
 	 /**
-     * delete the specified Insurance data.
+     * delete the specified Branch data.
      *
      * @param Request $request
      * @return JsonResponse
@@ -107,15 +104,15 @@ class InsuranceController extends Controller
     {     
         try { 
             $params = $this->getRequest($request);
-            $response = $this->insuranceServices->delete($params);
+            $response = $this->branchServices->delete($params);
             return $this->sendSuccess($response); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Delete insurance was failed']);
+            return $this->sendError(['message' => 'Delete branch was failed']);
         } 
     }
     /**
-     * searching Insurance data.
+     * searching branch data.
      *
      * @param Request $request
      * @return JsonResponse
@@ -123,11 +120,11 @@ class InsuranceController extends Controller
     public function search(Request $request): JsonResponse
     {
         try{
-            $response = $this->insuranceServices->search($request);
+            $response = $this->branchServices->search($request);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Search insurance was failed']);
+            return $this->sendError(['message' => 'Search branch data was failed']);
         }
     }
 }

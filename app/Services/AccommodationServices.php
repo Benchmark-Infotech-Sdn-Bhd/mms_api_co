@@ -40,6 +40,17 @@ class AccommodationServices
         }
     }
     /**
+     * @param $request
+     * @return mixed | void
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->accommodation->validateUpdation($request->all()))){
+            return $this->accommodation->errors();
+        }
+    }
+    
+    /**
      *
      * @param $request
      * @return mixed
@@ -80,7 +91,7 @@ class AccommodationServices
      */
     public function retrieveAll()
     {
-        return $this->accommodation::with('vendor')->paginate(10);
+        return $this->accommodation::with('vendor')->orderBy('accommodation.created_at','DESC')->paginate(10);
     }
     /**
      *
@@ -139,12 +150,32 @@ class AccommodationServices
     /**
      *
      * @param $request
+     * @return mixed
+     */    
+    public function deleteAttachment($request): mixed
+    {   
+        $data = $this->accommodationAttachments::find($request['id']); 
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        return [
+            "isDeleted" => $data->delete(),
+            "message" => "Deleted Successfully"
+        ];
+    }
+    /**
+     *
+     * @param $request
      * @return LengthAwarePaginator
      */
     public function search($request)
     {
         return $this->accommodation->where('name', 'like', '%' . $request->search . '%')
         ->orWhere('location', 'like', '%' . $request->search . '%')
+        ->orderBy('accommodation.created_at','DESC')
         ->paginate(10);
     }
 

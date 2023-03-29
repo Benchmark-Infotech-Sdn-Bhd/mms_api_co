@@ -28,6 +28,16 @@ class FeeRegistrationServices
         }
     }
     /**
+     * @param $request
+     * @return mixed | void
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->feeRegistration->validateUpdation($request->all()))){
+            return $this->feeRegistration->errors();
+        }
+    }
+    /**
      *
      * @param $request
      * @return mixed 
@@ -48,7 +58,7 @@ class FeeRegistrationServices
      */
     public function retrieveAll()
     {
-        return $this->feeRegistration::paginate(10);
+        return $this->feeRegistration::orderBy('fee_registration.created_at','DESC')->paginate(10);
     }
     /**
      *
@@ -80,8 +90,14 @@ class FeeRegistrationServices
     public function delete($request): mixed
     {     
         $data = $this->feeRegistration::find($request['id']);
-        $data->delete();
-        return  [
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        return [
+            "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
     }
@@ -93,7 +109,11 @@ class FeeRegistrationServices
      */
     public function search($request)
     {
-        return $this->feeRegistration->where('item_name', 'like', '%' . $request->item_name . '%')
+        return $this->feeRegistration->where('item_name', 'like', '%' . $request->search . '%')
+        ->orWhere('fee_type', 'like', '%' . $request->search . '%')
+        ->orWhere('applicable_for', 'like', '%' . $request->search . '%')
+        ->orWhere('sectors', 'like', '%' . $request->search . '%')
+        ->orderBy('fee_registration.created_at','DESC')
         ->paginate(10);
     }
 }

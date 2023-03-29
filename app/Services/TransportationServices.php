@@ -27,6 +27,16 @@ class TransportationServices
            return $this->transportation->errors();
        }
     }
+    /**
+     * @param $request
+     * @return mixed | void
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->transportation->validateUpdation($request->all()))){
+            return $this->transportation->errors();
+        }
+    }
 	 /**
      *
      * @param $request
@@ -50,7 +60,7 @@ class TransportationServices
      */
     public function retrieveAll()
     {
-        return $this->transportation::with('vendor')->paginate(10);
+        return $this->transportation::with('vendor')->orderBy('transportation.created_at','DESC')->paginate(10);
     }
 	 /**
      *
@@ -82,8 +92,14 @@ class TransportationServices
     public function delete($request): mixed
     {     
         $data = $this->transportation::findorfail($request['id']);
-        $data->delete();
-        return  [
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        return [
+            "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
     }
@@ -96,6 +112,7 @@ class TransportationServices
     {
         return $this->transportation->where('driver_name', 'like', '%' . $request->driver_name . '%')
         ->orWhere('vehicle_type', 'like', '%' . $request->search . '%')
+        ->orderBy('transportation.created_at','DESC')
         ->paginate(10);
     }
 }

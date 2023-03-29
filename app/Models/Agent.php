@@ -36,11 +36,11 @@ class Agent extends Model
      * @var array
      */
     public $rules = [
-        'agent_name' => 'required|max:250',
+        'agent_name' => 'required|regex:/^[a-zA-Z ]*$/|max:250',
         'country_id' => 'required',
-        'city' => 'max:150',
+        'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
         'person_in_charge' => 'required|max:255',
-        'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
+        'pic_contact_number' => 'required|regex:/^[0-9]+$/|max:11',
         'email_address' => 'required|email',
         'company_address' => 'required'
     ];
@@ -51,11 +51,11 @@ class Agent extends Model
      */
     public $rulesForUpdation = [
         'id' => 'required',
-        'agent_name' => 'required|max:250',
+        'agent_name' => 'required|regex:/^[a-zA-Z ]*$/|max:250',
         'country_id' => 'required',
-        'city' => 'max:150',
+        'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
         'person_in_charge' => 'required|max:255',
-        'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
+        'pic_contact_number' => 'required|regex:/^[0-9]+$/|max:11',
         'email_address' => 'required|email',
         'company_address' => 'required'
     ];
