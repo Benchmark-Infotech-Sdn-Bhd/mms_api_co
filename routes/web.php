@@ -162,7 +162,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('update', 'V1\AccommodationController@update');
         $router->post('delete', 'V1\AccommodationController@delete');
         $router->post('retrieve', 'V1\AccommodationController@retrieve');
-        $router->get('retrieveAll', 'V1\AccommodationController@retrieveAll');
+        $router->post('retrieveAll', 'V1\AccommodationController@retrieveAll');
         $router->post('search', 'V1\AccommodationController@search');
     });
     /**
@@ -173,7 +173,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->put('update', 'V1\InsuranceController@update');
         $router->post('delete', 'V1\InsuranceController@delete');
         $router->post('retrieve', 'V1\InsuranceController@retrieve');
-        $router->get('retrieveAll', 'V1\InsuranceController@retrieveAll');
+        $router->post('retrieveAll', 'V1\InsuranceController@retrieveAll');
         $router->post('search', 'V1\InsuranceController@search');
     });
     /**
@@ -184,7 +184,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->put('update', 'V1\TransportationController@update');
         $router->post('delete', 'V1\TransportationController@delete');
         $router->post('retrieve', 'V1\TransportationController@retrieve');
-        $router->get('retrieveAll', 'V1\TransportationController@retrieveAll');
+        $router->post('retrieveAll', 'V1\TransportationController@retrieveAll');
         $router->post('search', 'V1\TransportationController@search');
     });
 

@@ -69,7 +69,7 @@ class AccommodationTest extends TestCase
      */
     public function testRetrieveAllAccommodation()
     {
-        $response = $this->get("/api/v1/accommodation/retrieveAll");
+        $response = $this->post("/api/v1/accommodation/retrieveAll",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>

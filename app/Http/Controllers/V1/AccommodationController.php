@@ -47,13 +47,14 @@ class AccommodationController extends Controller
     
     /**
      * Display a listing of the Accommodation.
-     *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function retrieveAll(): JsonResponse
+    public function retrieveAll(Request $request): JsonResponse
     {        
         try {
-            $response = $this->accommodationServices->retrieveAll(); 
+            $params = $this->getRequest($request);
+            $response = $this->accommodationServices->retrieveAll($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
