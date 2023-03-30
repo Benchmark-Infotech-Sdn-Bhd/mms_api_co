@@ -57,7 +57,7 @@ class InsuranceServices
      */
     public function retrieveAll($request)
     {
-        return $this->insurance::with('vendor')->find($request['vendor_id'])->orderBy('insurance.created_at','DESC')->paginate(10);
+        return $this->insurance::with('vendor')->where('vendor_id', '=', $request['vendor_id'])->orderBy('insurance.created_at','DESC')->paginate(10);
     }
 	 /**
      *
