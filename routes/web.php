@@ -69,9 +69,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->put('update', 'V1\CountriesController@update');
         $router->post('delete', 'V1\CountriesController@delete');
         $router->post('retrieve', 'V1\CountriesController@retrieve');
-        $router->get('retrieveAll', 'V1\CountriesController@retrieveAll');
+        $router->get('dropdown', 'V1\CountriesController@dropdown');
         $router->put('updateCostingStatus', 'V1\CountriesController@updateCostingStatus');
-        $router->post('searchCountries', 'V1\CountriesController@searchCountries');
+        $router->post('list', 'V1\CountriesController@list');
     });
     /**
      * Routes for EmbassyAttestationFileCosting.
@@ -92,9 +92,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->put('update', 'V1\SectorsController@update');
         $router->post('delete', 'V1\SectorsController@delete');
         $router->post('retrieve', 'V1\SectorsController@retrieve');
-        $router->get('retrieveAll', 'V1\SectorsController@retrieveAll');
+        $router->get('dropdown', 'V1\SectorsController@dropdown');
         $router->put('updateChecklistStatus', 'V1\SectorsController@updateChecklistStatus');
-        $router->post('searchSectors', 'V1\SectorsController@searchSectors');
+        $router->post('list', 'V1\SectorsController@list');
     });
     /**
      * Routes for DocumentChecklist.
@@ -117,7 +117,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('retrieve', 'V1\AgentController@retrieve');
         $router->get('retrieveAll', 'V1\AgentController@retrieveAll');
         $router->post('retrieveByCountry', 'V1\AgentController@retrieveByCountry');
-        $router->post('searchAgents', 'V1\AgentController@searchAgents');
+        $router->post('list', 'V1\AgentController@list');
     });
     /**
      * Routes for Vendors.

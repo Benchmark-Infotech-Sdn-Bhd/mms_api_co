@@ -36,7 +36,8 @@ class CountriesServices
             'country_name' => $request['country_name'] ?? '',
             'system_type' => $request['system_type'] ?? '',
             'costing_status' => "Pending",
-            'fee' => $request['fee'] ?? 0
+            'fee' => $request['fee'] ?? 0,
+            'bond' => $request['bond'] ?? 0
         ]);
     }
     /**
@@ -60,10 +61,11 @@ class CountriesServices
         return  [
             "isUpdated" => $country->update([
                 'id' => $request['id'],
-                'country_name' => $request['country_name'] ?? '',
-                'system_type' => $request['system_type'] ?? '',
-                'costing_status' => $request['costing_status'],
-                'fee' => $request['fee'] ?? 0
+                'country_name' => $request['country_name'] ?? $country['country_name'],
+                'system_type' => $request['system_type'] ?? $country['system_type'],
+                'costing_status' => $country['costing_status'],
+                'fee' => $request['fee'] ?? $country['fee'],
+                'bond' => $request['bond'] ?? $country['bond']
             ]),
             "message" => "Updated Successfully"
         ];
@@ -107,10 +109,9 @@ class CountriesServices
     /**
      * @return mixed
      */
-    public function retrieveAll() : mixed
+    public function dropdown() : mixed
     {
-        return $this->countries->orderBy('countries.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
+        return $this->countries->select('id','country_name')->orderBy('countries.created_at','DESC')->get();
     }
     /**
      * @param $request
@@ -140,14 +141,21 @@ class CountriesServices
      * @param $request
      * @return mixed
      */
-    public function searchCountries($request) : mixed
+    public function list($request) : mixed
     {
-        if(!($this->validationServices->validate($request,['search_param' => 'required|regex:/^[a-zA-Z ]*$/|min:3']))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
+        if(isset($request['search_param']) && !empty($request['search_param'])){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|regex:/^[a-zA-Z ]*$/|min:3']))){
+                return [
+                    'validate' => $this->validationServices->errors()
+                ];
+            }
         }
-        return $this->countries->where('country_name', 'like', "%{$request['search_param']}%")->orderBy('countries.created_at','DESC')
+        return $this->countries->where(function ($query) use ($request) {
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('country_name', 'like', "%{$request['search_param']}%");
+            }
+        })->select('id','country_name','system_type','costing_status')
+        ->orderBy('countries.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
 }

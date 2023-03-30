@@ -59,9 +59,9 @@ class SectorsServices
         return [
             "isUpdated" => $sector->update([
                 'id' => $request['id'],
-                'sector_name' => $request['sector_name'] ?? '',
-                'sub_sector_name' => $request['sub_sector_name'] ?? '',
-                'checklist_status' => $request['checklist_status']
+                'sector_name' => $request['sector_name'] ?? $sector['sector_name'],
+                'sub_sector_name' => $request['sub_sector_name'] ?? $sector['sub_sector_name'],
+                'checklist_status' =>$sector['checklist_status']
             ]),
             "message"=> "Updated Successfully"
         ];
@@ -105,10 +105,9 @@ class SectorsServices
     /**
      * @return mixed
      */
-    public function retrieveAll() : mixed
+    public function dropdown() : mixed
     {
-        return $this->sectors->orderBy('sectors.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
+        return $this->sectors->select('id','sector_name')->orderBy('sectors.created_at','DESC')->get();
     }
     /**
      * @param $request
@@ -138,14 +137,21 @@ class SectorsServices
      * @param $request
      * @return mixed
      */
-    public function searchSectors($request) : mixed
+    public function list($request) : mixed
     {
-        if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
+        if(isset($request['search_param']) && !empty($request['search_param'])){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+                return [
+                    'validate' => $this->validationServices->errors()
+                ];
+            }
         }
-        return $this->sectors->where('sector_name', 'like', "%{$request['search_param']}%")->orderBy('sectors.created_at','DESC')
+        return $this->sectors->where(function ($query) use ($request) {
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('sector_name', 'like', "%{$request['search_param']}%");
+            }
+        })->select('id','sector_name','sub_sector_name','checklist_status')
+        ->orderBy('sectors.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
 }

@@ -63,13 +63,13 @@ class AgentServices
         return  [
             "isUpdated" => $agent->update([
                 'id' => $request['id'],
-                'agent_name' => $request['agent_name'] ?? '',
-                'country_id' => $request['country_id'],
-                'city' => $request['city'] ?? '',
-                'person_in_charge' => $request['person_in_charge'] ?? '',
-                'pic_contact_number' => $request['pic_contact_number'] ?? '',
-                'email_address' => $request['email_address'] ?? '',
-                'company_address' => $request['company_address'] ?? ''
+                'agent_name' => $request['agent_name'] ?? $agent['agent_name'],
+                'country_id' => $request['country_id'] ?? $agent['country_id'],
+                'city' => $request['city'] ?? $agent['city'],
+                'person_in_charge' => $request['person_in_charge'] ?? $agent['person_in_charge'],
+                'pic_contact_number' => $request['pic_contact_number'] ?? $agent['pic_contact_number'],
+                'email_address' => $request['email_address'] ?? $agent['email_address'],
+                'company_address' => $request['company_address'] ?? $agent['company_address']
             ]),
             "message" => "Updated Successfully"
         ];
@@ -115,7 +115,9 @@ class AgentServices
      */
     public function retrieveAll() : mixed
     {
-        return $this->agent->with('countries')->orderBy('agent.created_at','DESC')
+        return $this->agent->join('countries', 'countries.id', '=', 'agent.country_id')
+        ->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge')
+        ->orderBy('agent.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
@@ -129,27 +131,34 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->agent->with('countries')->where('country_id',$request['country_id'])->orderBy('agent.created_at','DESC')
+        return $this->agent->join('countries', 'countries.id', '=', 'agent.country_id')
+        ->where('country_id',$request['country_id'])->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge')
+        ->orderBy('agent.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
      * @param $request
      * @return mixed
      */
-    public function searchAgents($request) : mixed
+    public function list($request) : mixed
     {
-        if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
+        if(isset($request['search_param']) && !empty($request['search_param'])){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+                return [
+                    'validate' => $this->validationServices->errors()
+                ];
+            }
         }
-        return $this->agent->with('countries')->join('countries', 'countries.id', '=', 'agent.country_id')
+        return $this->agent->join('countries', 'countries.id', '=', 'agent.country_id')
         ->where(function($query) use ($request) {
-            $query->where('agent_name', 'LIKE', '%'.$request['search_param'].'%')
-                ->orWhere('countries.country_name', 'LIKE', '%'.$request['search_param'].'%')
-                ->orWhere('city', 'LIKE', '%'.$request['search_param'].'%')
-                ->orWhere('person_in_charge', 'LIKE', '%'.$request['search_param'].'%');
-        })->orderBy('agent.created_at','DESC')
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('agent_name', 'LIKE', '%'.$request['search_param'].'%')
+                    ->orWhere('countries.country_name', 'LIKE', '%'.$request['search_param'].'%')
+                    ->orWhere('city', 'LIKE', '%'.$request['search_param'].'%')
+                    ->orWhere('person_in_charge', 'LIKE', '%'.$request['search_param'].'%');
+            }
+        })->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge')
+        ->orderBy('agent.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
 }
