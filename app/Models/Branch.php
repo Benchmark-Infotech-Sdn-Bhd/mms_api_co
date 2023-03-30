@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Branch extends Model
 {
@@ -32,6 +33,7 @@ class Branch extends Model
         'state' => 'required|max:150',
         'city' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
         'branch_address' => 'required',
+        'service_type' => 'required',
         'postcode' => 'required|regex:/^[0-9]+$/|max:5'
     ];
     /**
@@ -45,6 +47,7 @@ class Branch extends Model
         'state' => 'required|max:150',
         'city' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
         'branch_address' => 'required',
+        'service_type' => 'required',
         'postcode' => 'required|regex:/^[0-9]+$/|max:5'
     ];
 
@@ -87,5 +90,13 @@ class Branch extends Model
     public function errors()
     {
         return $this->errors;
+    }
+
+    /**
+     * @return hasMany
+     */
+    public function services()
+    {
+        return $this->hasMany('App\Models\Services');
     }
 }

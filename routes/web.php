@@ -53,6 +53,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('create', 'V1\AccessManagementController@create');
             $router->post('update', 'V1\AccessManagementController@update');
         });
+        /**
+         * Routes for Services.
+         */
+        $router->group(['prefix' => 'service'], function () use ($router) {
+            $router->post('list', 'V1\ServicesController@list');
+            $router->post('dropDown', 'V1\ServicesController@dropDown');
+        });
     });
     /**
      * Routes for Countries.
@@ -63,6 +70,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('delete', 'V1\CountriesController@delete');
         $router->post('retrieve', 'V1\CountriesController@retrieve');
         $router->get('retrieveAll', 'V1\CountriesController@retrieveAll');
+        $router->put('updateCostingStatus', 'V1\CountriesController@updateCostingStatus');
+        $router->post('searchCountries', 'V1\CountriesController@searchCountries');
     });
     /**
      * Routes for EmbassyAttestationFileCosting.
@@ -71,6 +80,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('create', 'V1\EmbassyAttestationFileCostingController@create');
         $router->put('update', 'V1\EmbassyAttestationFileCostingController@update');
         $router->post('delete', 'V1\EmbassyAttestationFileCostingController@delete');
+        $router->post('retrieve', 'V1\EmbassyAttestationFileCostingController@retrieve');
+        $router->get('retrieveAll', 'V1\EmbassyAttestationFileCostingController@retrieveAll');
         $router->post('retrieveByCountry', 'V1\EmbassyAttestationFileCostingController@retrieveByCountry');
     });
     /**
@@ -82,6 +93,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('delete', 'V1\SectorsController@delete');
         $router->post('retrieve', 'V1\SectorsController@retrieve');
         $router->get('retrieveAll', 'V1\SectorsController@retrieveAll');
+        $router->put('updateChecklistStatus', 'V1\SectorsController@updateChecklistStatus');
+        $router->post('searchSectors', 'V1\SectorsController@searchSectors');
     });
     /**
      * Routes for DocumentChecklist.
@@ -90,6 +103,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('create', 'V1\DocumentChecklistController@create');
         $router->put('update', 'V1\DocumentChecklistController@update');
         $router->post('delete', 'V1\DocumentChecklistController@delete');
+        $router->post('retrieve', 'V1\DocumentChecklistController@retrieve');
+        $router->get('retrieveAll', 'V1\DocumentChecklistController@retrieveAll');
         $router->post('retrieveBySector', 'V1\DocumentChecklistController@retrieveBySector');
     });
     /**
@@ -102,6 +117,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('retrieve', 'V1\AgentController@retrieve');
         $router->get('retrieveAll', 'V1\AgentController@retrieveAll');
         $router->post('retrieveByCountry', 'V1\AgentController@retrieveByCountry');
+        $router->post('searchAgents', 'V1\AgentController@searchAgents');
     });
     /**
      * Routes for Vendors.
@@ -113,6 +129,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('retrieve', 'V1\VendorController@retrieve');
         $router->get('retrieveAll', 'V1\VendorController@retrieveAll');
         $router->post('search', 'V1\VendorController@search');
+        $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
+        $router->post('filter', 'V1\VendorController@filter');
     });
     /**
      * Routes for FOMEMA Clinics.
@@ -144,7 +162,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('update', 'V1\AccommodationController@update');
         $router->post('delete', 'V1\AccommodationController@delete');
         $router->post('retrieve', 'V1\AccommodationController@retrieve');
-        $router->get('retrieveAll', 'V1\AccommodationController@retrieveAll');
+        $router->post('retrieveAll', 'V1\AccommodationController@retrieveAll');
         $router->post('search', 'V1\AccommodationController@search');
     });
     /**
@@ -155,7 +173,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->put('update', 'V1\InsuranceController@update');
         $router->post('delete', 'V1\InsuranceController@delete');
         $router->post('retrieve', 'V1\InsuranceController@retrieve');
-        $router->get('retrieveAll', 'V1\InsuranceController@retrieveAll');
+        $router->post('retrieveAll', 'V1\InsuranceController@retrieveAll');
         $router->post('search', 'V1\InsuranceController@search');
     });
     /**
@@ -166,7 +184,19 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->put('update', 'V1\TransportationController@update');
         $router->post('delete', 'V1\TransportationController@delete');
         $router->post('retrieve', 'V1\TransportationController@retrieve');
-        $router->get('retrieveAll', 'V1\TransportationController@retrieveAll');
+        $router->post('retrieveAll', 'V1\TransportationController@retrieveAll');
         $router->post('search', 'V1\TransportationController@search');
+    });
+
+    /**
+     * Routes for Branch.
+     */
+    $router->group(['prefix' => 'branch'], function () use ($router) {
+        $router->post('create', 'V1\BranchController@create');
+        $router->put('update', 'V1\BranchController@update');
+        $router->post('delete', 'V1\BranchController@delete');
+        $router->post('retrieve', 'V1\BranchController@retrieve');
+        $router->get('retrieveAll', 'V1\BranchController@retrieveAll');
+        $router->post('search', 'V1\BranchController@search');
     });
 });

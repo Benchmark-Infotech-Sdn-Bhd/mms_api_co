@@ -19,23 +19,25 @@ class BranchServices
     }
     /**
      * @param $request
-     * @return mixed | void
+     * @return mixed
      */
     public function inputValidation($request)
     {
         if(!($this->branch->validate($request->all()))){
             return $this->branch->errors();
         }
+        return false;
     }
     /**
      * @param $request
-     * @return mixed | void
+     * @return mixed
      */
     public function updateValidation($request)
     {
         if(!($this->branch->validateUpdation($request->all()))){
             return $this->branch->errors();
         }
+        return false;
     }
 	 /**
      *
@@ -74,12 +76,18 @@ class BranchServices
 	 /**
      *
      * @param $request
-     * @return mixed
+     * @return array
      */
-    public function update($request): mixed
+    public function update($request): array
     {           
-        $data = $this->branch::findorfail($request['id']);
-        return  [
+        $data = $this->branch::find($request['id']);
+        if(is_null($data)){
+            return [
+                "isUpdated" => false,
+                "message" => "Data not found"
+            ];
+        }
+        return [
             "isUpdated" => $data->update($request->all()),
             "message" => "Updated Successfully"
         ];
@@ -87,9 +95,9 @@ class BranchServices
 	 /**
      *
      * @param $request
-     * @return mixed
+     * @return array
      */    
-    public function delete($request) : mixed
+    public function delete($request) : array
     {     
         $data = $this->branch::find($request['id']);
         if(is_null($data)){

@@ -35,7 +35,7 @@ class CountriesServices
         return $this->countries->create([
             'country_name' => $request['country_name'] ?? '',
             'system_type' => $request['system_type'] ?? '',
-            'costing_status' => $request['costing_status'],
+            'costing_status' => "Pending",
             'fee' => $request['fee'] ?? 0
         ]);
     }
