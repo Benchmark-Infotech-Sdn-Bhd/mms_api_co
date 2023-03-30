@@ -95,7 +95,7 @@ class BranchServices
      */
     public function retrieve($request) : mixed
     {
-        return $this->branch::with('services')->findorfail($request['id']);
+        return $this->branch::with('branchServices')->find($request['id']);
     }
 	 /**
      *
