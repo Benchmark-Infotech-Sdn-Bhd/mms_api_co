@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Branch extends Model
 {
@@ -93,10 +93,10 @@ class Branch extends Model
     }
 
     /**
-     * @return hasMany
+     * @return BelongsTo
      */
     public function services()
     {
-        return $this->hasMany('App\Models\Services');
+        return $this->belongsTo('App\Models\Services','service_type');
     }
 }

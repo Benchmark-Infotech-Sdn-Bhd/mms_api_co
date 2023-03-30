@@ -60,7 +60,7 @@ class TransportationServices
      */
     public function retrieveAll($request)
     {
-        return $this->transportation::with('vendor')->find($request['vendor_id'])->orderBy('transportation.created_at','DESC')->paginate(10);
+        return $this->transportation::with('vendor')->where('vendor_id', '=', $request['vendor_id'])->orderBy('transportation.created_at','DESC')->paginate(10);
     }
 	 /**
      *

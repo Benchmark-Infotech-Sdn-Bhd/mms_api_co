@@ -62,7 +62,7 @@ class BranchServices
      */ 
     public function retrieveAll()
     {
-        return $this->branch::orderBy('branch.created_at','DESC')->paginate(10);
+        return $this->branch::with('services')->orderBy('branch.created_at','DESC')->paginate(10);
     }
 	 /**
      *
@@ -71,7 +71,7 @@ class BranchServices
      */
     public function retrieve($request) : mixed
     {
-        return $this->branch::findorfail($request['id']);
+        return $this->branch::with('services')->findorfail($request['id']);
     }
 	 /**
      *
