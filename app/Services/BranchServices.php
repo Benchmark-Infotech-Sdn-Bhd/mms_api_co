@@ -31,7 +31,7 @@ class BranchServices
     }
     /**
      * @param $request
-     * @return mixed | void
+     * @return mixed | boolean
      */
     public function inputValidation($request)
     {
@@ -42,7 +42,7 @@ class BranchServices
     }
     /**
      * @param $request
-     * @return mixed | void
+     * @return mixed | boolean
      */
     public function updateValidation($request)
     {
@@ -68,7 +68,7 @@ class BranchServices
         ]);
         $branchDataId = $branchData->id;
         foreach ($request['service_type'] as $serviceType) {
-            $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->get();
+            $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
             foreach ($serviceTypeData as $service) {
                 $this->branchesServices::create([
                     'branch_id' => $branchDataId,
