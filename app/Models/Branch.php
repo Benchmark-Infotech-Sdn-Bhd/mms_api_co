@@ -21,7 +21,7 @@ class Branch extends Model
      *
      * @var array
      */
-    protected $fillable = ['branch_name','state','city','branch_address','postcode','service_type',
+    protected $fillable = ['branch_name','state','city','branch_address','postcode',
     'remarks','created_by','modified_by'];
     /**
      * The attributes that are required.
@@ -33,7 +33,6 @@ class Branch extends Model
         'state' => 'required|max:150',
         'city' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
         'branch_address' => 'required',
-        'service_type' => 'required',
         'postcode' => 'required|regex:/^[0-9]+$/|max:5'
     ];
     /**
@@ -47,7 +46,6 @@ class Branch extends Model
         'state' => 'required|max:150',
         'city' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
         'branch_address' => 'required',
-        'service_type' => 'required',
         'postcode' => 'required|regex:/^[0-9]+$/|max:5'
     ];
 
@@ -91,12 +89,11 @@ class Branch extends Model
     {
         return $this->errors;
     }
-
     /**
      * @return hasMany
      */
-    public function services()
+    public function branchServices()
     {
-        return $this->hasMany('App\Models\Services');
+        return $this->hasMany('App\Models\BranchesServices', 'branch_id');
     }
 }
