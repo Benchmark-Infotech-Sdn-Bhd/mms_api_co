@@ -31,7 +31,7 @@ class BranchServices
     }
     /**
      * @param $request
-     * @return mixed
+     * @return mixed | void
      */
     public function inputValidation($request)
     {
@@ -42,7 +42,7 @@ class BranchServices
     }
     /**
      * @param $request
-     * @return mixed
+     * @return mixed | void
      */
     public function updateValidation($request)
     {
@@ -111,16 +111,16 @@ class BranchServices
                 "message" => "Data not found"
             ];
         }
-        $branchesServiceType = $this->branchesServices->where('branch_id', '=', $request['id'])->get();
+        $branchesServiceType = $this->branchesServices->where('branch_id', '=', $request['id'])->select('service_id', 'service_name')->get();
         $branchesServiceTypeData = [];
         foreach ($branchesServiceType as $serviceType) {
-            array_push($branchesServiceTypeData, $serviceType->service_name);
+            $branchesServiceTypeData[] = $serviceType->service_name;
         }
         $selectedDataToAdd = array_diff($request['service_type'], $branchesServiceTypeData);
         $selectedDataToRemove = array_diff($branchesServiceTypeData, $request['service_type']);
         if (!empty($selectedDataToAdd)) {
             foreach ($selectedDataToAdd as $serviceType) {
-                $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->get();
+                $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
                 foreach ($serviceTypeData as $service) {
                     $this->branchesServices::create([
                         'branch_id' => $request['id'],

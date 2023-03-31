@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('branch_id')->unsigned()->nullable();
             $table->foreign('branch_id')->references('id')->on('branch')->onDelete('cascade');
-            $table->integer('service_id')->nullable();
+            $table->integer('service_id')->nullable()->unsigned()->index();
             $table->string('service_name', 255);
-            $table->tinyInteger('status')->default(0);
+            $table->tinyInteger('status')->default(0)->unsigned()->index();
             $table->timestamps();
             $table->softDeletes();
         });
