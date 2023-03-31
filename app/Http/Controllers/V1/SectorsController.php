@@ -113,10 +113,10 @@ class SectorsController extends Controller
      *
      * @return JsonResponse
      */
-    public function retrieveAll(): JsonResponse
+    public function dropdown(): JsonResponse
     {
         try {
-            $data = $this->sectorsServices->retrieveAll();
+            $data = $this->sectorsServices->dropdown();
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -146,16 +146,16 @@ class SectorsController extends Controller
         }
     }
     /**
-     * Search & Retrieve all the sectors based on sector name.
+     * Search & Retrieve all the sectors.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function searchSectors(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->sectorsServices->searchSectors($params);
+            $data = $this->sectorsServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }

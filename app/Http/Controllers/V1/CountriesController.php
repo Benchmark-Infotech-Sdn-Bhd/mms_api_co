@@ -109,18 +109,18 @@ class CountriesController extends Controller
         }
     }
     /**
-     * Retrieve all countries.
+     * Countries dropdown.
      *
      * @return JsonResponse
      */
-    public function retrieveAll(): JsonResponse
+    public function dropdown(): JsonResponse
     {
         try {
-            $data = $this->countriesServices->retrieveAll();
+            $data = $this->countriesServices->dropdown();
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'Retrieve All failed. Please retry.';
+            $data['error'] = 'Retrieve failed. Please retry.';
             return $this->sendError(['message' => $data['error']]);
         }
     }
@@ -146,16 +146,16 @@ class CountriesController extends Controller
         }
     }
     /**
-     * Search & Retrieve all the countries based on country name.
+     * Search & Retrieve all the countries.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function searchCountries(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->countriesServices->searchCountries($params);
+            $data = $this->countriesServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }

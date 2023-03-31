@@ -20,7 +20,7 @@ class Countries extends Model
      *
      * @var array
      */
-    protected $fillable = ['country_name','system_type','fee','costing_status','created_by','modified_by'];
+    protected $fillable = ['country_name','system_type','fee','bond','costing_status','created_by','modified_by'];
     /**
      * @return HasMany
      */
@@ -42,7 +42,8 @@ class Countries extends Model
      */
     public $rules = [
         'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
-        'system_type' => 'required'
+        'system_type' => 'required',
+        'bond' => 'regex:/^[0-9]+$/|max:3'
     ];
     /**
      * The attributes that are required for updation.
@@ -53,6 +54,6 @@ class Countries extends Model
         'id' => 'required',
         'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
         'system_type' => 'required',
-        'costing_status' => 'required'
+        'bond' => 'regex:/^[0-9]+$/|max:3'
     ];
 }
