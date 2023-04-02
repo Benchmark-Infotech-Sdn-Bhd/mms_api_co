@@ -22,6 +22,8 @@ return new class extends Migration
             $table->enum('costing_status',['Pending','Done'])->default('Pending');
             // Countries Fee column
             $table->float('fee')->nullable();
+            // Countries Bond column
+            $table->integer('bond')->nullable();
             // Column for user Id, who created the countries
             $table->integer('created_by')->default(0);
             // Column for user Id, who modified the countries
