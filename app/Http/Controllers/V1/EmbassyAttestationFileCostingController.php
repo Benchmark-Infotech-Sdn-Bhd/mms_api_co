@@ -130,11 +130,11 @@ class EmbassyAttestationFileCostingController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieveByCountry(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->embassyAttestationFileCostingServices->retrieveByCountry($params);
+            $data = $this->embassyAttestationFileCostingServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }

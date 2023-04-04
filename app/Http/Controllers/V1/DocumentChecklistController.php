@@ -130,11 +130,11 @@ class DocumentChecklistController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieveBySector(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->documentChecklistServices->retrieveBySector($params);
+            $data = $this->documentChecklistServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
