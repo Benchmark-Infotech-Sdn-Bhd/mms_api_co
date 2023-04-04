@@ -19,22 +19,24 @@ class DBSelectionMiddleware
      */
     public function handle($request, Closure $next)
     {
-        Config::set('cache.prefix', $request->identifier);
-        $dbDetails = DB::connection('tenant')->table('domains')
-            ->where('active_flag', 1)
-            //->where('identifier', $request->identifier)
-            ->first(['db_name', 'db_host', 'db_username', 'db_password']);
-        if (!isset($dbDetails->db_name)) {
-            return response()->json($this->frameResponse($this->sendResponse(['message' => 'Please enter a valid company url. Contact your manager if you have not received login credentials.'])), 400);
+        if (DB::getDriverName() !== 'sqlite') {
+            Config::set('cache.prefix', $request->identifier);
+            $dbDetails = DB::connection('tenant')->table('domains')
+                ->where('active_flag', 1)
+                //->where('identifier', $request->identifier)
+                ->first(['db_name', 'db_host', 'db_username', 'db_password']);
+            if (!isset($dbDetails->db_name)) {
+                return response()->json($this->frameResponse($this->sendResponse(['message' => 'Please enter a valid company url. Contact your manager if you have not received login credentials.'])), 400);
+            }
+            Config::set('database.default', 'mysql');
+            Config::set('database.connections.mysql.host', $dbDetails->db_host);
+            Config::set('database.connections.mysql.username', $dbDetails->db_username);
+            Config::set('database.connections.mysql.password', $dbDetails->db_password);
+            Config::set('database.connections.mysql.database', $dbDetails->db_name);
+            DB::purge('mysql');
+            DB::reconnect('mysql');
+            Schema::connection('mysql')->getConnection()->reconnect();
         }
-        Config::set('database.default', 'mysql');
-        Config::set('database.connections.mysql.host', $dbDetails->db_host);
-        Config::set('database.connections.mysql.username', $dbDetails->db_username);
-        Config::set('database.connections.mysql.password', $dbDetails->db_password);
-        Config::set('database.connections.mysql.database', $dbDetails->db_name);
-        DB::purge('mysql');
-        DB::reconnect('mysql');
-        Schema::connection('mysql')->getConnection()->reconnect();
         return $next($request);
     }
     /**
