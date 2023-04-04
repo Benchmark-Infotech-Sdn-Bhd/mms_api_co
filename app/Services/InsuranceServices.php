@@ -51,13 +51,13 @@ class InsuranceServices
             'vendor_id' => $request["vendor_id"],
         ]);
     }
-	 /**
-     *
+    /**
+     * @param $request
      * @return LengthAwarePaginator
-     */ 
-    public function retrieveAll()
+     */
+    public function retrieveAll($request)
     {
-        return $this->insurance::with('vendor')->orderBy('insurance.created_at','DESC')->paginate(10);
+        return $this->insurance::with('vendor')->where('vendor_id', '=', $request['vendor_id'])->orderBy('insurance.created_at','DESC')->paginate(10);
     }
 	 /**
      *

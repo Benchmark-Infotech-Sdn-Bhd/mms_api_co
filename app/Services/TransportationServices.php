@@ -54,13 +54,13 @@ class TransportationServices
             'vendor_id' => $request["vendor_id"],
         ]);
     }
-	 /**
-     *
+    /**
+     * @param $request
      * @return LengthAwarePaginator
      */
-    public function retrieveAll()
+    public function retrieveAll($request)
     {
-        return $this->transportation::with('vendor')->orderBy('transportation.created_at','DESC')->paginate(10);
+        return $this->transportation::with('vendor')->where('vendor_id', '=', $request['vendor_id'])->orderBy('transportation.created_at','DESC')->paginate(10);
     }
 	 /**
      *

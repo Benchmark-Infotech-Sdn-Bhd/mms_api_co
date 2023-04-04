@@ -109,7 +109,7 @@ class EmbassyAttestationFileCostingServices
      * @param $request
      * @return mixed
      */
-    public function retrieve($request) : mixed
+    public function show($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
@@ -130,14 +130,16 @@ class EmbassyAttestationFileCostingServices
      * @param $request
      * @return mixed
      */
-    public function retrieveByCountry($request) : mixed
+    public function list($request) : mixed
     {
         if(!($this->validationServices->validate($request,['country_id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->embassyAttestationFileCosting->where('country_id',$request['country_id'])->orderBy('embassy_attestation_file_costing.created_at','DESC')
+        return $this->embassyAttestationFileCosting->where('country_id',$request['country_id'])
+        ->select('id','title','amount')
+        ->orderBy('embassy_attestation_file_costing.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
 }

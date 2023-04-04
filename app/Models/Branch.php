@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Branch extends Model
 {
@@ -20,8 +21,15 @@ class Branch extends Model
      *
      * @var array
      */
-    protected $fillable = ['branch_name','state','city','branch_address','postcode','service_type',
+    protected $fillable = ['branch_name','state','city','branch_address','postcode',
     'remarks','created_by','modified_by'];
+    /**
+     * @return HasMany
+     */
+    public function employees()
+    {
+        return $this->hasMany(Employee::class, 'branch_id');
+    }
     /**
      * The attributes that are required.
      *
@@ -87,5 +95,12 @@ class Branch extends Model
     public function errors()
     {
         return $this->errors;
+    }
+    /**
+     * @return hasMany
+     */
+    public function branchServices()
+    {
+        return $this->hasMany('App\Models\BranchesServices', 'branch_id');
     }
 }

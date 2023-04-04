@@ -10,7 +10,7 @@ abstract class TestCase extends BaseTestCase
 {
     /**
      * @var Generator
-     */   
+     */
     protected Generator $faker;
 
     /**
@@ -30,10 +30,38 @@ abstract class TestCase extends BaseTestCase
      *
      * @return string
      */
-    protected function createEmail(): string 
+    protected function createEmail(): string
     {
         $this->faker = Factory::create();
         $this->faker->seed(1234);
         return $this->faker->email;
     }
+
+    /**
+     * @param bool $artisan
+     * @return array
+     */
+    public function getHeader(bool $artisan = true): array
+    {
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$this->getToken($artisan);
+        return $header;
+    }
+
+    /**
+     * @param bool $artisan
+     * @return mixed
+     */
+    public function getToken(bool $artisan = true): mixed
+    {
+        if($artisan === true) {
+            $this->artisan("db:seed --class=unit_testing_user");
+        }
+        $response = $this->call('POST', 'api/v1/login', ['email' => 'unittest@gmail.com', 'password' => 'Welcome@123']);
+        $this->assertEquals(200, $response->status());
+        return $response['data']['token'];
+    }
+
+
 }

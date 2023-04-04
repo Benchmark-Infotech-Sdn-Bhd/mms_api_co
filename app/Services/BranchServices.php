@@ -4,6 +4,8 @@
 namespace App\Services;
 
 use App\Models\Branch;
+use App\Models\Services;
+use App\Models\BranchesServices;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class BranchServices
@@ -12,14 +14,24 @@ class BranchServices
      * @var branch
      */
     private Branch $branch;
+    /**
+     * @var services
+     */
+    private Services $services;
+    /**
+     * @var branchesServices
+     */
+    private BranchesServices $branchesServices;
 
-    public function __construct(Branch $branch)
+    public function __construct(Branch $branch,Services $services,BranchesServices $branchesServices)
     {
         $this->branch = $branch;
+        $this->services = $services;
+        $this->branchesServices = $branchesServices;
     }
     /**
      * @param $request
-     * @return mixed
+     * @return mixed | boolean
      */
     public function inputValidation($request)
     {
@@ -30,7 +42,7 @@ class BranchServices
     }
     /**
      * @param $request
-     * @return mixed
+     * @return mixed | boolean
      */
     public function updateValidation($request)
     {
@@ -46,15 +58,27 @@ class BranchServices
      */
     public function create($request): mixed
     {   
-        return $this->branch::create([
+        $branchData = $this->branch::create([
             'branch_name' => $request["branch_name"],
             'state' => $request["state"],
             'city' => $request["city"],
             'branch_address' => $request["branch_address"],
-            'service_type' => $request["service_type"],
             'postcode' => $request["postcode"],
             'remarks' => $request["remarks"],
         ]);
+        $branchDataId = $branchData->id;
+        foreach ($request['service_type'] as $serviceType) {
+            $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
+            foreach ($serviceTypeData as $service) {
+                $this->branchesServices::create([
+                    'branch_id' => $branchDataId,
+                    'service_id' => $service->id,
+                    'service_name' => $service->service_name,
+                    'status' => $service->status,
+                ]);
+            }
+        }
+        return $branchData;
     }
 	 /**
      *
@@ -62,7 +86,7 @@ class BranchServices
      */ 
     public function retrieveAll()
     {
-        return $this->branch::orderBy('branch.created_at','DESC')->paginate(10);
+        return $this->branch::with('branchServices')->orderBy('branch.created_at','DESC')->paginate(10);
     }
 	 /**
      *
@@ -71,7 +95,7 @@ class BranchServices
      */
     public function retrieve($request) : mixed
     {
-        return $this->branch::findorfail($request['id']);
+        return $this->branch::with('branchServices')->find($request['id']);
     }
 	 /**
      *
@@ -86,6 +110,31 @@ class BranchServices
                 "isUpdated" => false,
                 "message" => "Data not found"
             ];
+        }
+        $branchesServiceType = $this->branchesServices->where('branch_id', '=', $request['id'])->select('service_id', 'service_name')->get();
+        $branchesServiceTypeData = [];
+        foreach ($branchesServiceType as $serviceType) {
+            $branchesServiceTypeData[] = $serviceType->service_name;
+        }
+        $selectedDataToAdd = array_diff($request['service_type'], $branchesServiceTypeData);
+        $selectedDataToRemove = array_diff($branchesServiceTypeData, $request['service_type']);
+        if (!empty($selectedDataToAdd)) {
+            foreach ($selectedDataToAdd as $serviceType) {
+                $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
+                foreach ($serviceTypeData as $service) {
+                    $this->branchesServices::create([
+                        'branch_id' => $request['id'],
+                        'service_id' => $service->id,
+                        'service_name' => $service->service_name,
+                        'status' => $service->status,
+                    ]);
+                }
+            }
+        }
+        if (!empty($selectedDataToRemove)) {
+            foreach ($selectedDataToRemove as $serviceType) {
+                $this->branchesServices::where('branch_id', '=' ,$request['id'])->where('service_name', '=' ,$serviceType)->delete();           
+            }            
         }
         return [
             "isUpdated" => $data->update($request->all()),

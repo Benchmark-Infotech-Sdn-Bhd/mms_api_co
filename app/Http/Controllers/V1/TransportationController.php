@@ -46,13 +46,14 @@ class TransportationController extends Controller
     }
 	 /**
      * Display a listing of the Transportation.
-     *
+     * @param Request $request
      * @return JsonResponse
      */    
-    public function retrieveAll(): JsonResponse
+    public function retrieveAll(Request $request): JsonResponse
     {        
         try {
-            $response = $this->transportationServices->retrieveAll(); 
+            $params = $this->getRequest($request);
+            $response = $this->transportationServices->retrieveAll($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
