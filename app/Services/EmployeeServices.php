@@ -113,7 +113,7 @@ class EmployeeServices
      * @param $request
      * @return mixed
      */
-    public function retrieve($request) : mixed
+    public function show($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
@@ -150,7 +150,7 @@ class EmployeeServices
         }
         $employee->status = $request['status'];
         return  [
-            "isUpdated" => $employee->save() == 1 ? true:false,
+            "isUpdated" => $employee->save() == 1,
             "message" => "Updated Successfully"
         ];
     }

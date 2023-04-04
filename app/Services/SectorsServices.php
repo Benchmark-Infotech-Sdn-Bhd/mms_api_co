@@ -93,7 +93,7 @@ class SectorsServices
      * @param $request
      * @return mixed
      */
-    public function retrieve($request) : mixed
+    public function show($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
@@ -129,7 +129,7 @@ class SectorsServices
         }
         $sector->checklist_status = $request['checklist_status'];
         return  [
-            "isUpdated" => $sector->save() == 1 ? true:false,
+            "isUpdated" => $sector->save() == 1,
             "message" => "Updated Successfully"
         ];
     }

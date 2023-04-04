@@ -97,7 +97,7 @@ class CountriesServices
      * @param $request
      * @return mixed
      */
-    public function retrieve($request) : mixed
+    public function show($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
@@ -133,7 +133,7 @@ class CountriesServices
         }
         $country->costing_status = $request['costing_status'];
         return  [
-            "isUpdated" => $country->save() == 1 ? true:false,
+            "isUpdated" => $country->save() == 1,
             "message" => "Updated Successfully"
         ];
     }
