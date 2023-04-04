@@ -23,6 +23,13 @@ class Branch extends Model
     protected $fillable = ['branch_name','state','city','branch_address','postcode','service_type',
     'remarks','created_by','modified_by'];
     /**
+     * @return HasMany
+     */
+    public function employees()
+    {
+        return $this->hasMany(Employee::class, 'branch_id');
+    }
+    /**
      * The attributes that are required.
      *
      * @var array

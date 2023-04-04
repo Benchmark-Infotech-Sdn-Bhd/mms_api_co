@@ -152,10 +152,10 @@ class AgentServices
         return $this->agent->join('countries', 'countries.id', '=', 'agent.country_id')
         ->where(function($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('agent_name', 'LIKE', '%'.$request['search_param'].'%')
-                    ->orWhere('countries.country_name', 'LIKE', '%'.$request['search_param'].'%')
-                    ->orWhere('city', 'LIKE', '%'.$request['search_param'].'%')
-                    ->orWhere('person_in_charge', 'LIKE', '%'.$request['search_param'].'%');
+                $query->where('agent_name', 'like', '%'.$request['search_param'].'%')
+                    ->orWhere('countries.country_name', 'like', '%'.$request['search_param'].'%')
+                    ->orWhere('city', 'like', '%'.$request['search_param'].'%')
+                    ->orWhere('person_in_charge', 'like', '%'.$request['search_param'].'%');
             }
         })->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge')
         ->orderBy('agent.created_at','DESC')

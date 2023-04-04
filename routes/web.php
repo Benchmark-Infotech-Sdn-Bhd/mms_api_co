@@ -199,4 +199,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->get('retrieveAll', 'V1\BranchController@retrieveAll');
         $router->post('search', 'V1\BranchController@search');
     });
+    /**
+     * Routes for Employees.
+     */
+    $router->group(['prefix' => 'employee'], function () use ($router) {
+        $router->post('create', 'V1\EmployeeController@create');
+        $router->put('update', 'V1\EmployeeController@update');
+        $router->post('delete', 'V1\EmployeeController@delete');
+        $router->post('retrieve', 'V1\EmployeeController@retrieve');
+        $router->get('retrieveAll', 'V1\EmployeeController@retrieveAll');
+        $router->put('updateStatus', 'V1\EmployeeController@updateStatus');
+        $router->post('list', 'V1\EmployeeController@list');
+    });
 });

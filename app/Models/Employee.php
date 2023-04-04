@@ -23,7 +23,7 @@ class Employee extends Model
      * @var array
      */
     protected $fillable = ['employee_name','gender','date_of_birth','ic_number','passport_number',
-    'email','contact_number','address','postcode','position','branch_id','role_id','salary',
+    'email','contact_number','address','postcode','position','branch_id','role_id','salary','status',
     'created_by','modified_by'];
     /**
      * @return BelongsTo
@@ -45,19 +45,20 @@ class Employee extends Model
      * @var array
      */
     public $rules = [
-        'employee_name' => 'required|regex:/^[ A-Za-z _@./#&+-]*$/|max:255',
+        'employee_name' => 'required|max:255',
         'gender' => 'required|max:15',
-        'date_of_birth' => 'required|date_format:YYYY-MM-DD',
+        'date_of_birth' => 'required|date_format:Y-m-d',
         'ic_number' => 'required|regex:/^[0-9]+$/|max:12',
         'passport_number' => 'regex:/^[a-zA-Z0-9]*$/',
         'email' => 'required|email|max:150',
         'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
         'address' => 'required',
         'postcode' => 'required|regex:/^[0-9]+$/|max:5',
-        'position' => 'required|regex:/^[ A-Za-z _@./#&+-]*$/|max:150',
+        'position' => 'required|max:150',
         'branch_id' => 'required',
         'role_id' => 'required',
-        'salary' => 'required'
+        'salary' => 'required',
+        'status' => 'required|regex:/^[0-1]+$/|max:1'
     ];
     /**
      * The attributes that are required for updation.
@@ -66,18 +67,19 @@ class Employee extends Model
      */
     public $rulesForUpdation = [
         'id' => 'required',
-        'employee_name' => 'required|regex:/^[ A-Za-z _@./#&+-]*$/|max:255',
+        'employee_name' => 'required|max:255',
         'gender' => 'required|max:15',
-        'date_of_birth' => 'required|date_format:YYYY-MM-DD',
+        'date_of_birth' => 'required|date_format:Y-m-d',
         'ic_number' => 'required|regex:/^[0-9]+$/|max:12',
         'passport_number' => 'regex:/^[a-zA-Z0-9]*$/',
         'email' => 'required|email|max:150',
         'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
         'address' => 'required',
         'postcode' => 'required|regex:/^[0-9]+$/|max:5',
-        'position' => 'required|regex:/^[ A-Za-z _@./#&+-]*$/|max:150',
+        'position' => 'required|max:150',
         'branch_id' => 'required',
         'role_id' => 'required',
-        'salary' => 'required'
+        'salary' => 'required',
+        'status' => 'required|regex:/^[0-1]+$/|max:1'
     ];
 }

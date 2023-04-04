@@ -28,4 +28,11 @@ class Role extends Model implements Auditable
     {
         return $this->belongsToMany(Module::class, 'role_permission', 'role_id', 'module_id');
     }
+    /**
+     * @return HasMany
+     */
+    public function employees()
+    {
+        return $this->hasMany(Employee::class, 'role_id');
+    }
 }
