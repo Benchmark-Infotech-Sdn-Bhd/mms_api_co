@@ -82,7 +82,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('delete', 'V1\EmbassyAttestationFileCostingController@delete');
         $router->post('retrieve', 'V1\EmbassyAttestationFileCostingController@retrieve');
         $router->get('retrieveAll', 'V1\EmbassyAttestationFileCostingController@retrieveAll');
-        $router->post('retrieveByCountry', 'V1\EmbassyAttestationFileCostingController@retrieveByCountry');
+        $router->post('list', 'V1\EmbassyAttestationFileCostingController@list');
     });
     /**
      * Routes for Sectors.
@@ -105,7 +105,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('delete', 'V1\DocumentChecklistController@delete');
         $router->post('retrieve', 'V1\DocumentChecklistController@retrieve');
         $router->get('retrieveAll', 'V1\DocumentChecklistController@retrieveAll');
-        $router->post('retrieveBySector', 'V1\DocumentChecklistController@retrieveBySector');
+        $router->post('list', 'V1\DocumentChecklistController@list');
     });
     /**
      * Routes for Agent.
@@ -198,5 +198,17 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('retrieve', 'V1\BranchController@retrieve');
         $router->get('retrieveAll', 'V1\BranchController@retrieveAll');
         $router->post('search', 'V1\BranchController@search');
+    });
+    /**
+     * Routes for Employees.
+     */
+    $router->group(['prefix' => 'employee'], function () use ($router) {
+        $router->post('create', 'V1\EmployeeController@create');
+        $router->put('update', 'V1\EmployeeController@update');
+        $router->post('delete', 'V1\EmployeeController@delete');
+        $router->post('retrieve', 'V1\EmployeeController@retrieve');
+        $router->get('retrieveAll', 'V1\EmployeeController@retrieveAll');
+        $router->put('updateStatus', 'V1\EmployeeController@updateStatus');
+        $router->post('list', 'V1\EmployeeController@list');
     });
 });

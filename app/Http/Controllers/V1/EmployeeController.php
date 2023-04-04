@@ -6,26 +6,25 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Services\DocumentChecklistServices;
+use App\Services\EmployeeServices;
 use Illuminate\Support\Facades\Log;
-
-class DocumentChecklistController extends Controller
+class EmployeeController extends Controller
 {
     /**
-     * @var DocumentChecklistServices
+     * @var employeeServices
      */
-    private DocumentChecklistServices $documentChecklistServices;
+    private EmployeeServices $employeeServices;
 
     /**
-     * DocumentChecklistController constructor.
-     * @param DocumentChecklistServices $documentChecklistServices
+     * EmployeeController constructor.
+     * @param EmployeeServices $employeeServices
      */
-    public function __construct(DocumentChecklistServices $documentChecklistServices)
+    public function __construct(EmployeeServices $employeeServices)
     {
-        $this->documentChecklistServices = $documentChecklistServices;
+        $this->employeeServices = $employeeServices;
     }
     /**
-     * Show the form for creating a new DocumentChecklist.
+     * Show the form for creating a new Employee.
      *
      * @param Request $request
      * @return JsonResponse
@@ -34,7 +33,7 @@ class DocumentChecklistController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->documentChecklistServices->create($params);
+            $data = $this->employeeServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -46,7 +45,7 @@ class DocumentChecklistController extends Controller
         }
     }
     /**
-     * Show the form for updating a DocumentChecklist.
+     * Show the form for updating a employee.
      *
      * @param Request $request
      * @return JsonResponse
@@ -55,7 +54,7 @@ class DocumentChecklistController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->documentChecklistServices->update($params);
+            $data = $this->employeeServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -67,7 +66,7 @@ class DocumentChecklistController extends Controller
         }
     }
     /**
-     * Remove the specified DocumentChecklist.
+     * Remove the specified Employee.
      *
      * @param Request $request
      * @return JsonResponse
@@ -76,7 +75,7 @@ class DocumentChecklistController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->documentChecklistServices->delete($params);
+            $data = $this->employeeServices->delete($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -88,7 +87,7 @@ class DocumentChecklistController extends Controller
         }
     }
     /**
-     * Retrieve the specified DocumentChecklist.
+     * Retrieve the specified Employee.
      *
      * @param Request $request
      * @return JsonResponse
@@ -97,7 +96,7 @@ class DocumentChecklistController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->documentChecklistServices->retrieve($params);
+            $data = $this->employeeServices->retrieve($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -109,23 +108,44 @@ class DocumentChecklistController extends Controller
         }
     }
     /**
-     * Retrieve all DocumentChecklist.
+     * Retrieve All Employees.
      *
      * @return JsonResponse
      */
     public function retrieveAll(): JsonResponse
     {
         try {
-            $data = $this->documentChecklistServices->retrieveAll();
+            $data = $this->employeeServices->retrieveAll();
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'Retrieve All failed. Please retry.';
+            $data['error'] = 'Retrieve failed. Please retry.';
             return $this->sendError(['message' => $data['error']]);
         }
     }
     /**
-     * Retrieve the specified DocumentChecklist based on Sectors.
+     * Update the Employee status.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateStatus(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->employeeServices->updateStatus($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Updation failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
+    /**
+     * Search & Retrieve all the Employees.
      *
      * @param Request $request
      * @return JsonResponse
@@ -134,7 +154,7 @@ class DocumentChecklistController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->documentChecklistServices->list($params);
+            $data = $this->employeeServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }

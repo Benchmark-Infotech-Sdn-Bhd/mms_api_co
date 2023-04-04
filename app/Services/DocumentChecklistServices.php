@@ -128,14 +128,16 @@ class DocumentChecklistServices
      * @param $request
      * @return mixed
      */
-    public function retrieveBySector($request) : mixed
+    public function list($request) : mixed
     {
         if(!($this->validationServices->validate($request,['sector_id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->documentChecklist->where('sector_id',$request['sector_id'])->orderBy('document_checklist.created_at','DESC')
+        return $this->documentChecklist->where('sector_id',$request['sector_id'])
+        ->select('id','document_title')
+        ->orderBy('document_checklist.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
 }
