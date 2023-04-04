@@ -113,7 +113,7 @@ class EmployeeServices
      * @param $request
      * @return mixed
      */
-    public function retrieve($request) : mixed
+    public function show($request) : mixed
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [

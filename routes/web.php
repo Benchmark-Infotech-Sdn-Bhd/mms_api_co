@@ -68,7 +68,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('create', 'V1\CountriesController@create');
         $router->put('update', 'V1\CountriesController@update');
         $router->post('delete', 'V1\CountriesController@delete');
-        $router->post('retrieve', 'V1\CountriesController@retrieve');
+        $router->post('show', 'V1\CountriesController@show');
         $router->get('dropdown', 'V1\CountriesController@dropdown');
         $router->put('updateCostingStatus', 'V1\CountriesController@updateCostingStatus');
         $router->post('list', 'V1\CountriesController@list');
@@ -80,8 +80,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('create', 'V1\EmbassyAttestationFileCostingController@create');
         $router->put('update', 'V1\EmbassyAttestationFileCostingController@update');
         $router->post('delete', 'V1\EmbassyAttestationFileCostingController@delete');
-        $router->post('retrieve', 'V1\EmbassyAttestationFileCostingController@retrieve');
-        $router->get('retrieveAll', 'V1\EmbassyAttestationFileCostingController@retrieveAll');
+        $router->post('show', 'V1\EmbassyAttestationFileCostingController@show');
         $router->post('list', 'V1\EmbassyAttestationFileCostingController@list');
     });
     /**
@@ -91,7 +90,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('create', 'V1\SectorsController@create');
         $router->put('update', 'V1\SectorsController@update');
         $router->post('delete', 'V1\SectorsController@delete');
-        $router->post('retrieve', 'V1\SectorsController@retrieve');
+        $router->post('show', 'V1\SectorsController@show');
         $router->get('dropdown', 'V1\SectorsController@dropdown');
         $router->put('updateChecklistStatus', 'V1\SectorsController@updateChecklistStatus');
         $router->post('list', 'V1\SectorsController@list');
@@ -103,8 +102,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('create', 'V1\DocumentChecklistController@create');
         $router->put('update', 'V1\DocumentChecklistController@update');
         $router->post('delete', 'V1\DocumentChecklistController@delete');
-        $router->post('retrieve', 'V1\DocumentChecklistController@retrieve');
-        $router->get('retrieveAll', 'V1\DocumentChecklistController@retrieveAll');
+        $router->post('show', 'V1\DocumentChecklistController@show');
         $router->post('list', 'V1\DocumentChecklistController@list');
     });
     /**
@@ -114,9 +112,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('create', 'V1\AgentController@create');
         $router->put('update', 'V1\AgentController@update');
         $router->post('delete', 'V1\AgentController@delete');
-        $router->post('retrieve', 'V1\AgentController@retrieve');
-        $router->get('retrieveAll', 'V1\AgentController@retrieveAll');
-        $router->post('retrieveByCountry', 'V1\AgentController@retrieveByCountry');
+        $router->post('show', 'V1\AgentController@show');
         $router->post('list', 'V1\AgentController@list');
     });
     /**
@@ -206,8 +202,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('create', 'V1\EmployeeController@create');
         $router->put('update', 'V1\EmployeeController@update');
         $router->post('delete', 'V1\EmployeeController@delete');
-        $router->post('retrieve', 'V1\EmployeeController@retrieve');
-        $router->get('retrieveAll', 'V1\EmployeeController@retrieveAll');
+        $router->post('show', 'V1\EmployeeController@show');
         $router->put('updateStatus', 'V1\EmployeeController@updateStatus');
         $router->post('list', 'V1\EmployeeController@list');
     });

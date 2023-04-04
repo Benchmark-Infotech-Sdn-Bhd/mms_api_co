@@ -93,11 +93,11 @@ class CountriesController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieve(Request $request): JsonResponse
+    public function show(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->countriesServices->retrieve($params);
+            $data = $this->countriesServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
