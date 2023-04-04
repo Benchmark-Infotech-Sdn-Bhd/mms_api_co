@@ -75,7 +75,7 @@ class TransportationTest extends TestCase
      */
     public function testRetrieveAllTransportation()
     {
-        $response = $this->get("/api/v1/transportation/retrieveAll");
+        $response = $this->post("/api/v1/transportation/retrieveAll",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -91,7 +91,7 @@ class TransportationTest extends TestCase
      */
     public function testRetrieveSpecificTransportation()
     {
-        $response = $this->post("/api/v1/transportation/retrieve",['id' => 2]);
+        $response = $this->post("/api/v1/transportation/retrieve",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>

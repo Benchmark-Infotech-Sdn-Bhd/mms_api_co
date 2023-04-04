@@ -86,12 +86,12 @@ class AccommodationServices
         
     }
     /**
-     *
+     * @param $request
      * @return LengthAwarePaginator
      */
-    public function retrieveAll()
+    public function retrieveAll($request)
     {
-        return $this->accommodation::with('vendor')->orderBy('accommodation.created_at','DESC')->paginate(10);
+        return $this->accommodation::with('vendor')->where('vendor_id', '=', $request['vendor_id'])->orderBy('accommodation.created_at','DESC')->paginate(10);
     }
     /**
      *
