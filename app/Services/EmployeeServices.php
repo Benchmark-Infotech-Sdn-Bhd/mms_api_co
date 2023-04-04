@@ -150,7 +150,7 @@ class EmployeeServices
         }
         $employee->status = $request['status'];
         return  [
-            "isUpdated" => $employee->save() == 1 ? true:false,
+            "isUpdated" => $employee->save() == 1,
             "message" => "Updated Successfully"
         ];
     }
