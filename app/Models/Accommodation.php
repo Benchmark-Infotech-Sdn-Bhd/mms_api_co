@@ -29,6 +29,8 @@ class Accommodation extends Model
         'deposit',
         'rent_per_month',
         'vendor_id',
+        'tnb_bill_account_Number',
+        'water_bill_account_Number',
     ];
     /**
      * The attributes that are required.
@@ -41,8 +43,9 @@ class Accommodation extends Model
         'maximum_pax_per_unit' => 'required|regex:/^[0-9]*$/',
         'deposit' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
         'rent_per_month' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+        'tnb_bill_account_Number' => 'required|regex:/^[0-9]*$/u|max:12',
+        'water_bill_account_Number' => 'required|regex:/^[0-9]*$/u|max:13',
     ];
-
     /**
      * The attributes that are required for updation.
      *
@@ -55,6 +58,8 @@ class Accommodation extends Model
         'maximum_pax_per_unit' => 'required|regex:/^[0-9]*$/',
         'deposit' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
         'rent_per_month' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+        'tnb_bill_account_Number' => 'required|regex:/^[0-9]*$/u|max:12',
+        'water_bill_account_Number' => 'required|regex:/^[0-9]*$/u|max:13',
     ];
 
     /**

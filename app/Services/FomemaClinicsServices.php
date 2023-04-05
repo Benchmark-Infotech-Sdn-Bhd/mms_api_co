@@ -5,6 +5,7 @@ namespace App\Services;
 
 use App\Models\FomemaClinics;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Config;
 
 class FomemaClinicsServices
 {
@@ -56,18 +57,27 @@ class FomemaClinicsServices
     }
 	 /**
      *
+     * @param $request
      * @return LengthAwarePaginator
      */ 
-    public function retrieveAll()
+    public function list($request)
     {
-        return $this->fomemaClinics::orderBy('fomema_clinics.created_at','DESC')->paginate(10);
+        return $this->fomemaClinics::where(function ($query) use ($request) {
+            if (isset($request['search']) && !empty($request['search'])) {
+                $query->where('clinic_name', 'like', '%' . $request->search . '%')
+                ->orWhere('state', 'like', '%' . $request->search . '%')
+                ->orWhere('city', 'like', '%' . $request->search . '%');
+            }
+        })
+        ->orderBy('fomema_clinics.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
 	 /**
      *
      * @param $request
      * @return mixed
      */
-    public function retrieve($request) : mixed
+    public function show($request) : mixed
     {
         return $this->fomemaClinics::findorfail($request['id']);        
     }

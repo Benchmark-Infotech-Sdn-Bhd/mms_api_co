@@ -46,12 +46,13 @@ class FomemaClinicsController extends Controller
 	 /**
      * Display a listing of the Fomema Clinics.
      *
+     * @param Request $request
      * @return JsonResponse
      */    
-    public function retrieveAll(): JsonResponse
+    public function list(Request $request): JsonResponse
     {     
         try {   
-            $response = $this->fomemaClinicsServices->retrieveAll(); 
+            $response = $this->fomemaClinicsServices->list($request); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -64,11 +65,11 @@ class FomemaClinicsController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieve(Request $request): JsonResponse
+    public function show(Request $request): JsonResponse
     {   
         try {
             $params = $this->getRequest($request);
-            $response = $this->fomemaClinicsServices->retrieve($params); 
+            $response = $this->fomemaClinicsServices->show($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -111,23 +112,6 @@ class FomemaClinicsController extends Controller
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Delete Fomema Clinics was failed']);
         }         
-    }
-
-    /**
-     * searching FOMEMA Clinics data.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function search(Request $request): JsonResponse
-    {
-        try{
-            $response = $this->fomemaClinicsServices->search($request);
-            return $this->sendSuccess($response);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Search Fomema Clinics was failed']);
-        }
     }
     
 }

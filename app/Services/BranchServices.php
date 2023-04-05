@@ -7,6 +7,7 @@ use App\Models\Branch;
 use App\Models\Services;
 use App\Models\BranchesServices;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Config;
 
 class BranchServices
 {
@@ -81,19 +82,28 @@ class BranchServices
         return $branchData;
     }
 	 /**
-     *
+     * @param $request
      * @return LengthAwarePaginator
      */ 
-    public function retrieveAll()
+    public function list($request)
     {
-        return $this->branch::with('branchServices')->orderBy('branch.created_at','DESC')->paginate(10);
+        return $this->branch::with('branchServices')
+        ->where(function ($query) use ($request) {
+            if (isset($request['search']) && !empty($request['search'])) {
+                $query->where('branch_name', 'like', '%' . $request->search . '%')
+                ->orWhere('state', 'like', '%' . $request->search . '%')
+                ->orWhere('city', 'like', '%' . $request->search . '%');
+            }
+        })
+        ->orderBy('branch.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
 	 /**
      *
      * @param $request
      * @return mixed
      */
-    public function retrieve($request) : mixed
+    public function show($request) : mixed
     {
         return $this->branch::with('branchServices')->find($request['id']);
     }
@@ -155,8 +165,10 @@ class BranchServices
                 "message" => "Data not found"
             ];
         }
+        $data->branchServices()->delete();
+        $data->delete();
         return [
-            "isDeleted" => $data->delete(),
+            "isDeleted" => true,
             "message" => "Deleted Successfully"
         ];
     }

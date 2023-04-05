@@ -1,12 +1,9 @@
 <?php
 
 namespace Tests;
-use Faker\Factory;
-use Faker\Generator;
 
 class AccommodationTest extends TestCase
-{    
-    protected Generator $faker;
+{ 
     /**
      * A test method for create new Accommodation.
      *
@@ -14,14 +11,15 @@ class AccommodationTest extends TestCase
      */
     public function testCreateAccommodation()
     {
-        $this->faker = Factory::create();
         $payload =  [
-             'name' => $this->faker->name,
-             'location' => $this->faker->address,
+             'name' => 'test',
+             'location' => 'test',
              'maximum_pax_per_unit' => random_int(10, 1000),
              'deposit' => random_int(10, 1000),
              'rent_per_month' => random_int(10, 1000),
-             'vendor_id' => 1
+             'vendor_id' => 1,
+             'tnb_bill_account_Number' => random_int(10, 1000),
+             'water_bill_account_Number' => random_int(10, 1000),
         ];
         $response = $this->post('/api/v1/accommodation/create',$payload);
         $response->seeStatusCode(200);
@@ -34,6 +32,8 @@ class AccommodationTest extends TestCase
                     'deposit',
                     'rent_per_month',
                     'vendor_id',
+                    'tnb_bill_account_Number',
+                    'water_bill_account_Number',
                 ]
         ]);
     }
@@ -44,14 +44,16 @@ class AccommodationTest extends TestCase
      */
     public function testUpdateAccommodation()
     {
-        $this->faker = Factory::create();
         $payload =  [
             'id' => 1,
-            'name' => $this->faker->name,
+            'name' => 'test',
+            'location' => 'test',
             'maximum_pax_per_unit' => random_int(10, 1000),
             'deposit' => random_int(10, 1000),
             'rent_per_month' => random_int(10, 1000),
-            'vendor_id' => 1
+            'vendor_id' => 1,
+            'tnb_bill_account_Number' => random_int(10, 1000),
+            'water_bill_account_Number' => random_int(10, 1000),
         ];
         $response = $this->post('/api/v1/accommodation/update',$payload);
         $response->seeStatusCode(200);
@@ -69,7 +71,23 @@ class AccommodationTest extends TestCase
      */
     public function testRetrieveAllAccommodation()
     {
-        $response = $this->post("/api/v1/accommodation/retrieveAll",['id' => 1]);
+        $response = $this->post("/api/v1/accommodation/list",['vendor_id' => 1]);
+        $response->seeStatusCode(200);
+        $response->seeJsonStructure([
+            'data' =>
+                [
+                    'data'
+                ],
+        ]);
+    }
+    /**
+     * A test method for retrieve all accommodation.
+     *
+     * @return void
+     */
+    public function testSearchAccommodation()
+    {
+        $response = $this->post("/api/v1/accommodation/list",['vendor_id' => 1,'search' => 'test']);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -85,7 +103,7 @@ class AccommodationTest extends TestCase
      */
     public function testRetrieveSpecificAccommodation()
     {
-        $response = $this->post("/api/v1/accommodation/retrieve",['id' => 1]);
+        $response = $this->post("/api/v1/accommodation/show",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -96,6 +114,8 @@ class AccommodationTest extends TestCase
                     'deposit',
                     'rent_per_month',
                     'vendor_id',
+                    'tnb_bill_account_Number',
+                    'water_bill_account_Number',
                 ]
         ]);
     }

@@ -1,13 +1,9 @@
 <?php
 
 namespace Tests;
-use Faker\Factory;
-use Faker\Generator;
 
 class VendorsTest extends TestCase
 {
-    
-    protected Generator $faker;
     /**
      * A test method for create new vendor.
      *
@@ -15,17 +11,16 @@ class VendorsTest extends TestCase
      */
     public function testCreateVendor()
     {
-        $this->faker = Factory::create();
         $payload =  [
-             'name' => $this->faker->name,
+             'name' => 'name',
              'type' => 'type',
-             'email_address' => $this->faker->unique()->safeEmail,
+             'email_address' => 'email@gmail.com',
              'contact_number' => random_int(10, 1000),
              'person_in_charge' => 'test',
              'pic_contact_number' => random_int(10, 1000),
-             'address' => $this->faker->address,
-             'state' => $this->faker->state,
-             'city' => $this->faker->city,
+             'address' => 'address',
+             'state' => 'state',
+             'city' => 'city',
              'postcode' => random_int(10, 1000),
              'remarks' => 'test',
         ];
@@ -55,20 +50,19 @@ class VendorsTest extends TestCase
      */
     public function testUpdateVendor()
     {
-        $this->faker = Factory::create();
         $payload =  [
             'id' => 1,
-            'name' => $this->faker->name,
-             'type' => 'type',
-             'email_address' => $this->faker->unique()->safeEmail,
-             'contact_number' => random_int(10, 1000),
-             'person_in_charge' => 'test',
-             'pic_contact_number' => random_int(10, 1000),
-             'address' => $this->faker->address,
-             'state' => $this->faker->state,
-             'city' => $this->faker->city,
-             'postcode' => random_int(10, 1000),
-             'remarks' => 'test',
+            'name' => 'name',
+            'type' => 'type',
+            'email_address' => 'email@gmail.com',
+            'contact_number' => random_int(10, 1000),
+            'person_in_charge' => 'test',
+            'pic_contact_number' => random_int(10, 1000),
+            'address' => 'address',
+            'state' => 'state',
+            'city' => 'city',
+            'postcode' => random_int(10, 1000),
+            'remarks' => 'test',
         ];
         $response = $this->post('/api/v1/vendor/update',$payload);
         $response->seeStatusCode(200);
@@ -86,7 +80,10 @@ class VendorsTest extends TestCase
      */
     public function testRetrieveAllVendors()
     {
-        $response = $this->get("/api/v1/vendor/retrieveAll");
+        $payload =  [
+            'search' => '',
+        ];
+        $response = $this->post("/api/v1/vendor/list",$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -102,7 +99,7 @@ class VendorsTest extends TestCase
      */
     public function testRetrieveSpecificVendor()
     {
-        $response = $this->post("/api/v1/vendor/retrieve",['id' => 1]);
+        $response = $this->post("/api/v1/vendor/show",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>

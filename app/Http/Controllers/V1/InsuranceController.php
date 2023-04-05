@@ -48,11 +48,11 @@ class InsuranceController extends Controller
      * @param Request $request
      * @return JsonResponse
      */    
-    public function retrieveAll(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
     {     
         try {              
             $params = $this->getRequest($request);
-            $response = $this->insuranceServices->retrieveAll($params); 
+            $response = $this->insuranceServices->list($params); 
             return $this->sendSuccess($response); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -65,12 +65,12 @@ class InsuranceController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieve(Request $request): JsonResponse
+    public function show(Request $request): JsonResponse
     {   
         try {
             // $insurance = Insurance::find($id);
             // $vendors = $insurance->vendor;
-            $response = $this->insuranceServices->retrieve($request); 
+            $response = $this->insuranceServices->show($request); 
             return $this->sendSuccess($response);  
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -113,21 +113,5 @@ class InsuranceController extends Controller
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Delete insurance was failed']);
         } 
-    }
-    /**
-     * searching Insurance data.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function search(Request $request): JsonResponse
-    {
-        try{
-            $response = $this->insuranceServices->search($request);
-            return $this->sendSuccess($response);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Search insurance was failed']);
-        }
     }
 }
