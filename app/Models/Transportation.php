@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Transportation extends Model
 {
@@ -24,7 +25,6 @@ class Transportation extends Model
     protected $fillable = [
         'driver_name',
         'driver_contact_number',
-        'driver_license_number',
         'vehicle_type',
         'number_plate',
         'vehicle_capacity',
@@ -39,7 +39,6 @@ class Transportation extends Model
     private $rules = [
         'driver_name' => 'required|regex:/^[a-zA-Z @&$]*$/u|max:150',
         'driver_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
-        'driver_license_number' => 'required',
         'vehicle_type' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
         'number_plate' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
         'vehicle_capacity' => 'required|regex:/^[0-9]*$/',
@@ -53,7 +52,6 @@ class Transportation extends Model
         'id' => 'required',
         'driver_name' => 'required|regex:/^[a-zA-Z @&$]*$/u|max:150',
         'driver_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
-        'driver_license_number' => 'required',
         'vehicle_type' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
         'number_plate' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
         'vehicle_capacity' => 'required|regex:/^[0-9]*$/',
@@ -103,5 +101,12 @@ class Transportation extends Model
     public function vendor()
     {
         return $this->belongsTo('App\Models\Vendor');
+    }
+    /**
+     * @return hasMany
+     */
+    public function transportationAttachments()
+    {
+        return $this->hasMany('App\Models\TransportationAttachments', 'file_id');
     }
 }

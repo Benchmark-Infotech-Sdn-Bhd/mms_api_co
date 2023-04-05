@@ -7,6 +7,7 @@ use App\Models\Vendor;
 use App\Models\VendorAttachments;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Config;
 
 class VendorServices
 {
@@ -92,11 +93,25 @@ class VendorServices
 	 /**
      * Display a listing of the Vendors.
      *
+     * @param $request
      * @return LengthAwarePaginator
      */
-    public function retrieveAll()
+    public function list($request)
     {
-        return $this->vendor::with('accommodations', 'insurances', 'transportations')->orderBy('vendors.created_at','DESC')->paginate(10);
+        return $this->vendor::with('accommodations', 'insurances', 'transportations')
+        ->where(function ($query) use ($request) {
+            if (isset($request['search']) && !empty($request['search'])) {
+                $query->where('name', 'like', '%' . $request->search . '%')
+                ->orWhere('type', 'like', '%' . $request->search . '%')
+                ->orWhere('state', 'like', '%' . $request->search . '%')
+                ->orWhere('city', 'like', '%' . $request->search . '%');
+            }
+            if (isset($request['filter']) && !empty($request['filter'])) {
+                $query->where('type', '=', $request->filter);
+            }
+        })
+        ->orderBy('vendors.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
 	 /**
      * Display the data for edit form by using Vendor id.
@@ -104,7 +119,7 @@ class VendorServices
      * @param $request
      * @return mixed
      */
-    public function retrieve($request): mixed
+    public function show($request): mixed
     {    
         return $this->vendor::with('vendorAttachments')->findOrFail($request['id']);
         // $accommodations = $vendors->accommodations;
@@ -164,21 +179,6 @@ class VendorServices
         ];
     }
     /**
-     * searching vendor data.
-     *
-     * @param $request
-     * @return LengthAwarePaginator
-     */
-    public function search($request)
-    {
-        return $this->vendor->where('name', 'like', '%' . $request->search . '%')
-        ->orWhere('type', 'like', '%' . $request->search . '%')
-        ->orWhere('state', 'like', '%' . $request->search . '%')
-        ->orWhere('city', 'like', '%' . $request->search . '%')
-        ->orderBy('vendors.created_at','DESC')
-        ->paginate(10);
-    }
-    /**
      *
      * @param $request
      * @return mixed
@@ -196,17 +196,6 @@ class VendorServices
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
-    }
-    /**
-     *
-     * @param $request
-     * @return LengthAwarePaginator
-     */
-    public function filter($request)
-    {
-        return $this->vendor::with('accommodations', 'insurances', 'transportations')->where('type', '=', $request->filter)
-        ->orderBy('vendors.created_at','DESC')
-        ->paginate(10);
     }
 
 }

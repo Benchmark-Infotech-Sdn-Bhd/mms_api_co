@@ -7,6 +7,7 @@ use App\Models\Accommodation;
 use App\Models\AccommodationAttachments;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Config;
 
 class AccommodationServices
 {
@@ -65,6 +66,8 @@ class AccommodationServices
             'deposit' => $input["deposit"],
             'rent_per_month' => $input["rent_per_month"],
             'vendor_id' => $input["vendor_id"],
+            'tnb_bill_account_Number' => $input["tnb_bill_account_Number"],
+            'water_bill_account_Number' => $input["water_bill_account_Number"],
         ]);
         $accommodationId = $accommodationData->id;
         if (request()->hasFile('attachment')){
@@ -89,16 +92,28 @@ class AccommodationServices
      * @param $request
      * @return LengthAwarePaginator
      */
-    public function retrieveAll($request)
+    public function list($request)
     {
-        return $this->accommodation::with('vendor')->where('vendor_id', '=', $request['vendor_id'])->orderBy('accommodation.created_at','DESC')->paginate(10);
+        return $this->accommodation::with('vendor','accommodationAttachments')
+        ->where(function ($query) use ($request) {
+            if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
+                $query->where('vendor_id', '=', $request['vendor_id']);
+            }
+            if (isset($request['search']) && !empty($request['search'])) {
+                $query->where('vendor_id', '=', $request['vendor_id'])
+                ->where('name', 'like', '%' . $request['search'] . '%')
+                ->orWhere('location', 'like', '%' . $request['search'] . '%');
+            }
+        })
+        ->orderBy('accommodation.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
     /**
      *
      * @param $request
      * @return mixed
      */
-    public function  retrieve($request) : mixed
+    public function show($request) : mixed
     {
         return $this->accommodation::with('accommodationAttachments')->findorfail($request['id']);
     }
@@ -165,18 +180,6 @@ class AccommodationServices
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
-    }
-    /**
-     *
-     * @param $request
-     * @return LengthAwarePaginator
-     */
-    public function search($request)
-    {
-        return $this->accommodation->where('name', 'like', '%' . $request->search . '%')
-        ->orWhere('location', 'like', '%' . $request->search . '%')
-        ->orderBy('accommodation.created_at','DESC')
-        ->paginate(10);
     }
 
 }

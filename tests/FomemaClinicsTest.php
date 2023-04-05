@@ -1,12 +1,9 @@
 <?php
 
 namespace Tests;
-use Faker\Factory;
-use Faker\Generator;
 
 class FomemaClinicsTest extends TestCase
 {
-    protected Generator $faker;
     /**
      * A test method for create new Fomema Clinics.
      *
@@ -14,14 +11,13 @@ class FomemaClinicsTest extends TestCase
      */
     public function testCreateFomemaClinics()
     {
-        $this->faker = Factory::create();
         $payload =  [
-             'clinic_name' => $this->faker->name,
-             'person_in_charge' => $this->faker->name,
+             'clinic_name' => 'name',
+             'person_in_charge' => 'incharge',
              'pic_contact_number' => random_int(10, 1000),
-             'address' => $this->faker->address,
-             'state' => $this->faker->state,
-             'city' => $this->faker->city,
+             'address' => 'address',
+             'state' => 'state',
+             'city' => 'city',
              'postcode' => random_int(10, 1000),
         ];
 
@@ -47,15 +43,14 @@ class FomemaClinicsTest extends TestCase
      */
     public function testUpdateFomemaClinics()
     {
-        $this->faker = Factory::create();
         $payload =  [
             'id' => 1,
-            'clinic_name' => $this->faker->name,
-            'person_in_charge' => $this->faker->name,
+            'clinic_name' => 'name',
+            'person_in_charge' => 'incharge',
             'pic_contact_number' => random_int(10, 1000),
-            'address' => $this->faker->address,
-            'state' => $this->faker->state,
-            'city' => $this->faker->city,
+            'address' => 'address',
+            'state' => 'state',
+            'city' => 'city',
             'postcode' => random_int(10, 1000),
         ];
         $response = $this->put('/api/v1/fomemaClinics/update',$payload);
@@ -74,7 +69,10 @@ class FomemaClinicsTest extends TestCase
      */
     public function testRetrieveAllFomemaClinics()
     {
-        $response = $this->get("/api/v1/fomemaClinics/retrieveAll");
+        $payload =  [
+            'search' => '',
+        ];
+        $response = $this->post("/api/v1/fomemaClinics/list", $payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -90,7 +88,7 @@ class FomemaClinicsTest extends TestCase
      */
     public function testRetrieveSpecificFomemaClinics()
     {
-        $response = $this->post("/api/v1/fomemaClinics/retrieve",['id' => 1]);
+        $response = $this->post("/api/v1/fomemaClinics/show",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FeeRegistration extends Model
 {
@@ -24,8 +25,6 @@ class FeeRegistration extends Model
         'item_name',
         'cost',
         'fee_type',
-        'applicable_for',
-        'sectors',
     ];
     /**
      * The attributes that are required.
@@ -36,8 +35,6 @@ class FeeRegistration extends Model
         'item_name' => 'required|regex:/^[a-zA-Z0-9 @&$]*$/u|max:150',
         'cost' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
         'fee_type' => 'required',
-        'applicable_for' => 'required',
-        'sectors' => 'required',
     ];
     /**
      * The attributes that are required for updation.
@@ -49,8 +46,6 @@ class FeeRegistration extends Model
         'item_name' => 'required|regex:/^[a-zA-Z0-9 @&$]*$/u|max:150',
         'cost' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
         'fee_type' => 'required',
-        'applicable_for' => 'required',
-        'sectors' => 'required',
     ];
 
     /**
@@ -91,5 +86,19 @@ class FeeRegistration extends Model
     public function errors()
     {
         return $this->errors;
+    }
+    /**
+     * @return hasMany
+     */
+    public function feeRegistrationServices()
+    {
+        return $this->hasMany('App\Models\FeeRegServices', 'fee_reg_id');
+    }
+    /**
+     * @return hasMany
+     */
+    public function feeRegistrationSectors()
+    {
+        return $this->hasMany('App\Models\FeeRegSectors', 'fee_reg_id');
     }
 }

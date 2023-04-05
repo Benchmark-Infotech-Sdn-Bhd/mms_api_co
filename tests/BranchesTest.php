@@ -1,12 +1,9 @@
 <?php
 
 namespace Tests;
-use Faker\Factory;
-use Faker\Generator;
 
 class BranchesTest extends TestCase
 {
-    protected Generator $faker;
     /**
      * A test method for create new Branch.
      *
@@ -14,14 +11,13 @@ class BranchesTest extends TestCase
      */
     public function testCreateBranch()
     {
-        $this->faker = Factory::create();
         $payload =  [
-             'branch_name' => $this->faker->name,
-             'state' => $this->faker->state,
-             'city' => $this->faker->city,
-             'branch_address' => $this->faker->address,
+             'branch_name' => 'test',
+             'state' => 'state',
+             'city' => 'city',
+             'branch_address' => 'address',
              'postcode' => random_int(10, 1000),
-             'service_type' => '1',
+             'service_type' => ["e-Contract","Total Management","Direct Recruitment"],
              'remarks' => 'test'
         ];    
         $response = $this->post('/api/v1/branch/create',$payload);
@@ -34,7 +30,6 @@ class BranchesTest extends TestCase
                     'city',
                     'branch_address',
                     'postcode',
-                    'service_type',
                     'remarks',
                 ]
         ]);
@@ -46,15 +41,14 @@ class BranchesTest extends TestCase
      */
     public function testUpdateBranch()
     {
-        $this->faker = Factory::create();
         $payload =  [
             'id' => 1,
-            'branch_name' => $this->faker->name,
-            'state' => $this->faker->state,
-            'city' => $this->faker->city,
-            'branch_address' => $this->faker->address,
+            'branch_name' => 'test',
+            'state' => 'state',
+            'city' => 'city',
+            'branch_address' => 'address',
             'postcode' => random_int(10, 1000),
-            'service_type' => '1',
+            'service_type' => ["e-Contract","Total Management","Direct Recruitment"],
             'remarks' => 'test'
         ];
         $response = $this->put('/api/v1/branch/update',$payload);
@@ -73,7 +67,7 @@ class BranchesTest extends TestCase
      */
     public function testRetrieveAllBranch()
     {
-        $response = $this->get("/api/v1/branch/retrieveAll");
+        $response = $this->post("/api/v1/branch/list");
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -89,7 +83,7 @@ class BranchesTest extends TestCase
      */
     public function testRetrieveSpecificBranch()
     {
-        $response = $this->post("/api/v1/branch/retrieve",['id' => 1]);
+        $response = $this->post("/api/v1/branch/show",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -99,7 +93,6 @@ class BranchesTest extends TestCase
                     'city',
                     'branch_address',
                     'postcode',
-                    'service_type',
                     'remarks',
                 ]
         ]);

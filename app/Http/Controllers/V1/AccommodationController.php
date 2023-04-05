@@ -50,11 +50,11 @@ class AccommodationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieveAll(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
     {        
         try {
             $params = $this->getRequest($request);
-            $response = $this->accommodationServices->retrieveAll($params); 
+            $response = $this->accommodationServices->list($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -68,11 +68,11 @@ class AccommodationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieve(Request $request): JsonResponse
+    public function show(Request $request): JsonResponse
     {     
         try {
             $params = $this->getRequest($request);
-            $response = $this->accommodationServices->retrieve($params); 
+            $response = $this->accommodationServices->show($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -113,22 +113,6 @@ class AccommodationController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Delete accommodation was failed']);
-        }        
-    }
-    /**
-     * searching Accommodation data.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function search(Request $request): JsonResponse
-    {          
-        try{
-            $response = $this->accommodationServices->search($request); 
-            return $this->sendSuccess($response); 
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Search accommodation was failed']);
         }        
     }
     /**

@@ -49,15 +49,15 @@ class TransportationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */    
-    public function retrieveAll(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
     {        
         try {
             $params = $this->getRequest($request);
-            $response = $this->transportationServices->retrieveAll($params);
+            $response = $this->transportationServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Retrieve all transportation data was failed']);
+            return $this->sendError(['message' => $e->getMessage()]);
         }
     }
 	 /**
@@ -66,10 +66,10 @@ class TransportationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieve(Request $request): JsonResponse
+    public function show(Request $request): JsonResponse
     {      
         try {
-            $response = $this->transportationServices->retrieve($request); 
+            $response = $this->transportationServices->show($request); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -114,19 +114,19 @@ class TransportationController extends Controller
         }
     }
     /**
-     * searching transportation data.
+     * delete the specified Attachment data.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function search(Request $request): JsonResponse
-    {
-        try{
-            $response = $this->transportationServices->search($request);
+    public function deleteAttachment(Request $request): JsonResponse
+    {   
+        try {
+            $response = $this->transportationServices->deleteAttachment($request);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Search transportation was failed']);
-        }
+            return $this->sendError(['message' => 'Delete attachments was failed']);
+        }        
     }
 }

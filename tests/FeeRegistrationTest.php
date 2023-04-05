@@ -14,9 +14,9 @@ class FeeRegistrationTest extends TestCase
         $payload =  [
              'item_name' => 'Uplabs',
              'cost' => '15',
-             'fee_type' => 'Monthly',
-             'applicable_for' => 'e-contract',
-             'sectors' => 'Manufacturing',
+             'fee_type' => 'Proposal',
+             'applicable_for' => ["e-Contract","Total Management","Direct Recruitment"],
+             'sectors' => [1,2,3],
         ];
 
         $response = $this->post('/api/v1/feeRegistration/create',$payload);
@@ -26,9 +26,7 @@ class FeeRegistrationTest extends TestCase
                 [
                     "item_name",
                     "cost",
-                    "fee_type",
-                    "applicable_for",
-                    "sectors"
+                    "fee_type"
                 ]
         ]);
     }
@@ -44,8 +42,8 @@ class FeeRegistrationTest extends TestCase
             'item_name' => 'Uplabs',
             'cost' => '15',
             'fee_type' => 'Monthly',
-            'applicable_for' => 'e-contract',
-            'sectors' => 'Manufacturing',
+            'applicable_for' => ["e-Contract","Total Management","Direct Recruitment"],
+            'sectors' => [1,2,3],
         ];
         $response = $this->put('/api/v1/feeRegistration/update',$payload);
         $response->seeStatusCode(200);
@@ -63,7 +61,10 @@ class FeeRegistrationTest extends TestCase
      */
     public function testRetrieveAllFeeRegistration()
     {
-        $response = $this->get("/api/v1/feeRegistration/retrieveAll");
+        $payload =  [
+            'search' => '',
+        ];
+        $response = $this->post("/api/v1/feeRegistration/list", $payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -79,7 +80,7 @@ class FeeRegistrationTest extends TestCase
      */
     public function testRetrieveSpecificFeeRegistration()
     {
-        $response = $this->post("/api/v1/feeRegistration/retrieve",['id' => 1]);
+        $response = $this->post("/api/v1/feeRegistration/show",['id' => 2]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -87,9 +88,7 @@ class FeeRegistrationTest extends TestCase
                     "id",
                     "item_name",
                     "cost",
-                    "fee_type",
-                    "applicable_for",
-                    "sectors"
+                    "fee_type"
                 ]
         ]);
     }
