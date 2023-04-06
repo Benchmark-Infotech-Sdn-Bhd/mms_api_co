@@ -169,12 +169,20 @@ class VendorServices
     public function delete($request): mixed
     {   
         $vendors = $this->vendor::find($request['id']);
+
+        if(is_null($vendors)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
         $vendors->accommodations()->delete();
         $vendors->insurances()->delete();
         $vendors->transportations()->delete();
         $vendors->vendorAttachments()->delete();
         $vendors->delete();
-        return  [
+        return [
+            "isDeleted" => true,
             "message" => "Deleted Successfully"
         ];
     }

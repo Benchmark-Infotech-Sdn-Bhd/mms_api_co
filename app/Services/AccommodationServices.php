@@ -156,9 +156,17 @@ class AccommodationServices
     public function delete($request): mixed
     {   
         $data = $this->accommodation::find($request['id']);        
+
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
         $data->accommodationAttachments()->delete();
         $data->delete();
-        return  [
+        return [
+            "isDeleted" => true,
             "message" => "Deleted Successfully"
         ];
     }

@@ -137,6 +137,12 @@ class TransportationServices
                     ]);  
             }
         }
+        if(is_null($data)){
+            return [
+                "isUpdated" => false,
+                "message" => "Data not found"
+            ];
+        }
         return  [
             "isUpdated" => $data->update($request->all()),
             "message" => "Updated Successfully"
