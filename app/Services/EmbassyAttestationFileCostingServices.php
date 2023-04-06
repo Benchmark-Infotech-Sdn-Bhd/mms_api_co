@@ -41,7 +41,8 @@ class EmbassyAttestationFileCostingServices
             'title' => $request['title'] ?? '',
             'amount' => $request['amount'] ?? 0
         ]);
-        $count = $this->embassyAttestationFileCosting->whereNull('deleted_at')->count('id');
+        $count = $this->embassyAttestationFileCosting->whereNull('deleted_at')
+        ->where('country_id','=',$request['country_id'])->count('id');
         if($count == 1){
           $result =  $this->countriesServices->updateCostingStatus([ 'id' => $request['country_id'], 'costing_status' => 'Done' ]);
         }
@@ -98,7 +99,8 @@ class EmbassyAttestationFileCostingServices
             "message" => "Deleted Successfully"
         ];
         if($res['isDeleted']){
-            $count = $this->embassyAttestationFileCosting->whereNull('deleted_at')->count('id');
+            $count = $this->embassyAttestationFileCosting->whereNull('deleted_at')
+            ->where('country_id','=',$embassyAttestationFileCosting['country_id'])->count('id');
             if($count == 0){
             $result =  $this->countriesServices->updateCostingStatus([ 'id' => $embassyAttestationFileCosting['country_id'], 'costing_status' => 'Pending' ]);
             }
