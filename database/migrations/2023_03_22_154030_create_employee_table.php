@@ -42,6 +42,10 @@ return new class extends Migration
             $table->float('salary');
             // Employee Status column
             $table->tinyInteger('status')->default(1)->unsigned()->index();
+            // Employee city column
+            $table->string('city',150)->nullable();
+            // Employee state column
+            $table->string('state',150);
             // Column for user Id, who created the employee
             $table->integer('created_by')->default(0);
             // Column for user Id, who updated the employee
