@@ -185,4 +185,12 @@ class BranchServices
         ->orderBy('branch.created_at','DESC')
         ->paginate(10);
     }
+
+    /**
+     * @return mixed
+     */
+    public function dropDown(): mixed
+    {;
+        return $this->branch->select('id','branch_name')->orderBy('branch.created_at','DESC')->get();
+    }
 }

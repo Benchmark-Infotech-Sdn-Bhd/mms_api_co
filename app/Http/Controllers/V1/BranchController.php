@@ -111,4 +111,20 @@ class BranchController extends Controller
             return $this->sendError(['message' => 'Delete branch was failed']);
         } 
     }
+
+    /**
+     * Dropdown the branches
+     * 
+     * @return JsonResponse
+     */
+    public function dropDown(): JsonResponse
+    {
+        try {
+            $response = $this->branchServices->dropDown();
+            return $this->sendSuccess($response);
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Faild to List branches']);
+        }
+    }
 }
