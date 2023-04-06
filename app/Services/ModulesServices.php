@@ -26,7 +26,6 @@ class ModulesServices
     public function dropDown(): mixed
     {
         return $this->module->where('status', 1)
-            ->where('parent_id', 0)
             ->select('id', 'module_name')
             ->get();
     }
