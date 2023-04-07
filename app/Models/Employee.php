@@ -24,7 +24,7 @@ class Employee extends Model
      */
     protected $fillable = ['employee_name','gender','date_of_birth','ic_number','passport_number',
     'email','contact_number','address','postcode','position','branch_id','role_id','salary','status',
-    'created_by','modified_by'];
+    'city','state','created_by','modified_by'];
     /**
      * @return BelongsTo
      */
@@ -58,7 +58,9 @@ class Employee extends Model
         'branch_id' => 'required',
         'role_id' => 'required',
         'salary' => 'required',
-        'status' => 'required|regex:/^[0-1]+$/|max:1'
+        'status' => 'required|regex:/^[0-1]+$/|max:1',
+        'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
+        'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
     ];
     /**
      * The attributes that are required for updation.
@@ -80,6 +82,8 @@ class Employee extends Model
         'branch_id' => 'required',
         'role_id' => 'required',
         'salary' => 'required',
-        'status' => 'required|regex:/^[0-1]+$/|max:1'
+        'status' => 'required|regex:/^[0-1]+$/|max:1',
+        'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
+        'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
     ];
 }

@@ -40,7 +40,8 @@ class DocumentChecklistServices
             'sector_id' => $request['sector_id'] ?? 0,
             'document_title' => $request['document_title'] ?? ''
         ]);
-        $count = $this->documentChecklist->whereNull('deleted_at')->count('id');
+        $count = $this->documentChecklist->whereNull('deleted_at')
+        ->where('sector_id','=',$request['sector_id'])->count('id');
         if($count == 1){
         $result =  $this->sectorsServices->updateChecklistStatus([ 'id' => $request['sector_id'], 'checklist_status' => 'Done' ]);
         }
@@ -96,7 +97,8 @@ class DocumentChecklistServices
             "message" => "Deleted Successfully"
         ];
         if($res['isDeleted']){
-            $count = $this->documentChecklist->whereNull('deleted_at')->count('id');
+            $count = $this->documentChecklist->whereNull('deleted_at')
+            ->where('sector_id','=',$documentChecklist['sector_id'])->count('id');
             if($count == 0){
             $result =  $this->sectorsServices->updateChecklistStatus([ 'id' => $documentChecklist['sector_id'], 'checklist_status' => 'Pending' ]);
             }

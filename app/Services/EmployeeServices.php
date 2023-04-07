@@ -45,7 +45,9 @@ class EmployeeServices
             'branch_id' => $request['branch_id'],
             'role_id' => $request['role_id'],
             'salary' => $request['salary'] ?? 0,
-            'status' => $request['status'] ?? 1
+            'status' => $request['status'] ?? 1,
+            'city' => $request['city'] ?? '',
+            'state' => $request['state'] ?? ''
         ]);
     }
     /**
@@ -81,7 +83,9 @@ class EmployeeServices
                 'branch_id' => $request['branch_id'] ?? $employee['branch_id'],
                 'role_id' => $request['role_id'] ?? $employee['role_id'],
                 'salary' => $request['salary'] ?? $employee['salary'],
-                'status' => $request['status'] ?? $employee['status']
+                'status' => $request['status'] ?? $employee['status'],
+                'city' => $request['city'] ?? $employee['city'],
+                'state' => $request['state'] ?? $employee['state']
             ]),
             "message" => "Updated Successfully"
         ];
