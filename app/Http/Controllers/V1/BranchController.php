@@ -45,13 +45,13 @@ class BranchController extends Controller
     }
 	 /**
      * Display a listing of the Branch.
-     *
+     * @param Request $request
      * @return JsonResponse
      */    
-    public function retrieveAll(): JsonResponse
+    public function list(Request $request): JsonResponse
     {     
         try {   
-            $response = $this->branchServices->retrieveAll(); 
+            $response = $this->branchServices->list($request); 
             return $this->sendSuccess($response); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -64,10 +64,10 @@ class BranchController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieve(Request $request): JsonResponse
+    public function show(Request $request): JsonResponse
     {   
         try {
-            $response = $this->branchServices->retrieve($request); 
+            $response = $this->branchServices->show($request); 
             return $this->sendSuccess($response);  
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -111,20 +111,20 @@ class BranchController extends Controller
             return $this->sendError(['message' => 'Delete branch was failed']);
         } 
     }
+
     /**
-     * searching branch data.
-     *
-     * @param Request $request
+     * Dropdown the branches
+     * 
      * @return JsonResponse
      */
-    public function search(Request $request): JsonResponse
+    public function dropDown(): JsonResponse
     {
-        try{
-            $response = $this->branchServices->search($request);
+        try {
+            $response = $this->branchServices->dropDown();
             return $this->sendSuccess($response);
-        } catch (Exception $e) {
+        } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Search branch data was failed']);
+            return $this->sendError(['message' => 'Faild to List branches']);
         }
     }
 }

@@ -46,12 +46,13 @@ class FeeRegistrationController extends Controller
     /**
      * Display a listing of the Fee Registration data.
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function retrieveAll(): JsonResponse
+    public function list(Request $request): JsonResponse
     {      
         try {  
-            $response = $this->feeRegistrationServices->retrieveAll(); 
+            $response = $this->feeRegistrationServices->list($request); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -64,11 +65,11 @@ class FeeRegistrationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieve(Request $request): JsonResponse
+    public function show(Request $request): JsonResponse
     {    
         try {
             $params = $this->getRequest($request);
-            $response = $this->feeRegistrationServices->retrieve($params); 
+            $response = $this->feeRegistrationServices->show($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -92,7 +93,7 @@ class FeeRegistrationController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Fee Registration update was failed']);
+            return $this->sendError(['message' => 'Update fee registration data was failed']);
         }
     }
 	 /**
@@ -111,22 +112,6 @@ class FeeRegistrationController extends Controller
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Delete Fee Registration was failed']);
         } 
-    }
-    /**
-     * searching Fee Registration data.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function search(Request $request): JsonResponse
-    {
-        try{
-            $response = $this->feeRegistrationServices->search($request);
-            return $this->sendSuccess($response);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Search Fee Registration was failed']);
-        }
     }
     
 }

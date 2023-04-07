@@ -38,7 +38,7 @@ class InsuranceTest extends TestCase
     public function testUpdateInsurance()
     {
         $payload =  [
-            'id' => 1,
+            'id' => 2,
             'no_of_worker_from' => random_int(10, 1000),
             'no_of_worker_to' => random_int(10, 1000),
             'fee_per_pax' => random_int(10, 1000),
@@ -58,9 +58,9 @@ class InsuranceTest extends TestCase
      *
      * @return void
      */
-    public function testRetrieveAllInsurance()
+    public function testRetrieveallInsurance()
     {
-        $response = $this->post("/api/v1/insurance/retrieveAll",['id' => 1]);
+        $response = $this->post("/api/v1/insurance/list",['vendor_id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -76,7 +76,7 @@ class InsuranceTest extends TestCase
      */
     public function testRetrieveSpecificInsurance()
     {
-        $response = $this->post("/api/v1/insurance/retrieve",['id' => 1]);
+        $response = $this->post("/api/v1/insurance/show",['id' => 2]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -96,7 +96,7 @@ class InsuranceTest extends TestCase
     public function testDeleteInsurance()
     {
         $payload =  [
-            'id' => 1
+            'id' => 3
         ];
         $response = $this->post('/api/v1/insurance/delete',$payload);
         $response->seeStatusCode(200);

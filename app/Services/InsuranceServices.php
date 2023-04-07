@@ -5,6 +5,7 @@ namespace App\Services;
 
 use App\Models\Insurance;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Config;
 
 class InsuranceServices
 {
@@ -53,20 +54,33 @@ class InsuranceServices
     }
     /**
      * @param $request
-     * @return LengthAwarePaginator
+     * @return mixed
      */
-    public function retrieveAll($request)
+    public function list($request): mixed
     {
-        return $this->insurance::with('vendor')->where('vendor_id', '=', $request['vendor_id'])->orderBy('insurance.created_at','DESC')->paginate(10);
+        return $this->insurance::with('vendor')
+        ->where(function ($query) use ($request) {
+            if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
+                $query->where('vendor_id', '=', $request['vendor_id']);
+            }
+            if (isset($request['search']) && !empty($request['search'])) {
+                $query->where('vendor_id', '=', $request['vendor_id'])
+                ->where('no_of_worker_from', 'like', '%' . $request['search'] . '%')
+                ->orWhere('no_of_worker_to', 'like', '%' . $request['search'] . '%')
+                ->orWhere('fee_per_pax', 'like', '%' . $request['search'] . '%');
+            }
+        })
+        ->orderBy('insurance.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
     }
 	 /**
      *
      * @param $request
      * @return mixed
      */
-    public function retrieve($request) : mixed
+    public function show($request) : mixed
     {
-        return $this->insurance::findorfail($request['id']);
+        return $this->insurance::with('vendor')->find($request['id']);
     }
 	 /**
      *
@@ -99,18 +113,5 @@ class InsuranceServices
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
-    }
-    /**
-     *
-     * @param $request
-     * @return LengthAwarePaginator
-     */
-    public function search($request)
-    {
-        return $this->insurance->where('no_of_worker_from', 'like', '%' . $request->search . '%')
-        ->orWhere('no_of_worker_to', 'like', '%' . $request->search . '%')
-        ->orWhere('fee_per_pax', 'like', '%' . $request->search . '%')
-        ->orderBy('insurance.created_at','DESC')
-        ->paginate(10);
     }
 }

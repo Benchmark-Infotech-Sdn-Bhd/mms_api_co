@@ -48,13 +48,13 @@ class VendorController extends Controller
     }
 	 /**
      * Display a listing of the Vendors.
-     *
+     * @param Request $request
      * @return JsonResponse
      */   
-    public function retrieveAll(): JsonResponse
+    public function list(Request $request): JsonResponse
     {   
         try {
-            $response = $this->vendorServices->retrieveAll(); 
+            $response = $this->vendorServices->list($request); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -67,11 +67,11 @@ class VendorController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieve(Request $request): JsonResponse
+    public function show(Request $request): JsonResponse
     {     
         try {   
             $params = $this->getRequest($request);
-            $response = $this->vendorServices->retrieve($params); 
+            $response = $this->vendorServices->show($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -116,22 +116,6 @@ class VendorController extends Controller
         }  
     }
     /**
-     * searching Vendors data.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function search(Request $request): JsonResponse
-    {
-        try{
-            $response = $this->vendorServices->search($request);
-            return $this->sendSuccess($response);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Search vendor was failed']);
-        }
-    }
-    /**
      * delete the specified Attachment data.
      *
      * @param Request $request
@@ -147,22 +131,6 @@ class VendorController extends Controller
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Delete attachments was failed']);
         }        
-    }
-    /**
-     * searching Vendors data.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function filter(Request $request): JsonResponse
-    {
-        try{
-            $response = $this->vendorServices->filter($request);
-            return $this->sendSuccess($response);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Filter the vendor type was failed']);
-        }
     }
     
 }

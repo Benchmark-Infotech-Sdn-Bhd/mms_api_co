@@ -1,13 +1,9 @@
 <?php
 
 namespace Tests;
-use Faker\Factory;
-use Faker\Generator;
 
 class TransportationTest extends TestCase
 {
-    
-    protected Generator $faker;
     /**
      * A test method for create new transportation.
      *
@@ -15,11 +11,9 @@ class TransportationTest extends TestCase
      */
     public function testCreateTransportation()
     {
-        $this->faker = Factory::create();
         $payload =  [
-             'driver_name' => $this->faker->name,
+             'driver_name' => 'name',
              'driver_contact_number' => random_int(10, 1000),
-             'driver_license_number' => random_int(10, 1000),
              'vehicle_type' => 'type',
              'number_plate' => random_int(10, 1000),
              'vehicle_capacity' => random_int(10, 1000),
@@ -32,7 +26,6 @@ class TransportationTest extends TestCase
                 [
                     'driver_name',
                     'driver_contact_number',
-                    'driver_license_number',
                     'vehicle_type',
                     'number_plate',
                     'vehicle_capacity',
@@ -48,18 +41,16 @@ class TransportationTest extends TestCase
      */
     public function testUpdateTransportation()
     {
-        $this->faker = Factory::create();
         $payload =  [
-            'id' => 1,
-            'driver_name' => $this->faker->name,
+            'id' => 2,
+            'driver_name' => 'name',
             'driver_contact_number' => random_int(10, 1000),
-            'driver_license_number' => random_int(10, 1000),
             'vehicle_type' => 'type',
             'number_plate' => random_int(10, 1000),
             'vehicle_capacity' => random_int(10, 1000),
             'vendor_id' => 1
         ];
-        $response = $this->put('/api/v1/transportation/update',$payload);
+        $response = $this->post('/api/v1/transportation/update',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -75,7 +66,7 @@ class TransportationTest extends TestCase
      */
     public function testRetrieveAllTransportation()
     {
-        $response = $this->post("/api/v1/transportation/retrieveAll",['id' => 1]);
+        $response = $this->post("/api/v1/transportation/list",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
@@ -91,14 +82,13 @@ class TransportationTest extends TestCase
      */
     public function testRetrieveSpecificTransportation()
     {
-        $response = $this->post("/api/v1/transportation/retrieve",['id' => 1]);
+        $response = $this->post("/api/v1/transportation/show",['id' => 1]);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
                 [
                     'driver_name',
                     'driver_contact_number',
-                    'driver_license_number',
                     'vehicle_type',
                     'number_plate',
                     'vehicle_capacity',
@@ -118,6 +108,26 @@ class TransportationTest extends TestCase
             'id' => 1
         ];
         $response = $this->post('/api/v1/transportation/delete',$payload);
+        $response->seeStatusCode(200);
+        $response->seeJsonStructure([
+            'data' =>
+                [
+                    'message'
+                ]
+        ]);
+    }
+
+        /**
+     * A test method for delete existing transportation Attachment.
+     *
+     * @return void
+     */
+    public function testDeleteTransportationAttachments()
+    {
+        $payload =  [
+            'id' => 1
+        ];
+        $response = $this->post('/api/v1/transportation/deleteAttachment',$payload);
         $response->seeStatusCode(200);
         $response->seeJsonStructure([
             'data' =>
