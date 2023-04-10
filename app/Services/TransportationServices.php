@@ -94,10 +94,10 @@ class TransportationServices
             if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
                 $query->where('vendor_id', '=', $request['vendor_id']);
             }
-            if (isset($request['search']) && !empty($request['search'])) {
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('vendor_id', '=', $request['vendor_id'])
-                ->where('driver_name', 'like', '%' . $request['search'] . '%')
-                ->orWhere('vehicle_type', 'like', '%' . $request['search'] . '%');
+                ->where('driver_name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('vehicle_type', 'like', '%' . $request['search_param'] . '%');
             }
         })
         ->orderBy('transportation.created_at','DESC')

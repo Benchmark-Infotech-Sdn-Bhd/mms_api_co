@@ -63,10 +63,10 @@ class FomemaClinicsServices
     public function list($request)
     {
         return $this->fomemaClinics::where(function ($query) use ($request) {
-            if (isset($request['search']) && !empty($request['search'])) {
-                $query->where('clinic_name', 'like', '%' . $request->search . '%')
-                ->orWhere('state', 'like', '%' . $request->search . '%')
-                ->orWhere('city', 'like', '%' . $request->search . '%');
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('clinic_name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('state', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('city', 'like', '%' . $request['search_param'] . '%');
             }
         })
         ->orderBy('fomema_clinics.created_at','DESC')
@@ -112,18 +112,5 @@ class FomemaClinicsServices
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
-    }
-    /**
-     *
-     * @param $request
-     * @return LengthAwarePaginator
-     */
-    public function search($request)
-    {
-        return $this->fomemaClinics->where('clinic_name', 'like', '%' . $request->search . '%')
-        ->orWhere('state', 'like', '%' . $request->search . '%')
-        ->orWhere('city', 'like', '%' . $request->search . '%')
-        ->orderBy('fomema_clinics.created_at','DESC')
-        ->paginate(10);
     }
 }

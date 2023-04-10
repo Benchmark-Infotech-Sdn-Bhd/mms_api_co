@@ -100,11 +100,11 @@ class VendorServices
     {
         return $this->vendor::with('accommodations', 'insurances', 'transportations')
         ->where(function ($query) use ($request) {
-            if (isset($request['search']) && !empty($request['search'])) {
-                $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('type', 'like', '%' . $request->search . '%')
-                ->orWhere('state', 'like', '%' . $request->search . '%')
-                ->orWhere('city', 'like', '%' . $request->search . '%');
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('type', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('state', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('city', 'like', '%' . $request['search_param'] . '%');
             }
             if (isset($request['filter']) && !empty($request['filter'])) {
                 $query->where('type', '=', $request->filter);
