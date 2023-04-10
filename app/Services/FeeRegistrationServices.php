@@ -116,8 +116,8 @@ class FeeRegistrationServices
         return $this->feeRegistration::with('feeRegistrationServices', 'feeRegistrationSectors')
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('item_name', 'like', '%' . $request->search_param . '%')
-                ->orWhere('fee_type', 'like', '%' . $request->search_param . '%');
+                $query->where('item_name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('fee_type', 'like', '%' . $request['search_param'] . '%');
             }
             if (isset($request['filter']) && !empty($request['filter'])) {
                 $query->where('fee_type', '=', $request->filter);
@@ -217,18 +217,5 @@ class FeeRegistrationServices
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
-    }
-
-    /**
-     *
-     * @param $request
-     * @return LengthAwarePaginator
-     */
-    public function search($request)
-    {
-        return $this->feeRegistration->where('item_name', 'like', '%' . $request->search . '%')
-        ->orWhere('fee_type', 'like', '%' . $request->search . '%')
-        ->orderBy('fee_registration.created_at','DESC')
-        ->paginate(10);
     }
 }
