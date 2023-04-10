@@ -57,8 +57,15 @@ class FeeRegistrationServices
      */
     public function updateValidation($request)
     {
-        if(!($this->feeRegistration->validateUpdation($request->all()))){
-            return $this->feeRegistration->errors();
+        if(strtolower($request["fee_type"]) == 'standard'){            
+            if(!($this->feeRegistration->validateStandardUpdation($request->all()))){
+                return $this->feeRegistration->errors();
+            }
+        }
+        else{
+            if(!($this->feeRegistration->validateUpdation($request->all()))){
+                return $this->feeRegistration->errors();
+            }
         }
     }
     /**
@@ -108,9 +115,9 @@ class FeeRegistrationServices
     {
         return $this->feeRegistration::with('feeRegistrationServices', 'feeRegistrationSectors')
         ->where(function ($query) use ($request) {
-            if (isset($request['search']) && !empty($request['search'])) {
-                $query->where('item_name', 'like', '%' . $request->search . '%')
-                ->orWhere('fee_type', 'like', '%' . $request->search . '%');
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('item_name', 'like', '%' . $request->search_param . '%')
+                ->orWhere('fee_type', 'like', '%' . $request->search_param . '%');
             }
             if (isset($request['filter']) && !empty($request['filter'])) {
                 $query->where('fee_type', '=', $request->filter);
