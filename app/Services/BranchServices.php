@@ -69,7 +69,7 @@ class BranchServices
         ]);
         $branchDataId = $branchData->id;
         foreach ($request['service_type'] as $serviceType) {
-            $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
+            $serviceTypeData = $this->services->where('id', '=', $serviceType)->select('id','service_name','status')->get();
             foreach ($serviceTypeData as $service) {
                 $this->branchesServices::create([
                     'branch_id' => $branchDataId,
@@ -124,13 +124,13 @@ class BranchServices
         $branchesServiceType = $this->branchesServices->where('branch_id', '=', $request['id'])->select('service_id', 'service_name')->get();
         $branchesServiceTypeData = [];
         foreach ($branchesServiceType as $serviceType) {
-            $branchesServiceTypeData[] = $serviceType->service_name;
+            $branchesServiceTypeData[] = $serviceType->service_id;
         }
         $selectedDataToAdd = array_diff($request['service_type'], $branchesServiceTypeData);
         $selectedDataToRemove = array_diff($branchesServiceTypeData, $request['service_type']);
         if (!empty($selectedDataToAdd)) {
             foreach ($selectedDataToAdd as $serviceType) {
-                $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
+                $serviceTypeData = $this->services->where('id', '=', $serviceType)->select('id','service_name','status')->get();
                 foreach ($serviceTypeData as $service) {
                     $this->branchesServices::create([
                         'branch_id' => $request['id'],
@@ -143,7 +143,7 @@ class BranchServices
         }
         if (!empty($selectedDataToRemove)) {
             foreach ($selectedDataToRemove as $serviceType) {
-                $this->branchesServices::where('branch_id', '=' ,$request['id'])->where('service_name', '=' ,$serviceType)->delete();           
+                $this->branchesServices::where('branch_id', '=' ,$request['id'])->where('service_id', '=' ,$serviceType)->delete();           
             }            
         }
         return [
