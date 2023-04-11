@@ -82,7 +82,7 @@ class FeeRegistrationServices
         ]);
         $feeRegistrationId = $feeRegistrationData->id;
         foreach ($request['applicable_for'] as $serviceType) {
-            $servicesData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
+            $servicesData = $this->services->where('id', '=', $serviceType)->select('id','service_name','status')->get();
             foreach ($servicesData as $service) {
                 $this->feeRegServices::create([
                     'fee_reg_id' => $feeRegistrationId,
@@ -146,13 +146,13 @@ class FeeRegistrationServices
         $feeRegServicesType = $this->feeRegServices->where('fee_reg_id', '=', $request['id'])->select('service_id', 'service_name')->get();
         $feeRegServicesTypeData = [];
         foreach ($feeRegServicesType as $serviceType) {
-            $feeRegServicesTypeData[] = $serviceType->service_name;
+            $feeRegServicesTypeData[] = $serviceType->service_id;
         }
         $selectedDataToAdd = array_diff($request['applicable_for'], $feeRegServicesTypeData);
         $selectedDataToRemove = array_diff($feeRegServicesTypeData, $request['applicable_for']);
         if (!empty($selectedDataToAdd)) {
             foreach ($selectedDataToAdd as $serviceType) {
-                $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
+                $serviceTypeData = $this->services->where('id', '=', $serviceType)->select('id','service_name','status')->get();
                 foreach ($serviceTypeData as $service) {
                     $this->feeRegServices::create([
                         'fee_reg_id' => $request['id'],
@@ -165,7 +165,7 @@ class FeeRegistrationServices
         }
         if (!empty($selectedDataToRemove)) {
             foreach ($selectedDataToRemove as $serviceType) {
-                $this->feeRegServices::where('fee_reg_id', '=' ,$request['id'])->where('service_name', '=' ,$serviceType)->delete();           
+                $this->feeRegServices::where('fee_reg_id', '=' ,$request['id'])->where('service_id', '=' ,$serviceType)->delete();           
             }            
         }
         $feeRegSectorsType = $this->feeRegSectors->where('fee_reg_id', '=', $request['id'])->select('sector_id', 'sector_name')->get();
