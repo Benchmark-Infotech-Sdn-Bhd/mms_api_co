@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Branch;
 use App\Models\Role;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class Employee extends Model
+class Employee extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
