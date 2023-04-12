@@ -5,6 +5,7 @@ namespace App\Services;
 
 use App\Models\Branch;
 use App\Models\Services;
+use App\Models\State;
 use App\Models\BranchesServices;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Config;
@@ -23,12 +24,17 @@ class BranchServices
      * @var branchesServices
      */
     private BranchesServices $branchesServices;
+    /**
+     * @var state
+     */
+    private State $state;
 
-    public function __construct(Branch $branch,Services $services,BranchesServices $branchesServices)
+    public function __construct(Branch $branch,Services $services,BranchesServices $branchesServices, State $state)
     {
         $this->branch = $branch;
         $this->services = $services;
         $this->branchesServices = $branchesServices;
+        $this->state = $state;
     }
     /**
      * @param $request
@@ -177,6 +183,6 @@ class BranchServices
      */
     public function dropDown(): mixed
     {
-        return $this->branch->select('id','branch_name')->orderBy('branch.created_at','DESC')->get();
+        return $this->state->select('id','state')->get();
     }
 }
