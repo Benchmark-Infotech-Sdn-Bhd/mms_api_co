@@ -6,26 +6,25 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Services\CountriesServices;
+use App\Services\EmployeeServices;
 use Illuminate\Support\Facades\Log;
-
-class CountriesController extends Controller
+class EmployeeController extends Controller
 {
     /**
-     * @var countriesServices
+     * @var employeeServices
      */
-    private CountriesServices $countriesServices;
+    private EmployeeServices $employeeServices;
 
     /**
-     * CountriesController constructor.
-     * @param CountriesServices $countriesServices
+     * EmployeeController constructor.
+     * @param EmployeeServices $employeeServices
      */
-    public function __construct(CountriesServices $countriesServices)
+    public function __construct(EmployeeServices $employeeServices)
     {
-        $this->countriesServices = $countriesServices;
+        $this->employeeServices = $employeeServices;
     }
     /**
-     * Show the form for creating a new country.
+     * Show the form for creating a new Employee.
      *
      * @param Request $request
      * @return JsonResponse
@@ -34,7 +33,7 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->countriesServices->create($params);
+            $data = $this->employeeServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -46,7 +45,7 @@ class CountriesController extends Controller
         }
     }
     /**
-     * Show the form for updating a country.
+     * Show the form for updating a employee.
      *
      * @param Request $request
      * @return JsonResponse
@@ -55,7 +54,7 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->countriesServices->update($params);
+            $data = $this->employeeServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -67,7 +66,7 @@ class CountriesController extends Controller
         }
     }
     /**
-     * Remove the specified country.
+     * Remove the specified Employee.
      *
      * @param Request $request
      * @return JsonResponse
@@ -76,7 +75,7 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->countriesServices->delete($params);
+            $data = $this->employeeServices->delete($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -88,7 +87,7 @@ class CountriesController extends Controller
         }
     }
     /**
-     * Retrieve the specified country.
+     * Retrieve the specified Employee.
      *
      * @param Request $request
      * @return JsonResponse
@@ -97,7 +96,7 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->countriesServices->show($params);
+            $data = $this->employeeServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -109,14 +108,14 @@ class CountriesController extends Controller
         }
     }
     /**
-     * Countries dropdown.
+     * Retrieve All Employees.
      *
      * @return JsonResponse
      */
-    public function dropdown(): JsonResponse
+    public function retrieveAll(): JsonResponse
     {
         try {
-            $data = $this->countriesServices->dropdown();
+            $data = $this->employeeServices->retrieveAll();
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -125,16 +124,16 @@ class CountriesController extends Controller
         }
     }
     /**
-     * Update the costing status.
+     * Update the Employee status.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function updateCostingStatus(Request $request): JsonResponse
+    public function updateStatus(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->countriesServices->updateCostingStatus($params);
+            $data = $this->employeeServices->updateStatus($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -146,7 +145,7 @@ class CountriesController extends Controller
         }
     }
     /**
-     * Search & Retrieve all the countries.
+     * Search & Retrieve all the Employees.
      *
      * @param Request $request
      * @return JsonResponse
@@ -155,7 +154,7 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->countriesServices->list($params);
+            $data = $this->employeeServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }

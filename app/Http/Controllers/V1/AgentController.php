@@ -93,11 +93,11 @@ class AgentController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function retrieve(Request $request): JsonResponse
+    public function show(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->agentServices->retrieve($params);
+            $data = $this->agentServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -146,16 +146,16 @@ class AgentController extends Controller
         }
     }
     /**
-     * Search & Retrieve all the agents based on name,country,city,PIC.
+     * Search & Retrieve all the agents.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function searchAgents(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->agentServices->searchAgents($params);
+            $data = $this->agentServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
