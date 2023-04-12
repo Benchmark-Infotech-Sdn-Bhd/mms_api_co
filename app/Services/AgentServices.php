@@ -39,7 +39,9 @@ class AgentServices
             'person_in_charge' => $request['person_in_charge'] ?? '',
             'pic_contact_number' => $request['pic_contact_number'] ?? '',
             'email_address' => $request['email_address'] ?? '',
-            'company_address' => $request['company_address'] ?? ''
+            'company_address' => $request['company_address'] ?? '',
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0
         ]);
     }
     /**
@@ -69,7 +71,8 @@ class AgentServices
                 'person_in_charge' => $request['person_in_charge'] ?? $agent['person_in_charge'],
                 'pic_contact_number' => $request['pic_contact_number'] ?? $agent['pic_contact_number'],
                 'email_address' => $request['email_address'] ?? $agent['email_address'],
-                'company_address' => $request['company_address'] ?? $agent['company_address']
+                'company_address' => $request['company_address'] ?? $agent['company_address'],
+                'modified_by'   => $request['modified_by'] ?? $agent['modified_by']
             ]),
             "message" => "Updated Successfully"
         ];

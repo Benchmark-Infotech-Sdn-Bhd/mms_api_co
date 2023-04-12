@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\CountriesServices;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class CountriesController extends Controller
 {
@@ -34,6 +35,8 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['created_by'] = $user['id'];
             $data = $this->countriesServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -55,6 +58,8 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
             $data = $this->countriesServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 

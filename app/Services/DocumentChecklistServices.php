@@ -38,7 +38,9 @@ class DocumentChecklistServices
         }
         $checklist = $this->documentChecklist->create([
             'sector_id' => $request['sector_id'] ?? 0,
-            'document_title' => $request['document_title'] ?? ''
+            'document_title' => $request['document_title'] ?? '',
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0
         ]);
         $count = $this->documentChecklist->whereNull('deleted_at')
         ->where('sector_id','=',$request['sector_id'])->count('id');
@@ -68,8 +70,9 @@ class DocumentChecklistServices
         return [
             "isUpdated" => $documentChecklist->update([
                 'id' => $request['id'],
-                'sector_id' => $request['sector_id'] ?? 0,
-                'document_title' => $request['document_title'] ?? ''
+                'sector_id' => $request['sector_id'] ?? $documentChecklist['sector_id'],
+                'document_title' => $request['document_title'] ?? $documentChecklist['document_title'],
+                'modified_by'   => $request['modified_by'] ?? $documentChecklist['modified_by']
             ]),
             "message"=> "Updated Successfully"
         ];

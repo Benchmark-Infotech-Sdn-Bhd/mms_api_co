@@ -39,7 +39,9 @@ class EmbassyAttestationFileCostingServices
         $filecosting = $this->embassyAttestationFileCosting->create([
             'country_id' => $request['country_id'] ?? 0,
             'title' => $request['title'] ?? '',
-            'amount' => $request['amount'] ?? 0
+            'amount' => $request['amount'] ?? 0,
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0
         ]);
         $count = $this->embassyAttestationFileCosting->whereNull('deleted_at')
         ->where('country_id','=',$request['country_id'])->count('id');
@@ -69,9 +71,10 @@ class EmbassyAttestationFileCostingServices
         return [
             "isUpdated" => $embassyAttestationFileCosting->update([
                 'id' => $request['id'],
-                'country_id' => $request['country_id'] ?? 0,
-                'title' => $request['title'] ?? '',
-                'amount' => $request['amount'] ?? 0
+                'country_id' => $request['country_id'] ?? $embassyAttestationFileCosting['country_id'],
+                'title' => $request['title'] ?? $embassyAttestationFileCosting['title'],
+                'amount' => $request['amount'] ?? $embassyAttestationFileCosting['amount'],
+                'modified_by'   => $request['modified_by'] ?? $embassyAttestationFileCosting['modified_by']
             ]),
             "message"=> "Updated Successfully"
         ];

@@ -47,7 +47,9 @@ class EmployeeServices
             'salary' => $request['salary'] ?? 0,
             'status' => $request['status'] ?? 1,
             'city' => $request['city'] ?? '',
-            'state' => $request['state'] ?? ''
+            'state' => $request['state'] ?? '',
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0
         ]);
     }
     /**
@@ -85,7 +87,8 @@ class EmployeeServices
                 'salary' => $request['salary'] ?? $employee['salary'],
                 'status' => $request['status'] ?? $employee['status'],
                 'city' => $request['city'] ?? $employee['city'],
-                'state' => $request['state'] ?? $employee['state']
+                'state' => $request['state'] ?? $employee['state'],
+                'modified_by'   => $request['modified_by'] ?? $employee['modified_by']
             ]),
             "message" => "Updated Successfully"
         ];
@@ -192,5 +195,12 @@ class EmployeeServices
         })->select('employee.id','employee.employee_name','employee.email','employee.position','branch.branch_name','roles.role_name','employee.salary','employee.status')
         ->orderBy('employee.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @return mixed
+     */
+    public function dropdown() : mixed
+    {
+        return $this->employee->select('id','employee_name')->orderBy('employee.created_at','DESC')->get();
     }
 }

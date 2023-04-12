@@ -8,6 +8,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\EmployeeServices;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
+
 class EmployeeController extends Controller
 {
     /**
@@ -33,6 +35,8 @@ class EmployeeController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['created_by'] = $user['id'];
             $data = $this->employeeServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -54,6 +58,8 @@ class EmployeeController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
             $data = $this->employeeServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -158,6 +164,22 @@ class EmployeeController extends Controller
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
+    /**
+     * Employees dropdown.
+     *
+     * @return JsonResponse
+     */
+    public function dropdown(): JsonResponse
+    {
+        try {
+            $data = $this->employeeServices->dropdown();
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
