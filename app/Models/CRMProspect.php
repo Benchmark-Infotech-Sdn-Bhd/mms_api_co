@@ -5,10 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Services;
-use App\Models\LoginCredential;
-use App\Models\CRMProspectAttachment;
-use App\Models\CRMProspectService;
 
 class CRMProspect extends Model implements Auditable
 {

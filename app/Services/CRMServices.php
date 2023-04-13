@@ -143,9 +143,9 @@ class CRMServices
     }
     /**
      * @param $request
-     * @return mixed 
+     * @return bool|array 
      */
-    public function create($request): mixed
+    public function create($request): bool|array
     {
         $validator = Validator::make($request->toArray(), $this->createValidation(), $this->crmValidationCustomMessage());
         if($validator->fails()) {
@@ -214,9 +214,9 @@ class CRMServices
     }
     /**
      * @param $request
-     * @return mixed
+     * @return bool|array
      */
-    public function update($request): mixed
+    public function update($request): bool|array
     {
         $validator = Validator::make($request->toArray(), $this->updateValidation($request), $this->crmValidationCustomMessage());
         if($validator->fails()) {

@@ -115,7 +115,7 @@ class CRMController extends Controller
             return $this->sendSuccess(['message' => 'Prospect Attachment Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Delete Prospect Attachemnt']);
+            return $this->sendError(['message' => 'Failed to Delete Prospect Attachment']);
         }
     }
 }
