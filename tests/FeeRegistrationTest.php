@@ -134,7 +134,7 @@ class FeeRegistrationTest extends TestCase
     public function testRetrieveAllFeeRegistration()
     {
         $payload =  [
-            'search' => '',
+            'search_param' => '',
         ];
         $response = $this->json('POST', 'api/v1/feeRegistration/list', $payload, $this->getHeader());
         $response->seeStatusCode(200);
@@ -185,7 +185,7 @@ class FeeRegistrationTest extends TestCase
     public function testFeeRegistrationSearch()
     {
         $payload =  [
-            'search' => 'test',
+            'search_param' => 'test',
         ];
         $response = $this->json('POST', 'api/v1/feeRegistration/list', $payload, $this->getHeader());
         $response->seeStatusCode(200);
