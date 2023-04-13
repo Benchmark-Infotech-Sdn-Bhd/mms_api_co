@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class BranchesServices extends Model
+class BranchesServices extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
@@ -20,7 +22,7 @@ class BranchesServices extends Model
      *
      * @var array
      */
-    protected $fillable = ['branch_id', 'service_id', 'service_name', 'status'];
+    protected $fillable = ['branch_id', 'service_id', 'service_name', 'status','created_by','modified_by'];
 
     /**
      * @return BelongsTo

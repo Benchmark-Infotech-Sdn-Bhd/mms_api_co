@@ -9,6 +9,7 @@ use App\Models\State;
 use App\Models\BranchesServices;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Config;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class BranchServices
 {
@@ -65,6 +66,8 @@ class BranchServices
      */
     public function create($request): mixed
     {   
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
         $branchData = $this->branch::create([
             'branch_name' => $request["branch_name"],
             'state' => $request["state"],
@@ -72,6 +75,7 @@ class BranchServices
             'branch_address' => $request["branch_address"],
             'postcode' => $request["postcode"],
             'remarks' => $request["remarks"],
+            'created_by' => $request["created_by"],
         ]);
         $branchDataId = $branchData->id;
         foreach ($request['service_type'] as $serviceType) {
@@ -121,6 +125,8 @@ class BranchServices
     public function update($request): array
     {           
         $data = $this->branch::find($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['modified_by'] = $user['id'];
         if(is_null($data)){
             return [
                 "isUpdated" => false,

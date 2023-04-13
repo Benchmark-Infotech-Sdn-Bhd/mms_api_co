@@ -8,6 +8,7 @@ use App\Models\AccommodationAttachments;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Config;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AccommodationServices
 {
@@ -58,7 +59,9 @@ class AccommodationServices
      */
     public function create($request): mixed
     {     
-        $input = $request->all();        
+        $input = $request->all();  
+        $user = JWTAuth::parseToken()->authenticate();
+        $input['created_by'] = $user['id'];      
         $accommodationData = $this->accommodation::create([
             'name' => $input["name"],
             'location' => $input["location"],
@@ -68,6 +71,7 @@ class AccommodationServices
             'vendor_id' => $input["vendor_id"],
             'tnb_bill_account_Number' => $input["tnb_bill_account_Number"],
             'water_bill_account_Number' => $input["water_bill_account_Number"],
+            'created_by' => $input['created_by']
         ]);
         $accommodationId = $accommodationData->id;
         if (request()->hasFile('attachment')){
@@ -126,6 +130,8 @@ class AccommodationServices
     {    
         $data = $this->accommodation::findorfail($request['id']);
         $input = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $input['modified_by'] = $user['id']; 
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();                 
