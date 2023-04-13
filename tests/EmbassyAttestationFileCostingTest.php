@@ -45,11 +45,15 @@ class EmbassyAttestationFileCostingTest extends TestCase
      */
     public function testForEmbassyAttestationFileCostingUpdationRequiredValidation(): void
     {
+        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader());
         $response = $this->json('PUT', 'api/v1/embassyAttestationFile/update', array_merge($this->updationData(), 
-        ['country_id' => '', 'title' => '', 'amount' => '']), $this->getHeader());
+        ['id' => '','country_id' => '', 'title' => '', 'amount' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [
+                "id" => [
+                    "The id field is required."
+                ],
                 "country_id" => [
                     "The country id field is required."
                 ],
@@ -67,12 +71,20 @@ class EmbassyAttestationFileCostingTest extends TestCase
      */
     public function testForCreateEmbassyAttestationFileCosting(): void
     {
-        $response = $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             "data" =>
             [
-                'message'
+                'id',
+                'country_id',
+                'title',
+                'amount',
+                'created_by',
+                'modified_by',
+                'created_at',
+                'updated_at'
             ]
         ]);
     }
@@ -81,7 +93,8 @@ class EmbassyAttestationFileCostingTest extends TestCase
      */
     public function testForUpdateEmbassyAttestationFileCosting(): void
     {
-        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('PUT', 'api/v1/embassyAttestationFile/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
@@ -97,7 +110,8 @@ class EmbassyAttestationFileCostingTest extends TestCase
      */
     public function testForDeleteEmbassyAttestationFileCosting(): void
     {
-        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/embassyAttestationFile/delete', ['id' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
@@ -131,7 +145,8 @@ class EmbassyAttestationFileCostingTest extends TestCase
      */
     public function testForListingEmbassyAttestationFileCosting(): void
     {
-        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/embassyAttestationFile/list', ['country_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
@@ -176,13 +191,22 @@ class EmbassyAttestationFileCostingTest extends TestCase
      */
     public function testForViewEmbassyAttestationFileCosting(): void
     {
-        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/embassyAttestationFile/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             "data" =>
                 [
-                    'message'
+                    'id',
+                    'country_id',
+                    'title',
+                    'amount',
+                    'created_by',
+                    'modified_by',
+                    'created_at',
+                    'updated_at',
+                    'deleted_at'
                 ]
         ]);
     }

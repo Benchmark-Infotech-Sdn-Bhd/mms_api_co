@@ -63,11 +63,15 @@ class SectorsTest extends TestCase
      */
     public function testForSectorUpdationValidation(): void
     {
+        $this->json('POST', 'api/v1/sector/create', $this->creationData(), $this->getHeader());
         $response = $this->json('PUT', 'api/v1/sector/update', array_merge($this->updationData(), 
-        ['sector_name' => '', 'sub_sector_name' => '']), $this->getHeader());
+        ['id' => '','sector_name' => '', 'sub_sector_name' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [
+                "id" => [
+                    "The id field is required."
+                ],
                 "sector_name" => [
                     "The sector name field is required."
                 ]
@@ -112,6 +116,22 @@ class SectorsTest extends TestCase
         ]);
     }
     /**
+     * Functional test for delete Sector
+     */
+    public function testForDeleteSector(): void
+    {
+        $this->json('POST', 'api/v1/sector/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/sector/delete', ['id' => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            "data" =>
+            [
+                'isDeleted',
+                'message'
+            ]
+        ]);
+    }
+    /**
      * Functional test to list Sectors
      */
     public function testForListingSectorsWithSearch(): void
@@ -136,6 +156,21 @@ class SectorsTest extends TestCase
                     'to',
                     'total'
                 ]
+        ]);
+    }
+    /**
+     * Functional test to view Sector Required Validation
+     */
+    public function testForViewSectorRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/sector/show', ['id' => ''], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "id" => [
+                    "The id field is required."
+                ]
+            ]
         ]);
     }
     /**

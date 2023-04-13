@@ -42,11 +42,15 @@ class DocumentChecklistTest extends TestCase
      */
     public function testForDocumentChecklistUpdationRequiredValidation(): void
     {
+        $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader());
         $response = $this->json('PUT', 'api/v1/documentChecklist/update', array_merge($this->updationData(), 
-        ['sector_id' => '', 'document_title' => '']), $this->getHeader());
+        ['id' => '', 'sector_id' => '', 'document_title' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [
+                "id" => [
+                    "The id field is required."
+                ],
                 "sector_id" => [
                     "The sector id field is required."
                 ],
@@ -61,12 +65,19 @@ class DocumentChecklistTest extends TestCase
      */
     public function testForCreateDocumentChecklist(): void
     {
-        $response = $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/sector/create', ['sector_name' => 'Agriculture', 'sub_sector_name' => 'Agriculture'], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             "data" =>
             [
-                'message'
+                'id',
+                'sector_id',
+                'document_title',
+                'created_by',
+                'modified_by',
+                'created_at',
+                'updated_at'
             ]
         ]);
     }
@@ -75,7 +86,8 @@ class DocumentChecklistTest extends TestCase
      */
     public function testForUpdateDocumentChecklist(): void
     {
-        $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/sector/create', ['sector_name' => 'Agriculture', 'sub_sector_name' => 'Agriculture'], $this->getHeader());
+        $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('PUT', 'api/v1/documentChecklist/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
@@ -91,7 +103,8 @@ class DocumentChecklistTest extends TestCase
      */
     public function testForDeleteDocumentChecklist(): void
     {
-        $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/sector/create', ['sector_name' => 'Agriculture', 'sub_sector_name' => 'Agriculture'], $this->getHeader());
+        $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/documentChecklist/delete', ['id' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
@@ -125,7 +138,8 @@ class DocumentChecklistTest extends TestCase
      */
     public function testForListingDocumentChecklist(): void
     {
-        $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/sector/create', ['sector_name' => 'Agriculture', 'sub_sector_name' => 'Agriculture'], $this->getHeader());
+        $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/documentChecklist/list', ['sector_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
@@ -170,13 +184,21 @@ class DocumentChecklistTest extends TestCase
      */
     public function testForViewDocumentChecklist(): void
     {
-        $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/sector/create', ['sector_name' => 'Agriculture', 'sub_sector_name' => 'Agriculture'], $this->getHeader());
+        $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/documentChecklist/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             "data" =>
                 [
-                    'message'
+                    'id',
+                    'sector_id',
+                    'document_title',
+                    'created_by',
+                    'modified_by',
+                    'created_at',
+                    'updated_at',
+                    'deleted_at'
                 ]
         ]);
     }
