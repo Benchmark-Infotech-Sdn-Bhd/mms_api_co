@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class FeeRegistration extends Model
+class FeeRegistration extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
@@ -25,6 +27,8 @@ class FeeRegistration extends Model
         'item_name',
         'cost',
         'fee_type',
+        'created_by',
+        'modified_by',
     ];
     /**
      * The attributes that are required.

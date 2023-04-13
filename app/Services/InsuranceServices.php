@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Models\Insurance;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Config;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class InsuranceServices
 {
@@ -45,11 +46,14 @@ class InsuranceServices
      */
     public function create($request): mixed
     {   
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
         return $this->insurance::create([
             'no_of_worker_from' => $request["no_of_worker_from"],
             'no_of_worker_to' => $request["no_of_worker_to"],
             'fee_per_pax' => $request["fee_per_pax"],
             'vendor_id' => $request["vendor_id"],
+            'created_by' => $request["created_by"],
         ]);
     }
     /**
@@ -90,6 +94,8 @@ class InsuranceServices
     public function update($request): mixed
     {           
         $data = $this->insurance::findorfail($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['modified_by'] = $user['id'];
         return  [
             "isUpdated" => $data->update($request->all()),
             "message" => "Updated Successfully"

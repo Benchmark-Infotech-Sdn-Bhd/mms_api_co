@@ -350,7 +350,7 @@ class VendorsTest extends TestCase
     public function testRetrieveAllVendors()
     {
         $payload =  [
-            'search' => '',
+            'search_param' => '',
         ];
         $response = $this->json('POST', 'api/v1/vendor/list', $payload, $this->getHeader());
         $response->seeStatusCode(200);

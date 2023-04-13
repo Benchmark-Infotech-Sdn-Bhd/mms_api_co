@@ -8,6 +8,7 @@ use App\Models\VendorAttachments;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Config;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class VendorServices
 {
@@ -59,6 +60,7 @@ class VendorServices
     public function create($request): mixed
     {  
         $input = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
         $vendorData = $this->vendor::create([
             'name' => $input["name"],
             'type' => $input["type"],
@@ -71,6 +73,7 @@ class VendorServices
             'city' => $input["city"],
             'postcode' => $input["postcode"],
             'remarks' => $input["remarks"],
+            'created_by' => $user['id'],
         ]);   
         $vendorDataId = $vendorData->id;
         if (request()->hasFile('attachment')){
@@ -137,7 +140,8 @@ class VendorServices
     {  
         $input = $request->all();
         $vendors = $this->vendor::findorfail($input['id']);
-
+        $user = JWTAuth::parseToken()->authenticate();
+        $input["modified_by"] = $user['id'];
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();               
