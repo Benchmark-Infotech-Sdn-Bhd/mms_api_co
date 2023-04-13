@@ -1,113 +1,224 @@
 <?php
 
 namespace Tests;
-use Faker\Factory;
-use Faker\Generator;
+use Laravel\Lumen\Testing\DatabaseMigrations;
 
 class CountriesTest extends TestCase
 {
-    protected Generator $faker;
-    // System type
-    private $systemTypes = ["Embassy","FWCMS"];
+    use DatabaseMigrations;
+
     /**
-     * A test method for create new country.
-     *
      * @return void
      */
-    public function testNewCountry()
+    public function setUp(): void
     {
-        $this->faker = Factory::create();
-        $payload =  [
-            'country_name' => $this->faker->country,
-            'system_type' => $this->systemTypes[array_rand($this->systemTypes,1)],
-            'fee' => random_int(10, 1000)
-        ];
-        $response = $this->post('/api/v1/country/create',$payload);
-        $response->seeStatusCode(200);
-        $response->seeJsonStructure([
-            "error",
-            "statusCode",
-            "statusMessage",
-            "data",
-            "responseTime"
+        parent::setUp();
+    }
+    /**
+     * Functional test to validate Required fields for Country creation
+     * 
+     * @return void
+     */
+    public function testForCountryCreationRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
+        ['country_name' => '', 'system_type' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [ 
+            "country_name" => [
+                "The country name field is required."
+            ],
+            "system_type" => [
+                "The system type field is required."
+            ]
+            ]
         ]);
     }
     /**
-     * A test method for update existing country.
-     *
+     * Functional test to validate minimum/maximum characters for fields in Country creation
+     * 
      * @return void
      */
-    public function testUpdateCountry()
+    public function testForCountryCreationMinMaxFieldValidation(): void
     {
-        $this->faker = Factory::create();
-        $payload =  [
-            'id' => 5,
-            'country_name' => $this->faker->country,
-            'system_type' => $this->systemTypes[array_rand($this->systemTypes,1)],
-            'fee' => random_int(10, 1000)
-        ];
-        $response = $this->put('/api/v1/country/update',$payload);
-        $response->seeStatusCode(200);
-        $response->seeJsonStructure([
-            "error",
-            "statusCode",
-            "statusMessage",
-            "data",
-            "responseTime"
+        $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
+        ['country_name' => 'Malay Test fdtrddxrtdsrrtd hjuyrfds ygftrdrese erdsewswmmmmmmmmmmmkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ewsw AAAAAAAAAAAAAAA', 
+        'system_type' => 'ABC', 
+        'fee' => 67, 
+        'bond' => 6767]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+            "country_name" => [
+                "The country name must not be greater than 150 characters."
+            ],
+            "bond" => [
+                "The bond must not be greater than 3 characters."
+            ]
+            ]
         ]);
     }
     /**
-     * A test method for delete existing country.
-     *
+     * Functional test to validate format for fields in Country creation
+     * 
      * @return void
      */
-    public function testDeleteCountry()
+    public function testForCountryCreationFieldFormatValidation(): void
     {
-        $payload =  [
-            'id' => 5
-        ];
-        $response = $this->post('/api/v1/country/delete',$payload);
-        $response->seeStatusCode(200);
-        $response->seeJsonStructure([
-            "error",
-            "statusCode",
-            "statusMessage",
-            "data",
-            "responseTime"
+        $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
+        ['country_name' => 'Malay123$', 
+        'system_type' => 'Embassy', 
+        'fee' => 67, 
+        'bond' => null]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+            "country_name" => [
+                "The country name format is invalid."
+            ],
+            "bond" => [
+                "The bond format is invalid."
+            ]
+            ]
         ]);
     }
     /**
-     * A test method for retrieve all countries.
-     *
+     * Functional test to validate country Updation
+     * 
      * @return void
      */
-    public function testShouldReturnAllCountries()
+    public function testForCountryUpdationValidation(): void
     {
-        $response = $this->get("/api/v1/country/retrieveAll");
-        $response->seeStatusCode(200);
-        $response->seeJsonStructure([
-            "error",
-            "statusCode",
-            "statusMessage",
-            "data",
-            "responseTime"
+        $response = $this->json('PUT', 'api/v1/country/update', array_merge($this->updationData(), 
+        ['country_name' => '', 'system_type' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "country_name" => [
+                    "The country name field is required."
+                ],
+                "system_type" => [
+                    "The system type field is required."
+                ]
+            ]
         ]);
     }
     /**
-     * A test method for retrieve specific country.
-     *
-     * @return void
+     * Functional test for create Country
      */
-    public function testShouldReturnSpecificCountry()
+    public function testForCreateCountry(): void
     {
-        $response = $this->post("/api/v1/country/retrieve",['id' => 1]);
+        $response = $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
         $response->seeStatusCode(200);
-        $response->seeJsonStructure([
-            "error",
-            "statusCode",
-            "statusMessage",
-            "data",
-            "responseTime"
+        $this->response->assertJsonStructure([
+            "data" =>
+            [
+                'id',
+                'country_name',
+                'system_type',
+                'costing_status',
+                'fee',
+                'created_by',
+                'modified_by',
+                'created_at',
+                'updated_at',
+                "bond"
+            ]
         ]);
+    }
+    /**
+     * Functional test for update Country
+     */
+    public function testForUpdateCountry(): void
+    {
+        $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('PUT', 'api/v1/country/update', $this->updationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            "data" =>
+            [
+                'isUpdated',
+                'message'
+            ]
+        ]);
+    }
+    /**
+     * Functional test to list Countries
+     */
+    public function testForListingCountriesWithSearch(): void
+    {
+        $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/country/list', ['search_param' => ''], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            "data" =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
+        ]);
+    }
+    /**
+     * Functional test to view Country
+     */
+    public function testForViewCountry(): void
+    {
+        $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/country/show', ['id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            "data" =>
+                [
+                    'id',
+                    'country_name',
+                    'system_type',
+                    'costing_status',
+                    'fee',
+                    'created_by',
+                    'modified_by',
+                    'created_at',
+                    'updated_at',
+                    'deleted_at',
+                    "bond"
+                ]
+        ]);
+    }
+    /**
+     * Functional test for Country dropdown
+     */
+    public function testForCountryDropdown(): void
+    {
+        $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/country/dropDown', [], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            "data"
+        ]);
+    }
+    /**
+     * @return array
+     */
+    public function creationData(): array
+    {
+        return ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10];
+    }
+    /**
+     * @return array
+     */
+    public function updationData(): array
+    {
+        return ['id' => 1, 'country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10];
     }
 }
