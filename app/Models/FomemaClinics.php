@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class FomemaClinics extends Model
+class FomemaClinics extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
@@ -28,6 +30,8 @@ class FomemaClinics extends Model
         'state',
         'city',
         'postcode',
+        'created_by',
+        'modified_by',
     ];
     /**
      * The attributes that are required.

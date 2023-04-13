@@ -10,6 +10,7 @@ use App\Models\Services;
 use App\Models\FeeRegServices;
 use App\Models\FeeRegSectors;
 use App\Models\Sectors;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class FeeRegistrationServices
 {
@@ -75,10 +76,13 @@ class FeeRegistrationServices
      */
     public function create($request): mixed
     {  
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
         $feeRegistrationData = $this->feeRegistration::create([
             'item_name' => $request["item_name"],
             'cost' => $request["cost"],
             'fee_type' => $request["fee_type"],
+            'created_by' => $request["created_by"],
         ]);
         $feeRegistrationId = $feeRegistrationData->id;
         foreach ($request['applicable_for'] as $serviceType) {
@@ -143,6 +147,8 @@ class FeeRegistrationServices
     public function update($request): mixed
     {
         $data = $this->feeRegistration::findorfail($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['modified_by'] = $user['id'];
         if(strtolower($request["fee_type"]) != 'standard'){
             $feeRegServicesType = $this->feeRegServices->where('fee_reg_id', '=', $request['id'])->select('service_id', 'service_name')->get();
             $feeRegServicesTypeData = [];

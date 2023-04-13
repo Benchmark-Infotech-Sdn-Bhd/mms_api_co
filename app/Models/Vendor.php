@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class Vendor extends Model
+class Vendor extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
@@ -33,6 +35,8 @@ class Vendor extends Model
         'city',
         'postcode',
         'remarks',
+        'created_by',
+        'modified_by',
     ];
     /**
      * The attributes that are required.

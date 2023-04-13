@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class Transportation extends Model
+class Transportation extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
@@ -29,6 +31,8 @@ class Transportation extends Model
         'number_plate',
         'vehicle_capacity',
         'vendor_id',
+        'created_by',
+        'modified_by',
     ];
 
     /**
