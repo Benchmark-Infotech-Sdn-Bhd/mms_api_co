@@ -60,6 +60,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('list', 'V1\ServicesController@list');
             $router->post('dropDown', 'V1\ServicesController@dropDown');
         });
+        /**
+         * Routes for CRM.
+         */
+        $router->group(['prefix' => 'crm'], function () use ($router) {
+            $router->post('list', 'V1\CRMController@list');
+            $router->post('show', 'V1\CRMController@show');
+            $router->post('create', 'V1\CRMController@create');
+            $router->post('update', 'V1\CRMController@update');
+            $router->post('deleteAttachment', 'V1\CRMController@deleteAttachment');
+        });
     });
     /**
      * Routes for Countries.
