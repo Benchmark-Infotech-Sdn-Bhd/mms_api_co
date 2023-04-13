@@ -37,7 +37,9 @@ class CountriesServices
             'system_type' => $request['system_type'] ?? '',
             'costing_status' => "Pending",
             'fee' => $request['fee'] ?? 0,
-            'bond' => $request['bond'] ?? 0
+            'bond' => $request['bond'] ?? 0,
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0
         ]);
     }
     /**
@@ -65,7 +67,8 @@ class CountriesServices
                 'system_type' => $request['system_type'] ?? $country['system_type'],
                 'costing_status' => $country['costing_status'],
                 'fee' => $request['fee'] ?? $country['fee'],
-                'bond' => $request['bond'] ?? $country['bond']
+                'bond' => $request['bond'] ?? $country['bond'],
+                'modified_by'   => $request['modified_by'] ?? $country['modified_by']
             ]),
             "message" => "Updated Successfully"
         ];

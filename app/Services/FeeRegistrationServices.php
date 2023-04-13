@@ -57,8 +57,15 @@ class FeeRegistrationServices
      */
     public function updateValidation($request)
     {
-        if(!($this->feeRegistration->validateUpdation($request->all()))){
-            return $this->feeRegistration->errors();
+        if(strtolower($request["fee_type"]) == 'standard'){            
+            if(!($this->feeRegistration->validateStandardUpdation($request->all()))){
+                return $this->feeRegistration->errors();
+            }
+        }
+        else{
+            if(!($this->feeRegistration->validateUpdation($request->all()))){
+                return $this->feeRegistration->errors();
+            }
         }
     }
     /**
@@ -75,7 +82,7 @@ class FeeRegistrationServices
         ]);
         $feeRegistrationId = $feeRegistrationData->id;
         foreach ($request['applicable_for'] as $serviceType) {
-            $servicesData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
+            $servicesData = $this->services->where('id', '=', $serviceType)->select('id','service_name','status')->get();
             foreach ($servicesData as $service) {
                 $this->feeRegServices::create([
                     'fee_reg_id' => $feeRegistrationId,
@@ -108,9 +115,9 @@ class FeeRegistrationServices
     {
         return $this->feeRegistration::with('feeRegistrationServices', 'feeRegistrationSectors')
         ->where(function ($query) use ($request) {
-            if (isset($request['search']) && !empty($request['search'])) {
-                $query->where('item_name', 'like', '%' . $request->search . '%')
-                ->orWhere('fee_type', 'like', '%' . $request->search . '%');
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('item_name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('fee_type', 'like', '%' . $request['search_param'] . '%');
             }
             if (isset($request['filter']) && !empty($request['filter'])) {
                 $query->where('fee_type', '=', $request->filter);
@@ -136,56 +143,58 @@ class FeeRegistrationServices
     public function update($request): mixed
     {
         $data = $this->feeRegistration::findorfail($request['id']);
-        $feeRegServicesType = $this->feeRegServices->where('fee_reg_id', '=', $request['id'])->select('service_id', 'service_name')->get();
-        $feeRegServicesTypeData = [];
-        foreach ($feeRegServicesType as $serviceType) {
-            $feeRegServicesTypeData[] = $serviceType->service_name;
-        }
-        $selectedDataToAdd = array_diff($request['applicable_for'], $feeRegServicesTypeData);
-        $selectedDataToRemove = array_diff($feeRegServicesTypeData, $request['applicable_for']);
-        if (!empty($selectedDataToAdd)) {
-            foreach ($selectedDataToAdd as $serviceType) {
-                $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
-                foreach ($serviceTypeData as $service) {
-                    $this->feeRegServices::create([
-                        'fee_reg_id' => $request['id'],
-                        'service_id' => $service->id,
-                        'service_name' => $service->service_name,
-                        'status' => $service->status,
-                    ]);
+        if(strtolower($request["fee_type"]) != 'standard'){
+            $feeRegServicesType = $this->feeRegServices->where('fee_reg_id', '=', $request['id'])->select('service_id', 'service_name')->get();
+            $feeRegServicesTypeData = [];
+            foreach ($feeRegServicesType as $serviceType) {
+                $feeRegServicesTypeData[] = $serviceType->service_id;
+            }
+            $selectedDataToAdd = array_diff($request['applicable_for'], $feeRegServicesTypeData);
+            $selectedDataToRemove = array_diff($feeRegServicesTypeData, $request['applicable_for']);
+            if (!empty($selectedDataToAdd)) {
+                foreach ($selectedDataToAdd as $serviceType) {
+                    $serviceTypeData = $this->services->where('id', '=', $serviceType)->select('id','service_name','status')->get();
+                    foreach ($serviceTypeData as $service) {
+                        $this->feeRegServices::create([
+                            'fee_reg_id' => $request['id'],
+                            'service_id' => $service->id,
+                            'service_name' => $service->service_name,
+                            'status' => $service->status,
+                        ]);
+                    }
                 }
             }
-        }
-        if (!empty($selectedDataToRemove)) {
-            foreach ($selectedDataToRemove as $serviceType) {
-                $this->feeRegServices::where('fee_reg_id', '=' ,$request['id'])->where('service_name', '=' ,$serviceType)->delete();           
-            }            
-        }
-        $feeRegSectorsType = $this->feeRegSectors->where('fee_reg_id', '=', $request['id'])->select('sector_id', 'sector_name')->get();
-        $feeRegSectorsTypeData = [];
-        foreach ($feeRegSectorsType as $sector) {
-            $feeRegSectorsTypeData[] = $sector->sector_id;
-        }
-        $selectedSectorDataToAdd = array_diff($request['sectors'], $feeRegSectorsTypeData);
-        $selectedSectorDataToRemove = array_diff($feeRegSectorsTypeData, $request['sectors']);
-        if (!empty($selectedSectorDataToAdd)) {
-            foreach ($selectedSectorDataToAdd as $sectorId) {
-                $sectorData = $this->sectors->where('id', '=', $sectorId)->select('id','sector_name','sub_sector_name', 'checklist_status')->get();
-                foreach ($sectorData as $sector) {
-                    $this->feeRegSectors::create([
-                        'fee_reg_id' => $request['id'],
-                        'sector_id' => $sector->id,
-                        'sector_name' => $sector->sector_name,
-                        'sub_sector_name' => $sector->sub_sector_name,
-                        'checklist_status' => $sector->checklist_status,
-                    ]);
+            if (!empty($selectedDataToRemove)) {
+                foreach ($selectedDataToRemove as $serviceType) {
+                    $this->feeRegServices::where('fee_reg_id', '=' ,$request['id'])->where('service_id', '=' ,$serviceType)->delete();           
+                }            
+            }
+            $feeRegSectorsType = $this->feeRegSectors->where('fee_reg_id', '=', $request['id'])->select('sector_id', 'sector_name')->get();
+            $feeRegSectorsTypeData = [];
+            foreach ($feeRegSectorsType as $sector) {
+                $feeRegSectorsTypeData[] = $sector->sector_id;
+            }
+            $selectedSectorDataToAdd = array_diff($request['sectors'], $feeRegSectorsTypeData);
+            $selectedSectorDataToRemove = array_diff($feeRegSectorsTypeData, $request['sectors']);
+            if (!empty($selectedSectorDataToAdd)) {
+                foreach ($selectedSectorDataToAdd as $sectorId) {
+                    $sectorData = $this->sectors->where('id', '=', $sectorId)->select('id','sector_name','sub_sector_name', 'checklist_status')->get();
+                    foreach ($sectorData as $sector) {
+                        $this->feeRegSectors::create([
+                            'fee_reg_id' => $request['id'],
+                            'sector_id' => $sector->id,
+                            'sector_name' => $sector->sector_name,
+                            'sub_sector_name' => $sector->sub_sector_name,
+                            'checklist_status' => $sector->checklist_status,
+                        ]);
+                    }
                 }
             }
-        }
-        if (!empty($selectedSectorDataToRemove)) {
-            foreach ($selectedSectorDataToRemove as $sectorId) {
-                $this->feeRegSectors::where('fee_reg_id', '=' ,$request['id'])->where('sector_id', '=' ,$sectorId)->delete();           
-            }            
+            if (!empty($selectedSectorDataToRemove)) {
+                foreach ($selectedSectorDataToRemove as $sectorId) {
+                    $this->feeRegSectors::where('fee_reg_id', '=' ,$request['id'])->where('sector_id', '=' ,$sectorId)->delete();           
+                }            
+            }
         }
         return  [
             "isUpdated" => $data->update($request->all()),
@@ -210,18 +219,5 @@ class FeeRegistrationServices
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
-    }
-
-    /**
-     *
-     * @param $request
-     * @return LengthAwarePaginator
-     */
-    public function search($request)
-    {
-        return $this->feeRegistration->where('item_name', 'like', '%' . $request->search . '%')
-        ->orWhere('fee_type', 'like', '%' . $request->search . '%')
-        ->orderBy('fee_registration.created_at','DESC')
-        ->paginate(10);
     }
 }

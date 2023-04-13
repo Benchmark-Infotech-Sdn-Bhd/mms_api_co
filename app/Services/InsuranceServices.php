@@ -63,11 +63,11 @@ class InsuranceServices
             if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
                 $query->where('vendor_id', '=', $request['vendor_id']);
             }
-            if (isset($request['search']) && !empty($request['search'])) {
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('vendor_id', '=', $request['vendor_id'])
-                ->where('no_of_worker_from', 'like', '%' . $request['search'] . '%')
-                ->orWhere('no_of_worker_to', 'like', '%' . $request['search'] . '%')
-                ->orWhere('fee_per_pax', 'like', '%' . $request['search'] . '%');
+                ->where('no_of_worker_from', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('no_of_worker_to', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('fee_per_pax', 'like', '%' . $request['search_param'] . '%');
             }
         })
         ->orderBy('insurance.created_at','DESC')

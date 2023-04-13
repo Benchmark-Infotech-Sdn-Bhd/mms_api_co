@@ -99,10 +99,10 @@ class AccommodationServices
             if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
                 $query->where('vendor_id', '=', $request['vendor_id']);
             }
-            if (isset($request['search']) && !empty($request['search'])) {
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('vendor_id', '=', $request['vendor_id'])
-                ->where('name', 'like', '%' . $request['search'] . '%')
-                ->orWhere('location', 'like', '%' . $request['search'] . '%');
+                ->where('name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('location', 'like', '%' . $request['search_param'] . '%');
             }
         })
         ->orderBy('accommodation.created_at','DESC')

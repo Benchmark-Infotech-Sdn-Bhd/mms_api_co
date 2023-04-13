@@ -11,20 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('fee_registration', function (Blueprint $table) {
-            if (DB::getDriverName() !== 'sqlite') {
-                $table->dropColumn('applicable_for');
-                $table->dropColumn('sectors');
-            }
+        Schema::create('state', function (Blueprint $table) {
+            $table->id();
+            $table->string('state',255);
+            $table->timestamps();
         });
-    } 
+    }
+
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::table('fee_registration', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('state');
     }
 };
