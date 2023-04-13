@@ -21,7 +21,7 @@ return new class extends Migration
             // Director or Company Owner column
             $table->string('director_or_owner', 255);
             // Contact number column
-            $table->integer('contact_number')->default(0);  
+            $table->string('contact_number')->nullable();  
             // Email id Column
             $table->string('email', 250)->unique();
             // Address Column
@@ -31,7 +31,7 @@ return new class extends Migration
             // Person in charge name column
             $table->string('pic_name', 255);
             // Person in charge contact number column
-            $table->integer('pic_contact_number')->default(0);
+            $table->string('pic_contact_number')->nullable();
             // Person in charge designation
             $table->string('pic_designation', 255);
             // CRM prospect registered by id column

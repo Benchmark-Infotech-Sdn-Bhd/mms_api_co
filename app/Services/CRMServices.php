@@ -8,6 +8,7 @@ use App\Models\CRMProspectAttachment;
 use App\Models\LoginCredential;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class CRMServices
 {
@@ -56,37 +57,49 @@ class CRMServices
         return [
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
-            'contact_number' => 'required|regex:/^[0-9 ]*$/|max:11',
-            'prospect_service' => 'required',
-            'email' => 'required|email',
+            'contact_number' => 'required|integer|digits_between: 1,11',
+            'email' => 'required|email|unique:crm_prospects',
             'address' => 'required',
             'pic_name' => 'required|regex:/^[a-zA-Z ]*$/',
-            'pic_contact_number' => 'required|/^[0-9 ]*$/|max:11',
+            'pic_contact_number' => 'required|integer|digits_between: 1,11',
             'pic_designation' => 'required|regex:/^[a-zA-Z ]*$/',
             'registered_by' => 'required',
             'sector_type' => 'required',
-            'attachment' => 'mimes:jpeg,pdf,png|size:2048'
+            'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];
     }
     /**
+     * @param $params
      * @return array
      */
-    public function updateValidation(): array
+    public function updateValidation($params): array
     {
         return [
             'id' => 'required',
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
-            'contact_number' => 'required|regex:/^[0-9 ]*$/|max:11',
-            'prospect_service' => 'required',
-            'email' => 'required|email',
+            'contact_number' => 'required|integer|digits_between: 1,11',
+            'email' => 'required|unique:crm_prospects,email,'.$params['id'],
             'address' => 'required',
             'pic_name' => 'required|regex:/^[a-zA-Z ]*$/',
-            'pic_contact_number' => 'required|/^[0-9 ]*$/|max:11',
+            'pic_contact_number' => 'required|integer|digits_between: 1,11',
             'pic_designation' => 'required|regex:/^[a-zA-Z ]*$/',
             'registered_by' => 'required',
             'sector_type' => 'required',
-            'attachment' => 'mimes:jpeg,pdf,png|size:2048'
+            'attachment.*' => 'mimes:jpeg,pdf,png'
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function crmValidationCustomMessage(): array
+    {
+        return [
+            'attachment.*.max' => 'The attachment size must be within 2MB.',
+            'contact_number.integer' => 'The contact number format is invalid.',
+            'contact_number.digits_between' => 'The contact number must be within 11 digits.',
+            'pic_contact_number.integer' => 'The PIC contact number format is invalid.',
+            'pic_contact_number.digits_between' => 'The PIC contact number must be within 11 digits.'
         ];
     }
     /**
@@ -130,10 +143,16 @@ class CRMServices
     }
     /**
      * @param $request
-     * @return bool 
+     * @return mixed 
      */
-    public function create($request): bool
+    public function create($request): mixed
     {
+        $validator = Validator::make($request->toArray(), $this->createValidation(), $this->crmValidationCustomMessage());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
         $prospect  = $this->crmProspect->create([
             'company_name'          => $request['company_name'] ?? '',
             'roc_number'            => $request['roc_number'] ?? '',
@@ -195,10 +214,16 @@ class CRMServices
     }
     /**
      * @param $request
-     * @return bool
+     * @return mixed
      */
-    public function update($request): bool
+    public function update($request): mixed
     {
+        $validator = Validator::make($request->toArray(), $this->updateValidation($request), $this->crmValidationCustomMessage());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
         $prospect = $this->crmProspect->findOrFail($request['id']);
         $prospect['company_name'] = $request['company_name'] ?? $prospect['company_name'];
         $prospect['roc_number'] = $request['roc_number'] ?? $prospect['roc_number'];

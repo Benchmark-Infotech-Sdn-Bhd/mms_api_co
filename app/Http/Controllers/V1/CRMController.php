@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Services\CRMServices;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class CRMController extends Controller
 {
@@ -68,7 +70,10 @@ class CRMController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $request['created_by'] = $user['id'];
-            $this->crmServices->create($request);
+            $response = $this->crmServices->create($request);
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
             return $this->sendSuccess(['message' => 'Prospect Created Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -86,7 +91,10 @@ class CRMController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $request['modified'] = $user['id'];
-            $this->crmServices->update($request);
+            $response = $this->crmServices->update($request);
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
             return $this->sendSuccess(['message' => 'Prospect Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

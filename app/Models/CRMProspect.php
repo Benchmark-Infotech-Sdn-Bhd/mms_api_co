@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Services;
 use App\Models\LoginCredential;
 use App\Models\CRMProspectAttachment;
+use App\Models\CRMProspectService;
 
 class CRMProspect extends Model implements Auditable
 {
@@ -24,13 +24,12 @@ class CRMProspect extends Model implements Auditable
     protected $fillable = [
         'company_name', 'roc_number', 'director_or_owner', 'contact_number', 'email', 'address', 'status', 'pic_name', 'pic_contact_number', 'pic_designation', 'registered_by', 'sector_type', 'created_by', 'modified_by'
     ];
-
     /**
-     * @return BelongsToMany
+     * @return HasMany
      */
-    public function prospectServices(): BelongsToMany
+    public function prospectServices(): HasMany
     {
-        return $this->belongsToMany(Services::class, 'crm_prospect_services', 'crm_prospect_id', 'service_id');
+        return $this->hasMany(CRMProspectService::class, 'crm_prospect_id');
     }
     /**
      * @return HasMany
