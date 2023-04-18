@@ -90,11 +90,15 @@ class CountriesTest extends TestCase
      */
     public function testForCountryUpdationValidation(): void
     {
+        $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
         $response = $this->json('PUT', 'api/v1/country/update', array_merge($this->updationData(), 
-        ['country_name' => '', 'system_type' => '']), $this->getHeader());
+        ['id' => '', 'country_name' => '', 'system_type' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [
+                "id" => [
+                    "The id field is required."
+                ],
                 "country_name" => [
                     "The country name field is required."
                 ],
@@ -123,7 +127,7 @@ class CountriesTest extends TestCase
                 'modified_by',
                 'created_at',
                 'updated_at',
-                "bond"
+                'bond'
             ]
         ]);
     }
@@ -139,6 +143,22 @@ class CountriesTest extends TestCase
             "data" =>
             [
                 'isUpdated',
+                'message'
+            ]
+        ]);
+    }
+    /**
+     * Functional test for delete Country
+     */
+    public function testForDeleteCountry(): void
+    {
+        $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/country/delete', ['id' => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            "data" =>
+            [
+                'isDeleted',
                 'message'
             ]
         ]);
@@ -171,6 +191,21 @@ class CountriesTest extends TestCase
         ]);
     }
     /**
+     * Functional test to view Country Required Validation
+     */
+    public function testForViewCountryRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/country/show', ['id' => ''], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "id" => [
+                    "The id field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
      * Functional test to view Country
      */
     public function testForViewCountry(): void
@@ -191,7 +226,7 @@ class CountriesTest extends TestCase
                     'created_at',
                     'updated_at',
                     'deleted_at',
-                    "bond"
+                    'bond'
                 ]
         ]);
     }
