@@ -55,6 +55,7 @@ class RolesServices
                 }
             })
             ->select('id', 'role_name', 'status')
+            ->orderBy('id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
 
