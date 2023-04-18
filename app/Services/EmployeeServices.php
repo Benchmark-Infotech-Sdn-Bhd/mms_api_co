@@ -45,7 +45,7 @@ class EmployeeServices
             'branch_id' => $request['branch_id'],
             'role_id' => $request['role_id'],
             'salary' => $request['salary'] ?? 0,
-            'status' => $request['status'] ?? 1,
+            'status' => 1,
             'city' => $request['city'] ?? '',
             'state' => $request['state'] ?? '',
             'created_by'    => $request['created_by'] ?? 0,
@@ -85,7 +85,7 @@ class EmployeeServices
                 'branch_id' => $request['branch_id'] ?? $employee['branch_id'],
                 'role_id' => $request['role_id'] ?? $employee['role_id'],
                 'salary' => $request['salary'] ?? $employee['salary'],
-                'status' => $request['status'] ?? $employee['status'],
+                'status' => $employee['status'],
                 'city' => $request['city'] ?? $employee['city'],
                 'state' => $request['state'] ?? $employee['state'],
                 'modified_by'   => $request['modified_by'] ?? $employee['modified_by']
@@ -143,7 +143,7 @@ class EmployeeServices
      */
     public function updateStatus($request) : array
     {
-        if(!($this->validationServices->validate($request,['id' => 'required','status' => 'required']))){
+        if(!($this->validationServices->validate($request,['id' => 'required','status' => 'required|regex:/^[0-1]+$/|max:1']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];

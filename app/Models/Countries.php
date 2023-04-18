@@ -43,7 +43,7 @@ class Countries extends Model implements Auditable
      * @var array
      */
     public $rules = [
-        'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
+        'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150|unique:countries,country_name',
         'system_type' => 'required',
         'bond' => 'regex:/^[0-9]+$/|max:3'
     ];

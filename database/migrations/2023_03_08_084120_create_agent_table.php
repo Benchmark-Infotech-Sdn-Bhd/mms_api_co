@@ -25,7 +25,7 @@ return new class extends Migration
             // Agent PIC contact number column
             $table->string('pic_contact_number',11);
             // Agent email address column
-            $table->string('email_address',150);
+            $table->string('email_address',150)->unique();
             // Agent company address column
             $table->text('company_address');
             // Column for user Id, who created the agent

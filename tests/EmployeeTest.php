@@ -65,9 +65,6 @@ class EmployeeTest extends TestCase
                 "salary" => [
                     "The salary field is required."
                 ],
-                "status" => [
-                    "The status field is required."
-                ],
                 "state" => [
                     "The state field is required."
                 ]
@@ -91,7 +88,7 @@ class EmployeeTest extends TestCase
          'position' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiuery sdjrkwiherihwijerhtwrt ', 
          'branch_id' => 1,
          'role_id' => 1, 
-         'salary' => 67.00, 'status' => 12, 
+         'salary' => 67.00, 'status' => 1, 
          'city' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiuery sdjrkwiherihwijerhtwrt ', 
          'state' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiuery sdjrkwiherihwijerhtwrt  ']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -118,10 +115,6 @@ class EmployeeTest extends TestCase
                 "position" => [
                     "The position must not be greater than 150 characters."
                 ],
-                "status" => [
-                    "The status format is invalid.",
-                    "The status must not be greater than 1 characters."
-                ],
                 "city" => [
                     "The city must not be greater than 150 characters."
                 ],
@@ -142,7 +135,7 @@ class EmployeeTest extends TestCase
         ['employee_name' => 'Test', 'gender' => 'Female', 'date_of_birth' => '12-11-1998', 
         'ic_number' => 'ABC', 'passport_number' => 'ADI@3', 'email' => 'testgmail.com', 'contact_number' => 'ABC',
         'address' => 'Addres', 'postcode' => 'ABC', 'position' => 'Position', 'branch_id' => 1,
-        'role_id' => 1, 'salary' => 67.00, 'status' => 'A', 'city' => 'Malay123A', 'state' => 'Malaysia123']), $this->getHeader());
+        'role_id' => 1, 'salary' => 67.00, 'status' => 1, 'city' => 'Malay123A', 'state' => 'Malaysia123']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [
@@ -163,9 +156,6 @@ class EmployeeTest extends TestCase
                 ],
                 "postcode" => [
                     "The postcode format is invalid."
-                ],
-                "status" => [
-                    "The status format is invalid."
                 ],
                 "city" => [
                     "The city format is invalid."
@@ -188,7 +178,7 @@ class EmployeeTest extends TestCase
         ['id' => '', 'employee_name' => '', 'gender' => '', 'date_of_birth' => '', 
         'ic_number' => '', 'passport_number' => '', 'email' => '', 'contact_number' => '',
         'address' => '', 'postcode' => '', 'position' => '', 'branch_id' => '',
-        'role_id' => '', 'salary' => '', 'status' => '', 'city' => '', 'state' => '']), $this->getHeader(false));
+        'role_id' => '', 'salary' => '', 'status' => 1, 'city' => '', 'state' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [
@@ -230,9 +220,6 @@ class EmployeeTest extends TestCase
                 ],
                 "salary" => [
                     "The salary field is required."
-                ],
-                "status" => [
-                    "The status field is required."
                 ],
                 "state" => [
                     "The state field is required."
@@ -294,6 +281,40 @@ class EmployeeTest extends TestCase
             [
                 'isUpdated',
                 'message'
+            ]
+        ]);
+    }
+    /**
+     * Functional test to update status for Employee Required Validation
+     */
+    public function testForUpdateEmployeeStatusRequiredValidation(): void
+    {
+        $response = $this->json('PUT', 'api/v1/employee/updateStatus', ['id' => '','status' => ''], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "id" => [
+                    "The id field is required."
+                ],
+                "status" => [
+                    "The status field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to update status for Employee Format/MinMax Validation
+     */
+    public function testForUpdateEmployeeStatusFormatAndMinMaxValidation(): void
+    {
+        $response = $this->json('PUT', 'api/v1/employee/updateStatus', ['id' => 1,'status' => 12], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "status" => [
+                    "The status format is invalid.",
+                    "The status must not be greater than 1 characters."
+                ],
             ]
         ]);
     }
