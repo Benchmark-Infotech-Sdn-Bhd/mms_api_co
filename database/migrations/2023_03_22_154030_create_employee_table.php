@@ -25,7 +25,7 @@ return new class extends Migration
             // Employee Passport number column
             $table->string('passport_number')->nullable()->index();
             // Employee Email column
-            $table->string('email',150)->index();
+            $table->string('email',150)->unique()->index();
             // Employee contact number column
             $table->bigInteger('contact_number')->default(0);
             // Employee Address column

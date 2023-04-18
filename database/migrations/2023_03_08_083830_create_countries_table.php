@@ -15,7 +15,7 @@ return new class extends Migration
             // Countries Id column
             $table->id();
             // Countries Name column
-            $table->string('country_name',150);
+            $table->string('country_name',150)->unique();
             // Countries System type column
             $table->enum('system_type',['Embassy','FWCMS'])->default('FWCMS');
             // Countries Costing status column

@@ -43,7 +43,7 @@ class Agent extends Model implements Auditable
         'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
         'person_in_charge' => 'required|max:255',
         'pic_contact_number' => 'required|regex:/^[0-9]+$/|max:11',
-        'email_address' => 'required|email',
+        'email_address' => 'required|email|unique:agent,email_address',
         'company_address' => 'required'
     ];
     /**
