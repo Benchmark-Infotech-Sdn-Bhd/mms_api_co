@@ -36,15 +36,16 @@ class EmployeeServices
             'employee_name' => $request['employee_name'] ?? '',
             'gender' => $request['gender'] ?? '',
             'date_of_birth' => $request['date_of_birth'] ?? '',
-            'ic_number' => $request['ic_number'] ?? '',
+            'ic_number' => (int)$request['ic_number'] ?? 0,
             'passport_number' => $request['passport_number'] ?? '',
             'email' => $request['email'] ?? '',
+            'contact_number' => (int)$request['contact_number'] ?? 0,
             'address' => $request['address'] ?? '',
-            'postcode' => $request['postcode'] ?? '',
+            'postcode' => (int)$request['postcode'] ?? 0,
             'position' => $request['position'] ?? '',
-            'branch_id' => $request['branch_id'],
-            'role_id' => $request['role_id'],
-            'salary' => $request['salary'] ?? 0,
+            'branch_id' => (int)$request['branch_id'],
+            'role_id' => (int)$request['role_id'],
+            'salary' => (float)$request['salary'] ?? 0,
             'status' => 1,
             'city' => $request['city'] ?? '',
             'state' => $request['state'] ?? '',
@@ -58,7 +59,7 @@ class EmployeeServices
      */
     public function update($request) : array
     {
-        if(!($this->validationServices->validate($request,$this->employee->rulesForUpdation))){
+        if(!($this->validationServices->validate($request,$this->employee->rulesForUpdation($request['id'])))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
@@ -76,15 +77,16 @@ class EmployeeServices
                 'employee_name' => $request['employee_name'] ?? $employee['employee_name'],
                 'gender' => $request['gender'] ?? $employee['gender'],
                 'date_of_birth' => $request['date_of_birth'] ?? $employee['date_of_birth'],
-                'ic_number' => $request['ic_number'] ?? $employee['ic_number'],
+                'ic_number' => (int)$request['ic_number'] ?? $employee['ic_number'],
                 'passport_number' => $request['passport_number'] ?? $employee['passport_number'],
                 'email' => $request['email'] ?? $employee['email'],
+                'contact_number' => (int)$request['contact_number'] ?? $employee['contact_number'],
                 'address' => $request['address'] ?? $employee['address'],
-                'postcode' => $request['postcode'] ?? $employee['postcode'],
+                'postcode' => (int)$request['postcode'] ?? $employee['postcode'],
                 'position' => $request['position'] ?? $employee['position'],
-                'branch_id' => $request['branch_id'] ?? $employee['branch_id'],
-                'role_id' => $request['role_id'] ?? $employee['role_id'],
-                'salary' => $request['salary'] ?? $employee['salary'],
+                'branch_id' => (int)$request['branch_id'] ?? $employee['branch_id'],
+                'role_id' =>(int) $request['role_id'] ?? $employee['role_id'],
+                'salary' => (float)$request['salary'] ?? $employee['salary'],
                 'status' => $employee['status'],
                 'city' => $request['city'] ?? $employee['city'],
                 'state' => $request['state'] ?? $employee['state'],

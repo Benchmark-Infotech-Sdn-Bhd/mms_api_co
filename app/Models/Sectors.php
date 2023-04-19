@@ -45,7 +45,7 @@ class Sectors extends Model implements Auditable
      * @var array
      */
     public $rulesForUpdation = [
-        'id' => 'required',
+        'id' => 'required|regex:/^[0-9]+$/',
         'sector_name' => 'required|max:255',
         'sub_sector_name' => 'max:255'
     ];

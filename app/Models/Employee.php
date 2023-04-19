@@ -48,42 +48,46 @@ class Employee extends Model implements Auditable
      */
     public $rules = [
         'employee_name' => 'required|max:255',
-        'gender' => 'required|max:15',
+        'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
         'date_of_birth' => 'required|date_format:Y-m-d',
         'ic_number' => 'required|regex:/^[0-9]+$/|max:12',
         'passport_number' => 'regex:/^[a-zA-Z0-9]*$/',
-        'email' => 'required|email|max:150|unique:employee,email',
+        'email' => 'required|email|max:150|unique:employee,email,NULL,id,deleted_at,NULL',
         'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
         'address' => 'required',
         'postcode' => 'required|regex:/^[0-9]+$/|max:5',
         'position' => 'required|max:150',
-        'branch_id' => 'required',
-        'role_id' => 'required',
-        'salary' => 'required',
+        'branch_id' => 'required|regex:/^[0-9]+$/',
+        'role_id' => 'required|regex:/^[0-9]+$/',
+        'salary' => 'required|regex:/^(([0-9]*)(\.([0-9]{0,2}+))?)$/',
         'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
         'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
     ];
     /**
-     * The attributes that are required for updation.
-     *
-     * @var array
+     * The function returns array that are required for updation.
+     * @param $params
+     * @return array
      */
-    public $rulesForUpdation = [
-        'id' => 'required',
-        'employee_name' => 'required|max:255',
-        'gender' => 'required|max:15',
-        'date_of_birth' => 'required|date_format:Y-m-d',
-        'ic_number' => 'required|regex:/^[0-9]+$/|max:12',
-        'passport_number' => 'regex:/^[a-zA-Z0-9]*$/',
-        'email' => 'required|email|max:150',
-        'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
-        'address' => 'required',
-        'postcode' => 'required|regex:/^[0-9]+$/|max:5',
-        'position' => 'required|max:150',
-        'branch_id' => 'required',
-        'role_id' => 'required',
-        'salary' => 'required',
-        'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
-        'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
-    ];
+    public function rulesForUpdation($id): array
+    {
+        // Unique name with deleted at
+        return [
+            'id' => 'required|regex:/^[0-9]+$/',
+            'employee_name' => 'required|max:255',
+            'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
+            'date_of_birth' => 'required|date_format:Y-m-d',
+            'ic_number' => 'required|regex:/^[0-9]+$/|max:12',
+            'passport_number' => 'regex:/^[a-zA-Z0-9]*$/',
+            'email' => 'required|email|max:150|unique:employee,email,'.$id.',id,deleted_at,NULL',
+            'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
+            'address' => 'required',
+            'postcode' => 'required|regex:/^[0-9]+$/|max:5',
+            'position' => 'required|max:150',
+            'branch_id' => 'required|regex:/^[0-9]+$/',
+            'role_id' => 'required|regex:/^[0-9]+$/',
+            'salary' => 'required|regex:/^(([0-9]*)(\.([0-9]{0,2}+))?)$/',
+            'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
+            'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
+        ];
+    }
 }

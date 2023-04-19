@@ -37,7 +37,7 @@ class DocumentChecklist extends Model implements Auditable
      * @var array
      */
     public $rules = [
-        'sector_id' => 'required',
+        'sector_id' => 'required|regex:/^[0-9]+$/',
         'document_title' => 'required'
     ];
     /**
@@ -46,8 +46,8 @@ class DocumentChecklist extends Model implements Auditable
      * @var array
      */
     public $rulesForUpdation = [
-        'id' => 'required',
-        'sector_id' => 'required',
+        'id' => 'required|regex:/^[0-9]+$/',
+        'sector_id' => 'required|regex:/^[0-9]+$/',
         'document_title' => 'required'
     ];
 }

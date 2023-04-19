@@ -37,9 +37,9 @@ class EmbassyAttestationFileCosting extends Model implements Auditable
      * @var array
      */
     public $rules = [
-        'country_id' => 'required',
+        'country_id' => 'required|regex:/^[0-9]+$/',
         'title' => 'required',
-        'amount' => 'required'
+        'amount' => 'required|regex:/^(([0-9]*)(\.([0-9]{0,2}+))?)$/'
     ];
     /**
      * The attributes that are required for updation.
@@ -47,9 +47,9 @@ class EmbassyAttestationFileCosting extends Model implements Auditable
      * @var array
      */
     public $rulesForUpdation = [
-        'id' => 'required',
-        'country_id' => 'required',
+        'id' => 'required|regex:/^[0-9]+$/',
+        'country_id' => 'required|regex:/^[0-9]+$/',
         'title' => 'required',
-        'amount' => 'required'
+        'amount' => 'required|regex:/^(([0-9]*)(\.([0-9]{0,2}+))?)$/'
     ];
 }
