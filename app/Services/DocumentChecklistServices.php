@@ -37,7 +37,7 @@ class DocumentChecklistServices
             ];
         }
         $checklist = $this->documentChecklist->create([
-            'sector_id' => $request['sector_id'] ?? 0,
+            'sector_id' => (int)$request['sector_id'] ?? 0,
             'document_title' => $request['document_title'] ?? '',
             'created_by'    => $request['created_by'] ?? 0,
             'modified_by'   => $request['created_by'] ?? 0
@@ -70,7 +70,7 @@ class DocumentChecklistServices
         return [
             "isUpdated" => $documentChecklist->update([
                 'id' => $request['id'],
-                'sector_id' => $request['sector_id'] ?? $documentChecklist['sector_id'],
+                'sector_id' => (int)$request['sector_id'] ?? $documentChecklist['sector_id'],
                 'document_title' => $request['document_title'] ?? $documentChecklist['document_title'],
                 'modified_by'   => $request['modified_by'] ?? $documentChecklist['modified_by']
             ]),

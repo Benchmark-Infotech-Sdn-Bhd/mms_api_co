@@ -21,11 +21,11 @@ return new class extends Migration
             // Employee Date of birth column
             $table->date('date_of_birth');
             // Employee IC number column
-            $table->integer('ic_number')->index();
+            $table->bigInteger('ic_number')->default(0)->index();
             // Employee Passport number column
             $table->string('passport_number')->nullable()->index();
             // Employee Email column
-            $table->string('email',150)->unique()->index();
+            $table->string('email',150)->index();
             // Employee contact number column
             $table->bigInteger('contact_number')->default(0);
             // Employee Address column
@@ -52,6 +52,8 @@ return new class extends Migration
             $table->integer('modified_by')->default(0);
             // Countries created_at and updated_at columns
             $table->timestamps();
+            // Unique field for employee
+            $table->unique(['email', 'deleted_at']);
             // Foreign key from Branch table
             $table->foreign('branch_id')
               ->references('id')->on('branch');

@@ -34,10 +34,10 @@ class AgentServices
         }
         return $this->agent->create([
             'agent_name' => $request['agent_name'] ?? '',
-            'country_id' => $request['country_id'],
+            'country_id' => (int)$request['country_id'],
             'city' => $request['city'] ?? '',
             'person_in_charge' => $request['person_in_charge'] ?? '',
-            'pic_contact_number' => $request['pic_contact_number'] ?? '',
+            'pic_contact_number' => (int)$request['pic_contact_number'] ?? '',
             'email_address' => $request['email_address'] ?? '',
             'company_address' => $request['company_address'] ?? '',
             'created_by'    => $request['created_by'] ?? 0,
@@ -50,7 +50,7 @@ class AgentServices
      */
     public function update($request) : array
     {
-        if(!($this->validationServices->validate($request,$this->agent->rulesForUpdation))){
+        if(!($this->validationServices->validate($request,$this->agent->rulesForUpdation($request['id'])))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
@@ -66,10 +66,10 @@ class AgentServices
             "isUpdated" => $agent->update([
                 'id' => $request['id'],
                 'agent_name' => $request['agent_name'] ?? $agent['agent_name'],
-                'country_id' => $request['country_id'] ?? $agent['country_id'],
+                'country_id' => (int)$request['country_id'] ?? $agent['country_id'],
                 'city' => $request['city'] ?? $agent['city'],
                 'person_in_charge' => $request['person_in_charge'] ?? $agent['person_in_charge'],
-                'pic_contact_number' => $request['pic_contact_number'] ?? $agent['pic_contact_number'],
+                'pic_contact_number' => (int)$request['pic_contact_number'] ?? $agent['pic_contact_number'],
                 'email_address' => $request['email_address'] ?? $agent['email_address'],
                 'company_address' => $request['company_address'] ?? $agent['company_address'],
                 'modified_by'   => $request['modified_by'] ?? $agent['modified_by']
