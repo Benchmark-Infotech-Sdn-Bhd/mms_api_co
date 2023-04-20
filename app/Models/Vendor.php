@@ -46,7 +46,7 @@ class Vendor extends Model implements Auditable
     private $rules = [
         'name' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
         'type' => 'required',
-        'email_address' => 'required|email|regex:/(.+)@(.+)\.(.+)/i',
+        'email_address' => 'required|email|regex:/(.+)@(.+)\.(.+)/i|unique:vendors,email_address,',
         'contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
         'person_in_charge' => 'required|regex:/^[a-zA-Z @&$]*$/u|max:150',
         'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
@@ -56,23 +56,26 @@ class Vendor extends Model implements Auditable
         'postcode' => 'required|regex:/^[0-9]*$/|max:5',
     ];
     /**
-     * The attributes that are required for updation.
-     *
-     * @var array
+     * The function returns array that are required for updation.
+     * @param $params
+     * @return array
      */
-    public $rulesForUpdation = [
-        'id' => 'required',
-        'name' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
-        'type' => 'required',
-        'email_address' => 'required|email|regex:/(.+)@(.+)\.(.+)/i',
-        'contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
-        'person_in_charge' => 'required|regex:/^[a-zA-Z]+$/u|max:150',
-        'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
-        'address' => 'required',
-        'state' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
-        'city' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
-        'postcode' => 'required|regex:/^[0-9]*$/|max:5',
-    ];
+    public function rulesForUpdation($id): array
+    {
+        return [
+            'id' => 'required',
+            'name' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
+            'type' => 'required',
+            'email_address' => 'required|unique:vendors,email_address,'.$id,
+            'contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
+            'person_in_charge' => 'required|regex:/^[a-zA-Z]+$/u|max:150',
+            'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
+            'address' => 'required',
+            'state' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
+            'city' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
+            'postcode' => 'required|regex:/^[0-9]*$/|max:5',
+        ];
+    }
     /**
      * The attributes that store validation errors.
      */
@@ -97,7 +100,7 @@ class Vendor extends Model implements Auditable
      */
     public function validateUpdation($input){
         // make a new validator object
-        $validator = Validator::make($input,$this->rulesForUpdation);
+        $validator = Validator::make($input,$this->rulesForUpdation($input['id']));
         // check for failure
         if($validator->fails()){
             // set errors and return false
