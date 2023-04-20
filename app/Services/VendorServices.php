@@ -146,7 +146,7 @@ class VendorServices
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();               
                 $filePath = '/vendor/' . $fileName; 
-                if (!Storage::disk('linode')->exists($filePath)) {
+                // if (!Storage::disk('linode')->exists($filePath)) {
                     $linode = Storage::disk('linode');
                     $linode->put($filePath, file_get_contents($file));
                     $fileUrl = Storage::disk('linode')->url($filePath);
@@ -156,7 +156,7 @@ class VendorServices
                             "file_type" => 'vendor',
                             "file_url" => $fileUrl               
                         ]); 
-                }    
+                // }    
             }
         }
         return  [
