@@ -47,7 +47,7 @@ class AuthServices extends Controller
     {
         return [
             'name' => 'required',
-            'email' => 'required|email|max:150|unique:users',
+            'email' => 'required|email|max:150|unique:users,email,NULL,id,deleted_at,NULL',
             'password' => 'required',
         ];
     }
