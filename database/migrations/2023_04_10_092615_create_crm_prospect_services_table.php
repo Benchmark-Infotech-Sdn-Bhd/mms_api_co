@@ -26,6 +26,8 @@ return new class extends Migration
             $table->tinyInteger('status')->default(0)->unsigned()->index();
             // CRM prospect service created time and modified time columns
             $table->timestamps();
+            // For soft delete
+            $table->softDeletes();
         });
     }
 

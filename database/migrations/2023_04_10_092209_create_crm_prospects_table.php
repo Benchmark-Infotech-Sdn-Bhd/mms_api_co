@@ -20,10 +20,12 @@ return new class extends Migration
             $table->string('roc_number', 255);
             // Director or Company Owner column
             $table->string('director_or_owner', 255);
+            // Contract type column
+            $table->enum('contract_type',['Zero Cost','Normal'])->default('Zero Cost');
             // Contact number column
-            $table->string('contact_number')->nullable();  
+            $table->bigInteger('contact_number')->default(0);
             // Email id Column
-            $table->string('email', 250)->unique();
+            $table->string('email', 250);
             // Address Column
             $table->text('address');
             // CRM prospect status column
@@ -31,7 +33,7 @@ return new class extends Migration
             // Person in charge name column
             $table->string('pic_name', 255);
             // Person in charge contact number column
-            $table->string('pic_contact_number')->nullable();
+            $table->bigInteger('pic_contact_number')->default(0);
             // Person in charge designation
             $table->string('pic_designation', 255);
             // CRM prospect registered by id column
@@ -50,6 +52,8 @@ return new class extends Migration
             $table->timestamps();
             // For soft delete
             $table->softDeletes();
+            // Unique field for crm_prospect
+            $table->unique(['email', 'deleted_at']);
         });
     }
 

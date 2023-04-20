@@ -56,9 +56,10 @@ class CRMServices
     {
         return [
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
+            'contract_type' => 'required',
             'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
             'contact_number' => 'required|integer|digits_between: 1,11',
-            'email' => 'required|email|unique:crm_prospects',
+            'email' => 'required|email|unique:crm_prospects,email,NULL,id,deleted_at,NULL',
             'address' => 'required',
             'pic_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'pic_contact_number' => 'required|integer|digits_between: 1,11',
@@ -77,9 +78,10 @@ class CRMServices
         return [
             'id' => 'required',
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
+            'contract_type' => 'required',
             'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
             'contact_number' => 'required|integer|digits_between: 1,11',
-            'email' => 'required|unique:crm_prospects,email,'.$params['id'],
+            'email' => 'required|unique:crm_prospects,email,'.$params['id'].',id,deleted_at,NULL',
             'address' => 'required',
             'pic_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'pic_contact_number' => 'required|integer|digits_between: 1,11',
@@ -138,7 +140,7 @@ class CRMServices
         return $this->crmProspect->where('crm_prospects.id', $request['id'])
             ->leftJoin('employee', 'employee.id', 'crm_prospects.registered_by')
             ->leftJoin('sectors', 'sectors.id', 'crm_prospects.sector_type')
-            ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospects.director_or_owner', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospects.address', 'crm_prospects.pic_name', 'crm_prospects.pic_contact_number', 'crm_prospects.pic_designation', 'employee.employee_name as registered_by', 'sectors.sector_name as sector_type')
+            ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.contract_type', 'crm_prospects.roc_number', 'crm_prospects.director_or_owner', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospects.address', 'crm_prospects.pic_name', 'crm_prospects.pic_contact_number', 'crm_prospects.pic_designation', 'employee.employee_name as registered_by', 'sectors.sector_name as sector_type')
             ->with(['prospectServices', 'prospectAttachment', 'prospectLoginCredentials'])
             ->get();
     }
@@ -156,6 +158,7 @@ class CRMServices
         }
         $prospect  = $this->crmProspect->create([
             'company_name'          => $request['company_name'] ?? '',
+            'contract_type'         => $request['contract_type'] ?? '',
             'roc_number'            => $request['roc_number'] ?? '',
             'director_or_owner'     => $request['director_or_owner'] ?? '',
             'contact_number'        => $request['contact_number'] ?? 0,
@@ -227,6 +230,7 @@ class CRMServices
         }
         $prospect = $this->crmProspect->findOrFail($request['id']);
         $prospect['company_name'] = $request['company_name'] ?? $prospect['company_name'];
+        $prospect['contract_type'] = $request['contract_type'] ?? $prospect['contract_type'];
         $prospect['roc_number'] = $request['roc_number'] ?? $prospect['roc_number'];
         $prospect['director_or_owner'] = $request['director_or_owner'] ?? $prospect['director_or_owner'];
         $prospect['contact_number'] = $request['contact_number'] ?? $prospect['contact_number'];

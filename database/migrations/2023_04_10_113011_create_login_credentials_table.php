@@ -30,6 +30,8 @@ return new class extends Migration
             $table->string('password')->nullable();
             // Login credentials created time and modified time columns
             $table->timestamps();
+            // For soft delete
+            $table->softDeletes();
         });
     }
 
