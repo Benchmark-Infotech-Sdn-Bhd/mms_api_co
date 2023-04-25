@@ -123,8 +123,10 @@ class VendorServices
      * @return mixed
      */
     public function show($request): mixed
-    {    
-        return $this->vendor::with('vendorAttachments')->findOrFail($request['id']);
+    {   
+        return $this->vendor::with(['vendorAttachments' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+        }])->findOrFail($request['id']);
         // $accommodations = $vendors->accommodations;
         // $insurances = $vendors->insurances;
         // $transportations = $vendors->transportations;
