@@ -27,6 +27,7 @@ class CRMProspectUnitTest extends TestCase
         $response->seeJson([
             'data' => [
                 'company_name' => ['The company name field is required.'], 
+                'contract_type' => ['The contract type field is required.'], 
                 'roc_number' => ['The roc number field is required.'], 
                 'contact_number' => ['The contact number field is required.'],
                 'email' => ['The email field is required.'],
@@ -141,6 +142,7 @@ class CRMProspectUnitTest extends TestCase
             'data' => [
                 'id' => ['The id field is required.'],
                 'company_name' => ['The company name field is required.'], 
+                'contract_type' => ['The contract type field is required.'],
                 'roc_number' => ['The roc number field is required.'], 
                 'contact_number' => ['The contact number field is required.'],
                 'email' => ['The email field is required.'],
@@ -272,6 +274,7 @@ class CRMProspectUnitTest extends TestCase
                     [
                         'id',
                         'company_name',
+                        'contract_type',
                         'roc_number',
                         'director_or_owner',
                         'contact_number',
@@ -340,13 +343,13 @@ class CRMProspectUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['company_name' => 'ABC Firm', 'roc_number' => 'APS6376', 'director_or_owner' => 'Test', 'contact_number' => '768456948', 'email' => 'test@gmail.com', 'address' => 'Coimbatore', 'pic_name' => 'PICTest', 'pic_contact_number' => '764859694', 'pic_designation' => 'Manager', 'registered_by' => 1, 'sector_type' => 1, 'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])];
+        return ['company_name' => 'ABC Firm', 'contract_type' => 'Zero Cost', 'roc_number' => 'APS6376', 'director_or_owner' => 'Test', 'contact_number' => '768456948', 'email' => 'test@gmail.com', 'address' => 'Coimbatore', 'pic_name' => 'PICTest', 'pic_contact_number' => '764859694', 'pic_designation' => 'Manager', 'registered_by' => 1, 'sector_type' => 1, 'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])];
     }
     /**
      * @return array
      */
     public function updationData(): array
     {
-        return ['id' => 1, 'company_name' => 'ABC Firm', 'roc_number' => 'APS6376', 'director_or_owner' => 'Test', 'contact_number' => '76845697', 'email' => 'test@gmail.com', 'address' => 'Coimbatore', 'pic_name' => 'PICTest', 'pic_contact_number' => '764859694', 'pic_designation' => 'Manager', 'registered_by' => 1, 'sector_type' => 1];
+        return ['id' => 1, 'company_name' => 'ABC Firm', 'contract_type' => 'Normal', 'roc_number' => 'APS6376', 'director_or_owner' => 'Test', 'contact_number' => '76845697', 'email' => 'test@gmail.com', 'address' => 'Coimbatore', 'pic_name' => 'PICTest', 'pic_contact_number' => '764859694', 'pic_designation' => 'Manager', 'registered_by' => 1, 'sector_type' => 1];
     }
 }

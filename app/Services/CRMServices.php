@@ -294,8 +294,15 @@ class CRMServices
      * @param $request
      * @return bool
      */
-    public function deleteAttachment($request):bool
+    public function deleteAttachment($request): bool
     {
         return $this->crmProspectAttachment->where('id', $request['id'])->delete();
+    }
+    /**
+     * @return mixed
+     */
+    public function dropDownCompanies(): mixed
+    {
+        return $this->crmProspect->where('status', 1)->select('id', 'company_name')->get();
     }
 }
