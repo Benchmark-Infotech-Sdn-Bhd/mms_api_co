@@ -51,8 +51,8 @@ class Vendor extends Model implements Auditable
         'person_in_charge' => 'required|regex:/^[a-zA-Z @&$]*$/u|max:150',
         'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
         'address' => 'required',
-        'state' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
-        'city' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
+        'state' => 'required|regex:/^[a-zA-Z0-9 ]*$/u|max:150',
+        'city' => 'required|regex:/^[a-zA-Z0-9 ]*$/u|max:150',
         'postcode' => 'required|regex:/^[0-9]*$/|max:5',
     ];
     /**
@@ -71,8 +71,8 @@ class Vendor extends Model implements Auditable
             'person_in_charge' => 'required|regex:/^[a-zA-Z]+$/u|max:150',
             'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
             'address' => 'required',
-            'state' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
-            'city' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
+            'state' => 'required|regex:/^[a-zA-Z0-9 ]*$/u|max:150',
+            'city' => 'required|regex:/^[a-zA-Z0-9 ]*$/u|max:150',
             'postcode' => 'required|regex:/^[0-9]*$/|max:5',
         ];
     }

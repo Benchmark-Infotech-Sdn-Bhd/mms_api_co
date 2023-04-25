@@ -137,13 +137,14 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('search', 'V1\VendorController@search');
         $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
         $router->post('filter', 'V1\VendorController@filter');
+        $router->post('sendMail', 'V1\VendorController@sendMail');
     });
     /**
      * Routes for FOMEMA Clinics.
      */
     $router->group(['prefix' => 'fomemaClinics'], function () use ($router) {
         $router->post('create', 'V1\FomemaClinicsController@create');
-        $router->put('update', 'V1\FomemaClinicsController@update');
+        $router->post('update', 'V1\FomemaClinicsController@update');
         $router->post('delete', 'V1\FomemaClinicsController@delete');
         $router->post('show', 'V1\FomemaClinicsController@show');
         $router->post('list', 'V1\FomemaClinicsController@list');
@@ -154,7 +155,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
      */
     $router->group(['prefix' => 'feeRegistration'], function () use ($router) {
         $router->post('create', 'V1\FeeRegistrationController@create');
-        $router->put('update', 'V1\FeeRegistrationController@update');
+        $router->post('update', 'V1\FeeRegistrationController@update');
         $router->post('delete', 'V1\FeeRegistrationController@delete');
         $router->post('show', 'V1\FeeRegistrationController@show');
         $router->post('list', 'V1\FeeRegistrationController@list');
@@ -177,7 +178,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
      */
     $router->group(['prefix' => 'insurance'], function () use ($router) {
         $router->post('create', 'V1\InsuranceController@create');
-        $router->put('update', 'V1\InsuranceController@update');
+        $router->post('update', 'V1\InsuranceController@update');
         $router->post('delete', 'V1\InsuranceController@delete');
         $router->post('show', 'V1\InsuranceController@show');
         $router->post('list', 'V1\InsuranceController@list');
@@ -201,7 +202,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
     */
     $router->group(['prefix' => 'branch'], function () use ($router) {
         $router->post('create', 'V1\BranchController@create');
-        $router->put('update', 'V1\BranchController@update');
+        $router->post('update', 'V1\BranchController@update');
         $router->post('delete', 'V1\BranchController@delete');
         $router->post('show', 'V1\BranchController@show');
         $router->post('list', 'V1\BranchController@list');
