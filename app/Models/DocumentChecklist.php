@@ -23,7 +23,7 @@ class DocumentChecklist extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['sector_id','document_title','created_by','modified_by'];
+    protected $fillable = ['sector_id','document_title','remarks','created_by','modified_by'];
     /**
      * @return BelongsTo
      */
