@@ -19,7 +19,7 @@ class CRMProspect extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'company_name', 'contract_type', 'roc_number', 'director_or_owner', 'contact_number', 'email', 'address', 'status', 'pic_name', 'pic_contact_number', 'pic_designation', 'registered_by', 'sector_type', 'created_by', 'modified_by'
+        'company_name', 'roc_number', 'director_or_owner', 'contact_number', 'email', 'address', 'status', 'pic_name', 'pic_contact_number', 'pic_designation', 'registered_by', 'created_by', 'modified_by'
     ];
     /**
      * @return HasMany
@@ -34,12 +34,5 @@ class CRMProspect extends Model implements Auditable
     public function prospectLoginCredentials(): HasMany
     {
         return $this->hasMany(LoginCredential::class, 'crm_prospect_id');
-    }
-    /**
-     * @return HasMany
-     */
-    public function prospectAttachment(): HasMany
-    {
-        return $this->hasMany(CRMProspectAttachment::class, 'file_id');
     }
 }
