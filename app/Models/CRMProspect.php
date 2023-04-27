@@ -31,13 +31,6 @@ class CRMProspect extends Model implements Auditable
     /**
      * @return HasMany
      */
-    public function prospectSectors(): HasMany
-    {
-        return $this->hasMany(CRMProspectSector::class, 'crm_prospect_id');
-    }
-    /**
-     * @return HasMany
-     */
     public function prospectLoginCredentials(): HasMany
     {
         return $this->hasMany(LoginCredential::class, 'crm_prospect_id');

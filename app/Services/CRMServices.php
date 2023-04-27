@@ -6,7 +6,7 @@ use App\Models\CRMProspect;
 use App\Models\CRMProspectService;
 use App\Models\CRMProspectAttachment;
 use App\Models\LoginCredential;
-use App\Models\CRMProspectSector;
+use App\Models\Sectors;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -33,10 +33,10 @@ class CRMServices
      * @var Storage
      */
     private Storage $storage;
-    /**
-     * @var CRMProspectSector
+     /**
+     * @var Sectors
      */
-    private CRMProspectSector $crmProspectSector;
+    private Sectors $sectors;
 
     /**
      * RolesServices constructor.
@@ -45,16 +45,16 @@ class CRMServices
      * @param CRMProspectAttachment $crmProspectAttachment
      * @param LoginCredential $loginCredential
      * @param Storage $storage
-     * @param CRMProspectSector $crmProspectSector
+     * @param Sectors $sectors
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, CRMProspectSector $crmProspectSector)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
         $this->crmProspectAttachment = $crmProspectAttachment;
         $this->loginCredential = $loginCredential;
         $this->storage = $storage;
-        $this->crmProspectSector = $crmProspectSector;
+        $this->sectors = $sectors;
     }
     /**
      * @return array
@@ -71,6 +71,7 @@ class CRMServices
             'pic_contact_number' => 'required|integer|digits_between: 1,11',
             'pic_designation' => 'required|regex:/^[a-zA-Z ]*$/',
             'registered_by' => 'required',
+            'sector_type' => 'required',
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];
     }
@@ -91,6 +92,7 @@ class CRMServices
             'pic_contact_number' => 'required|integer|digits_between: 1,11',
             'pic_designation' => 'required|regex:/^[a-zA-Z ]*$/',
             'registered_by' => 'required',
+            'sector_type' => 'required',
             'attachment.*' => 'mimes:jpeg,pdf,png'
         ];
     }
@@ -130,7 +132,7 @@ class CRMServices
                 }
             })
             ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.director_or_owner', 'crm_prospects.created_at', 'employee.employee_name as registered_by')
-            ->with(['prospectServices', 'prospectSectors', 'prospectAttachment', 'prospectLoginCredentials'])->distinct()
+            ->with(['prospectServices', 'prospectAttachment', 'prospectLoginCredentials'])->distinct()
             ->orderBy('crm_prospects.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
@@ -141,12 +143,9 @@ class CRMServices
     public function show($request): mixed
     {
         return $this->crmProspect->where('crm_prospects.id', $request['id'])
-            // ->leftJoin('crm_prospects', 'crm_prospects.id', 'crm_prospect_sector.crm_prospect_id')
             ->leftJoin('employee', 'employee.id', 'crm_prospects.registered_by')
-            // ->leftJoin('sectors', 'sectors.id', 'crm_prospect_sector.sector_type')
-            // ->leftJoin('services', 'services.id', 'crm_prospect_sector.service_id')
-            ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospects.director_or_owner', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospects.address', 'crm_prospects.pic_name', 'crm_prospects.pic_contact_number', 'crm_prospects.pic_designation', 'employee.employee_name as registered_by'/*, 'sectors.sector_name as sector_type'*/)
-            ->with(['prospectServices', 'prospectSectors', 'prospectAttachment', 'prospectLoginCredentials'])
+            ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospects.director_or_owner', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospects.address', 'crm_prospects.pic_name', 'crm_prospects.pic_contact_number', 'crm_prospects.pic_designation', 'employee.employee_name as registered_by')
+            ->with(['prospectServices', 'prospectAttachment', 'prospectLoginCredentials'])
             ->get();
     }
     /**
@@ -177,6 +176,7 @@ class CRMServices
             'modified_by'           => $request['created_by'] ?? 0
         ]);
 
+        $sector = $this->sectors->findOrFail($request['sector_type']);
         if(isset($request['prospect_service']) && !empty($request['prospect_service'])) {
             $services = json_decode($request['prospect_service']);
             foreach ($services as $service) {
@@ -184,35 +184,27 @@ class CRMServices
                     'crm_prospect_id'   => $prospect->id,
                     'service_id'        => $service->service_id,
                     'service_name'      => $service->service_name,
-                    'status'            => $service->status ?? 1
+                    'sector_id'         => $request['sector_type'] ?? 0,
+                    'sector_name'       => $sector->sector_name,
+                    'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract'
                 ]);
             }
         }
 
-        if((isset($request['sector_type']) && !empty($request['sector_type'])) && (isset($request['contract_type']) && !empty($request['contract_type']))) {
-            $prospectSector = $this->crmProspectSector->create([
-                'crm_prospect_id'   => $prospect->id,
-                'service_id'        => 1,
-                'service_name'      => 'Direct Recruitment',
-                'sector_type'       => $request['sector_type'] ?? 0,
-                'contract_type'     => $request['contract_type'] ?? ''
-            ]);
-
-            if (request()->hasFile('attachment')) {
-                foreach($request->file('attachment') as $file) {                
-                    $fileName = $file->getClientOriginalName();                 
-                    $filePath = '/crm/prospect/' . $prospect->id . $fileName; 
-                    $linode = $this->storage::disk('linode');
-                    $linode->put($filePath, file_get_contents($file));
-                    $fileUrl = $this->storage::disk('linode')->url($filePath);
-                    $this->crmProspectAttachment->create([
-                        "file_id" => $prospect->id,
-                        "prospect_sector_id" => $prospectSector->id,
-                        "file_name" => $fileName,
-                        "file_type" => 'prospect',
-                        "file_url" =>  $fileUrl          
-                    ]);  
-                }
+        if (request()->hasFile('attachment')) {
+            foreach($request->file('attachment') as $file) {                
+                $fileName = $file->getClientOriginalName();                 
+                $filePath = '/crm/prospect/' . $request['sector_type']. '/'. $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $this->crmProspectAttachment->create([
+                    "file_id" => $prospect->id,
+                    "prospect_sector_id" => $request['sector_type'],
+                    "file_name" => $fileName,
+                    "file_type" => 'prospect',
+                    "file_url" =>  $fileUrl          
+                ]);  
             }
         }
 
@@ -244,7 +236,6 @@ class CRMServices
         }
         $prospect = $this->crmProspect->findOrFail($request['id']);
         $prospect['company_name'] = $request['company_name'] ?? $prospect['company_name'];
-        // $prospect['contract_type'] = $request['contract_type'] ?? $prospect['contract_type'];
         $prospect['roc_number'] = $request['roc_number'] ?? $prospect['roc_number'];
         $prospect['director_or_owner'] = $request['director_or_owner'] ?? $prospect['director_or_owner'];
         $prospect['contact_number'] = (int)$request['contact_number'] ?? $prospect['contact_number'];
@@ -255,39 +246,42 @@ class CRMServices
         $prospect['pic_contact_number'] = (int)$request['pic_contact_number'] ?? $prospect['pic_contact_number'];
         $prospect['pic_designation'] = $request['pic_designation'] ?? $prospect['pic_designation'];
         $prospect['registered_by'] = $request['registered_by'] ?? $prospect['registered_by'];
-        // $prospect['sector_type'] = $request['sector_type'] ?? $prospect['sector_type'];
         $prospect['modified_by'] = $request['modified_by'] ?? $prospect['modified_by'];
         $prospect->save();
 
+        $sector = $this->sectors->findOrFail($request['sector_type']);
         if(isset($request['prospect_service']) && !empty($request['prospect_service'])) {
             $this->crmProspectService->where('crm_prospect_id', $request['id'])->delete();
             $services = json_decode($request['prospect_service']);
             foreach ($services as $service) {
                 $this->crmProspectService->create([
-                    'crm_prospect_id'   => $request['id'],
+                    'crm_prospect_id'   => $prospect->id,
                     'service_id'        => $service->service_id,
                     'service_name'      => $service->service_name,
-                    'status'            => $service->status ?? 1
+                    'sector_id'         => $request['sector_type'] ?? 0,
+                    'sector_name'       => $sector->sector_name,
+                    'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract'
                 ]);
             }
         }
 
-        // if (request()->hasFile('attachment')) {
-        //     foreach($request->file('attachment') as $file) {                
-        //         $fileName = $file->getClientOriginalName();                 
-        //         $filePath = '/crm/prospect/' . $fileName; 
-        //         $linode = $this->storage::disk('linode');
-        //         $linode->put($filePath, file_get_contents($file));
-        //         $fileUrl = $this->storage::disk('linode')->url($filePath);
-        //         $prospect->prospectAttachment()->delete();
-        //         $this->crmProspectAttachment->create([
-        //             "file_id" => $prospect->id,
-        //             "file_name" => $fileName,
-        //             "file_type" => 'prospect',
-        //             "file_url" =>  $fileUrl          
-        //         ]);  
-        //     }
-        // }
+        if (request()->hasFile('attachment')) {
+            foreach($request->file('attachment') as $file) {                
+                $fileName = $file->getClientOriginalName();                 
+                $filePath = '/crm/prospect/' . $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $prospect->prospectAttachment()->delete();
+                $this->crmProspectAttachment->create([
+                    "file_id" => $prospect->id,
+                    "prospect_sector_id" => $request['sector_type'],
+                    "file_name" => $fileName,
+                    "file_type" => 'prospect',
+                    "file_url" =>  $fileUrl       
+                ]);  
+            }
+        }
 
         if(isset($request['login_credential']) && !empty($request['login_credential'])) {
             $this->loginCredential->where('crm_prospect_id', $request['id'])->delete();

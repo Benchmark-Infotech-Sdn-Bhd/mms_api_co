@@ -18,6 +18,6 @@ class CRMProspectService extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'crm_prospect_id', 'service_id', 'service_name', 'status'
+        'crm_prospect_id', 'service_id', 'service_name', 'sector_id', 'sector_name', 'contract_type'
     ];
 }
