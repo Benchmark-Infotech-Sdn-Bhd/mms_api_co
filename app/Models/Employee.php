@@ -35,13 +35,6 @@ class Employee extends Model implements Auditable
         return $this->belongsTo(Branch::class, 'branch_id');
     }
     /**
-     * @return BelongsTo
-     */
-    public function roles()
-    {
-        return $this->belongsTo(Role::class, 'role_id');
-    }
-    /**
      * The attributes that are required.
      *
      * @var array
@@ -52,7 +45,7 @@ class Employee extends Model implements Auditable
         'date_of_birth' => 'required|date_format:Y-m-d',
         'ic_number' => 'required|regex:/^[0-9]+$/|max:12',
         'passport_number' => 'regex:/^[a-zA-Z0-9]*$/',
-        'email' => 'required|email|max:150|unique:employee,email,NULL,id,deleted_at,NULL',
+        'email' => 'required|email|max:150|unique:users,email,NULL,id,deleted_at,NULL',
         'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
         'address' => 'required',
         'postcode' => 'required|regex:/^[0-9]+$/|max:5',
@@ -78,7 +71,7 @@ class Employee extends Model implements Auditable
             'date_of_birth' => 'required|date_format:Y-m-d',
             'ic_number' => 'required|regex:/^[0-9]+$/|max:12',
             'passport_number' => 'regex:/^[a-zA-Z0-9]*$/',
-            'email' => 'required|email|max:150|unique:employee,email,'.$id.',id,deleted_at,NULL',
+            'email' => 'required|email|max:150|unique:users,email,'.$id.',id,deleted_at,NULL',
             'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
             'address' => 'required',
             'postcode' => 'required|regex:/^[0-9]+$/|max:5',

@@ -5,20 +5,26 @@ namespace App\Services;
 use App\Models\Employee;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
+use App\Services\AuthServices;
+use Illuminate\Support\Str;
 
 class EmployeeServices
 {
     private Employee $employee;
     private ValidationServices $validationServices;
+    private AuthServices $authServices;
     /**
      * EmployeeServices constructor.
      * @param Employee $employee
      * @param ValidationServices $validationServices
+     * @param AuthServices $authServices
      */
-    public function __construct(Employee $employee,ValidationServices $validationServices)
+    public function __construct(Employee $employee,ValidationServices $validationServices,
+    AuthServices $authServices)
     {
         $this->employee = $employee;
         $this->validationServices = $validationServices;
+        $this->authServices = $authServices;
     }
 
     /**
@@ -32,19 +38,17 @@ class EmployeeServices
               'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->employee->create([
+        $employee = $this->employee->create([
             'employee_name' => $request['employee_name'] ?? '',
             'gender' => $request['gender'] ?? '',
             'date_of_birth' => $request['date_of_birth'] ?? '',
             'ic_number' => (int)$request['ic_number'] ?? 0,
             'passport_number' => $request['passport_number'] ?? '',
-            'email' => $request['email'] ?? '',
             'contact_number' => (int)$request['contact_number'] ?? 0,
             'address' => $request['address'] ?? '',
             'postcode' => (int)$request['postcode'] ?? 0,
             'position' => $request['position'] ?? '',
             'branch_id' => (int)$request['branch_id'],
-            'role_id' => (int)$request['role_id'],
             'salary' => (float)$request['salary'] ?? 0,
             'status' => 1,
             'city' => $request['city'] ?? '',
@@ -52,6 +56,24 @@ class EmployeeServices
             'created_by'    => $request['created_by'] ?? 0,
             'modified_by'   => $request['created_by'] ?? 0
         ]);
+        $res = $this->authServices->create(
+            ['name' => $request['employee_name'],
+            'email' => $request['email'],
+            'role_id' => (int)$request['role_id'],
+            'user_id' => $request['created_by'],
+            'status' => 1,
+            'password' => Str::random(8),
+            'reference_id' => $employee['id'],
+            'user_type' => "Employee"
+        ]);
+        if($res){
+            return $employee;
+        }
+        $employee->delete();
+        return [
+            "isCreated" => false,
+            "message"=> "Employee not created"
+        ];
     }
     /**
      * @param $request
@@ -71,6 +93,19 @@ class EmployeeServices
                 "message"=> "Data not found"
             ];
         }
+        $res = $this->authServices->update(
+            ['name' => $request['employee_name'] ?? $employee['employee_name'],
+            'email' => $request['email'] ?? $employee['email'],
+            'role_id' => (int)$request['role_id'] ?? $employee['role_id'],
+            'user_id' => $request['modified_by'] ?? $employee['modified_by'],
+            'reference_id' => $request['id']
+        ]);
+        if(!$res){
+            return [
+                "isUpdated" => false,
+                "message"=> "Employee not updated"
+            ];
+        }
         return  [
             "isUpdated" => $employee->update([
                 'id' => $request['id'],
@@ -79,13 +114,11 @@ class EmployeeServices
                 'date_of_birth' => $request['date_of_birth'] ?? $employee['date_of_birth'],
                 'ic_number' => (int)$request['ic_number'] ?? $employee['ic_number'],
                 'passport_number' => $request['passport_number'] ?? $employee['passport_number'],
-                'email' => $request['email'] ?? $employee['email'],
                 'contact_number' => (int)$request['contact_number'] ?? $employee['contact_number'],
                 'address' => $request['address'] ?? $employee['address'],
                 'postcode' => (int)$request['postcode'] ?? $employee['postcode'],
                 'position' => $request['position'] ?? $employee['position'],
                 'branch_id' => (int)$request['branch_id'] ?? $employee['branch_id'],
-                'role_id' =>(int) $request['role_id'] ?? $employee['role_id'],
                 'salary' => (float)$request['salary'] ?? $employee['salary'],
                 'status' => $employee['status'],
                 'city' => $request['city'] ?? $employee['city'],
@@ -104,6 +137,13 @@ class EmployeeServices
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
+            ];
+        }
+        $res = $this->authServices->delete(['reference_id' => $request['id']]);
+        if(!$res){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
             ];
         }
         $employee = $this->employee->find($request['id']);
@@ -129,7 +169,7 @@ class EmployeeServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->employee->findOrFail($request['id']);
+        return $this->employee->with('branches')->findOrFail($request['id']);
     }
     /**
      * @return mixed
@@ -150,12 +190,20 @@ class EmployeeServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $employee = $this->employee->find($request['id']);
+        $employee = $this->employee->with('branches')->find($request['id']);
         if(is_null($employee)){
             return [
                 "isUpdated" => false,
                 "message"=> "Data not found"
             ];
+        }
+        if($request['status'] == 1){
+            if(is_null($employee['branches']) || ($employee['branches']['status'] == 0)){
+                return [
+                    "isUpdated" => false,
+                    "message"=> '“You are not allowed to update user status due to an inactive branch assigned, Kindly “Reactive the branch associated with this user” or ”assign to a new branch to the user”'
+                ];
+            }
         }
         $employee->status = $request['status'];
         return  [

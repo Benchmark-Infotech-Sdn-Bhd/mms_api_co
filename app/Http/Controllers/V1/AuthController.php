@@ -14,6 +14,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\EmployeeServices;
 
 class AuthController extends Controller
 {
@@ -21,15 +22,21 @@ class AuthController extends Controller
      * @var AuthServices
      */
     private $authServices;
+    /**
+     * @var EmployeeServices
+     */
+    private $employeeServices;
 
     /**
      * AuthController constructor.
      * @param AuthServices $authServices
+     * @param EmployeeServices $employeeServices
      */
 
-    public function __construct(AuthServices $authServices) 
+    public function __construct(AuthServices $authServices,EmployeeServices $employeeServices) 
     {
         $this->authServices = $authServices;
+        $this->employeeServices = $employeeServices;
     }
 
     /**
@@ -54,7 +61,19 @@ class AuthController extends Controller
         if (!$token = Auth::attempt($credentials)) {
             return $this->sendError(['message' => 'Invalid Credentials'], 400);
         }
-        $user = Auth::user();     
+        $user = Auth::user();
+        if(is_null($user)){
+            return $this->sendError(['message' => 'User not found'], 400);
+        }
+        if($user['user_type'] == 'Employee'){
+            $emp = $this->employeeServices->show(['id' => $user['reference_id']]);
+            if(is_null($emp)){
+                return $this->sendError(['message' => 'User not found'], 400);
+            }
+            if(is_null($emp['branches']) || ($emp['branches']['status'] == 0)){
+                return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
+            }
+        }
         return $this->respondWithToken($token, $user);
     }
 
