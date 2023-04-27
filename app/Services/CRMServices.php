@@ -186,7 +186,8 @@ class CRMServices
                     'service_name'      => $service->service_name,
                     'sector_id'         => $request['sector_type'] ?? 0,
                     'sector_name'       => $sector->sector_name,
-                    'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract'
+                    'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract',
+                    'status'            => $request['status'] ?? 1
                 ]);
                 if (request()->hasFile('attachment')) {
                     foreach($request->file('attachment') as $file) {                
@@ -262,7 +263,8 @@ class CRMServices
                     'service_name'      => $service->service_name,
                     'sector_id'         => $request['sector_type'] ?? 0,
                     'sector_name'       => $sector->sector_name,
-                    'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract'
+                    'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract',
+                    'status'            => $request['status'] ?? 1
                 ]);
 
                 foreach($request->file('attachment') as $file) {                

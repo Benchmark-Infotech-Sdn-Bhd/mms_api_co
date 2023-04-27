@@ -30,6 +30,8 @@ return new class extends Migration
            $table->string('sector_name', 255)->nullable();
            // Contract type column
            $table->enum('contract_type',['Zero Cost', 'Normal', 'No Contract'])->default('No Contract');
+           // Service status column
+           $table->tinyInteger('status')->default(1)->unsigned();
            // CRM prospect sector created time and modified time columns 
            $table->timestamps();
            // for soft delete
