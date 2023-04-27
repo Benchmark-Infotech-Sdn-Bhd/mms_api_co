@@ -119,7 +119,9 @@ class AccommodationServices
      */
     public function show($request) : mixed
     {
-        return $this->accommodation::with('accommodationAttachments')->findorfail($request['id']);
+        return $this->accommodation::with(['accommodationAttachments' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+        }])->findorfail($request['id']);
     }
     /**
      *
