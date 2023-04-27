@@ -5,12 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\Sectors;
-use App\Models\DocumentChecklistAttachments;
+use App\Models\DocumentChecklist;
 use OwenIt\Auditing\Contracts\Auditable;
 
-class DocumentChecklist extends Model implements Auditable
+class DocumentChecklistAttachments extends Model implements Auditable
 {
     use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
@@ -19,26 +17,19 @@ class DocumentChecklist extends Model implements Auditable
      *
      * @var string
      */
-    protected $table = 'document_checklist';
+    protected $table = 'document_checklist_attachments';
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $fillable = ['sector_id','document_title','remarks','created_by','modified_by'];
+    protected $fillable = ['document_checklist_id','application_id','file_type','file_url','created_by','modified_by'];
     /**
      * @return BelongsTo
      */
-    public function sectors()
+    public function documentChecklist()
     {
-        return $this->belongsTo(Sectors::class, 'sector_id');
-    }
-    /**
-     * @return HasOne
-     */
-    public function documentChecklistAttachments()
-    {
-        return $this->hasOne(DocumentChecklistAttachments::class, 'document_checklist_id');
+        return $this->belongsTo(DocumentChecklist::class, 'document_checklist_id');
     }
     /**
      * The attributes that are required.
@@ -46,8 +37,8 @@ class DocumentChecklist extends Model implements Auditable
      * @var array
      */
     public $rules = [
-        'sector_id' => 'required|regex:/^[0-9]+$/',
-        'document_title' => 'required'
+        'document_checklist_id' => 'required|regex:/^[0-9]+$/',
+        'application_id' => 'required|regex:/^[0-9]+$/'
     ];
     /**
      * The attributes that are required for updation.
@@ -56,7 +47,7 @@ class DocumentChecklist extends Model implements Auditable
      */
     public $rulesForUpdation = [
         'id' => 'required|regex:/^[0-9]+$/',
-        'sector_id' => 'required|regex:/^[0-9]+$/',
-        'document_title' => 'required'
+        'document_checklist_id' => 'required|regex:/^[0-9]+$/',
+        'application_id' => 'required|regex:/^[0-9]+$/'
     ];
 }

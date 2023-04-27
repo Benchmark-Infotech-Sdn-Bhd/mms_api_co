@@ -218,4 +218,11 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('search', 'V1\BranchController@search');
         $router->post('dropDown', 'V1\BranchController@dropdown');
     });
+
+    /**
+    * Routes for DocumentChecklistAttachments.
+    */
+    $router->group(['prefix' => 'checklistAttachment'], function () use ($router) {
+        $router->post('create', 'V1\DocumentChecklistAttachmentsController@create');
+    });
 });
