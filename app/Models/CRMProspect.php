@@ -35,11 +35,4 @@ class CRMProspect extends Model implements Auditable
     {
         return $this->hasMany(LoginCredential::class, 'crm_prospect_id');
     }
-    /**
-     * @return HasMany
-     */
-    public function prospectAttachment(): HasMany
-    {
-        return $this->hasMany(CRMProspectAttachment::class, 'file_id');
-    }
 }
