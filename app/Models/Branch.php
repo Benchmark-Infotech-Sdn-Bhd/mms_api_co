@@ -92,6 +92,22 @@ class Branch extends Model implements Auditable
         // validation pass
         return true;
     }
+
+    /**
+     * Validate method for model.
+     */
+    public function validateStatus($data,$rules){
+        // make a new validator object
+        $validator = Validator::make($data,$rules);
+        // check for failure
+        if($validator->fails()){
+            // set errors and return false
+            $this->errors = $validator->errors();
+            return false;
+        }
+        // validation pass
+        return true;
+    }
     
     // Returns Validation errors
     public function errors()
