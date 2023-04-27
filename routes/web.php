@@ -220,4 +220,14 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('dropDown', 'V1\BranchController@dropdown');
         $router->post('updateStatus', 'V1\BranchController@updateStatus');
     });
+
+    /**
+    * Routes for Direct recruitment.
+    */
+    $router->group(['prefix' => 'directRecrutment'], function () use ($router) {
+        $router->post('create', 'V1\DirectRecruitmentController@createProposal');
+        $router->post('show', 'V1\DirectRecruitmentController@showProposal');
+        $router->post('update', 'V1\DirectRecruitmentController@updateProposal');
+        $router->post('deleteAttachment', 'V1\DirectRecruitmentController@deleteAttachment');
+    });
 });
