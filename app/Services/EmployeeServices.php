@@ -205,4 +205,17 @@ class EmployeeServices
     {
         return $this->employee->select('id','employee_name')->orderBy('employee.created_at','DESC')->get();
     }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatusBasedOnBranch($request) : array
+    {
+        $employee = $this->employee->where('branch_id', $request['branch_id'])
+        ->update(['status' => $request['status']]);
+        return  [
+            "isUpdated" => $employee,
+            "message" => "Updated Successfully"
+        ];
+    }
 }
