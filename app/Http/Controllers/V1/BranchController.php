@@ -127,4 +127,26 @@ class BranchController extends Controller
             return $this->sendError(['message' => 'Faild to List branches']);
         }
     }
+
+    /**
+     * Update the branch active / inactive status.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateStatus(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $validation = $this->branchServices->updateStatusValidation($params,['id' => 'required','status' => 'required|regex:/^[0-1]+$/|max:1']);
+            if ($validation) {
+                return $this->validationError($validation);
+            }
+            $data = $this->branchServices->updateStatus($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => $e->getMessage()]);
+        }
+    }
 }
