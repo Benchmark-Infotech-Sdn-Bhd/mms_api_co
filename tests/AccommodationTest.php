@@ -250,7 +250,7 @@ class AccommodationTest extends TestCase
      */
     public function testSearchAccommodation()
     {
-        $response = $this->json('POST', 'api/v1/accommodation/list', ['vendor_id' => 1,'search' => 'test'], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/accommodation/list', ['vendor_id' => 1,'search_param' => 'test'], $this->getHeader());
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>

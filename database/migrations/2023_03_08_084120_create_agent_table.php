@@ -23,11 +23,11 @@ return new class extends Migration
             // Agent Person in charge column
             $table->string('person_in_charge',255);
             // Agent PIC contact number column
-            $table->string('pic_contact_number',11);
+            $table->bigInteger('pic_contact_number')->default(0);
             // Agent email address column
             $table->string('email_address',150);
             // Agent company address column
-            $table->text('company_address');
+            $table->text('company_address')->nullable();
             // Column for user Id, who created the agent
             $table->integer('created_by')->default(0);
             // Column for user Id, who modified the agent
@@ -36,6 +36,8 @@ return new class extends Migration
             $table->timestamps();
             // softdelete for agent
             $table->softDeletes();
+            // Unique field for agent
+            $table->unique(['email_address', 'deleted_at']);
             // Foreign key from countries table
             $table->foreign('country_id')
               ->references('id')->on('countries')->onDelete('cascade');

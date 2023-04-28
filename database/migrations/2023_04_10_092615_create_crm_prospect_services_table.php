@@ -12,20 +12,30 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('crm_prospect_services', function (Blueprint $table) {
-            // CRM prospect services id column
-            $table->id();
-            // CRM prospect id column
-            $table->bigInteger('crm_prospect_id')->unsigned();
-            // Foreign key form crm_prospects table
-            $table->foreign('crm_prospect_id')->references('id')->on('crm_prospects')->onDelete('cascade');
-            // Service id column
-            $table->bigInteger('service_id')->nullable()->unsigned()->index();
-            // Service name column
-            $table->string('service_name', 255)->nullable();
-            // CRM prospect service status column
-            $table->tinyInteger('status')->default(0)->unsigned()->index();
-            // CRM prospect service created time and modified time columns
-            $table->timestamps();
+           // CRM prospect Sector id column
+           $table->id();
+           // CRM prospect id column
+           $table->bigInteger('crm_prospect_id')->unsigned();
+           // Foreign key form crm_prospects table
+           $table->foreign('crm_prospect_id')->references('id')->on('crm_prospects')->onDelete('cascade');
+           // Service id column
+           $table->bigInteger('service_id')->unsigned()->nullable();
+           // Service name column
+           $table->string('service_name', 255)->nullable();
+           // Sector id column
+           $table->bigInteger('sector_id')->unsigned();
+           // Foreign key from sectors table
+           $table->foreign('sector_id')->references('id')->on('sectors')->onDelete('cascade');
+           // Sector name column
+           $table->string('sector_name', 255)->nullable();
+           // Contract type column
+           $table->enum('contract_type',['Zero Cost', 'Normal', 'No Contract'])->default('No Contract');
+           // Service status column
+           $table->tinyInteger('status')->default(1)->unsigned();
+           // CRM prospect sector created time and modified time columns 
+           $table->timestamps();
+           // for soft delete
+           $table->softDeletes();
         });
     }
 

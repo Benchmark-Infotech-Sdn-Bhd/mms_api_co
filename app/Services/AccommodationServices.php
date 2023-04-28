@@ -119,7 +119,9 @@ class AccommodationServices
      */
     public function show($request) : mixed
     {
-        return $this->accommodation::with('accommodationAttachments')->findorfail($request['id']);
+        return $this->accommodation::with(['accommodationAttachments' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+        }])->findorfail($request['id']);
     }
     /**
      *
@@ -136,17 +138,17 @@ class AccommodationServices
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();                 
                 $filePath = '/vendor/accommodation/' . $fileName; 
-                if (!$this->storage::disk('linode')->exists($filePath)) {
-                    $linode = $this->storage::disk('linode');
-                    $linode->put($filePath, file_get_contents($file));
-                    $fileUrl = $this->storage::disk('linode')->url($filePath);
-                    $data=$this->accommodationAttachments::create([
-                            "file_id" => $request['id'],
-                            "file_name" => $fileName,
-                            "file_type" => 'accommodation',
-                            "file_url" => $fileUrl                
-                        ]); 
-                }    
+                // if (!$this->storage::disk('linode')->exists($filePath)) {
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $data=$this->accommodationAttachments::create([
+                        "file_id" => $request['id'],
+                        "file_name" => $fileName,
+                        "file_type" => 'accommodation',
+                        "file_url" => $fileUrl                
+                    ]); 
+                // }    
             }
         }
         return  [

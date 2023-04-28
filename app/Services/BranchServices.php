@@ -59,6 +59,18 @@ class BranchServices
         }
         return false;
     }
+    
+    /**
+     * @param $request
+     * @return mixed | boolean
+     */
+    public function updateStatusValidation($request,$rules)
+    {
+        if(!($this->branch->validateStatus($request,$rules))){
+            return $this->branch->errors();
+        }
+        return false;
+    }
 	 /**
      *
      * @param $request
@@ -190,5 +202,25 @@ class BranchServices
     public function dropDown(): mixed
     {
         return $this->branch->select('id','branch_name')->orderBy('branch.created_at','DESC')->get();
+    }
+
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatus($request) : array
+    {
+        $branch = $this->branch->find($request['id']);
+        if(is_null($branch)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        $branch->status = $request['status'];
+        return  [
+            "isUpdated" => $branch->save(),
+            "message" => "Updated Successfully"
+        ];
     }
 }

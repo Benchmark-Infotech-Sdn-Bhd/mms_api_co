@@ -232,7 +232,7 @@ class FomemaClinicsTest extends TestCase
     public function testRetrieveAllFomemaClinics()
     {
         $payload =  [
-            'search' => '',
+            'search_param' => '',
         ];
         $response = $this->json('POST', 'api/v1/fomemaClinics/list', $payload, $this->getHeader());
         $response->assertEquals(200, $this->response->status());

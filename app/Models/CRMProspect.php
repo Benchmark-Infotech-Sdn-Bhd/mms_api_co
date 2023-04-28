@@ -5,14 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Services;
-use App\Models\LoginCredential;
-use App\Models\CRMProspectAttachment;
-use App\Models\CRMProspectService;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CRMProspect extends Model implements Auditable
 {
-    use \OwenIt\Auditing\Auditable;
+    use \OwenIt\Auditing\Auditable, SoftDeletes;
 
     protected $table = 'crm_prospects';
 
@@ -22,7 +19,7 @@ class CRMProspect extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'company_name', 'roc_number', 'director_or_owner', 'contact_number', 'email', 'address', 'status', 'pic_name', 'pic_contact_number', 'pic_designation', 'registered_by', 'sector_type', 'created_by', 'modified_by'
+        'company_name', 'roc_number', 'director_or_owner', 'contact_number', 'email', 'address', 'status', 'pic_name', 'pic_contact_number', 'pic_designation', 'registered_by', 'created_by', 'modified_by'
     ];
     /**
      * @return HasMany
@@ -37,12 +34,5 @@ class CRMProspect extends Model implements Auditable
     public function prospectLoginCredentials(): HasMany
     {
         return $this->hasMany(LoginCredential::class, 'crm_prospect_id');
-    }
-    /**
-     * @return HasMany
-     */
-    public function prospectAttachment(): HasMany
-    {
-        return $this->hasMany(CRMProspectAttachment::class, 'file_id');
     }
 }

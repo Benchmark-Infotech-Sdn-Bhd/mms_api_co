@@ -68,6 +68,6 @@ class ModulesUnitTest extends TestCase
      */
     public function moduleTableSeed(): void
     {
-        $this->artisan("db:seed --class=unit_testing_module");
+        $this->artisan("db:seed --class=ModuleSeeder");
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserRoleType;
 use Illuminate\Support\Facades\Hash;
 
 class AuthServices extends Controller
@@ -13,14 +14,19 @@ class AuthServices extends Controller
      * @var User
      */
     private $user;
-
+    /**
+     * @var UserRoleType
+     */
+    private $userRoleType;
     /**
      * AuthServices constructor.
      * @param User $user
+     * @param UserRoleType $uesrRoleType
      */
-    public function __construct(User $user)
+    public function __construct(User $user, UserRoleType $uesrRoleType)
     {
         $this->user = $user;
+        $this->uesrRoleType = $uesrRoleType;
     }
 
     /**
@@ -41,7 +47,7 @@ class AuthServices extends Controller
     {
         return [
             'name' => 'required',
-            'email' => 'required|email|max:150|unique:users',
+            'email' => 'required|email|max:150|unique:users,email,NULL,id,deleted_at,NULL',
             'password' => 'required',
         ];
     }
@@ -52,10 +58,17 @@ class AuthServices extends Controller
      */
     public function create($request)
     {
-        $this->user->create([
+        $response = $this->user->create([
             'name' => $request['name'],
             'email' => $request['email'],
             'password' => Hash::make($request['password']),
+            'created_by' => $request['user_id'],
+            'modified_by' => $request['user_id']
+        ]);
+        $this->uesrRoleType->create([
+            'user_id' => $response->id,
+            'role_id' => $request['role_id'],
+            'status'  => $request['status'] ?? 1,
             'created_by' => $request['user_id'],
             'modified_by' => $request['user_id']
         ]);

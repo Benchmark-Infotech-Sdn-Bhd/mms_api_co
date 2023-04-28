@@ -32,6 +32,8 @@ return new class extends Migration
             $table->timestamps();
             // softdelete for Countries
             $table->softDeletes();
+            // Unique field for Countries
+            $table->unique(['country_name', 'deleted_at']);
             // Indexing for Countries based on Id, System type, Country name, Costing status columns
             $table->index(['id','system_type','country_name','costing_status']);
         });

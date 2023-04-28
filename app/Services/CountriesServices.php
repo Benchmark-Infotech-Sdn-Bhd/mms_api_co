@@ -36,8 +36,8 @@ class CountriesServices
             'country_name' => $request['country_name'] ?? '',
             'system_type' => $request['system_type'] ?? '',
             'costing_status' => "Pending",
-            'fee' => $request['fee'] ?? 0,
-            'bond' => $request['bond'] ?? 0,
+            'fee' => (float)$request['fee'] ?? 0,
+            'bond' => (int)$request['bond'] ?? 0,
             'created_by'    => $request['created_by'] ?? 0,
             'modified_by'   => $request['created_by'] ?? 0
         ]);
@@ -48,7 +48,7 @@ class CountriesServices
      */
     public function update($request) : array
     {
-        if(!($this->validationServices->validate($request,$this->countries->rulesForUpdation))){
+        if(!($this->validationServices->validate($request,$this->countries->rulesForUpdation($request['id'])))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
@@ -66,8 +66,8 @@ class CountriesServices
                 'country_name' => $request['country_name'] ?? $country['country_name'],
                 'system_type' => $request['system_type'] ?? $country['system_type'],
                 'costing_status' => $country['costing_status'],
-                'fee' => $request['fee'] ?? $country['fee'],
-                'bond' => $request['bond'] ?? $country['bond'],
+                'fee' => (float)$request['fee'] ?? $country['fee'],
+                'bond' => (int)$request['bond'] ?? $country['bond'],
                 'modified_by'   => $request['modified_by'] ?? $country['modified_by']
             ]),
             "message" => "Updated Successfully"
