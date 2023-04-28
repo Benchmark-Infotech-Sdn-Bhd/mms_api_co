@@ -7,7 +7,6 @@ use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DirectrecruitmentApplications extends Model implements Auditable
 {
@@ -91,19 +90,5 @@ class DirectrecruitmentApplications extends Model implements Auditable
     public function applicationAttachment(): HasMany
     {
         return $this->hasMany(DirectrecruitmentApplicationAttachments::class, 'file_id');
-    }
-    /**
-     * @return BelongsTo
-     */
-    public function crmProspect()
-    {
-        return $this->belongsTo(CRMProspect::class);
-    }
-    /**
-     * @return BelongsTo
-     */
-    public function crmProspectServices()
-    {
-        return $this->belongsTo(CRMProspectService::class, 'service_id');
     }
 }

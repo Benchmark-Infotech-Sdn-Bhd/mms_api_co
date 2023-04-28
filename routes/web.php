@@ -224,10 +224,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         * Routes for Direct recruitment.
         */
         $router->group(['prefix' => 'directRecrutment'], function () use ($router) {
-            $router->post('create', 'V1\DirectRecruitmentController@createProposal');
-            $router->post('show', 'V1\DirectRecruitmentController@showProposal');
-            $router->post('update', 'V1\DirectRecruitmentController@updateProposal');
-            $router->post('deleteAttachment', 'V1\DirectRecruitmentController@deleteAttachment');
+            $router->post('submitProposal', 'V1\DirectRecruitmentController@submitProposal');
+            $router->post('showProposal', 'V1\DirectRecruitmentController@showProposal');
         });
     });
 });

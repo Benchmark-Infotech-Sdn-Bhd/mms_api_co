@@ -30,14 +30,14 @@ class DirectRecruitmentController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function createProposal(Request $request): JsonResponse
+    public function submitProposal(Request $request): JsonResponse
     {     
         try {   
             $validation = $this->directRecruitmentServices->inputValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $response = $this->directRecruitmentServices->addProposal($request);       
+            $response = $this->directRecruitmentServices->submitProposal($request);       
             return $this->sendSuccess($response);
             
         } catch (Exception $e) {
@@ -61,41 +61,5 @@ class DirectRecruitmentController extends Controller
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => $e->getMessage()]);
         }
-    }
-    /**
-     * Update the specified Proposal data.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateProposal(Request $request): JsonResponse
-    {  
-        try {
-            $validation = $this->directRecruitmentServices->updateValidation($request);
-            if ($validation) {
-                return $this->validationError($validation);
-            }
-            $response = $this->directRecruitmentServices->updateProposal($request); 
-            return $this->sendSuccess($response);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => $e->getMessage()]);
-        }
-    }
-    /**
-     * delete the specified Attachment data.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function deleteAttachment(Request $request): JsonResponse
-    {   
-        try {
-            $response = $this->directRecruitmentServices->deleteAttachment($request);
-            return $this->sendSuccess($response);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => $e->getMessage()]);
-        }        
     }
 }
