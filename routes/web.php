@@ -219,5 +219,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->post('list', 'V1\BranchController@list');
         $router->post('search', 'V1\BranchController@search');
         $router->post('dropDown', 'V1\BranchController@dropdown');
+        $router->post('updateStatus', 'V1\BranchController@updateStatus');
     });
 });
