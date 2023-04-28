@@ -15,6 +15,7 @@ use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Services\EmployeeServices;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -65,7 +66,7 @@ class AuthController extends Controller
         if(is_null($user)){
             return $this->sendError(['message' => 'User not found'], 400);
         }
-        if($user['user_type'] == 'Employee'){
+        if(Str::lower($user['user_type']) == 'employee'){
             $emp = $this->employeeServices->show(['id' => $user['reference_id']]);
             if(is_null($emp)){
                 return $this->sendError(['message' => 'User not found'], 400);
