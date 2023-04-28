@@ -112,6 +112,11 @@ class AuthServices extends Controller
         if(is_null($user)){
             return false;
         }
+        $uesrRoleType = $this->uesrRoleType->where('user_id',$user['id'])->first();
+        if(is_null($uesrRoleType)){
+            return false;
+        }
+        $uesrRoleType->delete();
         $user->delete();
         return true;
     }
