@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Services\BranchServices;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use App\Services\EmployeeServices;
 
 class BranchController extends Controller
 {
@@ -16,12 +17,17 @@ class BranchController extends Controller
      */
     private BranchServices $branchServices;
     /**
+     * @var employeeServices
+     */
+    private EmployeeServices $employeeServices;
+    /**
      * branchServices constructor.
      * @param BranchServices $branchServices
      */
-    public function __construct(BranchServices $branchServices)
+    public function __construct(BranchServices $branchServices, EmployeeServices $employeeServices)
     {
         $this->branchServices = $branchServices;
+        $this->employeeServices = $employeeServices;
     }
 	 /**
      * Show the form for creating a new Branch.
@@ -143,6 +149,7 @@ class BranchController extends Controller
                 return $this->validationError($validation);
             }
             $data = $this->branchServices->updateStatus($params);
+            $this->employeeServices->updateStatusBasedOnBranch(['branch_id' => $request['id'], 'status' => $request['status']]);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
