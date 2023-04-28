@@ -26,18 +26,41 @@ class DirectRecruitmentController extends Controller
         $this->directRecruitmentServices = $directRecruitmentServices;
     }
     /**
-     * Listing the companies.
+     * Add a services to the prospect.
      * 
+     * @param Request $request
      * @return JsonResponse
      */
-    public function addService(): JsonResponse
+    public function addService(Request $request): JsonResponse
     {
         try {
-            $response = $this->directRecruitmentServices->addService();
-            return $this->sendSuccess($response);
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['created_by'] = $user['id'];
+            $response = $this->directRecruitmentServices->addService($request);
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess(['message' => 'Service Added Successfully']);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Add Service']);
+        }
+    }
+    /**
+     * Listing Prospect services.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function applicationListing(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentServices->applicationListing($params);
+            return $this->sendSuccess($response);
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Services']);
         }
     }
 }
