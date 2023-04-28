@@ -20,4 +20,18 @@ class UserRoleType extends Model implements Auditable
     protected $fillable = [
         'user_id', 'role_id', 'status', 'created_by', 'modified_by'
     ];
+    /**
+     * @return BelongsTo
+    */
+    public function users()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+    /**
+     * @return BelongsTo
+    */
+    public function roles()
+    {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
 }

@@ -59,7 +59,6 @@ class AuthServices extends Controller
      */
     public function create($request)
     {
-        Log::error("pass  ".$request['password']);
         $response = $this->user->create([
             'name' => $request['name'],
             'email' => $request['email'],
@@ -115,5 +114,13 @@ class AuthServices extends Controller
         }
         $user->delete();
         return true;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function show($request) : mixed
+    {
+        return $this->user->with('userRoleType')->findOrFail($request['id']);
     }
 }

@@ -62,7 +62,8 @@ class EmployeeServices
             'role_id' => (int)$request['role_id'],
             'user_id' => $request['created_by'],
             'status' => 1,
-            'password' => Str::random(8),
+            // 'password' => Str::random(8),
+            'password' => 'Test123',
             'reference_id' => $employee['id'],
             'user_type' => "Employee"
         ]);
@@ -95,9 +96,9 @@ class EmployeeServices
         }
         $res = $this->authServices->update(
             ['name' => $request['employee_name'] ?? $employee['employee_name'],
-            'email' => $request['email'] ?? $employee['email'],
-            'role_id' => (int)$request['role_id'] ?? $employee['role_id'],
-            'user_id' => $request['modified_by'] ?? $employee['modified_by'],
+            'email' => $request['email'],
+            'role_id' => (int)$request['role_id'],
+            'user_id' => $request['modified_by'],
             'reference_id' => $request['id']
         ]);
         if(!$res){
@@ -106,7 +107,7 @@ class EmployeeServices
                 "message"=> "Employee not updated"
             ];
         }
-        return  [
+        return [
             "isUpdated" => $employee->update([
                 'id' => $request['id'],
                 'employee_name' => $request['employee_name'] ?? $employee['employee_name'],
@@ -218,14 +219,16 @@ class EmployeeServices
     public function list($request) : mixed
     {
         if(isset($request['search_param']) && !empty($request['search_param'])){
-            if(!($this->validationServices->validate($request,['search_param' => 'required|regex:/^[a-zA-Z ]*$/|min:3']))){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
                 return [
                     'validate' => $this->validationServices->errors()
                 ];
             }
         }
         return $this->employee->join('branch', 'branch.id', '=', 'employee.branch_id')
-        ->join('roles', 'roles.id', '=', 'employee.role_id')
+        ->join('users', 'employee.id', '=', 'users.reference_id')
+        ->join('users','users.id','=','user_role_type.user_id')
+        ->join('user_role_type','user_role_type.role_id','=','roles.id')
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('employee.employee_name', 'like', "%{$request['search_param']}%")
@@ -240,9 +243,10 @@ class EmployeeServices
                 $query->where('employee.branch_id',$request['branch_id']);
             }
             if (isset($request['role_id'])) {
-                $query->where('employee.role_id',$request['role_id']);
+                $query->where('roles.id',$request['role_id']);
             }
         })->select('employee.id','employee.employee_name','employee.email','employee.position','branch.branch_name','roles.role_name','employee.salary','employee.status')
+        ->groupBy('employee.id')
         ->orderBy('employee.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }

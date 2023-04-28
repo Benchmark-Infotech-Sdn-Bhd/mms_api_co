@@ -66,6 +66,7 @@ class AuthController extends Controller
         if(is_null($user)){
             return $this->sendError(['message' => 'User not found'], 400);
         }
+        $user = $this->authServices->show(['id' => $user['id']]);
         if(Str::lower($user['user_type']) == 'employee'){
             $emp = $this->employeeServices->show(['id' => $user['reference_id']]);
             if(is_null($emp)){
