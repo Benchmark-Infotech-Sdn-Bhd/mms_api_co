@@ -5,9 +5,7 @@ namespace App\Services;
 
 use App\Models\DirectrecruitmentApplications;
 use App\Models\DirectrecruitmentApplicationAttachments;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class DirectRecruitmentServices
@@ -32,23 +30,25 @@ class DirectRecruitmentServices
     }
     /**
      * @param $request
-     * @return mixed | void
+     * @return mixed | boolean
      */
     public function inputValidation($request)
     {
         if(!($this->directrecruitmentApplications->validate($request->all()))){
             return $this->directrecruitmentApplications->errors();
         }
+        return false;
     }
     /**
      * @param $request
-     * @return mixed | void
+     * @return mixed | boolean
      */
     public function updateValidation($request)
     {
         if(!($this->directrecruitmentApplications->validateUpdation($request->all()))){
             return $this->directrecruitmentApplications->errors();
         }
+        return false;
     }
 	 /**
      *
@@ -100,9 +100,9 @@ class DirectRecruitmentServices
     /**
      *
      * @param $request
-     * @return mixed
+     * @return array
      */
-    public function updateProposal($request): mixed
+    public function updateProposal($request): array
     {    
         $data = $this->directrecruitmentApplications::findorfail($request['id']);
         $input = $request->all();
@@ -132,9 +132,9 @@ class DirectRecruitmentServices
     /**
      *
      * @param $request
-     * @return mixed
+     * @return array
      */    
-    public function deleteAttachment($request)
+    public function deleteAttachment($request) : array
     {   
         $data = $this->directrecruitmentApplicationAttachments::find($request['id']); 
         if(is_null($data)){
