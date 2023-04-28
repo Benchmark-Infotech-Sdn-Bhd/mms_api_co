@@ -227,14 +227,14 @@ class EmployeeServices
         }
         return $this->employee->join('branch', 'branch.id', '=', 'employee.branch_id')
         ->join('users', 'employee.id', '=', 'users.reference_id')
-        ->join('users','users.id','=','user_role_type.user_id')
-        ->join('user_role_type','user_role_type.role_id','=','roles.id')
+        ->join('user_role_type','users.id','=','user_role_type.user_id')
+        ->join('roles','user_role_type.role_id','=','roles.id')
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('employee.employee_name', 'like', "%{$request['search_param']}%")
                 ->orWhere('employee.ic_number', 'like', '%'.$request['search_param'].'%')
                 ->orWhere('employee.passport_number', 'like', '%'.$request['search_param'].'%')
-                ->orWhere('employee.email', 'like', '%'.$request['search_param'].'%');
+                ->orWhere('users.email', 'like', '%'.$request['search_param'].'%');
             }
             if (isset($request['status'])) {
                 $query->where('employee.status',$request['status']);
@@ -245,8 +245,8 @@ class EmployeeServices
             if (isset($request['role_id'])) {
                 $query->where('roles.id',$request['role_id']);
             }
-        })->select('employee.id','employee.employee_name','employee.email','employee.position','branch.branch_name','roles.role_name','employee.salary','employee.status')
-        ->groupBy('employee.id')
+        })->select('employee.id','employee.employee_name','users.email','employee.position','branch.branch_name','roles.role_name','employee.salary','employee.status','employee.created_at')
+        ->distinct()
         ->orderBy('employee.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
