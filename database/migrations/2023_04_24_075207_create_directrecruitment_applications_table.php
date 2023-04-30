@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('quota_applied')->nullable();
             $table->string('person_incharge',255)->nullable();
             $table->float('cost_quoted')->default(0.0);
-            $table->string('status')->default('Proposal');
+            $table->string('status')->default('Proposal')->index();
             $table->string('service_type')->default('Direct Recruitment');
             $table->string('remarks',255)->nullable();
             $table->integer('created_by')->default(0);

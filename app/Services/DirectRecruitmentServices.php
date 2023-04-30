@@ -5,9 +5,7 @@ namespace App\Services;
 
 use App\Models\DirectrecruitmentApplications;
 use App\Models\DirectrecruitmentApplicationAttachments;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class DirectRecruitmentServices
@@ -32,59 +30,25 @@ class DirectRecruitmentServices
     }
     /**
      * @param $request
-     * @return mixed | void
+     * @return mixed | boolean
      */
     public function inputValidation($request)
     {
         if(!($this->directrecruitmentApplications->validate($request->all()))){
             return $this->directrecruitmentApplications->errors();
         }
+        return false;
     }
     /**
      * @param $request
-     * @return mixed | void
+     * @return mixed | boolean
      */
     public function updateValidation($request)
     {
         if(!($this->directrecruitmentApplications->validateUpdation($request->all()))){
             return $this->directrecruitmentApplications->errors();
         }
-    }
-	 /**
-     *
-     * @param $request
-     * @return mixed
-     */
-    public function addProposal($request): mixed
-    {   
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['created_by'] = $user['id'];
-        $proposalData = $this->directrecruitmentApplications::create([
-            'crm_prospect_id' => $request["crm_prospect_id"],
-            'service_id' => $request["service_id"],
-            'quota_applied' => $request["quota_applied"],
-            'person_incharge' => $request["person_incharge"],
-            'cost_quoted' => $request["cost_quoted"],
-            'remarks' => $request["remarks"],
-            'created_by' => $request["created_by"],
-        ]);
-        $proposalId = $proposalData->id;
-        if (request()->hasFile('attachment')){
-            foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/directRecruitment/proposal/' . $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->directrecruitmentApplicationAttachments::create([
-                        "file_id" => $proposalId,
-                        "file_name" => $fileName,
-                        "file_type" => 'proposal',
-                        "file_url" =>  $fileUrl         
-                    ]);  
-            }
-        }
-        return $proposalData;
+        return false;
     }
      /**
      *
@@ -100,14 +64,15 @@ class DirectRecruitmentServices
     /**
      *
      * @param $request
-     * @return mixed
+     * @return array
      */
-    public function updateProposal($request): mixed
+    public function submitProposal($request): array
     {    
         $data = $this->directrecruitmentApplications::findorfail($request['id']);
         $input = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $input['modified_by'] = $user['id']; 
+        $input['status'] = 'Proposal Submitted'; 
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
@@ -127,25 +92,5 @@ class DirectRecruitmentServices
             "isUpdated" => $data->update($input),
             "message" => "Updated Successfully"
         ];
-    }
-
-    /**
-     *
-     * @param $request
-     * @return mixed
-     */    
-    public function deleteAttachment($request)
-    {   
-        $data = $this->directrecruitmentApplicationAttachments::find($request['id']); 
-        if(is_null($data)){
-            return [
-                "isDeleted" => false,
-                "message" => "Data not found"
-            ];
-        }
-        return [
-            "isDeleted" => $data->delete(),
-            "message" => "Deleted Successfully"
-        ];        
     }
 }
