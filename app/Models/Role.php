@@ -32,8 +32,8 @@ class Role extends Model implements Auditable
     /**
      * @return HasMany
      */
-    public function employees()
+    public function userRoleTypes()
     {
-        return $this->hasMany(Employee::class, 'role_id');
+        return $this->hasMany(UserRoleType::class, 'role_id');
     }
 }

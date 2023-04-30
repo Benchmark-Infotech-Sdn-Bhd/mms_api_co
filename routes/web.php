@@ -38,6 +38,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('update', 'V1\RolesController@update');
             $router->post('delete', 'V1\RolesController@delete');
             $router->post('dropDown', 'V1\RolesController@dropDown');
+            $router->post('updateStatus', 'V1\RolesController@updateStatus');
         });
         /**
          * Routes for Modules.
@@ -65,7 +66,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
          */
         $router->group(['prefix' => 'country'], function () use ($router) {
             $router->post('create', 'V1\CountriesController@create');
-            $router->put('update', 'V1\CountriesController@update');
+            $router->post('update', 'V1\CountriesController@update');
             $router->post('delete', 'V1\CountriesController@delete');
             $router->post('show', 'V1\CountriesController@show');
             $router->post('dropDown', 'V1\CountriesController@dropdown');
@@ -76,7 +77,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
          */
         $router->group(['prefix' => 'embassyAttestationFile'], function () use ($router) {
             $router->post('create', 'V1\EmbassyAttestationFileCostingController@create');
-            $router->put('update', 'V1\EmbassyAttestationFileCostingController@update');
+            $router->post('update', 'V1\EmbassyAttestationFileCostingController@update');
             $router->post('delete', 'V1\EmbassyAttestationFileCostingController@delete');
             $router->post('show', 'V1\EmbassyAttestationFileCostingController@show');
             $router->post('list', 'V1\EmbassyAttestationFileCostingController@list');
@@ -86,7 +87,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
          */
         $router->group(['prefix' => 'sector'], function () use ($router) {
             $router->post('create', 'V1\SectorsController@create');
-            $router->put('update', 'V1\SectorsController@update');
+            $router->post('update', 'V1\SectorsController@update');
             $router->post('delete', 'V1\SectorsController@delete');
             $router->post('show', 'V1\SectorsController@show');
             $router->post('dropDown', 'V1\SectorsController@dropdown');
@@ -97,7 +98,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
          */
         $router->group(['prefix' => 'documentChecklist'], function () use ($router) {
             $router->post('create', 'V1\DocumentChecklistController@create');
-            $router->put('update', 'V1\DocumentChecklistController@update');
+            $router->post('update', 'V1\DocumentChecklistController@update');
             $router->post('delete', 'V1\DocumentChecklistController@delete');
             $router->post('show', 'V1\DocumentChecklistController@show');
             $router->post('list', 'V1\DocumentChecklistController@list');
@@ -107,7 +108,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
          */
         $router->group(['prefix' => 'agent'], function () use ($router) {
             $router->post('create', 'V1\AgentController@create');
-            $router->put('update', 'V1\AgentController@update');
+            $router->post('update', 'V1\AgentController@update');
             $router->post('delete', 'V1\AgentController@delete');
             $router->post('show', 'V1\AgentController@show');
             $router->post('list', 'V1\AgentController@list');
@@ -117,10 +118,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
          */
         $router->group(['prefix' => 'employee'], function () use ($router) {
             $router->post('create', 'V1\EmployeeController@create');
-            $router->put('update', 'V1\EmployeeController@update');
+            $router->post('update', 'V1\EmployeeController@update');
             $router->post('delete', 'V1\EmployeeController@delete');
             $router->post('show', 'V1\EmployeeController@show');
-            $router->put('updateStatus', 'V1\EmployeeController@updateStatus');
+            $router->post('updateStatus', 'V1\EmployeeController@updateStatus');
             $router->post('list', 'V1\EmployeeController@list');
             $router->post('dropDown', 'V1\EmployeeController@dropdown');
         });
