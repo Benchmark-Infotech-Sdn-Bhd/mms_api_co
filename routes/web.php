@@ -135,90 +135,98 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('update', 'V1\CRMController@update');
             $router->post('deleteAttachment', 'V1\CRMController@deleteAttachment');
         });
-    });
-    /**
-     * Routes for Vendors.
-     */
-    $router->group(['prefix' => 'vendor'], function () use ($router) {
-        $router->post('create', 'V1\VendorController@create');
-        $router->post('update', 'V1\VendorController@update');
-        $router->post('delete', 'V1\VendorController@delete');
-        $router->post('show', 'V1\VendorController@show');
-        $router->post('list', 'V1\VendorController@list');
-        $router->post('search', 'V1\VendorController@search');
-        $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
-        $router->post('filter', 'V1\VendorController@filter');
-        $router->post('sendMail', 'V1\VendorController@sendMail');
-    });
-    /**
-     * Routes for FOMEMA Clinics.
-     */
-    $router->group(['prefix' => 'fomemaClinics'], function () use ($router) {
-        $router->post('create', 'V1\FomemaClinicsController@create');
-        $router->post('update', 'V1\FomemaClinicsController@update');
-        $router->post('delete', 'V1\FomemaClinicsController@delete');
-        $router->post('show', 'V1\FomemaClinicsController@show');
-        $router->post('list', 'V1\FomemaClinicsController@list');
-        $router->post('search', 'V1\FomemaClinicsController@search');
-    });
-    /**
-     * Routes for Fee Registration.
-     */
-    $router->group(['prefix' => 'feeRegistration'], function () use ($router) {
-        $router->post('create', 'V1\FeeRegistrationController@create');
-        $router->post('update', 'V1\FeeRegistrationController@update');
-        $router->post('delete', 'V1\FeeRegistrationController@delete');
-        $router->post('show', 'V1\FeeRegistrationController@show');
-        $router->post('list', 'V1\FeeRegistrationController@list');
-        $router->post('search', 'V1\FeeRegistrationController@search');
-    });
-    /**
-     * Routes for Accommodation.
-     */
-    $router->group(['prefix' => 'accommodation'], function () use ($router) {
-        $router->post('create', 'V1\AccommodationController@create');
-        $router->post('update', 'V1\AccommodationController@update');
-        $router->post('delete', 'V1\AccommodationController@delete');
-        $router->post('show', 'V1\AccommodationController@show');
-        $router->post('list', 'V1\AccommodationController@list');
-        $router->post('search', 'V1\AccommodationController@search');
-        $router->post('deleteAttachment', 'V1\AccommodationController@deleteAttachment');
-    });
-    /**
-     * Routes for Insurance.
-     */
-    $router->group(['prefix' => 'insurance'], function () use ($router) {
-        $router->post('create', 'V1\InsuranceController@create');
-        $router->post('update', 'V1\InsuranceController@update');
-        $router->post('delete', 'V1\InsuranceController@delete');
-        $router->post('show', 'V1\InsuranceController@show');
-        $router->post('list', 'V1\InsuranceController@list');
-        $router->post('search', 'V1\InsuranceController@search');
-    });
-    /**
-     * Routes for Transportation.
-     */
-    $router->group(['prefix' => 'transportation'], function () use ($router) {
-        $router->post('create', 'V1\TransportationController@create');
-        $router->post('update', 'V1\TransportationController@update');
-        $router->post('delete', 'V1\TransportationController@delete');
-        $router->post('show', 'V1\TransportationController@show');
-        $router->post('list', 'V1\TransportationController@list');
-        $router->post('search', 'V1\TransportationController@search');
-        $router->post('deleteAttachment', 'V1\TransportationController@deleteAttachment');
-    });
+        /**
+         * Routes for Vendors.
+         */
+        $router->group(['prefix' => 'vendor'], function () use ($router) {
+            $router->post('create', 'V1\VendorController@create');
+            $router->post('update', 'V1\VendorController@update');
+            $router->post('delete', 'V1\VendorController@delete');
+            $router->post('show', 'V1\VendorController@show');
+            $router->post('list', 'V1\VendorController@list');
+            $router->post('search', 'V1\VendorController@search');
+            $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
+            $router->post('filter', 'V1\VendorController@filter');
+            $router->post('sendMail', 'V1\VendorController@sendMail');
+        });
+        /**
+         * Routes for FOMEMA Clinics.
+         */
+        $router->group(['prefix' => 'fomemaClinics'], function () use ($router) {
+            $router->post('create', 'V1\FomemaClinicsController@create');
+            $router->post('update', 'V1\FomemaClinicsController@update');
+            $router->post('delete', 'V1\FomemaClinicsController@delete');
+            $router->post('show', 'V1\FomemaClinicsController@show');
+            $router->post('list', 'V1\FomemaClinicsController@list');
+            $router->post('search', 'V1\FomemaClinicsController@search');
+        });
+        /**
+         * Routes for Fee Registration.
+         */
+        $router->group(['prefix' => 'feeRegistration'], function () use ($router) {
+            $router->post('create', 'V1\FeeRegistrationController@create');
+            $router->post('update', 'V1\FeeRegistrationController@update');
+            $router->post('delete', 'V1\FeeRegistrationController@delete');
+            $router->post('show', 'V1\FeeRegistrationController@show');
+            $router->post('list', 'V1\FeeRegistrationController@list');
+            $router->post('search', 'V1\FeeRegistrationController@search');
+        });
+        /**
+         * Routes for Accommodation.
+         */
+        $router->group(['prefix' => 'accommodation'], function () use ($router) {
+            $router->post('create', 'V1\AccommodationController@create');
+            $router->post('update', 'V1\AccommodationController@update');
+            $router->post('delete', 'V1\AccommodationController@delete');
+            $router->post('show', 'V1\AccommodationController@show');
+            $router->post('list', 'V1\AccommodationController@list');
+            $router->post('search', 'V1\AccommodationController@search');
+            $router->post('deleteAttachment', 'V1\AccommodationController@deleteAttachment');
+        });
+        /**
+         * Routes for Insurance.
+         */
+        $router->group(['prefix' => 'insurance'], function () use ($router) {
+            $router->post('create', 'V1\InsuranceController@create');
+            $router->post('update', 'V1\InsuranceController@update');
+            $router->post('delete', 'V1\InsuranceController@delete');
+            $router->post('show', 'V1\InsuranceController@show');
+            $router->post('list', 'V1\InsuranceController@list');
+            $router->post('search', 'V1\InsuranceController@search');
+        });
+        /**
+         * Routes for Transportation.
+         */
+        $router->group(['prefix' => 'transportation'], function () use ($router) {
+            $router->post('create', 'V1\TransportationController@create');
+            $router->post('update', 'V1\TransportationController@update');
+            $router->post('delete', 'V1\TransportationController@delete');
+            $router->post('show', 'V1\TransportationController@show');
+            $router->post('list', 'V1\TransportationController@list');
+            $router->post('search', 'V1\TransportationController@search');
+            $router->post('deleteAttachment', 'V1\TransportationController@deleteAttachment');
+        });
 
-    /**
-    * Routes for Branch.
-    */
-    $router->group(['prefix' => 'branch'], function () use ($router) {
-        $router->post('create', 'V1\BranchController@create');
-        $router->post('update', 'V1\BranchController@update');
-        $router->post('delete', 'V1\BranchController@delete');
-        $router->post('show', 'V1\BranchController@show');
-        $router->post('list', 'V1\BranchController@list');
-        $router->post('search', 'V1\BranchController@search');
-        $router->post('dropDown', 'V1\BranchController@dropdown');
-        $router->post('updateStatus', 'V1\BranchController@updateStatus');
+        /**
+        * Routes for Branch.
+        */
+        $router->group(['prefix' => 'branch'], function () use ($router) {
+            $router->post('create', 'V1\BranchController@create');
+            $router->post('update', 'V1\BranchController@update');
+            $router->post('delete', 'V1\BranchController@delete');
+            $router->post('show', 'V1\BranchController@show');
+            $router->post('list', 'V1\BranchController@list');
+            $router->post('search', 'V1\BranchController@search');
+            $router->post('dropDown', 'V1\BranchController@dropdown');
+            $router->post('updateStatus', 'V1\BranchController@updateStatus');
+        });
+
+        /**
+        * Routes for Direct recruitment.
+        */
+        $router->group(['prefix' => 'directRecrutment'], function () use ($router) {
+            $router->post('submitProposal', 'V1\DirectRecruitmentController@submitProposal');
+            $router->post('showProposal', 'V1\DirectRecruitmentController@showProposal');
+        });
     });
 });
