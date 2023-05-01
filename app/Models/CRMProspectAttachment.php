@@ -18,6 +18,6 @@ class CRMProspectAttachment extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'file_id', 'file_name', 'file_type', 'file_url', 'created_by', 'modified_by'
+        'file_id', 'prospect_service_id', 'file_name', 'file_type', 'file_url', 'created_by', 'modified_by'
     ];
 }

@@ -91,6 +91,7 @@ class CountriesServices
                 "message" => "Data not found"
             ];
         }
+        $country->embassyAttestationFileCosting()->delete();
         return [
             "isDeleted" => $country->delete(),
             "message" => "Deleted Successfully"
