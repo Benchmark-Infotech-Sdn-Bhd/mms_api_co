@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\DirectrecruitmentApplications;
 use App\Models\DirectrecruitmentApplicationAttachments;
+use Illuminate\Support\Facades\Storage;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\CRMProspect;
 use App\Models\CRMProspectService;
 use App\Models\CRMProspectAttachment;
@@ -70,7 +72,7 @@ class DirectRecruitmentServices
         $this->crmProspectAttachment = $crmProspectAttachment;
         $this->services = $services;
         $this->sectors = $sectors;
-    }
+    }       
     /**
      * @return array
      */
@@ -155,5 +157,70 @@ class DirectRecruitmentServices
         ->select('crm_prospects.company_name', 'crm_prospect_services.contract_type as type', 'directrecruitment_applications.quota_applied as applied_quota', 'directrecruitment_applications.status', 'directrecruitment_applications.id as application_id')
         ->orderBy('directrecruitment_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return mixed | boolean
+     */
+    public function inputValidation($request)
+    {
+        if(!($this->directrecruitmentApplications->validate($request->all()))){
+            return $this->directrecruitmentApplications->errors();
+        }
+        return false;
+    }
+    /**
+     * @param $request
+     * @return mixed | boolean
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->directrecruitmentApplications->validateUpdation($request->all()))){
+            return $this->directrecruitmentApplications->errors();
+        }
+        return false;
+    }
+     /**
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function showProposal($request) : mixed
+    {
+        return $this->directrecruitmentApplications::with(['applicationAttachment' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+        }])->find($request['id']);
+    }
+    /**
+     *
+     * @param $request
+     * @return array
+     */
+    public function submitProposal($request): array
+    {    
+        $data = $this->directrecruitmentApplications::findorfail($request['id']);
+        $input = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $input['modified_by'] = $user['id']; 
+        $input['status'] = 'Proposal Submitted'; 
+        if (request()->hasFile('attachment')){
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/directRecruitment/proposal/' . $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $this->directrecruitmentApplicationAttachments::create([
+                        "file_id" => $request['id'],
+                        "file_name" => $fileName,
+                        "file_type" => 'proposal',
+                        "file_url" =>  $fileUrl         
+                    ]);  
+            }
+        }
+        return  [
+            "isUpdated" => $data->update($input),
+            "message" => "Updated Successfully"
+        ];
     }
 }

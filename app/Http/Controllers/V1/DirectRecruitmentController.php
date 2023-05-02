@@ -26,7 +26,44 @@ class DirectRecruitmentController extends Controller
         $this->directRecruitmentServices = $directRecruitmentServices;
     }
     /**
-     * Add a services to the prospect.
+     * Show the form for creating a new Proposal.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function submitProposal(Request $request): JsonResponse
+    {     
+        try {   
+            $validation = $this->directRecruitmentServices->inputValidation($request);
+            if ($validation) {
+                return $this->validationError($validation);
+            }
+            $response = $this->directRecruitmentServices->submitProposal($request);       
+            return $this->sendSuccess($response);
+            
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => $e->getMessage()]);
+        }
+    }
+    /**
+     * Display the data for edit form by using proposal id.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function showProposal(Request $request): JsonResponse
+    {     
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentServices->showProposal($params); 
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => $e->getMessage()]);
+        }
+    }
+    /*** Add a services to the prospect.
      * 
      * @param Request $request
      * @return JsonResponse

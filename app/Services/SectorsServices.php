@@ -87,6 +87,7 @@ class SectorsServices
                 "message" => "Data not found"
             ];
         }
+        $sector->documentChecklist()->delete();
         return [
             "isDeleted" => $sector->delete(),
             "message" => "Deleted Successfully"

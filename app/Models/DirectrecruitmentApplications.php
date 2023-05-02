@@ -105,5 +105,5 @@ class DirectrecruitmentApplications extends Model implements Auditable
     public function crmProspectServices()
     {
         return $this->belongsTo(CRMProspectService::class, 'service_id');
-    }
+    } 
 }
