@@ -91,7 +91,7 @@ class CountriesTest extends TestCase
     public function testForCountryUpdationValidation(): void
     {
         $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('PUT', 'api/v1/country/update', array_merge($this->updationData(), 
+        $response = $this->json('POST', 'api/v1/country/update', array_merge($this->updationData(), 
         ['id' => '', 'country_name' => '', 'system_type' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
@@ -137,7 +137,7 @@ class CountriesTest extends TestCase
     public function testForUpdateCountry(): void
     {
         $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('PUT', 'api/v1/country/update', $this->updationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/country/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             "data" =>
