@@ -64,7 +64,7 @@ class SectorsTest extends TestCase
     public function testForSectorUpdationValidation(): void
     {
         $this->json('POST', 'api/v1/sector/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('PUT', 'api/v1/sector/update', array_merge($this->updationData(), 
+        $response = $this->json('POST', 'api/v1/sector/update', array_merge($this->updationData(), 
         ['id' => '','sector_name' => '', 'sub_sector_name' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
@@ -105,7 +105,7 @@ class SectorsTest extends TestCase
     public function testForUpdateSector(): void
     {
         $this->json('POST', 'api/v1/sector/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('PUT', 'api/v1/sector/update', $this->updationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/sector/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             "data" =>

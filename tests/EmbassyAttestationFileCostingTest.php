@@ -46,7 +46,7 @@ class EmbassyAttestationFileCostingTest extends TestCase
     public function testForEmbassyAttestationFileCostingUpdationRequiredValidation(): void
     {
         $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('PUT', 'api/v1/embassyAttestationFile/update', array_merge($this->updationData(), 
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/update', array_merge($this->updationData(), 
         ['id' => '','country_id' => '', 'title' => '', 'amount' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
@@ -95,7 +95,7 @@ class EmbassyAttestationFileCostingTest extends TestCase
     {
         $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
         $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('PUT', 'api/v1/embassyAttestationFile/update', $this->updationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             "data" =>

@@ -43,7 +43,7 @@ class DocumentChecklistTest extends TestCase
     public function testForDocumentChecklistUpdationRequiredValidation(): void
     {
         $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('PUT', 'api/v1/documentChecklist/update', array_merge($this->updationData(), 
+        $response = $this->json('POST', 'api/v1/documentChecklist/update', array_merge($this->updationData(), 
         ['id' => '', 'sector_id' => '', 'document_title' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
@@ -88,7 +88,7 @@ class DocumentChecklistTest extends TestCase
     {
         $this->json('POST', 'api/v1/sector/create', ['sector_name' => 'Agriculture', 'sub_sector_name' => 'Agriculture'], $this->getHeader());
         $this->json('POST', 'api/v1/documentChecklist/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('PUT', 'api/v1/documentChecklist/update', $this->updationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/documentChecklist/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             "data" =>
