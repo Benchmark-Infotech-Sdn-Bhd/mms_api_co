@@ -27,7 +27,6 @@ class CRMProspectUnitTest extends TestCase
         $response->seeJson([
             'data' => [
                 'company_name' => ['The company name field is required.'], 
-                'contract_type' => ['The contract type field is required.'], 
                 'roc_number' => ['The roc number field is required.'], 
                 'contact_number' => ['The contact number field is required.'],
                 'email' => ['The email field is required.'],
@@ -142,7 +141,6 @@ class CRMProspectUnitTest extends TestCase
             'data' => [
                 'id' => ['The id field is required.'],
                 'company_name' => ['The company name field is required.'], 
-                'contract_type' => ['The contract type field is required.'],
                 'roc_number' => ['The roc number field is required.'], 
                 'contact_number' => ['The contact number field is required.'],
                 'email' => ['The email field is required.'],
@@ -274,7 +272,6 @@ class CRMProspectUnitTest extends TestCase
                     [
                         'id',
                         'company_name',
-                        'contract_type',
                         'roc_number',
                         'director_or_owner',
                         'contact_number',
