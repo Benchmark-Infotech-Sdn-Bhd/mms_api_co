@@ -160,8 +160,53 @@ class AgentServices
                     ->orWhere('city', 'like', '%'.$request['search_param'].'%')
                     ->orWhere('person_in_charge', 'like', '%'.$request['search_param'].'%');
             }
-        })->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge')
+        })->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge','agent.status')
         ->orderBy('agent.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatus($request) : array
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required','status' => 'required|regex:/^[0-1]+$/|max:1']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        $agent = $this->agent->with('countries')->find($request['id']);
+        if(is_null($agent)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        if($request['status'] == 1){
+            if(is_null($agent['countries']) || ($agent['countries']['status'] == 0)){
+                return [
+                    "isUpdated" => false,
+                    "message"=> '“You are not allowed to update agent status due to an inactive Country assigned, Kindly “Reactive the country associated with this agent” or ”assign to a new country to the agent”'
+                ];
+            }
+        }
+        $agent->status = $request['status'];
+        return  [
+            "isUpdated" => $agent->save() == 1,
+            "message" => "Updated Successfully"
+        ];
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatusBasedOnCountries($request) : array
+    {
+        $agent = $this->agent->where('country_id', $request['country_id'])
+        ->update(['status' => $request['status']]);
+        return  [
+            "isUpdated" => $agent,
+            "message" => "Updated Successfully"
+        ];
     }
 }

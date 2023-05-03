@@ -130,6 +130,56 @@ class RolesUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test to update status for Role Required Validation
+     */
+    public function testForUpdateRoleStatusRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/role/updateStatus', ['id' => '','status' => ''], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "id" => [
+                    "The id field is required."
+                ],
+                "status" => [
+                    "The status field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to update status for Role Format/MinMax Validation
+     */
+    public function testForUpdateRoleStatusFormatAndMinMaxValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/role/updateStatus', ['id' => 1,'status' => 12], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "status" => [
+                    "The status format is invalid.",
+                    "The status must not be greater than 1 characters."
+                ],
+            ]
+        ]);
+    }
+    /**
+     * Functional test for update role Status
+     */
+    public function testForUpdateRoleStatus(): void
+    {
+        $this->json('POST', 'api/v1/role/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/role/updateStatus', ['id' => 1, 'status' => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            "data" =>
+            [
+                'isUpdated',
+                'message'
+            ]
+        ]);
+    }
+    /**
      * @return array
      */
     public function creationData(): array

@@ -71,6 +71,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('show', 'V1\CountriesController@show');
             $router->post('dropDown', 'V1\CountriesController@dropdown');
             $router->post('list', 'V1\CountriesController@list');
+            $router->post('updateStatus', 'V1\CountriesController@updateStatus');
         });
         /**
          * Routes for EmbassyAttestationFileCosting.
@@ -92,6 +93,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('show', 'V1\SectorsController@show');
             $router->post('dropDown', 'V1\SectorsController@dropdown');
             $router->post('list', 'V1\SectorsController@list');
+            $router->post('updateStatus', 'V1\SectorsController@updateStatus');
         });
         /**
          * Routes for DocumentChecklist.
@@ -112,6 +114,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('delete', 'V1\AgentController@delete');
             $router->post('show', 'V1\AgentController@show');
             $router->post('list', 'V1\AgentController@list');
+            $router->post('updateStatus', 'V1\AgentController@updateStatus');
         });
         /**
          * Routes for Employees.

@@ -111,7 +111,7 @@ class SectorsServices
      */
     public function dropdown() : mixed
     {
-        return $this->sectors->select('id','sector_name')->orderBy('sectors.created_at','DESC')->get();
+        return $this->sectors->where('status', 1)->select('id','sector_name')->orderBy('sectors.created_at','DESC')->get();
     }
     /**
      * @param $request
@@ -154,8 +154,32 @@ class SectorsServices
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('sector_name', 'like', "%{$request['search_param']}%");
             }
-        })->select('id','sector_name','sub_sector_name','checklist_status')
+        })->select('id','sector_name','sub_sector_name','checklist_status','status')
         ->orderBy('sectors.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatus($request) : array
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required','status' => 'required|regex:/^[0-1]+$/|max:1']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        $sector = $this->sectors->find($request['id']);
+        if(is_null($sector)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        $sector->status = $request['status'];
+        return [
+            "isUpdated" => $sector->save() == 1,
+            "message" => "Updated Successfully"
+        ];
     }
 }
