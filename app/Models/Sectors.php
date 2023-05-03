@@ -22,7 +22,7 @@ class Sectors extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['sector_name','sub_sector_name','checklist_status','created_by','modified_by'];
+    protected $fillable = ['sector_name','sub_sector_name','checklist_status','status','created_by','modified_by'];
     /**
      * @return HasMany
      */
@@ -36,8 +36,8 @@ class Sectors extends Model implements Auditable
      * @var array
      */
     public $rules = [
-        'sector_name' => 'required|max:255',
-        'sub_sector_name' => 'max:255'
+        'sector_name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
+        'sub_sector_name' => 'regex:/^[a-zA-Z ]*$/|max:255'
     ];
     /**
      * The attributes that are required for updation.
@@ -46,7 +46,7 @@ class Sectors extends Model implements Auditable
      */
     public $rulesForUpdation = [
         'id' => 'required|regex:/^[0-9]+$/',
-        'sector_name' => 'required|max:255',
-        'sub_sector_name' => 'max:255'
+        'sector_name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
+        'sub_sector_name' => 'regex:/^[a-zA-Z ]*$/|max:255'
     ];
 }

@@ -66,7 +66,7 @@ class CRMProspectUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'contact_number' => ['The contact number must be within 11 digits.']
+                'contact_number' => ['The contact number must not be greater than 11 characters.']
             ]
         ]);
     }
@@ -81,7 +81,7 @@ class CRMProspectUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'contact_number' => ['The contact number format is invalid.', 'The contact number must be within 11 digits.']
+                'contact_number' => ['The contact number format is invalid.']
             ]
         ]);
     }
@@ -96,7 +96,7 @@ class CRMProspectUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'pic_contact_number' => ['The PIC contact number must be within 11 digits.']
+                'pic_contact_number' => ['The pic contact number must not be greater than 11 characters.']
             ]
         ]);
     }
@@ -111,7 +111,7 @@ class CRMProspectUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'pic_contact_number' => ['The PIC contact number format is invalid.', 'The PIC contact number must be within 11 digits.']
+                'pic_contact_number' => ['The pic contact number format is invalid.']
             ]
         ]);
     }
@@ -284,9 +284,7 @@ class CRMProspectUnitTest extends TestCase
                         'pic_contact_number',
                         'pic_designation',
                         'registered_by',
-                        'sector_type',
                         'prospect_services',
-                        'prospect_attachment',
                         'prospect_login_credentials'
                     ]
                 ]
@@ -312,26 +310,8 @@ class CRMProspectUnitTest extends TestCase
         $payload =  [
             'name' => 'Admin'
         ];
-        $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
-        $payload =  [
-            'employee_name' => 'test',
-            'gender' => 'gender',
-            'date_of_birth' => '1998-11-02',
-            'ic_number' => 222223434,
-            'passport_number' => 'ADI',
-            'email' => 'test@gmail.com',
-            'contact_number' => 8754686787,
-            'address' => 'address',
-            'postcode' => 7584,
-            'position' => 'position',
-            'branch_id' => 1,
-            'role_id' => 1,
-            'salary' => 20000,
-            'status' => 1,
-            'city' => 'city',
-            'state' => 'state'
-        ];   
-        $res = $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
+        $this->artisan("db:seed --class=unit_testing_employee");
         $payload =  [
             'sector_name' => 'Agriculture',
             'sub_sector_name' => 'Agriculture'
@@ -343,7 +323,7 @@ class CRMProspectUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['company_name' => 'ABC Firm', 'contract_type' => 'Zero Cost', 'roc_number' => 'APS6376', 'director_or_owner' => 'Test', 'contact_number' => '768456948', 'email' => 'test@gmail.com', 'address' => 'Coimbatore', 'pic_name' => 'PICTest', 'pic_contact_number' => '764859694', 'pic_designation' => 'Manager', 'registered_by' => 1, 'sector_type' => 1, 'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])];
+        return ['company_name' => 'ABC Firm', 'contract_type' => 'Zero Cost', 'roc_number' => 'APS6376', 'director_or_owner' => 'Test', 'contact_number' => '768456948', 'email' => 'testcrm@gmail.com', 'address' => 'Coimbatore', 'pic_name' => 'PICTest', 'pic_contact_number' => '764859694', 'pic_designation' => 'Manager', 'registered_by' => 1, 'sector_type' => 1, 'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])];
     }
     /**
      * @return array

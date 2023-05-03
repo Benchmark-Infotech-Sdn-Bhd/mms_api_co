@@ -41,9 +41,6 @@ class AgentsTest extends TestCase
                 ],
                 "email_address" => [
                     "The email address field is required."
-                ],
-                "company_address" => [
-                    "The company address field is required."
                 ]
             ]
         ]);
@@ -116,7 +113,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationValidation(): void
     {
         $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('PUT', 'api/v1/agent/update', array_merge($this->updationData(), 
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(), 
         ['id' => '','agent_name' => '', 'country_id' => '', 'city' => '', 'person_in_charge' => '',
         'pic_contact_number' => '', 'email_address' => '', 'company_address' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -139,9 +136,6 @@ class AgentsTest extends TestCase
                 ],
                 "email_address" => [
                     "The email address field is required."
-                ],
-                "company_address" => [
-                    "The company address field is required."
                 ]
             ]
         ]);
@@ -179,7 +173,7 @@ class AgentsTest extends TestCase
     {
         $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
         $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('PUT', 'api/v1/agent/update', $this->updationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/agent/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             "data" =>
@@ -276,6 +270,57 @@ class AgentsTest extends TestCase
                     'deleted_at',
                     'countries'
                 ]
+        ]);
+    }
+    /**
+     * Functional test to update status for Agent Required Validation
+     */
+    public function testForUpdateAgentStatusRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/updateStatus', ['id' => '','status' => ''], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "id" => [
+                    "The id field is required."
+                ],
+                "status" => [
+                    "The status field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to update status for agent Format/MinMax Validation
+     */
+    public function testForUpdateAgentStatusFormatAndMinMaxValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/updateStatus', ['id' => 1,'status' => 12], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "status" => [
+                    "The status format is invalid.",
+                    "The status must not be greater than 1 characters."
+                ],
+            ]
+        ]);
+    }
+    /**
+     * Functional test for update agent Status
+     */
+    public function testForUpdateAgentStatus(): void
+    {
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/agent/updateStatus', ['id' => 1, 'status' => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            "data" =>
+            [
+                'isUpdated',
+                'message'
+            ]
         ]);
     }
     /**

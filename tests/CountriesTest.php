@@ -91,7 +91,7 @@ class CountriesTest extends TestCase
     public function testForCountryUpdationValidation(): void
     {
         $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('PUT', 'api/v1/country/update', array_merge($this->updationData(), 
+        $response = $this->json('POST', 'api/v1/country/update', array_merge($this->updationData(), 
         ['id' => '', 'country_name' => '', 'system_type' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
@@ -127,7 +127,8 @@ class CountriesTest extends TestCase
                 'modified_by',
                 'created_at',
                 'updated_at',
-                'bond'
+                'bond',
+                'status'
             ]
         ]);
     }
@@ -137,7 +138,7 @@ class CountriesTest extends TestCase
     public function testForUpdateCountry(): void
     {
         $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('PUT', 'api/v1/country/update', $this->updationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/country/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             "data" =>
@@ -226,7 +227,8 @@ class CountriesTest extends TestCase
                     'created_at',
                     'updated_at',
                     'deleted_at',
-                    'bond'
+                    'bond',
+                    'status'
                 ]
         ]);
     }
@@ -240,6 +242,56 @@ class CountriesTest extends TestCase
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             "data"
+        ]);
+    }
+    /**
+     * Functional test to update status for Country Required Validation
+     */
+    public function testForUpdateCountryStatusRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/country/updateStatus', ['id' => '','status' => ''], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "id" => [
+                    "The id field is required."
+                ],
+                "status" => [
+                    "The status field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to update status for country Format/MinMax Validation
+     */
+    public function testForUpdateCountryStatusFormatAndMinMaxValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/country/updateStatus', ['id' => 1,'status' => 12], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "status" => [
+                    "The status format is invalid.",
+                    "The status must not be greater than 1 characters."
+                ],
+            ]
+        ]);
+    }
+    /**
+     * Functional test for update country Status
+     */
+    public function testForUpdateCountryStatus(): void
+    {
+        $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/country/updateStatus', ['id' => 1, 'status' => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            "data" =>
+            [
+                'isUpdated',
+                'message'
+            ]
         ]);
     }
     /**
