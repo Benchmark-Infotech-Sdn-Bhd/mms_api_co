@@ -31,6 +31,21 @@ class CRMProspectUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for CRM prospect Director/Owner mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationDirectorOrOwnerRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['director_or_owner' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'director_or_owner' => ['The director or owner field is required.']
+            ]
+        ]);
+    }
+    /**
      * Functional test for CRM prospect ROC number mandatory field validation 
      * 
      * @return void
@@ -121,21 +136,6 @@ class CRMProspectUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for CRM prospect PIC Designation mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForProspectCreationPICDesignationRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['pic_designation' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'pic_designation' => ['The pic designation field is required.']
-            ]
-        ]);
-    }
-    /**
      * Functional test for CRM prospect Registered By mandatory field validation 
      * 
      * @return void
@@ -162,6 +162,21 @@ class CRMProspectUnitTest extends TestCase
         $response->seeJson([
             'data' => [
                 'sector_type' => ['The sector type field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Service type mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationServiceTypeRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['prospect_service' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'prospect_service' => ['The prospect service field is required.']
             ]
         ]);
     }
@@ -241,6 +256,21 @@ class CRMProspectUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for CRM prospect PIC designation type validation 
+     * 
+     * @return void
+     */
+    public function testForProspectPICDesignationTypeValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['pic_designation' => 'HR1']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'pic_designation' => ['The pic designation format is invalid.']
+            ]
+        ]);
+    }
+    /**
      * Functional test for CRM prospect registration 
      * 
      * @return void
@@ -261,8 +291,6 @@ class CRMProspectUnitTest extends TestCase
      */
     public function testForProspectUpdationIDRequiredValidation(): void
     {
-        // $this->creationSeeder();
-        // $response = $this->json('POST', 'api/v1/crm/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
@@ -278,13 +306,26 @@ class CRMProspectUnitTest extends TestCase
      */
     public function testForProspectUpdationCompanyNameRequiredValidation(): void
     {
-        // $this->creationSeeder();
-        // $response = $this->json('POST', 'api/v1/crm/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['company_name' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
                 'company_name' => ['The company name field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Director/Owner mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationDirectorOrOwnerRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['director_or_owner' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'director_or_owner' => ['The director or owner field is required.']
             ]
         ]);
     }
@@ -379,17 +420,17 @@ class CRMProspectUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for CRM prospect PIC Designation mandatory field validation 
+     * Functional test for CRM prospect PIC Designation type validation 
      * 
      * @return void
      */
-    public function testForProspectUpdationPICDesignationRequiredValidation(): void
+    public function testForProspectUpdationPICDesignationTypeValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['pic_designation' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['pic_designation' => 'HR1']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'pic_designation' => ['The pic designation field is required.']
+                'pic_designation' => ['The pic designation format is invalid.']
             ]
         ]);
     }
@@ -551,6 +592,7 @@ class CRMProspectUnitTest extends TestCase
                         'pic_contact_number',
                         'pic_designation',
                         'registered_by',
+                        'registered_by_name',
                         'prospect_services',
                         'prospect_login_credentials'
                     ]
