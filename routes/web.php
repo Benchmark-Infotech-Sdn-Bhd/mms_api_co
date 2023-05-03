@@ -228,12 +228,20 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('submitProposal', 'V1\DirectRecruitmentController@submitProposal');
             $router->post('showProposal', 'V1\DirectRecruitmentController@showProposal');
         });
-    });
-
-    /**
-    * Routes for DocumentChecklistAttachments.
-    */
-    $router->group(['prefix' => 'checklistAttachment'], function () use ($router) {
-        $router->post('create', 'V1\DocumentChecklistAttachmentsController@create');
+        /**
+        * Routes for DocumentChecklistAttachments.
+        */
+        $router->group(['prefix' => 'checklistAttachment'], function () use ($router) {
+            $router->post('create', 'V1\DocumentChecklistAttachmentsController@create');
+            $router->post('delete', 'V1\DocumentChecklistAttachmentsController@delete');
+            $router->post('list', 'V1\DocumentChecklistAttachmentsController@list');
+        });
+        /**
+        * Routes for DirectRecruitmentApplicationDocumentChecklist.
+        */
+        $router->group(['prefix' => 'directRecruitmentApplicationChecklist'], function () use ($router) {
+            $router->post('update', 'V1\DirectRecruitmentApplicationChecklistController@update');
+            $router->post('show', 'V1\DirectRecruitmentApplicationChecklistController@show');
+        });
     });
 });

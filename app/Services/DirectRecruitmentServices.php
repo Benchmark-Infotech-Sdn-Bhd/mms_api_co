@@ -7,6 +7,7 @@ use App\Models\DirectrecruitmentApplications;
 use App\Models\DirectrecruitmentApplicationAttachments;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\DirectRecruitmentApplicationChecklistServices;
 
 class DirectRecruitmentServices
 {
@@ -22,11 +23,17 @@ class DirectRecruitmentServices
      * @var Storage
      */
     private Storage $storage;
-    public function __construct(DirectrecruitmentApplications $directrecruitmentApplications, DirectrecruitmentApplicationAttachments $directrecruitmentApplicationAttachments, Storage $storage)
+    /**
+     * @var DirectRecruitmentApplicationChecklistServices
+     */
+    private DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices;
+    public function __construct(DirectrecruitmentApplications $directrecruitmentApplications, DirectrecruitmentApplicationAttachments $directrecruitmentApplicationAttachments, 
+    Storage $storage,DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices)
     {
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->directrecruitmentApplicationAttachments = $directrecruitmentApplicationAttachments;
         $this->storage = $storage;
+        $this->directRecruitmentApplicationChecklistServices = $directRecruitmentApplicationChecklistServices;
     }
     /**
      * @param $request
@@ -88,8 +95,17 @@ class DirectRecruitmentServices
                     ]);  
             }
         }
+        $res = $data->update($input);
+        if($res){
+            $applicationChecklist = $this->directRecruitmentApplicationChecklistServices->create(
+                ['application_id' => $request['id'],
+                'item_name' => 'Document Checklist',
+                'application_checklist_status' => 'Pending',
+                'created_by' => $user['id']]
+            );
+        }
         return  [
-            "isUpdated" => $data->update($input),
+            "isUpdated" => $res,
             "message" => "Updated Successfully"
         ];
     }
