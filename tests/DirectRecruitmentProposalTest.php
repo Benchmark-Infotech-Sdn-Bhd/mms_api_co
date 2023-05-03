@@ -14,6 +14,85 @@ class DirectRecruitmentProposalTest extends TestCase
         parent::setUp();
     }
     /**
+     * A test method for validate crm prospect id
+     * 
+     * @return void
+     */
+    public function testAddProposalCrmProspectIdValidation(): void
+    {
+        $payload =  [
+            'crm_prospect_id' => '',
+            'quota_applied' => 22,
+            'person_incharge' => 'test',
+            'cost_quoted' => 2
+       ];
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['crm_prospect_id']
+        ]);
+    }
+    /**
+     * A test method for validate quota applied
+     * 
+     * @return void
+     */
+    public function testAddProposalQuotaAppliedValidation(): void
+    {
+        $payload =  [
+            'crm_prospect_id' => 1,
+            'quota_applied' => '',
+            'person_incharge' => 'test',
+            'cost_quoted' => 2
+       ];
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['quota_applied']
+        ]);
+    }
+
+    /**
+     * A test method for validate person incharge
+     * 
+     * @return void
+     */
+    public function testAddProposalPersonInchargeValidation(): void
+    {
+        $payload =  [
+            'crm_prospect_id' => 1,
+            'quota_applied' => 22,
+            'person_incharge' => '',
+            'cost_quoted' => 2
+       ];
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['person_incharge']
+        ]);
+    }
+
+    /**
+     * A test method for validate cost quoted
+     * 
+     * @return void
+     */
+    public function testAddProposalCostQuotedValidation(): void
+    {
+        $payload =  [
+            'crm_prospect_id' => 1,
+            'quota_applied' => 22,
+            'person_incharge' => 'test',
+            'cost_quoted' => ''
+       ];
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['cost_quoted']
+        ]);
+    }
+
+    /**
      * A test method for validate create proposal
      * 
      * @return void
@@ -81,6 +160,22 @@ class DirectRecruitmentProposalTest extends TestCase
             [
                 'message'
             ]
+        ]);
+    }
+    /**
+     * A test method for retrieve specific proposal.
+     *
+     * @return void
+     */
+    public function testRetrieveSpecificProposal()
+    {
+        $response = $this->json('POST', 'api/v1/directRecrutment/showProposal', ['id' => 1], $this->getHeader());
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'data',
+                ]
         ]);
     }
     /**
