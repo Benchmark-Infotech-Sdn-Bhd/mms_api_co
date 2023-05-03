@@ -25,7 +25,7 @@ class FeeRegistrationTest extends TestCase
             'item_name' => '',
             'cost' => '15',
             'fee_type' => 'Proposal',
-            'applicable_for' => ["e-Contract","Total Management","Direct Recruitment"],
+            'applicable_for' => [1,2,3],
             'sectors' => [1,2,3],
        ];
         $response = $this->json('POST', 'api/v1/feeRegistration/create', $payload, $this->getHeader());
@@ -46,7 +46,7 @@ class FeeRegistrationTest extends TestCase
             'item_name' => 'test',
             'cost' => '',
             'fee_type' => 'Proposal',
-            'applicable_for' => ["e-Contract","Total Management","Direct Recruitment"],
+            'applicable_for' => [1,2,3],
             'sectors' => [1,2,3],
        ];
         $response = $this->json('POST', 'api/v1/feeRegistration/create', $payload, $this->getHeader());
@@ -67,7 +67,7 @@ class FeeRegistrationTest extends TestCase
             'item_name' => 'Test',
             'cost' => '15',
             'fee_type' => '',
-            'applicable_for' => ["e-Contract","Total Management","Direct Recruitment"],
+            'applicable_for' => [1,2,3],
             'sectors' => [1,2,3],
        ];
         $response = $this->json('POST', 'api/v1/feeRegistration/create', $payload, $this->getHeader());
@@ -88,7 +88,7 @@ class FeeRegistrationTest extends TestCase
              'item_name' => 'Uplabs',
              'cost' => '15',
              'fee_type' => 'Proposal',
-             'applicable_for' => ["e-Contract","Total Management","Direct Recruitment"],
+             'applicable_for' => [1,2,3],
              'sectors' => [1,2,3],
         ];
         $response = $this->json('POST', 'api/v1/feeRegistration/create', $payload, $this->getHeader());
@@ -114,10 +114,10 @@ class FeeRegistrationTest extends TestCase
             'item_name' => 'Uplabs',
             'cost' => '15',
             'fee_type' => 'Monthly',
-            'applicable_for' => ["e-Contract","Total Management","Direct Recruitment"],
+            'applicable_for' => [1,2,3],
             'sectors' => [1,2,3],
         ];
-        $response = $this->json('PUT', 'api/v1/feeRegistration/update', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/feeRegistration/update', $payload, $this->getHeader());
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
