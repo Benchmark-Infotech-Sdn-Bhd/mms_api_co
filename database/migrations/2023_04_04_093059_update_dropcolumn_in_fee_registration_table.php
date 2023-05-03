@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('fee_registration', function (Blueprint $table) {
-            $table->dropColumn('applicable_for');
-            $table->dropColumn('sectors');
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropColumn('applicable_for');
+                $table->dropColumn('sectors');
+            }
         });
     } 
     /**

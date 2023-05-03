@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class Sectors extends Model
+class Sectors extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
@@ -20,7 +22,7 @@ class Sectors extends Model
      *
      * @var array
      */
-    protected $fillable = ['sector_name','sub_sector_name','checklist_status','created_by','modified_by'];
+    protected $fillable = ['sector_name','sub_sector_name','checklist_status','status','created_by','modified_by'];
     /**
      * @return HasMany
      */
@@ -34,8 +36,8 @@ class Sectors extends Model
      * @var array
      */
     public $rules = [
-        'sector_name' => 'required|max:255',
-        'sub_sector_name' => 'max:255'
+        'sector_name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
+        'sub_sector_name' => 'regex:/^[a-zA-Z ]*$/|max:255'
     ];
     /**
      * The attributes that are required for updation.
@@ -43,8 +45,8 @@ class Sectors extends Model
      * @var array
      */
     public $rulesForUpdation = [
-        'id' => 'required',
-        'sector_name' => 'required|max:255',
-        'sub_sector_name' => 'max:255'
+        'id' => 'required|regex:/^[0-9]+$/',
+        'sector_name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
+        'sub_sector_name' => 'regex:/^[a-zA-Z ]*$/|max:255'
     ];
 }

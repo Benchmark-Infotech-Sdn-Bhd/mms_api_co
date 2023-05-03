@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Countries;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class EmbassyAttestationFileCosting extends Model
+class EmbassyAttestationFileCosting extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
@@ -35,9 +37,9 @@ class EmbassyAttestationFileCosting extends Model
      * @var array
      */
     public $rules = [
-        'country_id' => 'required',
+        'country_id' => 'required|regex:/^[0-9]+$/',
         'title' => 'required',
-        'amount' => 'required'
+        'amount' => 'required|regex:/^(([0-9]*)(\.([0-9]{0,2}+))?)$/'
     ];
     /**
      * The attributes that are required for updation.
@@ -45,9 +47,9 @@ class EmbassyAttestationFileCosting extends Model
      * @var array
      */
     public $rulesForUpdation = [
-        'id' => 'required',
-        'country_id' => 'required',
+        'id' => 'required|regex:/^[0-9]+$/',
+        'country_id' => 'required|regex:/^[0-9]+$/',
         'title' => 'required',
-        'amount' => 'required'
+        'amount' => 'required|regex:/^(([0-9]*)(\.([0-9]{0,2}+))?)$/'
     ];
 }

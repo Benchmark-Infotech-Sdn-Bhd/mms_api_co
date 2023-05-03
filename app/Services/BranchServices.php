@@ -5,9 +5,11 @@ namespace App\Services;
 
 use App\Models\Branch;
 use App\Models\Services;
+use App\Models\State;
 use App\Models\BranchesServices;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Config;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class BranchServices
 {
@@ -23,12 +25,17 @@ class BranchServices
      * @var branchesServices
      */
     private BranchesServices $branchesServices;
+    /**
+     * @var state
+     */
+    private State $state;
 
-    public function __construct(Branch $branch,Services $services,BranchesServices $branchesServices)
+    public function __construct(Branch $branch,Services $services,BranchesServices $branchesServices, State $state)
     {
         $this->branch = $branch;
         $this->services = $services;
         $this->branchesServices = $branchesServices;
+        $this->state = $state;
     }
     /**
      * @param $request
@@ -52,6 +59,18 @@ class BranchServices
         }
         return false;
     }
+    
+    /**
+     * @param $request
+     * @return mixed | boolean
+     */
+    public function updateStatusValidation($request,$rules)
+    {
+        if(!($this->branch->validateStatus($request,$rules))){
+            return $this->branch->errors();
+        }
+        return false;
+    }
 	 /**
      *
      * @param $request
@@ -59,6 +78,8 @@ class BranchServices
      */
     public function create($request): mixed
     {   
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
         $branchData = $this->branch::create([
             'branch_name' => $request["branch_name"],
             'state' => $request["state"],
@@ -66,10 +87,11 @@ class BranchServices
             'branch_address' => $request["branch_address"],
             'postcode' => $request["postcode"],
             'remarks' => $request["remarks"],
+            'created_by' => $request["created_by"],
         ]);
         $branchDataId = $branchData->id;
         foreach ($request['service_type'] as $serviceType) {
-            $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
+            $serviceTypeData = $this->services->where('id', '=', $serviceType)->select('id','service_name','status')->get();
             foreach ($serviceTypeData as $service) {
                 $this->branchesServices::create([
                     'branch_id' => $branchDataId,
@@ -89,10 +111,10 @@ class BranchServices
     {
         return $this->branch::with('branchServices')
         ->where(function ($query) use ($request) {
-            if (isset($request['search']) && !empty($request['search'])) {
-                $query->where('branch_name', 'like', '%' . $request->search . '%')
-                ->orWhere('state', 'like', '%' . $request->search . '%')
-                ->orWhere('city', 'like', '%' . $request->search . '%');
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('branch_name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('state', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('city', 'like', '%' . $request['search_param'] . '%');
             }
         })
         ->orderBy('branch.created_at','DESC')
@@ -115,6 +137,8 @@ class BranchServices
     public function update($request): array
     {           
         $data = $this->branch::find($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['modified_by'] = $user['id'];
         if(is_null($data)){
             return [
                 "isUpdated" => false,
@@ -124,13 +148,13 @@ class BranchServices
         $branchesServiceType = $this->branchesServices->where('branch_id', '=', $request['id'])->select('service_id', 'service_name')->get();
         $branchesServiceTypeData = [];
         foreach ($branchesServiceType as $serviceType) {
-            $branchesServiceTypeData[] = $serviceType->service_name;
+            $branchesServiceTypeData[] = $serviceType->service_id;
         }
         $selectedDataToAdd = array_diff($request['service_type'], $branchesServiceTypeData);
         $selectedDataToRemove = array_diff($branchesServiceTypeData, $request['service_type']);
         if (!empty($selectedDataToAdd)) {
             foreach ($selectedDataToAdd as $serviceType) {
-                $serviceTypeData = $this->services->where('service_name', '=', $serviceType)->select('id','service_name','status')->get();
+                $serviceTypeData = $this->services->where('id', '=', $serviceType)->select('id','service_name','status')->get();
                 foreach ($serviceTypeData as $service) {
                     $this->branchesServices::create([
                         'branch_id' => $request['id'],
@@ -143,7 +167,7 @@ class BranchServices
         }
         if (!empty($selectedDataToRemove)) {
             foreach ($selectedDataToRemove as $serviceType) {
-                $this->branchesServices::where('branch_id', '=' ,$request['id'])->where('service_name', '=' ,$serviceType)->delete();           
+                $this->branchesServices::where('branch_id', '=' ,$request['id'])->where('service_id', '=' ,$serviceType)->delete();           
             }            
         }
         return [
@@ -173,16 +197,30 @@ class BranchServices
         ];
     }
     /**
-     *
-     * @param $request
-     * @return LengthAwarePaginator
+     * @return mixed
      */
-    public function search($request)
+    public function dropDown(): mixed
     {
-        return $this->branch->where('branch_name', 'like', '%' . $request->search . '%')
-        ->orWhere('state', 'like', '%' . $request->search . '%')
-        ->orWhere('city', 'like', '%' . $request->search . '%')
-        ->orderBy('branch.created_at','DESC')
-        ->paginate(10);
+        return $this->branch->select('id','branch_name')->orderBy('branch.created_at','DESC')->get();
+    }
+
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatus($request) : array
+    {
+        $branch = $this->branch->find($request['id']);
+        if(is_null($branch)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        $branch->status = $request['status'];
+        return  [
+            "isUpdated" => $branch->save(),
+            "message" => "Updated Successfully"
+        ];
     }
 }

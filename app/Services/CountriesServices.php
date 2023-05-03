@@ -4,21 +4,26 @@ namespace App\Services;
 
 use App\Models\Countries;
 use App\Services\ValidationServices;
+use App\Services\AgentServices;
 use Illuminate\Support\Facades\Config;
 
 class CountriesServices
 {
     private Countries $countries;
     private ValidationServices $validationServices;
+    private AgentServices $agentServices;
     /**
      * CountriesServices constructor.
      * @param Countries $countries
      * @param ValidationServices $validationServices
+     * @param AgentServices $agentServices
      */
-    public function __construct(Countries $countries,ValidationServices $validationServices)
+    public function __construct(Countries $countries,ValidationServices $validationServices,
+    AgentServices $agentServices)
     {
         $this->countries = $countries;
         $this->validationServices = $validationServices;
+        $this->agentServices = $agentServices;
     }
 
     /**
@@ -36,8 +41,11 @@ class CountriesServices
             'country_name' => $request['country_name'] ?? '',
             'system_type' => $request['system_type'] ?? '',
             'costing_status' => "Pending",
-            'fee' => $request['fee'] ?? 0,
-            'bond' => $request['bond'] ?? 0
+            'fee' => (float)$request['fee'] ?? 0,
+            'bond' => (int)$request['bond'] ?? 0,
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0,
+            'status' => 1
         ]);
     }
     /**
@@ -46,7 +54,7 @@ class CountriesServices
      */
     public function update($request) : array
     {
-        if(!($this->validationServices->validate($request,$this->countries->rulesForUpdation))){
+        if(!($this->validationServices->validate($request,$this->countries->rulesForUpdation($request['id'])))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
@@ -64,8 +72,10 @@ class CountriesServices
                 'country_name' => $request['country_name'] ?? $country['country_name'],
                 'system_type' => $request['system_type'] ?? $country['system_type'],
                 'costing_status' => $country['costing_status'],
-                'fee' => $request['fee'] ?? $country['fee'],
-                'bond' => $request['bond'] ?? $country['bond']
+                'fee' => (float)$request['fee'] ?? $country['fee'],
+                'bond' => (int)$request['bond'] ?? $country['bond'],
+                'modified_by'   => $request['modified_by'] ?? $country['modified_by'],
+                'status' => $country['status']
             ]),
             "message" => "Updated Successfully"
         ];
@@ -88,6 +98,7 @@ class CountriesServices
                 "message" => "Data not found"
             ];
         }
+        $country->embassyAttestationFileCosting()->delete();
         return [
             "isDeleted" => $country->delete(),
             "message" => "Deleted Successfully"
@@ -111,7 +122,7 @@ class CountriesServices
      */
     public function dropdown() : mixed
     {
-        return $this->countries->select('id','country_name')->orderBy('countries.created_at','DESC')->get();
+        return $this->countries->where('status', 1)->select('id','country_name')->orderBy('countries.created_at','DESC')->get();
     }
     /**
      * @param $request
@@ -154,8 +165,37 @@ class CountriesServices
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('country_name', 'like', "%{$request['search_param']}%");
             }
-        })->select('id','country_name','system_type','costing_status')
+        })->select('id','country_name','system_type','costing_status','status')
         ->orderBy('countries.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatus($request) : array
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required','status' => 'required|regex:/^[0-1]+$/|max:1']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        $country = $this->countries->find($request['id']);
+        if(is_null($country)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        $country->status = $request['status'];
+        $res = $country->save();
+        if($res == 1){
+            $agents = $this->agentServices->updateStatusBasedOnCountries(['country_id' => $request['id'],
+            'status' => $request['status']]);
+        }
+        return  [
+            "isUpdated" => $res == 1,
+            "message" => "Updated Successfully"
+        ];
     }
 }

@@ -8,6 +8,7 @@ use App\Models\AccommodationAttachments;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Config;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AccommodationServices
 {
@@ -58,7 +59,9 @@ class AccommodationServices
      */
     public function create($request): mixed
     {     
-        $input = $request->all();        
+        $input = $request->all();  
+        $user = JWTAuth::parseToken()->authenticate();
+        $input['created_by'] = $user['id'];      
         $accommodationData = $this->accommodation::create([
             'name' => $input["name"],
             'location' => $input["location"],
@@ -68,6 +71,7 @@ class AccommodationServices
             'vendor_id' => $input["vendor_id"],
             'tnb_bill_account_Number' => $input["tnb_bill_account_Number"],
             'water_bill_account_Number' => $input["water_bill_account_Number"],
+            'created_by' => $input['created_by']
         ]);
         $accommodationId = $accommodationData->id;
         if (request()->hasFile('attachment')){
@@ -99,10 +103,10 @@ class AccommodationServices
             if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
                 $query->where('vendor_id', '=', $request['vendor_id']);
             }
-            if (isset($request['search']) && !empty($request['search'])) {
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('vendor_id', '=', $request['vendor_id'])
-                ->where('name', 'like', '%' . $request['search'] . '%')
-                ->orWhere('location', 'like', '%' . $request['search'] . '%');
+                ->where('name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('location', 'like', '%' . $request['search_param'] . '%');
             }
         })
         ->orderBy('accommodation.created_at','DESC')
@@ -115,7 +119,9 @@ class AccommodationServices
      */
     public function show($request) : mixed
     {
-        return $this->accommodation::with('accommodationAttachments')->findorfail($request['id']);
+        return $this->accommodation::with(['accommodationAttachments' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+        }])->findorfail($request['id']);
     }
     /**
      *
@@ -126,21 +132,23 @@ class AccommodationServices
     {    
         $data = $this->accommodation::findorfail($request['id']);
         $input = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $input['modified_by'] = $user['id']; 
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();                 
                 $filePath = '/vendor/accommodation/' . $fileName; 
-                if (!$this->storage::disk('linode')->exists($filePath)) {
-                    $linode = $this->storage::disk('linode');
-                    $linode->put($filePath, file_get_contents($file));
-                    $fileUrl = $this->storage::disk('linode')->url($filePath);
-                    $data=$this->accommodationAttachments::create([
-                            "file_id" => $request['id'],
-                            "file_name" => $fileName,
-                            "file_type" => 'accommodation',
-                            "file_url" => $fileUrl                
-                        ]); 
-                }    
+                // if (!$this->storage::disk('linode')->exists($filePath)) {
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $data=$this->accommodationAttachments::create([
+                        "file_id" => $request['id'],
+                        "file_name" => $fileName,
+                        "file_type" => 'accommodation',
+                        "file_url" => $fileUrl                
+                    ]); 
+                // }    
             }
         }
         return  [
@@ -156,9 +164,17 @@ class AccommodationServices
     public function delete($request): mixed
     {   
         $data = $this->accommodation::find($request['id']);        
+
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
         $data->accommodationAttachments()->delete();
         $data->delete();
-        return  [
+        return [
+            "isDeleted" => true,
             "message" => "Deleted Successfully"
         ];
     }

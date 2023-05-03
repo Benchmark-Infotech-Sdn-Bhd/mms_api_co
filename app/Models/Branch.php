@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class Branch extends Model
+class Branch extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
@@ -81,6 +83,22 @@ class Branch extends Model
     public function validateUpdation($input){
         // make a new validator object
         $validator = Validator::make($input,$this->rulesForUpdation);
+        // check for failure
+        if($validator->fails()){
+            // set errors and return false
+            $this->errors = $validator->errors();
+            return false;
+        }
+        // validation pass
+        return true;
+    }
+
+    /**
+     * Validate method for model.
+     */
+    public function validateStatus($data,$rules){
+        // make a new validator object
+        $validator = Validator::make($data,$rules);
         // check for failure
         if($validator->fails()){
             // set errors and return false

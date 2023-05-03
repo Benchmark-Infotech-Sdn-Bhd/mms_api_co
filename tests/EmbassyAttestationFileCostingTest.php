@@ -1,94 +1,227 @@
 <?php
 
 namespace Tests;
-use Faker\Factory;
-use Faker\Generator;
+use Laravel\Lumen\Testing\DatabaseMigrations;
 
 class EmbassyAttestationFileCostingTest extends TestCase
 {
-    protected Generator $faker;
+    use DatabaseMigrations;
+
     /**
-     * A test method for create new EmbassyAttestationFileCosting.
-     *
      * @return void
      */
-    public function testNewEmbassyAttestationFileCosting()
+    public function setUp(): void
     {
-        $this->faker = Factory::create();
-        $payload =  [
-            'country_id' => 1,
-            'title' => $this->faker->text(),
-            'amount' => random_int(10, 1000)
-        ];
-        $response = $this->post('/api/v1/embassyAttestationFile/create',$payload);
-        $response->seeStatusCode(200);
-        $response->seeJsonStructure([
-            "error",
-            "statusCode",
-            "statusMessage",
-            "data",
-            "responseTime"
+        parent::setUp();
+    }
+    /**
+     * Functional test to validate Required fields for EmbassyAttestationFileCosting creation
+     * 
+     * @return void
+     */
+    public function testForEmbassyAttestationFileCostingCreationRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/create', array_merge($this->creationData(), 
+        ['country_id' => '', 'title' => '', 'amount' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [ 
+                "country_id" => [
+                    "The country id field is required."
+                ],
+                "title" => [
+                    "The title field is required."
+                ],
+                "amount" => [
+                    "The amount field is required."
+                ]
+            ]
         ]);
     }
     /**
-     * A test method for update existing EmbassyAttestationFileCosting.
-     *
+     * Functional test to validate Required fields for EmbassyAttestationFileCosting Updation
+     * 
      * @return void
      */
-    public function testUpdateEmbassyAttestationFileCosting()
+    public function testForEmbassyAttestationFileCostingUpdationRequiredValidation(): void
     {
-        $this->faker = Factory::create();
-        $payload =  [
-            'id' => 2,
-            'country_id' => 1,
-            'title' => $this->faker->text(),
-            'amount' => random_int(10, 1000)
-        ];
-        $response = $this->put('/api/v1/embassyAttestationFile/update',$payload);
-        $response->seeStatusCode(200);
-        $response->seeJsonStructure([
-            "error",
-            "statusCode",
-            "statusMessage",
-            "data",
-            "responseTime"
+        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/update', array_merge($this->updationData(), 
+        ['id' => '','country_id' => '', 'title' => '', 'amount' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "id" => [
+                    "The id field is required."
+                ],
+                "country_id" => [
+                    "The country id field is required."
+                ],
+                "title" => [
+                    "The title field is required."
+                ],
+                "amount" => [
+                    "The amount field is required."
+                ]
+            ]
         ]);
     }
     /**
-     * A test method for delete existing EmbassyAttestationFileCosting.
-     *
-     * @return void
+     * Functional test for create EmbassyAttestationFileCosting
      */
-    public function testDeleteEmbassyAttestationFileCosting()
+    public function testForCreateEmbassyAttestationFileCosting(): void
     {
-        $payload =  [
-            'id' => 3
-        ];
-        $response = $this->post('/api/v1/embassyAttestationFile/delete',$payload);
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
-        $response->seeJsonStructure([
-            "error",
-            "statusCode",
-            "statusMessage",
-            "data",
-            "responseTime"
+        $this->response->assertJsonStructure([
+            "data" =>
+            [
+                'id',
+                'country_id',
+                'title',
+                'amount',
+                'created_by',
+                'modified_by',
+                'created_at',
+                'updated_at'
+            ]
         ]);
     }
     /**
-     * A test method for retrieve EmbassyAttestationFileCosting based on country.
-     *
+     * Functional test for update EmbassyAttestationFileCosting
+     */
+    public function testForUpdateEmbassyAttestationFileCosting(): void
+    {
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/update', $this->updationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            "data" =>
+            [
+                'isUpdated',
+                'message'
+            ]
+        ]);
+    }
+    /**
+     * Functional test for delete EmbassyAttestationFileCosting
+     */
+    public function testForDeleteEmbassyAttestationFileCosting(): void
+    {
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/delete', ['id' => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            "data" =>
+            [
+                'isDeleted',
+                'message'
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate Required fields for EmbassyAttestationFileCosting Listing
+     * 
      * @return void
      */
-    public function testShouldReturnEmbassyAttestationFileCostingByCountry()
+    public function testForEmbassyAttestationFileCostingListingRequiredValidation(): void
     {
-        $response = $this->post("/api/v1/embassyAttestationFile/retrieveByCountry",['country_id' => 2]);
-        $response->seeStatusCode(200);
-        $response->seeJsonStructure([
-            "error",
-            "statusCode",
-            "statusMessage",
-            "data",
-            "responseTime"
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/list', array_merge($this->updationData(), 
+        ['country_id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "country_id" => [
+                    "The country id field is required."
+                ]
+            ]
         ]);
+    }
+    /**
+     * Functional test to list EmbassyAttestationFileCosting
+     */
+    public function testForListingEmbassyAttestationFileCosting(): void
+    {
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/list', ['country_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            "data" =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
+        ]);
+    }
+    /**
+     * Functional test to validate Required fields for EmbassyAttestationFileCosting View
+     * 
+     * @return void
+     */
+    public function testForEmbassyAttestationFileCostingViewRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/show', array_merge($this->updationData(), 
+        ['id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "id" => [
+                    "The id field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to view EmbassyAttestationFileCosting
+     */
+    public function testForViewEmbassyAttestationFileCosting(): void
+    {
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/show', ['id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            "data" =>
+                [
+                    'id',
+                    'country_id',
+                    'title',
+                    'amount',
+                    'created_by',
+                    'modified_by',
+                    'created_at',
+                    'updated_at',
+                    'deleted_at'
+                ]
+        ]);
+    }
+    /**
+     * @return array
+     */
+    public function creationData(): array
+    {
+        return ['country_id' => 1, 'title' => 'Document', 'amount' => 10];
+    }
+    /**
+     * @return array
+     */
+    public function updationData(): array
+    {
+        return ['id' => 1, 'country_id' => 1, 'title' => 'Document', 'amount' => 10];
     }
 }

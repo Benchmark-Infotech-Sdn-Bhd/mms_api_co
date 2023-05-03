@@ -112,7 +112,7 @@ class AccessManagementUnitTest extends TestCase
     public function accessCreationData(bool $artisan = true): array
     {
         if($artisan === true) {
-            $this->artisan("db:seed --class=unit_testing_module");
+            $this->artisan("db:seed --class=ModuleSeeder");
             $this->json('POST', 'api/v1/role/create', ['name' => 'Admin'], $this->getHeader());
         }
         return ['role_id' => 1, 'modules' => [1,2,3]];

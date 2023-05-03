@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class Insurance extends Model
+class Insurance extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
@@ -26,6 +28,8 @@ class Insurance extends Model
         'no_of_worker_to',
         'fee_per_pax',
         'vendor_id',
+        'created_by',
+        'modified_by',
     ];
     /**
      * The attributes that are required.

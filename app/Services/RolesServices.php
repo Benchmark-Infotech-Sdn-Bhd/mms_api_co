@@ -55,6 +55,7 @@ class RolesServices
                 }
             })
             ->select('id', 'role_name', 'status')
+            ->orderBy('id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
 
@@ -117,5 +118,25 @@ class RolesServices
         return $this->role->where('status', 1)
             ->select('id', 'role_name')
             ->get();
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatus($request) : array
+    {
+        $role = $this->role->find($request['id']);
+        if(is_null($role)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        $role->status = $request['status'];
+        $role->modified_by = $request['modified_by'];
+        return  [
+            "isUpdated" => $role->save() == 1,
+            "message" => "Updated Successfully"
+        ];
     }
 }

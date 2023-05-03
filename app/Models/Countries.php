@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class Countries extends Model
+class Countries extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
@@ -20,7 +22,7 @@ class Countries extends Model
      *
      * @var array
      */
-    protected $fillable = ['country_name','system_type','fee','bond','costing_status','created_by','modified_by'];
+    protected $fillable = ['country_name','system_type','fee','bond','costing_status','status','created_by','modified_by'];
     /**
      * @return HasMany
      */
@@ -41,19 +43,25 @@ class Countries extends Model
      * @var array
      */
     public $rules = [
-        'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
-        'system_type' => 'required',
-        'bond' => 'regex:/^[0-9]+$/|max:3'
+        'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150|unique:countries,country_name,NULL,id,deleted_at,NULL',
+        'system_type' => 'required|regex:/^[a-zA-Z]*$/',
+        'bond' => 'regex:/^[0-9]+$/|max:3',
+        'fee' => 'regex:/^(([0-9]*)(\.([0-9]{0,2}+))?)$/'
     ];
     /**
-     * The attributes that are required for updation.
-     *
-     * @var array
+     * The function returns array that are required for updation.
+     * @param $params
+     * @return array
      */
-    public $rulesForUpdation = [
-        'id' => 'required',
-        'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
-        'system_type' => 'required',
-        'bond' => 'regex:/^[0-9]+$/|max:3'
-    ];
+    public function rulesForUpdation($id): array
+    {
+        // Unique name with deleted at
+        return [
+            'id' => 'required|regex:/^[0-9]+$/',
+            'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150|unique:countries,country_name,'.$id.',id,deleted_at,NULL',
+            'system_type' => 'required|regex:/^[a-zA-Z]*$/',
+            'bond' => 'regex:/^[0-9]+$/|max:3',
+            'fee' => 'regex:/^(([0-9]*)(\.([0-9]{0,2}+))?)$/'
+        ];
+    }
 }

@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Models\FomemaClinics;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Config;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class FomemaClinicsServices
 {
@@ -45,6 +46,8 @@ class FomemaClinicsServices
      */
     public function create($request): mixed
     { 
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
         return $this->fomemaClinics::create([
             'clinic_name' => $request["clinic_name"],
             'person_in_charge' => $request["person_in_charge"],
@@ -53,6 +56,7 @@ class FomemaClinicsServices
             'state' => $request["state"],
             'city' => $request["city"],
             'postcode' => $request["postcode"],
+            'created_by' => $request["created_by"],
         ]);
     }
 	 /**
@@ -63,10 +67,10 @@ class FomemaClinicsServices
     public function list($request)
     {
         return $this->fomemaClinics::where(function ($query) use ($request) {
-            if (isset($request['search']) && !empty($request['search'])) {
-                $query->where('clinic_name', 'like', '%' . $request->search . '%')
-                ->orWhere('state', 'like', '%' . $request->search . '%')
-                ->orWhere('city', 'like', '%' . $request->search . '%');
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('clinic_name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('state', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('city', 'like', '%' . $request['search_param'] . '%');
             }
         })
         ->orderBy('fomema_clinics.created_at','DESC')
@@ -89,6 +93,8 @@ class FomemaClinicsServices
     public function update($request): mixed
     {     
         $data = $this->fomemaClinics::findorfail($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['modified_by'] = $user['id'];
         return  [
             "isUpdated" => $data->update($request->all()),
             "message" => "Updated Successfully"
@@ -112,18 +118,5 @@ class FomemaClinicsServices
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
-    }
-    /**
-     *
-     * @param $request
-     * @return LengthAwarePaginator
-     */
-    public function search($request)
-    {
-        return $this->fomemaClinics->where('clinic_name', 'like', '%' . $request->search . '%')
-        ->orWhere('state', 'like', '%' . $request->search . '%')
-        ->orWhere('city', 'like', '%' . $request->search . '%')
-        ->orderBy('fomema_clinics.created_at','DESC')
-        ->paginate(10);
     }
 }

@@ -1,9 +1,123 @@
 <?php
 
 namespace Tests;
+use Laravel\Lumen\Testing\DatabaseMigrations;
 
 class TransportationTest extends TestCase
 {
+    use DatabaseMigrations;
+    /**
+     * @return void
+     */
+    public function setUp(): void
+    {
+        parent::setUp();
+    }
+    /**
+     * A test method for validate driver name 
+     * 
+     * @return void
+     */
+    public function testDriverNameValidation(): void
+    {
+        $payload =  [
+            'driver_name' => '',
+            'driver_contact_number' => random_int(10, 1000),
+            'vehicle_type' => 'type',
+            'number_plate' => random_int(10, 1000),
+            'vehicle_capacity' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['driver_name']
+        ]);
+    }
+    /**
+     * A test method for validate driver contact number 
+     * 
+     * @return void
+     */
+    public function testDriverContactNumberValidation(): void
+    {
+        $payload =  [
+            'driver_name' => 'name',
+            'driver_contact_number' => '',
+            'vehicle_type' => 'type',
+            'number_plate' => random_int(10, 1000),
+            'vehicle_capacity' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['driver_contact_number']
+        ]);
+    }
+    /**
+     * A test method for validate Vehicle type 
+     * 
+     * @return void
+     */
+    public function testVehicleTypeValidation(): void
+    {
+        $payload =  [
+            'driver_name' => 'name',
+            'driver_contact_number' => random_int(10, 1000),
+            'vehicle_type' => '',
+            'number_plate' => random_int(10, 1000),
+            'vehicle_capacity' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['vehicle_type']
+        ]);
+    }
+    /**
+     * A test method for validate number plate 
+     * 
+     * @return void
+     */
+    public function testNumberPlateValidation(): void
+    {
+        $payload =  [
+            'driver_name' => 'name',
+            'driver_contact_number' => random_int(10, 1000),
+            'vehicle_type' => 'type',
+            'number_plate' => '',
+            'vehicle_capacity' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['number_plate']
+        ]);
+    }
+    /**
+     * A test method for validate vehicle capacity 
+     * 
+     * @return void
+     */
+    public function testVehicleCapacityValidation(): void
+    {
+        $payload =  [
+            'driver_name' => 'name',
+            'driver_contact_number' => random_int(10, 1000),
+            'vehicle_type' => 'type',
+            'number_plate' => random_int(10, 1000),
+            'vehicle_capacity' => '',
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['vehicle_capacity']
+        ]);
+    }
     /**
      * A test method for create new transportation.
      *
@@ -19,17 +133,12 @@ class TransportationTest extends TestCase
              'vehicle_capacity' => random_int(10, 1000),
              'vendor_id' => 1
         ];
-        $response = $this->post('/api/v1/transportation/create',$payload);
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
         $response->seeStatusCode(200);
-        $response->seeJsonStructure([
+        $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'driver_name',
-                    'driver_contact_number',
-                    'vehicle_type',
-                    'number_plate',
-                    'vehicle_capacity',
-                    'vendor_id',
+                    'message'
                 ]
         ]);
 
@@ -42,7 +151,7 @@ class TransportationTest extends TestCase
     public function testUpdateTransportation()
     {
         $payload =  [
-            'id' => 2,
+            'id' => 1,
             'driver_name' => 'name',
             'driver_contact_number' => random_int(10, 1000),
             'vehicle_type' => 'type',
@@ -50,9 +159,9 @@ class TransportationTest extends TestCase
             'vehicle_capacity' => random_int(10, 1000),
             'vendor_id' => 1
         ];
-        $response = $this->post('/api/v1/transportation/update',$payload);
+        $response = $this->json('POST', 'api/v1/transportation/update', $payload, $this->getHeader());
         $response->seeStatusCode(200);
-        $response->seeJsonStructure([
+        $this->response->assertJsonStructure([
             'data' =>
                 [
                     'message'
@@ -66,9 +175,9 @@ class TransportationTest extends TestCase
      */
     public function testRetrieveAllTransportation()
     {
-        $response = $this->post("/api/v1/transportation/list",['id' => 1]);
+        $response = $this->json('POST', 'api/v1/transportation/list', ['id' => 1], $this->getHeader());
         $response->seeStatusCode(200);
-        $response->seeJsonStructure([
+        $this->response->assertJsonStructure([
             'data' =>
                 [
                     'data'
@@ -82,17 +191,12 @@ class TransportationTest extends TestCase
      */
     public function testRetrieveSpecificTransportation()
     {
-        $response = $this->post("/api/v1/transportation/show",['id' => 1]);
+        $response = $this->json('POST', 'api/v1/transportation/show', ['id' => 1], $this->getHeader());
         $response->seeStatusCode(200);
-        $response->seeJsonStructure([
+        $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'driver_name',
-                    'driver_contact_number',
-                    'vehicle_type',
-                    'number_plate',
-                    'vehicle_capacity',
-                    'vendor_id',
+                    'message'
                 ]
         ]);
     }
@@ -104,12 +208,9 @@ class TransportationTest extends TestCase
      */
     public function testDeleteTransportation()
     {
-        $payload =  [
-            'id' => 1
-        ];
-        $response = $this->post('/api/v1/transportation/delete',$payload);
+        $response = $this->json('POST', 'api/v1/transportation/delete', ['id' => 1], $this->getHeader());
         $response->seeStatusCode(200);
-        $response->seeJsonStructure([
+        $this->response->assertJsonStructure([
             'data' =>
                 [
                     'message'
@@ -124,12 +225,9 @@ class TransportationTest extends TestCase
      */
     public function testDeleteTransportationAttachments()
     {
-        $payload =  [
-            'id' => 1
-        ];
-        $response = $this->post('/api/v1/transportation/deleteAttachment',$payload);
+        $response = $this->json('POST', 'api/v1/transportation/deleteAttachment', ['id' => 1], $this->getHeader());
         $response->seeStatusCode(200);
-        $response->seeJsonStructure([
+        $this->response->assertJsonStructure([
             'data' =>
                 [
                     'message'

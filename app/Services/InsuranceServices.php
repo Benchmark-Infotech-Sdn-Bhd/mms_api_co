@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Models\Insurance;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Config;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class InsuranceServices
 {
@@ -45,11 +46,14 @@ class InsuranceServices
      */
     public function create($request): mixed
     {   
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
         return $this->insurance::create([
             'no_of_worker_from' => $request["no_of_worker_from"],
             'no_of_worker_to' => $request["no_of_worker_to"],
             'fee_per_pax' => $request["fee_per_pax"],
             'vendor_id' => $request["vendor_id"],
+            'created_by' => $request["created_by"],
         ]);
     }
     /**
@@ -63,11 +67,11 @@ class InsuranceServices
             if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
                 $query->where('vendor_id', '=', $request['vendor_id']);
             }
-            if (isset($request['search']) && !empty($request['search'])) {
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('vendor_id', '=', $request['vendor_id'])
-                ->where('no_of_worker_from', 'like', '%' . $request['search'] . '%')
-                ->orWhere('no_of_worker_to', 'like', '%' . $request['search'] . '%')
-                ->orWhere('fee_per_pax', 'like', '%' . $request['search'] . '%');
+                ->where('no_of_worker_from', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('no_of_worker_to', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('fee_per_pax', 'like', '%' . $request['search_param'] . '%');
             }
         })
         ->orderBy('insurance.created_at','DESC')
@@ -90,6 +94,8 @@ class InsuranceServices
     public function update($request): mixed
     {           
         $data = $this->insurance::findorfail($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['modified_by'] = $user['id'];
         return  [
             "isUpdated" => $data->update($request->all()),
             "message" => "Updated Successfully"

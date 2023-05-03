@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\AgentServices;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AgentController extends Controller
 {
@@ -34,6 +35,8 @@ class AgentController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['created_by'] = $user['id'];
             $data = $this->agentServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -55,6 +58,8 @@ class AgentController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
             $data = $this->agentServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -163,6 +168,27 @@ class AgentController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
+    /**
+     * Update the Agent status.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateStatus(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->agentServices->updateStatus($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Updation failed. Please retry.';
             return $this->sendError(['message' => $data['error']]);
         }
     }

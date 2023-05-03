@@ -95,7 +95,7 @@ class VendorController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Vendor update was failed']);
+            return $this->sendError(['message' => $e->getMessage()],400);
         }
     }
 	 /**

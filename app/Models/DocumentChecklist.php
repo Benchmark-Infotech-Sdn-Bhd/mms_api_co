@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Sectors;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class DocumentChecklist extends Model
+class DocumentChecklist extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
     /**
      * The table associated with the model.
@@ -35,7 +37,7 @@ class DocumentChecklist extends Model
      * @var array
      */
     public $rules = [
-        'sector_id' => 'required',
+        'sector_id' => 'required|regex:/^[0-9]+$/',
         'document_title' => 'required'
     ];
     /**
@@ -44,8 +46,8 @@ class DocumentChecklist extends Model
      * @var array
      */
     public $rulesForUpdation = [
-        'id' => 'required',
-        'sector_id' => 'required',
+        'id' => 'required|regex:/^[0-9]+$/',
+        'sector_id' => 'required|regex:/^[0-9]+$/',
         'document_title' => 'required'
     ];
 }

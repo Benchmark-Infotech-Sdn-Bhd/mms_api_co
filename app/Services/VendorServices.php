@@ -8,6 +8,7 @@ use App\Models\VendorAttachments;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Config;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class VendorServices
 {
@@ -59,6 +60,7 @@ class VendorServices
     public function create($request): mixed
     {  
         $input = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
         $vendorData = $this->vendor::create([
             'name' => $input["name"],
             'type' => $input["type"],
@@ -71,6 +73,7 @@ class VendorServices
             'city' => $input["city"],
             'postcode' => $input["postcode"],
             'remarks' => $input["remarks"],
+            'created_by' => $user['id'],
         ]);   
         $vendorDataId = $vendorData->id;
         if (request()->hasFile('attachment')){
@@ -100,11 +103,11 @@ class VendorServices
     {
         return $this->vendor::with('accommodations', 'insurances', 'transportations')
         ->where(function ($query) use ($request) {
-            if (isset($request['search']) && !empty($request['search'])) {
-                $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('type', 'like', '%' . $request->search . '%')
-                ->orWhere('state', 'like', '%' . $request->search . '%')
-                ->orWhere('city', 'like', '%' . $request->search . '%');
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('type', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('state', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('city', 'like', '%' . $request['search_param'] . '%');
             }
             if (isset($request['filter']) && !empty($request['filter'])) {
                 $query->where('type', '=', $request->filter);
@@ -120,8 +123,10 @@ class VendorServices
      * @return mixed
      */
     public function show($request): mixed
-    {    
-        return $this->vendor::with('vendorAttachments')->findOrFail($request['id']);
+    {   
+        return $this->vendor::with(['vendorAttachments' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+        }])->findOrFail($request['id']);
         // $accommodations = $vendors->accommodations;
         // $insurances = $vendors->insurances;
         // $transportations = $vendors->transportations;
@@ -137,12 +142,13 @@ class VendorServices
     {  
         $input = $request->all();
         $vendors = $this->vendor::findorfail($input['id']);
-
+        $user = JWTAuth::parseToken()->authenticate();
+        $input["modified_by"] = $user['id'];
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();               
                 $filePath = '/vendor/' . $fileName; 
-                if (!Storage::disk('linode')->exists($filePath)) {
+                // if (!Storage::disk('linode')->exists($filePath)) {
                     $linode = Storage::disk('linode');
                     $linode->put($filePath, file_get_contents($file));
                     $fileUrl = Storage::disk('linode')->url($filePath);
@@ -152,7 +158,7 @@ class VendorServices
                             "file_type" => 'vendor',
                             "file_url" => $fileUrl               
                         ]); 
-                }    
+                // }    
             }
         }
         return  [
@@ -169,12 +175,20 @@ class VendorServices
     public function delete($request): mixed
     {   
         $vendors = $this->vendor::find($request['id']);
+
+        if(is_null($vendors)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
         $vendors->accommodations()->delete();
         $vendors->insurances()->delete();
         $vendors->transportations()->delete();
         $vendors->vendorAttachments()->delete();
         $vendors->delete();
-        return  [
+        return [
+            "isDeleted" => true,
             "message" => "Deleted Successfully"
         ];
     }

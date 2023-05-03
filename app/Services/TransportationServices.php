@@ -8,6 +8,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Config;
 use App\Models\TransportationAttachments;
 use Illuminate\Support\Facades\Storage;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class TransportationServices
 {
@@ -57,6 +58,8 @@ class TransportationServices
      */
     public function create($request): mixed
     {   
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
         $transportationData = $this->transportation::create([
             'driver_name' => $request["driver_name"],
             'driver_contact_number' => $request["driver_contact_number"],
@@ -64,6 +67,7 @@ class TransportationServices
             'number_plate' => $request["number_plate"],
             'vehicle_capacity' => $request["vehicle_capacity"],
             'vendor_id' => $request["vendor_id"],
+            'created_by' => $request["created_by"],
         ]);
         $transportationId = $transportationData->id;
         if (request()->hasFile('attachment')){
@@ -94,10 +98,10 @@ class TransportationServices
             if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
                 $query->where('vendor_id', '=', $request['vendor_id']);
             }
-            if (isset($request['search']) && !empty($request['search'])) {
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('vendor_id', '=', $request['vendor_id'])
-                ->where('driver_name', 'like', '%' . $request['search'] . '%')
-                ->orWhere('vehicle_type', 'like', '%' . $request['search'] . '%');
+                ->where('driver_name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('vehicle_type', 'like', '%' . $request['search_param'] . '%');
             }
         })
         ->orderBy('transportation.created_at','DESC')
@@ -121,7 +125,8 @@ class TransportationServices
     public function update($request): mixed
     {     
         $data = $this->transportation::find($request['id']);
-
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['modified_by'] = $user['id'];
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){                
                 $fileName = $file->getClientOriginalName();                 
@@ -136,6 +141,12 @@ class TransportationServices
                         "file_url" =>  $fileUrl          
                     ]);  
             }
+        }
+        if(is_null($data)){
+            return [
+                "isUpdated" => false,
+                "message" => "Data not found"
+            ];
         }
         return  [
             "isUpdated" => $data->update($request->all()),

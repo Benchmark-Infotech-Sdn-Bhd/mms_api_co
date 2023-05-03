@@ -21,7 +21,7 @@ return new class extends Migration
             // Employee Date of birth column
             $table->date('date_of_birth');
             // Employee IC number column
-            $table->integer('ic_number')->index();
+            $table->bigInteger('ic_number')->default(0)->index();
             // Employee Passport number column
             $table->string('passport_number')->nullable()->index();
             // Employee Email column
@@ -42,12 +42,18 @@ return new class extends Migration
             $table->float('salary');
             // Employee Status column
             $table->tinyInteger('status')->default(1)->unsigned()->index();
+            // Employee city column
+            $table->string('city',150)->nullable();
+            // Employee state column
+            $table->string('state',150);
             // Column for user Id, who created the employee
             $table->integer('created_by')->default(0);
             // Column for user Id, who updated the employee
             $table->integer('modified_by')->default(0);
             // Countries created_at and updated_at columns
             $table->timestamps();
+            // Unique field for employee
+            $table->unique(['email', 'deleted_at']);
             // Foreign key from Branch table
             $table->foreign('branch_id')
               ->references('id')->on('branch');

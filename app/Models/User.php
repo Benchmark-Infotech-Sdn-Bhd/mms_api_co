@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Lumen\Auth\Authorizable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Model implements AuthenticatableContract, AuthorizableContract, JWTSubject
 {
-    use Authenticatable, Authorizable, HasFactory;
+    use Authenticatable, Authorizable, HasFactory, SoftDeletes;
 
     protected $table = 'users';
 
@@ -23,7 +24,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var string[]
      */
     protected $fillable = [
-        'name', 'email', 'password', 'created_by', 'modified_by'
+        'name', 'email', 'password','reference_id','user_type', 'created_by', 'modified_by'
     ];
 
     /**
@@ -56,12 +57,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         return [];
     }
-
     /**
-     * @return BelongsToMany
+     * @return HasOne
      */
-    public function UserRoles(): BelongsToMany
+    public function userRoleType()
     {
-        return $this->belongsToMany(Role::class, 'user_role_type', 'user_id', 'role_id');
+        return $this->hasOne(UserRoleType::class,'user_id');
     }
 }

@@ -146,4 +146,27 @@ class RolesController extends Controller
             return $this->sendError(['message' => 'Failed to List Roles']);
         }
     }
+    /**
+     * Update Status for role.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateStatus(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $validator = Validator::make($params, ['id' => 'required','status' => 'required|regex:/^[0-1]+$/|max:1']);
+            if ($validator->fails()) {
+                return $this->validationError($validator->errors());
+            }
+            return $this->sendSuccess($this->rolesServices->updateStatus($params));
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Updation failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
 }
