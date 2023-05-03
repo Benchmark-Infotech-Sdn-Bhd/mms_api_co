@@ -255,7 +255,7 @@ class EmployeeServices
      */
     public function dropdown() : mixed
     {
-        return $this->employee->select('id','employee_name')->orderBy('employee.created_at','DESC')->get();
+        return $this->employee->where('status', 1)->select('id','employee_name')->orderBy('employee.created_at','DESC')->get();
     }
     /**
      * @param $request

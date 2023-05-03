@@ -41,8 +41,8 @@ class SectorsTest extends TestCase
     {
         $response = $this->json('POST', 'api/v1/sector/create', array_merge($this->creationData(), 
         [
-        'sector_name' => 'AAAAAAAAAAAAAAAAAA DFEWF REWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR srrrrrrrrrrrrrrrr 4wrtert54', 
-        'sub_sector_name' => 'AAAAAAAAAAAAAAAAAA DFEWF REWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR srrrrrrrrrrrrrrrr 4wrtert54'
+        'sector_name' => 'AAAAAAAAAAAAAAAAAA DFEWF REWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR srrrrrrrrrrrrrrrr jrhtirhiti', 
+        'sub_sector_name' => 'AAAAAAAAAAAAAAAAAA DFEWF REWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR srrrrrrrrrrrrrrrr ruhtfiritj'
         ]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
@@ -57,6 +57,28 @@ class SectorsTest extends TestCase
         ]);
     }
     /**
+     * Functional test to validate format for fields in sector creation
+     * 
+     * @return void
+     */
+    public function testForSectorCreationFieldFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/sector/create', array_merge($this->creationData(), 
+        ['sector_name' => 'Malay123$', 
+        'sub_sector_name' => 'Sub123']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+            "sector_name" => [
+                "The sector name format is invalid."
+            ],
+            "sub_sector_name" => [
+                "The sub sector name format is invalid."
+            ]
+            ]
+        ]);
+    }
+    /**
      * Functional test to validate Sector Updation
      * 
      * @return void
@@ -64,7 +86,7 @@ class SectorsTest extends TestCase
     public function testForSectorUpdationValidation(): void
     {
         $this->json('POST', 'api/v1/sector/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('PUT', 'api/v1/sector/update', array_merge($this->updationData(), 
+        $response = $this->json('POST', 'api/v1/sector/update', array_merge($this->updationData(), 
         ['id' => '','sector_name' => '', 'sub_sector_name' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
@@ -105,7 +127,7 @@ class SectorsTest extends TestCase
     public function testForUpdateSector(): void
     {
         $this->json('POST', 'api/v1/sector/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('PUT', 'api/v1/sector/update', $this->updationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/sector/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             "data" =>
@@ -206,6 +228,56 @@ class SectorsTest extends TestCase
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             "data"
+        ]);
+    }
+        /**
+     * Functional test to update status for sector Required Validation
+     */
+    public function testForUpdateSectorStatusRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/sector/updateStatus', ['id' => '','status' => ''], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "id" => [
+                    "The id field is required."
+                ],
+                "status" => [
+                    "The status field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to update status for sector Format/MinMax Validation
+     */
+    public function testForUpdateSectorStatusFormatAndMinMaxValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/sector/updateStatus', ['id' => 1,'status' => 12], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "status" => [
+                    "The status format is invalid.",
+                    "The status must not be greater than 1 characters."
+                ],
+            ]
+        ]);
+    }
+    /**
+     * Functional test for update sector Status
+     */
+    public function testForUpdateSectorStatus(): void
+    {
+        $this->json('POST', 'api/v1/sector/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/sector/updateStatus', ['id' => 1, 'status' => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            "data" =>
+            [
+                'isUpdated',
+                'message'
+            ]
         ]);
     }
     /**

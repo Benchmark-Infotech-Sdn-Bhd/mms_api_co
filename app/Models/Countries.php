@@ -22,7 +22,7 @@ class Countries extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['country_name','system_type','fee','bond','costing_status','created_by','modified_by'];
+    protected $fillable = ['country_name','system_type','fee','bond','costing_status','status','created_by','modified_by'];
     /**
      * @return HasMany
      */
