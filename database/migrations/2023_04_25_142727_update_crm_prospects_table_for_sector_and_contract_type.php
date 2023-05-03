@@ -15,11 +15,11 @@ return new class extends Migration
             if (DB::getDriverName() !== 'sqlite') {
                 // To drop foreign key
                 $table->dropForeign('crm_prospects_sector_type_foreign');
+                // To drop Sector id column
+                $table->dropColumn('sector_type');
+                // To drop contractn type column
+                $table->dropColumn('contract_type');
             }
-            // To drop Sector id column
-            $table->dropColumn('sector_type');
-            // To drop contractn type column
-            $table->dropColumn('contract_type');
         });
     }
 
