@@ -159,7 +159,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('search', 'V1\VendorController@search');
             $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
             $router->post('filter', 'V1\VendorController@filter');
-            $router->post('sendMail', 'V1\VendorController@sendMail');
         });
         /**
          * Routes for FOMEMA Clinics.
@@ -239,6 +238,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'directRecrutment'], function () use ($router) {
             $router->post('submitProposal', 'V1\DirectRecruitmentController@submitProposal');
             $router->post('showProposal', 'V1\DirectRecruitmentController@showProposal');
+            $router->post('deleteAttachment', 'V1\DirectRecruitmentController@deleteAttachment');
         });
     });
 });

@@ -405,4 +405,42 @@ class VendorsTest extends TestCase
                 ]
         ]);
     }
+    /**
+     * A test method for search vendor.
+     *
+     * @return void
+     */
+    public function testVendorSearch()
+    {
+        $payload =  [
+            'search_param' => 'test',
+        ];
+        $response = $this->json('POST', 'api/v1/vendor/list', $payload, $this->getHeader());
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    "data"
+                ]
+        ]);
+    }
+    /**
+     * A test method for filter the vendor.
+     *
+     * @return void
+     */
+    public function testVendorFilter()
+    {
+        $payload =  [
+            'filter' => 'Proposal',
+        ];
+        $response = $this->json('POST', 'api/v1/vendor/list', $payload, $this->getHeader());
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    "data"
+                ]
+        ]);
+    }
 }

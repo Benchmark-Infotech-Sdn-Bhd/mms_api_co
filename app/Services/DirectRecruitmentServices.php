@@ -221,4 +221,24 @@ class DirectRecruitmentServices
             "message" => "Updated Successfully"
         ];
     }
+
+    /**
+     *
+     * @param $request
+     * @return mixed
+     */    
+    public function deleteAttachment($request): mixed
+    {   
+        $data = $this->directrecruitmentApplicationAttachments::find($request['id']); 
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        return [
+            "isDeleted" => $data->delete(),
+            "message" => "Deleted Successfully"
+        ];
+    }
 }

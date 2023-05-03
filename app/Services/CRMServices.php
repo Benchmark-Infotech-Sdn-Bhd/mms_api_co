@@ -71,14 +71,16 @@ class CRMServices
         return [
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
+            'director_or_owner' => 'required|regex:/^[a-zA-Z ]*$/',
             'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
             'email' => 'required|email|unique:crm_prospects,email,NULL,id,deleted_at,NULL',
             'address' => 'required',
             'pic_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'pic_contact_number' => 'required|regex:/^[0-9]+$/|max:11',
-            'pic_designation' => 'required|regex:/^[a-zA-Z ]*$/',
+            'pic_designation' => 'regex:/^[a-zA-Z ]*$/',
             'registered_by' => 'required',
             'sector_type' => 'required',
+            'prospect_service' => 'required',
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];
     }
@@ -92,12 +94,13 @@ class CRMServices
             'id' => 'required',
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
+            'director_or_owner' => 'required|regex:/^[a-zA-Z ]*$/',
             'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
             'email' => 'required|unique:crm_prospects,email,'.$params['id'].',id,deleted_at,NULL',
             'address' => 'required',
             'pic_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'pic_contact_number' => 'required|regex:/^[0-9]+$/|max:11',
-            'pic_designation' => 'required|regex:/^[a-zA-Z ]*$/',
+            'pic_designation' => 'regex:/^[a-zA-Z ]*$/',
             'registered_by' => 'required',
             'sector_type' => 'required',
             'attachment.*' => 'mimes:jpeg,pdf,png'
@@ -151,7 +154,7 @@ class CRMServices
     {
         return $this->crmProspect->where('crm_prospects.id', $request['id'])
             ->leftJoin('employee', 'employee.id', 'crm_prospects.registered_by')
-            ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospects.director_or_owner', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospects.address', 'crm_prospects.pic_name', 'crm_prospects.pic_contact_number', 'crm_prospects.pic_designation', 'employee.employee_name as registered_by')
+            ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospects.director_or_owner', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospects.address', 'crm_prospects.pic_name', 'crm_prospects.pic_contact_number', 'crm_prospects.pic_designation', 'employee.id as registered_by', 'employee.employee_name as registered_by_name')
             ->with(['prospectServices', 'prospectServices.prospectAttachment', 'prospectLoginCredentials'])
             ->get();
     }
@@ -285,21 +288,22 @@ class CRMServices
                     'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract',
                     'status'            => $request['status'] ?? 1
                 ]);
-
-                foreach($request->file('attachment') as $file) {                
-                    $fileName = $file->getClientOriginalName();                 
-                    $filePath = '/crm/prospect/' . $fileName; 
-                    $linode = $this->storage::disk('linode');
-                    $linode->put($filePath, file_get_contents($file));
-                    $fileUrl = $this->storage::disk('linode')->url($filePath);
-                    $this->crmProspectAttachment->create([
-                        "file_id" => $prospect->id,
-                        "prospect_service_id" => $prospectService->id,
-                        "file_name" => $fileName,
-                        "file_type" => 'prospect',
-                        "file_url" =>  $fileUrl       
-                    ]);  
-                } 
+                if (request()->hasFile('attachment')) {
+                    foreach($request->file('attachment') as $file) {                
+                        $fileName = $file->getClientOriginalName();                 
+                        $filePath = '/crm/prospect/' . $fileName; 
+                        $linode = $this->storage::disk('linode');
+                        $linode->put($filePath, file_get_contents($file));
+                        $fileUrl = $this->storage::disk('linode')->url($filePath);
+                        $this->crmProspectAttachment->create([
+                            "file_id" => $prospect->id,
+                            "prospect_service_id" => $prospectService->id,
+                            "file_name" => $fileName,
+                            "file_type" => 'prospect',
+                            "file_url" =>  $fileUrl       
+                        ]);  
+                    } 
+                }
             }
         }
 

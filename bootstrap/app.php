@@ -65,6 +65,7 @@ $app->singleton(
 $app->configure('app');
 $app->configure('jwt');
 $app->configure('services');
+$app->configure('mail');
 
 /*
 |--------------------------------------------------------------------------
@@ -103,6 +104,7 @@ $app->middleware([
  $app->register(App\Providers\EventServiceProvider::class);
  $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
  $app->register(OwenIt\Auditing\AuditingServiceProvider::class);
+ $app->register(Illuminate\Mail\MailServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
