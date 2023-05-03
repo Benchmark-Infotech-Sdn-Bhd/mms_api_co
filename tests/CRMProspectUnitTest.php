@@ -16,26 +16,167 @@ class CRMProspectUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test for CRM prospect register validation 
+     * Functional test for CRM prospect Comapny name mandatory field validation 
      * 
      * @return void
      */
-    public function testForProspectCreationValidation(): void
+    public function testForProspectCreationCompanyNameRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/crm/create', [], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['company_name' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'company_name' => ['The company name field is required.'], 
-                'roc_number' => ['The roc number field is required.'], 
-                'contact_number' => ['The contact number field is required.'],
-                'email' => ['The email field is required.'],
-                'address' => ['The address field is required.'],
-                'pic_name' => ['The pic name field is required.'],
-                'pic_contact_number' => ['The pic contact number field is required.'],
-                'pic_designation' => ['The pic designation field is required.'],
-                'registered_by' => ['The registered by field is required.'],
+                'company_name' => ['The company name field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Director/Owner mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationDirectorOrOwnerRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['director_or_owner' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'director_or_owner' => ['The director or owner field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect ROC number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationROCNumberRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['roc_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'roc_number' => ['The roc number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Contact number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationContactNumberRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['contact_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'contact_number' => ['The contact number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect email mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationEmailRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['email' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'email' => ['The email field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Address mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationAddressRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['address' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'address' => ['The address field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect PIC Name mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationPICNameRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['pic_name' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'pic_name' => ['The pic name field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect PIC Contact Number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationPICContactNumberRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['pic_contact_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'pic_contact_number' => ['The pic contact number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Registered By mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationRegisteredByRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['registered_by' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'registered_by' => ['The registered by field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Sector Type mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationSectorTypeRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['sector_type' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
                 'sector_type' => ['The sector type field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Service type mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectCreationServiceTypeRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['prospect_service' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'prospect_service' => ['The prospect service field is required.']
             ]
         ]);
     }
@@ -115,6 +256,21 @@ class CRMProspectUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for CRM prospect PIC designation type validation 
+     * 
+     * @return void
+     */
+    public function testForProspectPICDesignationTypeValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['pic_designation' => 'HR1']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'pic_designation' => ['The pic designation format is invalid.']
+            ]
+        ]);
+    }
+    /**
      * Functional test for CRM prospect registration 
      * 
      * @return void
@@ -129,26 +285,181 @@ class CRMProspectUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for CRM prospect update validation 
+     * Functional test for CRM prospect id mandatory field validation 
      * 
      * @return void
      */
-    public function testForProspectUpdationValidation(): void
+    public function testForProspectUpdationIDRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/crm/update', [], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'id' => ['The id field is required.'],
-                'company_name' => ['The company name field is required.'], 
-                'roc_number' => ['The roc number field is required.'], 
-                'contact_number' => ['The contact number field is required.'],
-                'email' => ['The email field is required.'],
-                'address' => ['The address field is required.'],
-                'pic_name' => ['The pic name field is required.'],
-                'pic_contact_number' => ['The pic contact number field is required.'],
-                'pic_designation' => ['The pic designation field is required.'],
-                'registered_by' => ['The registered by field is required.'],
+                'id' => ['The id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Comapny name mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationCompanyNameRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['company_name' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'company_name' => ['The company name field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Director/Owner mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationDirectorOrOwnerRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['director_or_owner' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'director_or_owner' => ['The director or owner field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect ROC number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationROCNumberRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['roc_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'roc_number' => ['The roc number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Contact number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationContactNumberRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['contact_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'contact_number' => ['The contact number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect email mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationEmailRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['email' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'email' => ['The email field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Address mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationAddressRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['address' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'address' => ['The address field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect PIC Name mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationPICNameRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['pic_name' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'pic_name' => ['The pic name field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect PIC Contact Number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationPICContactNumberRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['pic_contact_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'pic_contact_number' => ['The pic contact number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect PIC Designation type validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationPICDesignationTypeValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['pic_designation' => 'HR1']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'pic_designation' => ['The pic designation format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Registered By mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationRegisteredByRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['registered_by' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'registered_by' => ['The registered by field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for CRM prospect Sector Type mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdationSectorTypeRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['sector_type' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
                 'sector_type' => ['The sector type field is required.']
             ]
         ]);
@@ -281,6 +592,7 @@ class CRMProspectUnitTest extends TestCase
                         'pic_contact_number',
                         'pic_designation',
                         'registered_by',
+                        'registered_by_name',
                         'prospect_services',
                         'prospect_login_credentials'
                     ]
