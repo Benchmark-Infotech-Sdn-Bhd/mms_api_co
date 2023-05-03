@@ -20,6 +20,7 @@ class AccommodationTest extends TestCase
      */
     public function testAccommodationNameValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'name' => '',
             'location' => 'test',
@@ -43,6 +44,7 @@ class AccommodationTest extends TestCase
      */
     public function testAccommodationLocationValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'name' => 'test',
             'location' => '',
@@ -66,6 +68,7 @@ class AccommodationTest extends TestCase
      */
     public function testAccommodationMaxPerPaxValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'name' => 'test',
             'location' => 'test',
@@ -89,6 +92,7 @@ class AccommodationTest extends TestCase
      */
     public function testAccommodationDepositValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'name' => 'test',
             'location' => 'test',
@@ -112,6 +116,7 @@ class AccommodationTest extends TestCase
      */
     public function testAccommodationRentPerMonthValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'name' => 'test',
             'location' => 'test',
@@ -135,6 +140,7 @@ class AccommodationTest extends TestCase
      */
     public function testAccommodationTnbBillFieldValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'name' => 'test',
             'location' => 'test',
@@ -158,6 +164,7 @@ class AccommodationTest extends TestCase
      */
     public function testAccommodationWaterBillFieldValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'name' => 'test',
             'location' => 'test',
@@ -181,6 +188,7 @@ class AccommodationTest extends TestCase
      */
     public function testCreateAccommodation()
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
              'name' => 'test',
              'location' => 'test',
@@ -196,7 +204,14 @@ class AccommodationTest extends TestCase
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'name',
+                    'location',
+                    'maximum_pax_per_unit',
+                    'deposit',
+                    'rent_per_month',
+                    'vendor_id',
+                    'tnb_bill_account_Number',
+                    'water_bill_account_Number',
                 ]
         ]);
     }
@@ -207,6 +222,8 @@ class AccommodationTest extends TestCase
      */
     public function testUpdateAccommodation()
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
+        $this->json('POST', 'api/v1/accommodation/create',  $this->creationAccommodationData(), $this->getHeader());
         $payload =  [
             'id' => 1,
             'name' => 'test',
@@ -290,5 +307,41 @@ class AccommodationTest extends TestCase
                     'message'
                 ]
         ]);
+    }
+
+    /**
+     * @return array
+     */
+    public function creationVendorData(): array
+    {
+        return [
+            'name' => 'test',
+            'type' => 'type',
+            'email_address' => 'email@gmail.com',
+            'contact_number' => random_int(10, 1000),
+            'person_in_charge' => 'test',
+            'pic_contact_number' => random_int(10, 1000),
+            'address' => 'address',
+            'state' => 'state',
+            'city' => 'city',
+            'postcode' => random_int(10, 1000),
+            'remarks' => 'test',
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function creationAccommodationData(): array
+    {
+        return [
+            'name' => 'test',
+            'location' => 'test',
+            'maximum_pax_per_unit' => random_int(10, 1000),
+            'deposit' => random_int(10, 1000),
+            'rent_per_month' => random_int(10, 1000),
+            'vendor_id' => 1,
+            'tnb_bill_account_Number' => random_int(10, 1000),
+            'water_bill_account_Number' => random_int(10, 1000),
+       ];
     }
 }
