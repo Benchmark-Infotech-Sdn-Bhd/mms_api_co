@@ -62,4 +62,20 @@ class DirectRecruitmentController extends Controller
             return $this->sendError(['message' => $e->getMessage()]);
         }
     }
+    /**
+     * delete the specified Attachment data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteAttachment(Request $request): JsonResponse
+    {   
+        try {
+            $response = $this->directRecruitmentServices->deleteAttachment($request);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => $e->getMessage()]);
+        }        
+    }
 }
