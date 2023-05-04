@@ -600,6 +600,49 @@ class CRMProspectUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test to show Companies Dropdown
+     * 
+     * @return void
+     */
+    public function testForCompaniesDropDown(): void
+    {
+        $this->testForProspectCreation();
+        $response = $this->json('POST', 'api/v1/crm/dropDownCompanies', [], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    [
+                        'id',
+                        'company_name'
+                    ]
+                ]
+        ]);
+    }
+    /**
+     * Functional test to show Prospect Details
+     * 
+     * @return void
+     */
+    public function testForGetProspectDetails(): void
+    {
+        $this->testForProspectCreation();
+        $response = $this->json('POST', 'api/v1/crm/getProspectDetails', ["id" => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    [
+                        'id',
+                        'company_name',
+                        'contact_number',
+                        'email',
+                        'pic_name'
+                    ]
+                ]
+        ]);
+    }
+    /**
      * @return void
      */
     public function creationSeeder(): void

@@ -7,6 +7,7 @@ use App\Models\CRMProspectService;
 use App\Models\CRMProspectAttachment;
 use App\Models\LoginCredential;
 use App\Models\Sectors;
+use App\Models\DirectrecruitmentApplications;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -33,10 +34,14 @@ class CRMServices
      * @var Storage
      */
     private Storage $storage;
-     /**
+    /**
      * @var Sectors
      */
     private Sectors $sectors;
+    /**
+     * @var DirectrecruitmentApplications
+     */
+    private DirectrecruitmentApplications $directrecruitmentApplications;
 
     /**
      * RolesServices constructor.
@@ -46,8 +51,9 @@ class CRMServices
      * @param LoginCredential $loginCredential
      * @param Storage $storage
      * @param Sectors $sectors
+     * @param DirectrecruitmentApplications $directrecruitmentApplications;
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -55,6 +61,7 @@ class CRMServices
         $this->loginCredential = $loginCredential;
         $this->storage = $storage;
         $this->sectors = $sectors;
+        $this->directrecruitmentApplications = $directrecruitmentApplications;
     }
     /**
      * @return array
@@ -208,6 +215,18 @@ class CRMServices
                         ]);  
                     }
                 }
+                if($service->service_id == 1) {
+                    $this->directrecruitmentApplications::create([
+                       'crm_prospect_id' => $prospect->id,
+                       'service_id' => $prospectService->id,
+                       'quota_applied' => 0,
+                       'person_incharge' => '',
+                       'cost_quoted' => 0,
+                       'status' => 'Pending Proposal',
+                       'remarks' => '',
+                       'created_by' => $request["created_by"] ?? 0,
+                   ]);
+               }
             }
         }
 
@@ -307,8 +326,27 @@ class CRMServices
      * @param $request
      * @return bool
      */
-    public function deleteAttachment($request):bool
+    public function deleteAttachment($request): bool
     {
         return $this->crmProspectAttachment->where('id', $request['id'])->delete();
+    }
+    /**
+     * @return mixed
+     */
+    public function dropDownCompanies(): mixed
+    {
+        return $this->crmProspect->where('status', 1)
+            ->select('id', 'company_name')
+            ->get();
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function getProspectDetails($request): mixed
+    {
+        return $this->crmProspect->where('id', $request['id'])
+            ->select('id', 'company_name', 'contact_number', 'email', 'pic_name')
+            ->get();
     }
 }

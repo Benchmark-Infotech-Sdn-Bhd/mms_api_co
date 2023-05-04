@@ -137,6 +137,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('create', 'V1\CRMController@create');
             $router->post('update', 'V1\CRMController@update');
             $router->post('deleteAttachment', 'V1\CRMController@deleteAttachment');
+            $router->post('dropDownCompanies', 'V1\CRMController@dropDownCompanies');
+            $router->post('getProspectDetails', 'V1\CRMController@getProspectDetails');
+        });
+        /**
+         * Routes for Direct Recruitment.
+         */
+        $router->group(['prefix' => 'directRecruitment'], function () use ($router) {
+            $router->post('addService', 'V1\DirectRecruitmentController@addService');
+            $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
         });
         /**
          * Routes for Vendors.
