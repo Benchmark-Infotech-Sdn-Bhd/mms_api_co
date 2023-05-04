@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Sectors;
 use App\Models\DocumentChecklistAttachments;
 use OwenIt\Auditing\Contracts\Auditable;
@@ -34,7 +34,7 @@ class DocumentChecklist extends Model implements Auditable
         return $this->belongsTo(Sectors::class, 'sector_id');
     }
     /**
-     * @return HasOne
+     * @return HasMany
      */
     public function documentChecklistAttachments()
     {

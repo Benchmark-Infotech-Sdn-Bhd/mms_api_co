@@ -62,7 +62,7 @@ class DirectRecruitmentApplicationChecklistServices
         return [
             "isUpdated" => $directRecruitmentApplicationChecklist->update([
                 'id' => $request['id'],
-                'application_id' => (int)$request['application_id'] ?? $directRecruitmentApplicationChecklist['application_id'],
+                'application_id' => (int)($request['application_id'] ?? $directRecruitmentApplicationChecklist['application_id']),
                 'item_name' => $request['item_name'] ?? $directRecruitmentApplicationChecklist['item_name'],
                 'application_checklist_status' => $request['application_checklist_status'] ?? $directRecruitmentApplicationChecklist['application_checklist_status'],
                 'remarks' => $request['remarks'] ?? $directRecruitmentApplicationChecklist['remarks'],

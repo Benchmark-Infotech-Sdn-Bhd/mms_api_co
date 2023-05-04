@@ -47,7 +47,7 @@ class DocumentChecklistAttachmentsServices
      */
     public function create($request) : mixed
     {
-        $params = $this->getRequest($request);
+        $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
         if(!($this->validationServices->validate($params,$this->documentChecklistAttachments->rules))){
@@ -62,14 +62,16 @@ class DocumentChecklistAttachmentsServices
                 "message"=> "Data not found"
             ];
         }
+        Log::error($documentChecklist);
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
+                Log::error($file->getClientOriginalName());
                 $fileName = $file->getClientOriginalName();
                 $filePath = '/directRecruitment/application/checklist/' . $fileName; 
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $directrecruitmentApplicationAttachment = $this->directrecruitmentApplicationAttachments::create([
+                $this->documentChecklistAttachments->create([
                             "document_checklist_id" => $params['document_checklist_id'],
                             "application_id" => $params['application_id'],
                             "file_type" => 'checklist',
@@ -79,7 +81,7 @@ class DocumentChecklistAttachmentsServices
                         ]);  
             }
         }
-        $count = $this->directrecruitmentApplicationAttachments->whereNull('deleted_at')
+        $count = $this->documentChecklistAttachments->whereNull('deleted_at')
         ->where(function ($query) use ($params) {
             if (isset($params['document_checklist_id'])) {
                 $query->where('document_checklist_attachments.document_checklist_id',$params['document_checklist_id']);
@@ -91,7 +93,10 @@ class DocumentChecklistAttachmentsServices
         if($count == 1){
             $result =  $this->directRecruitmentApplicationChecklistServices->updateStatusBasedOnApplication([ 'application_id' => $params['application_id'], 'status' => 'Completed' ]);
         }
-        return $directrecruitmentApplicationAttachment;
+        return [
+            "isUploaded" => true,
+            "message" => "Document uploaded Successfully"
+        ];
     }
     /**
      * @param $request
@@ -104,7 +109,7 @@ class DocumentChecklistAttachmentsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $directrecruitmentApplicationAttachment = $this->directrecruitmentApplicationAttachments->find($request['id']);
+        $directrecruitmentApplicationAttachment = $this->documentChecklistAttachments->find($request['id']);
         if(is_null($directrecruitmentApplicationAttachment)){
             return [
                 "isDeleted" => false,
@@ -116,7 +121,7 @@ class DocumentChecklistAttachmentsServices
             "message" => "Deleted Successfully"
         ];
         if($res['isDeleted']){
-            $count = $this->directrecruitmentApplicationAttachments->whereNull('deleted_at')
+            $count = $this->documentChecklistAttachments->whereNull('deleted_at')
             ->where(function ($query) use ($directrecruitmentApplicationAttachment) {
                 if (isset($directrecruitmentApplicationAttachment['document_checklist_id'])) {
                     $query->where('document_checklist_attachments.document_checklist_id',$directrecruitmentApplicationAttachment['document_checklist_id']);
@@ -142,17 +147,10 @@ class DocumentChecklistAttachmentsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->documentChecklist->join('document_checklist_attachments','document_checklist_attachments.document_checklist_id','=','document_checklist.id')
-        ->where(function ($query) use ($request) {
-            if (isset($request['sector_id'])) {
-                $query->where('document_checklist.sector_id',$request['sector_id']);
-            }
-            if (isset($request['application_id'])) {
-                $query->where('document_checklist_attachments.application_id',$request['application_id']);
-            }
-        })
-        ->select('document_checklist.id','document_checklist.document_title','document_checklist.remarks','document_checklist_attachments')
-        ->orderBy('document_checklist.created_at','DESC')
+        return $this->documentChecklist->where('sector_id',$request['sector_id'])
+        ->with(["documentChecklistAttachments" => function($attachment) use ($request){
+            $attachment->where('application_id',$request['application_id']);
+        }])->orderBy('document_checklist.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
 }
