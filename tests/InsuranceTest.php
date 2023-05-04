@@ -20,6 +20,7 @@ class InsuranceTest extends TestCase
      */
     public function testNoOfWorkerFromValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'no_of_worker_from' => '',
             'no_of_worker_to' => random_int(10, 1000),
@@ -39,6 +40,7 @@ class InsuranceTest extends TestCase
      */
     public function testNoOfWorkerToValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'no_of_worker_from' => random_int(10, 1000),
             'no_of_worker_to' => '',
@@ -58,6 +60,7 @@ class InsuranceTest extends TestCase
      */
     public function testFeePerPaxValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'no_of_worker_from' => random_int(10, 1000),
             'no_of_worker_to' => random_int(10, 1000),
@@ -77,6 +80,7 @@ class InsuranceTest extends TestCase
      */
     public function testCreateInsurance()
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
              'no_of_worker_from' => random_int(10, 1000),
              'no_of_worker_to' => random_int(10, 1000),
@@ -88,7 +92,10 @@ class InsuranceTest extends TestCase
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'message',
+                    'no_of_worker_from',
+                    'no_of_worker_to',
+                    'fee_per_pax',
+                    'vendor_id',
                 ]
         ]);
     }
@@ -99,6 +106,8 @@ class InsuranceTest extends TestCase
      */
     public function testUpdateInsurance()
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
+        $this->json('POST', 'api/v1/insurance/create', $this->creationInsuranceData(), $this->getHeader());
         $payload =  [
             'id' => 1,
             'no_of_worker_from' => random_int(10, 1000),
@@ -106,7 +115,7 @@ class InsuranceTest extends TestCase
             'fee_per_pax' => random_int(10, 1000),
             'vendor_id' => 1
         ];
-        $response = $this->json('PUT', 'api/v1/insurance/update', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/insurance/update', $payload, $this->getHeader());
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
@@ -162,5 +171,37 @@ class InsuranceTest extends TestCase
                     'message'
                 ]
         ]);
+    }
+
+    /**
+     * @return array
+     */
+    public function creationVendorData(): array
+    {
+        return [
+            'name' => 'test',
+            'type' => 'type',
+            'email_address' => 'email@gmail.com',
+            'contact_number' => random_int(10, 1000),
+            'person_in_charge' => 'test',
+            'pic_contact_number' => random_int(10, 1000),
+            'address' => 'address',
+            'state' => 'state',
+            'city' => 'city',
+            'postcode' => random_int(10, 1000),
+            'remarks' => 'test',
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function creationInsuranceData(): array
+    {
+        return [
+            'no_of_worker_from' => random_int(10, 1000),
+            'no_of_worker_to' => random_int(10, 1000),
+            'fee_per_pax' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
     }
 }

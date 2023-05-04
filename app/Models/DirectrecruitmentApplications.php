@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Validator;
 use App\Models\DirectRecruitmentApplicationChecklist;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DirectrecruitmentApplications extends Model implements Auditable
 {
@@ -100,4 +101,18 @@ class DirectrecruitmentApplications extends Model implements Auditable
     {
         return $this->hasOne(DirectRecruitmentApplicationChecklist::class, 'application_id');
     }
+    /**
+     * @return BelongsTo
+     */
+    public function crmProspect()
+    {
+        return $this->belongsTo(CRMProspect::class);
+    }
+    /**
+     * @return BelongsTo
+     */
+    public function crmProspectServices()
+    {
+        return $this->belongsTo(CRMProspectService::class, 'service_id');
+    } 
 }

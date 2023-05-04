@@ -215,7 +215,7 @@ class FomemaClinicsTest extends TestCase
             'city' => 'city',
             'postcode' => random_int(10, 1000),
         ];
-        $response = $this->json('PUT', 'api/v1/fomemaClinics/update', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/fomemaClinics/update', $payload, $this->getHeader());
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
