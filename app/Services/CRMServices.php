@@ -138,7 +138,8 @@ class CRMServices
             })
             ->where(function ($query) use ($request) {
                 if(isset($request['filter']) && !empty($request['filter'])) {
-                    $query->where('crm_prospect_services.service_id', $request['filter']);
+                    $query->where('crm_prospect_services.service_id', $request['filter'])
+                    ->where('crm_prospect_services.deleted_at', NULL);
                 }
             })
             ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.director_or_owner', 'crm_prospects.created_at', 'employee.employee_name as registered_by')

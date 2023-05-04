@@ -134,9 +134,10 @@ class DirectRecruitmentServices
      */
     public function applicationListing($request): mixed
     {
-        return $this->directrecruitmentApplications->join('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
-        ->join('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
+        return $this->directrecruitmentApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
+        ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
         ->where('crm_prospect_services.service_id', 1)
+        ->where('crm_prospect_services.deleted_at', NULL)
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
