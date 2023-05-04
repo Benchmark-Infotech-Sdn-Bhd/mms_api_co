@@ -8,7 +8,6 @@ use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\DocumentChecklistServices;
 use App\Services\DirectRecruitmentApplicationChecklistServices;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -58,14 +57,12 @@ class DocumentChecklistAttachmentsServices
         $documentChecklist = $this->documentChecklist->find($params['document_checklist_id']);
         if(is_null($documentChecklist)){
             return [
-                "isCreated" => false,
+                "isUploaded" => false,
                 "message"=> "Data not found"
             ];
         }
-        Log::error($documentChecklist);
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
-                Log::error($file->getClientOriginalName());
                 $fileName = $file->getClientOriginalName();
                 $filePath = '/directRecruitment/application/checklist/' . $fileName; 
                 $linode = $this->storage::disk('linode');
@@ -80,6 +77,11 @@ class DocumentChecklistAttachmentsServices
                             "modified_by"   => $params['created_by'] ?? 0    
                         ]);  
             }
+        }else{
+            return [
+                "isUploaded" => false,
+                "message" => "Document not found"
+            ];
         }
         $count = $this->documentChecklistAttachments->whereNull('deleted_at')
         ->where(function ($query) use ($params) {
