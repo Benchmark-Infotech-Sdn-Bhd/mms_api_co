@@ -36,6 +36,42 @@ class DocumentChecklistTest extends TestCase
         ]);
     }
     /**
+     * Functional test to validate Required fields for Sector Id
+     * 
+     * @return void
+     */
+    public function testForSectorIdRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/documentChecklist/create', array_merge($this->creationData(), 
+        ['sector_id' => '', 'document_title' => 'Test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [ 
+            "sector_id" => [
+                "The sector id field is required."
+            ]
+            ]
+        ]);
+    }
+        /**
+     * Functional test to validate Required fields for Document Title
+     * 
+     * @return void
+     */
+    public function testForDocumentTitleRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/documentChecklist/create', array_merge($this->creationData(), 
+        ['sector_id' => '1', 'document_title' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [ 
+            "document_title" => [
+                "The document title field is required."
+            ]
+            ]
+        ]);
+    }
+    /**
      * Functional test to validate Required fields for DocumentChecklist Updation
      * 
      * @return void

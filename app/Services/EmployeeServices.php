@@ -170,7 +170,13 @@ class EmployeeServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->employee->with('branches')->findOrFail($request['id']);
+        $emp = $this->employee->with('branches')->findOrFail($request['id']);
+        if(isset($emp) && isset($emp['id'])){
+            $user = $this->authServices->userWithRolesBasedOnReferenceId(['id' => $emp['id']]);
+            $emp['email'] = $user['email'];
+            $emp['role_id'] = $user['role_id'];
+        }
+        return $emp;
     }
     /**
      * @return mixed

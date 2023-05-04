@@ -39,6 +39,60 @@ class EmbassyAttestationFileCostingTest extends TestCase
         ]);
     }
     /**
+     * Functional test to validate Required fields for Country Id
+     * 
+     * @return void
+     */
+    public function testForCountryIdRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/create', array_merge($this->creationData(), 
+        ['country_id' => '', 'title' => 'test', 'amount' => 78]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [ 
+                "country_id" => [
+                    "The country id field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate Required fields for Title
+     * 
+     * @return void
+     */
+    public function testForTitleRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/create', array_merge($this->creationData(), 
+        ['country_id' => 1, 'title' => '', 'amount' => 98]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [ 
+                "title" => [
+                    "The title field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate Required fields for Amount
+     * 
+     * @return void
+     */
+    public function testForAmountRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/create', array_merge($this->creationData(), 
+        ['country_id' => 1, 'title' => 'Test', 'amount' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "amount" => [
+                    "The amount field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
      * Functional test to validate Required fields for EmbassyAttestationFileCosting Updation
      * 
      * @return void

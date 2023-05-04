@@ -46,6 +46,101 @@ class AgentsTest extends TestCase
         ]);
     }
     /**
+     * Functional test to validate Required fields for Agent name
+     * 
+     * @return void
+     */
+    public function testForAgentNameRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => '', 'country_id' => 1, 'city' => 'CBE', 'person_in_charge' => 'ABC',
+    'pic_contact_number' => '9823477867', 'email_address' => 'test@gmail.com', 'company_address' => 'Test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [ 
+                "agent_name" => [
+                    "The agent name field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate Required fields for Country Id
+     * 
+     * @return void
+     */
+    public function testForCountryIdRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => 'Agent', 'country_id' => '', 'city' => 'CBE', 'person_in_charge' => 'ABC',
+    'pic_contact_number' => '9823477867', 'email_address' => 'test@gmail.com', 'company_address' => 'Test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [ 
+                "country_id" => [
+                    "The country id field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate Required fields for PIC
+     * 
+     * @return void
+     */
+    public function testForPICRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => 'ABC', 'country_id' => 1, 'city' => 'CBE', 'person_in_charge' => '',
+    'pic_contact_number' => '9823477867', 'email_address' => 'test@gmail.com', 'company_address' => 'Test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [ 
+                "person_in_charge" => [
+                    "The person in charge field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate Required fields for PIC Contact
+     * 
+     * @return void
+     */
+    public function testForPICContactRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => 'ABC', 'country_id' => 1, 'city' => 'CBE', 'person_in_charge' => 'ABC',
+    'pic_contact_number' => '', 'email_address' => 'test@gmail.com', 'company_address' => 'Test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "pic_contact_number" => [
+                    "The pic contact number field is required."
+                ]
+            ]
+        ]);
+    }
+        /**
+     * Functional test to validate Required fields for Email
+     * 
+     * @return void
+     */
+    public function testForEmailRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => 'ABC', 'country_id' => 1, 'city' => 'CBE', 'person_in_charge' => 'ABC',
+    'pic_contact_number' => '9823477867', 'email_address' => '', 'company_address' => 'Test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "email_address" => [
+                    "The email address field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
      * Functional test to validate minimum/maximum characters for fields in Agent creation
      * 
      * @return void
@@ -78,6 +173,98 @@ class AgentsTest extends TestCase
         ]);
     }
     /**
+     * Functional test to validate minimum/maximum characters for fields in Agent name
+     * 
+     * @return void
+     */
+    public function testForAgentNameMinMaxFieldValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiuery sdjrkwiherihwijerhtwrt ',
+         'country_id' => 1, 
+         'city' => 'ASG', 
+         'person_in_charge' => 'ASGUYG',
+         'pic_contact_number' => '98347364',
+         'email_address' => 'test@gmail.com', 'company_address' => 'Test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "agent_name" => [
+                    "The agent name must not be greater than 250 characters."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate minimum/maximum characters for fields in City
+     * 
+     * @return void
+     */
+    public function testForCityMinMaxFieldValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => 'ASGUYG',
+         'country_id' => 1, 
+         'city' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu', 
+         'person_in_charge' => 'ASG',
+         'pic_contact_number' => '983473',
+         'email_address' => 'test@gmail.com', 'company_address' => 'Test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "city" => [
+                    "The city must not be greater than 150 characters."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate minimum/maximum characters for fields in PIC
+     * 
+     * @return void
+     */
+    public function testForPICMinMaxFieldValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => 'ASGUY',
+         'country_id' => 1, 
+         'city' => 'ASGUYGY', 
+         'person_in_charge' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiuery sdrter retyeyt etyuetesardkejjrkererrrrre',
+         'pic_contact_number' => '9834736', 
+         'email_address' => 'test@gmail.com', 'company_address' => 'Test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "person_in_charge" => [
+                    "The person in charge must not be greater than 255 characters."
+                ]
+            ]
+        ]);
+    }
+        /**
+     * Functional test to validate minimum/maximum characters for fields in PIC Contact
+     * 
+     * @return void
+     */
+    public function testForPICContactMinMaxFieldValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => 'ASGUYG',
+         'country_id' => 1, 
+         'city' => 'ASGUYGY', 
+         'person_in_charge' => 'ASGUYG',
+         'pic_contact_number' => '9834736453465', 
+         'email_address' => 'test@gmail.com', 'company_address' => 'Test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "pic_contact_number" => [
+                    "The pic contact number must not be greater than 11 characters."
+                ]
+            ]
+        ]);
+    }
+    /**
      * Functional test to validate format for fields in Agent creation
      * 
      * @return void
@@ -99,6 +286,82 @@ class AgentsTest extends TestCase
                 "pic_contact_number" => [
                     "The pic contact number format is invalid."
                 ],
+                "email_address" => [
+                    "The email address must be a valid email address."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate format for fields in Agent name
+     * 
+     * @return void
+     */
+    public function testForAgentNameFieldFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => '12323Aer r4', 'country_id' => 1, 'city' => 'ABC', 'person_in_charge' => 'Test',
+        'pic_contact_number' => '9843787', 'email_address' => 'test@gmail.com', 'company_address' => 'test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "agent_name" => [
+                    "The agent name format is invalid."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate format for fields in City
+     * 
+     * @return void
+     */
+    public function testForCityFieldFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => 'ABC', 'country_id' => 1, 'city' => '12334@34fg r', 'person_in_charge' => 'Test',
+        'pic_contact_number' => '9678676', 'email_address' => 'test@gmail.com', 'company_address' => 'test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "city" => [
+                    "The city format is invalid."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate format for fields in PIC Contact
+     * 
+     * @return void
+     */
+    public function testForPICContactFieldFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => 'ABC', 'country_id' => 1, 'city' => 'ABC', 'person_in_charge' => 'Test',
+        'pic_contact_number' => 'ABC', 'email_address' => 'test@gmail.com', 'company_address' => 'test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "pic_contact_number" => [
+                    "The pic contact number format is invalid."
+                ]
+            ]
+        ]);
+    }
+        /**
+     * Functional test to validate format for fields in Email
+     * 
+     * @return void
+     */
+    public function testForEmailFieldFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/create', array_merge($this->creationData(), 
+        ['agent_name' => 'ABC', 'country_id' => 1, 'city' => 'ABC', 'person_in_charge' => 'Test',
+        'pic_contact_number' => '8656446', 'email_address' => 'test', 'company_address' => 'test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
                 "email_address" => [
                     "The email address must be a valid email address."
                 ]
