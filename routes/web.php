@@ -141,11 +141,20 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('getProspectDetails', 'V1\CRMController@getProspectDetails');
         });
         /**
-         * Routes for Direct Recruitment.
+         * Routes for Direct Recruitment Application.
          */
         $router->group(['prefix' => 'directRecruitment'], function () use ($router) {
             $router->post('addService', 'V1\DirectRecruitmentController@addService');
             $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
+        });
+        /**
+         * Routes for FWCMS.
+         */
+        $router->group(['prefix' => 'fwcms'], function () use ($router) {
+            $router->post('list', 'V1\FWCMSController@list');
+            $router->post('show', 'V1\FWCMSController@show');
+            $router->post('create', 'V1\FWCMSController@create');
+            $router->post('update', 'V1\FWCMSController@update');
         });
         /**
          * Routes for Vendors.
