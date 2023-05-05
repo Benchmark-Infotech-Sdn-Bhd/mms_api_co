@@ -113,7 +113,8 @@ class DocumentChecklistTest extends TestCase
                 'created_by',
                 'modified_by',
                 'created_at',
-                'updated_at'
+                'updated_at',
+                'remarks'
             ]
         ]);
     }
@@ -234,7 +235,8 @@ class DocumentChecklistTest extends TestCase
                     'modified_by',
                     'created_at',
                     'updated_at',
-                    'deleted_at'
+                    'deleted_at',
+                    'remarks'
                 ]
         ]);
     }
@@ -243,13 +245,13 @@ class DocumentChecklistTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['sector_id' => 1, 'document_title' => 'Document'];
+        return ['sector_id' => 1, 'document_title' => 'Document', 'remarks' => 'test'];
     }
     /**
      * @return array
      */
     public function updationData(): array
     {
-        return ['id' => 1, 'sector_id' => 1, 'document_title' => 'Document'];
+        return ['id' => 1, 'sector_id' => 1, 'document_title' => 'Document', 'remarks' => 'test'];
     }
 }

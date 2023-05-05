@@ -6,6 +6,7 @@ use App\Models\DirectrecruitmentApplications;
 use App\Models\DirectrecruitmentApplicationAttachments;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\DirectRecruitmentApplicationChecklistServices;
 use App\Models\CRMProspect;
 use App\Models\CRMProspectService;
 use App\Models\CRMProspectAttachment;
@@ -28,6 +29,10 @@ class DirectRecruitmentServices
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var DirectRecruitmentApplicationChecklistServices
+     */
+    private DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices;
     /**
      * @var CRMProspect
      */
@@ -59,12 +64,17 @@ class DirectRecruitmentServices
      * @param CRMProspectAttachment $crmProspectAttachment
      * @param Services $services
      * @param Sectors $sectors
+     * @param DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices
      */
-    public function __construct(DirectrecruitmentApplications $directrecruitmentApplications, DirectrecruitmentApplicationAttachments $directrecruitmentApplicationAttachments, Storage $storage, CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors)
+    public function __construct(DirectrecruitmentApplications $directrecruitmentApplications, DirectrecruitmentApplicationAttachments $directrecruitmentApplicationAttachments, 
+    Storage $storage, CRMProspect $crmProspect, CRMProspectService $crmProspectService, 
+    CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors,
+    DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices)
     {
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->directrecruitmentApplicationAttachments = $directrecruitmentApplicationAttachments;
         $this->storage = $storage;
+        $this->directRecruitmentApplicationChecklistServices = $directRecruitmentApplicationChecklistServices;
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
         $this->crmProspectAttachment = $crmProspectAttachment;
@@ -217,8 +227,17 @@ class DirectRecruitmentServices
                     ]);  
             }
         }
+        $res = $data->update($input);
+        if($res){
+            $applicationChecklist = $this->directRecruitmentApplicationChecklistServices->create(
+                ['application_id' => $request['id'],
+                'item_name' => 'Document Checklist',
+                'application_checklist_status' => 'Pending',
+                'created_by' => $user['id']]
+            );
+        }
         return  [
-            "isUpdated" => $data->update($input),
+            "isUpdated" => $res,
             "message" => "Updated Successfully"
         ];
     }
