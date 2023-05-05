@@ -33,6 +33,24 @@ class SectorsTest extends TestCase
         ]);
     }
     /**
+     * Functional test to validate Required fields for Sector name
+     * 
+     * @return void
+     */
+    public function testForSectorNameRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/sector/create', array_merge($this->creationData(), 
+        ['sector_name' => '', 'sub_sector_name' => 'Test']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [ 
+            "sector_name" => [
+                "The sector name field is required."
+            ]
+            ]
+        ]);
+    }
+    /**
      * Functional test to validate minimum/maximum characters for fields in Sector creation
      * 
      * @return void
@@ -57,6 +75,48 @@ class SectorsTest extends TestCase
         ]);
     }
     /**
+     * Functional test to validate minimum/maximum characters for fields in Sector name
+     * 
+     * @return void
+     */
+    public function testForSectorNameMinMaxFieldValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/sector/create', array_merge($this->creationData(), 
+        [
+        'sector_name' => 'AAAAAAAAAAAAAAAAAA DFEWF REWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR srrrrrrrrrrrrrrrr jrhtirhiti', 
+        'sub_sector_name' => 'AAAAAAAA'
+        ]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+            "sector_name" => [
+                "The sector name must not be greater than 255 characters."
+            ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate minimum/maximum characters for fields in Sub sector name
+     * 
+     * @return void
+     */
+    public function testForSubSectorNameMinMaxFieldValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/sector/create', array_merge($this->creationData(), 
+        [
+        'sector_name' => 'AAAAAAA', 
+        'sub_sector_name' => 'AAAAAAAAAAAAAAAAAA DFEWF REWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR srrrrrrrrrrrrrrrr ruhtfiritj'
+        ]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+            "sub_sector_name" => [
+                "The sub sector name must not be greater than 255 characters."
+            ]
+            ]
+        ]);
+    }
+    /**
      * Functional test to validate format for fields in sector creation
      * 
      * @return void
@@ -72,6 +132,44 @@ class SectorsTest extends TestCase
             "sector_name" => [
                 "The sector name format is invalid."
             ],
+            "sub_sector_name" => [
+                "The sub sector name format is invalid."
+            ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate format for fields in sector name
+     * 
+     * @return void
+     */
+    public function testForSectorNameFieldFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/sector/create', array_merge($this->creationData(), 
+        ['sector_name' => 'Malay123$', 
+        'sub_sector_name' => 'Sector']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+            "sector_name" => [
+                "The sector name format is invalid."
+            ]
+            ]
+        ]);
+    }
+        /**
+     * Functional test to validate format for fields in sub sector name
+     * 
+     * @return void
+     */
+    public function testForSubSectorNameFieldFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/sector/create', array_merge($this->creationData(), 
+        ['sector_name' => 'Test', 
+        'sub_sector_name' => 'Sub123']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
             "sub_sector_name" => [
                 "The sub sector name format is invalid."
             ]
