@@ -39,6 +39,7 @@ class DocumentChecklistServices
         $checklist = $this->documentChecklist->create([
             'sector_id' => (int)$request['sector_id'] ?? 0,
             'document_title' => $request['document_title'] ?? '',
+            'remarks' => $request['remarks'] ?? '',
             'created_by'    => $request['created_by'] ?? 0,
             'modified_by'   => $request['created_by'] ?? 0
         ]);
@@ -72,6 +73,7 @@ class DocumentChecklistServices
                 'id' => $request['id'],
                 'sector_id' => (int)$request['sector_id'] ?? $documentChecklist['sector_id'],
                 'document_title' => $request['document_title'] ?? $documentChecklist['document_title'],
+                'remarks' => $request['remarks'] ?? $documentChecklist['remarks'],
                 'modified_by'   => $request['modified_by'] ?? $documentChecklist['modified_by']
             ]),
             "message"=> "Updated Successfully"

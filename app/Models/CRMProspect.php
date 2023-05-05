@@ -35,4 +35,11 @@ class CRMProspect extends Model implements Auditable
     {
         return $this->hasMany(LoginCredential::class, 'crm_prospect_id');
     }
+    /**
+     * @return HasMany
+     */
+    public function directrecruitmentApplications(): HasMany
+    {
+        return $this->hasMany(DirectrecruitmentApplications::class, 'crm_prospect_id');
+    }
 }

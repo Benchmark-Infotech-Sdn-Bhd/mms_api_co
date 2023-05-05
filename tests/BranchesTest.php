@@ -160,6 +160,16 @@ class BranchesTest extends TestCase
      */
     public function testUpdateBranch()
     {
+        $payloadCreate =  [
+            'branch_name' => 'test',
+            'state' => 'state',
+            'city' => 'city',
+            'branch_address' => 'address',
+            'postcode' => random_int(10, 1000),
+            'service_type' => [1,2,3],
+            'remarks' => 'test'
+       ];    
+       $this->json('POST', 'api/v1/branch/create', $payloadCreate, $this->getHeader());
         $payload =  [
             'id' => 1,
             'branch_name' => 'test',
@@ -170,7 +180,7 @@ class BranchesTest extends TestCase
             'service_type' => [1,2,3],
             'remarks' => 'test'
         ];
-        $response = $this->json('PUT', 'api/v1/branch/update', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/branch/update', $payload, $this->getHeader());
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
@@ -228,6 +238,20 @@ class BranchesTest extends TestCase
                 [
                     'message'
                 ]
+        ]);
+    }
+
+    /**
+     * A test method for all active branch names dropdown.
+     *
+     * @return void
+     */
+    public function testdropDownBranch()
+    {
+        $response = $this->json('POST', 'api/v1/branch/dropDown', [], $this->getHeader());
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data'
         ]);
     }
 }

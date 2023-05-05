@@ -5,8 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Validator;
+use App\Models\DirectRecruitmentApplicationChecklist;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DirectrecruitmentApplications extends Model implements Auditable
 {
@@ -91,4 +94,25 @@ class DirectrecruitmentApplications extends Model implements Auditable
     {
         return $this->hasMany(DirectrecruitmentApplicationAttachments::class, 'file_id');
     }
+    /**
+     * @return HasOne
+     */
+    public function directRecruitmentApplicationChecklist(): HasMany
+    {
+        return $this->hasOne(DirectRecruitmentApplicationChecklist::class, 'application_id');
+    }
+    /**
+     * @return BelongsTo
+     */
+    public function crmProspect()
+    {
+        return $this->belongsTo(CRMProspect::class);
+    }
+    /**
+     * @return BelongsTo
+     */
+    public function crmProspectServices()
+    {
+        return $this->belongsTo(CRMProspectService::class, 'service_id');
+    } 
 }

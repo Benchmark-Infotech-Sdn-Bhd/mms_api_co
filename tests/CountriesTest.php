@@ -35,6 +35,42 @@ class CountriesTest extends TestCase
             ]
         ]);
     }
+        /**
+     * Functional test to validate Required fields for Country name
+     * 
+     * @return void
+     */
+    public function testForCountryNameRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
+        ['country_name' => '', 'system_type' => 'Embassy']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [ 
+            "country_name" => [
+                "The country name field is required."
+            ]
+            ]
+        ]);
+    }
+        /**
+     * Functional test to validate Required fields for System Type
+     * 
+     * @return void
+     */
+    public function testForSystemTypeCreationRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
+        ['country_name' => 'India', 'system_type' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+            "system_type" => [
+                "The system type field is required."
+            ]
+            ]
+        ]);
+    }
     /**
      * Functional test to validate minimum/maximum characters for fields in Country creation
      * 
@@ -60,6 +96,48 @@ class CountriesTest extends TestCase
         ]);
     }
     /**
+     * Functional test to validate minimum/maximum characters for fields in Country name
+     * 
+     * @return void
+     */
+    public function testForCountryNameMinMaxFieldValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
+        ['country_name' => 'Malay Test fdtrddxrtdsrrtd hjuyrfds ygftrdrese erdsewswmmmmmmmmmmmkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ewsw AAAAAAAAAAAAAAA', 
+        'system_type' => 'Embassy', 
+        'fee' => 67, 
+        'bond' => 67]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+            "country_name" => [
+                "The country name must not be greater than 150 characters."
+            ]
+            ]
+        ]);
+    }
+        /**
+     * Functional test to validate minimum/maximum characters for fields in Bond
+     * 
+     * @return void
+     */
+    public function testForBondMinMaxFieldValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
+        ['country_name' => 'Malay', 
+        'system_type' => 'ABC', 
+        'fee' => 67, 
+        'bond' => 6767]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+            "bond" => [
+                "The bond must not be greater than 3 characters."
+            ]
+            ]
+        ]);
+    }
+    /**
      * Functional test to validate format for fields in Country creation
      * 
      * @return void
@@ -77,6 +155,48 @@ class CountriesTest extends TestCase
             "country_name" => [
                 "The country name format is invalid."
             ],
+            "bond" => [
+                "The bond format is invalid."
+            ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate format for fields in Country name
+     * 
+     * @return void
+     */
+    public function testForCountryNameFieldFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
+        ['country_name' => 'Malay123$', 
+        'system_type' => 'Embassy', 
+        'fee' => 67, 
+        'bond' => 67]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+            "country_name" => [
+                "The country name format is invalid."
+            ]
+            ]
+        ]);
+    }
+        /**
+     * Functional test to validate format for fields in Bond
+     * 
+     * @return void
+     */
+    public function testForBondFieldFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
+        ['country_name' => 'Malay', 
+        'system_type' => 'Embassy', 
+        'fee' => 67, 
+        'bond' => null]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
             "bond" => [
                 "The bond format is invalid."
             ]

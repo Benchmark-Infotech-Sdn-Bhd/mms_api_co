@@ -20,6 +20,7 @@ class TransportationTest extends TestCase
      */
     public function testDriverNameValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'driver_name' => '',
             'driver_contact_number' => random_int(10, 1000),
@@ -41,6 +42,7 @@ class TransportationTest extends TestCase
      */
     public function testDriverContactNumberValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'driver_name' => 'name',
             'driver_contact_number' => '',
@@ -62,6 +64,7 @@ class TransportationTest extends TestCase
      */
     public function testVehicleTypeValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'driver_name' => 'name',
             'driver_contact_number' => random_int(10, 1000),
@@ -83,6 +86,7 @@ class TransportationTest extends TestCase
      */
     public function testNumberPlateValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'driver_name' => 'name',
             'driver_contact_number' => random_int(10, 1000),
@@ -104,6 +108,7 @@ class TransportationTest extends TestCase
      */
     public function testVehicleCapacityValidation(): void
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
             'driver_name' => 'name',
             'driver_contact_number' => random_int(10, 1000),
@@ -125,6 +130,7 @@ class TransportationTest extends TestCase
      */
     public function testCreateTransportation()
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
         $payload =  [
              'driver_name' => 'name',
              'driver_contact_number' => random_int(10, 1000),
@@ -138,7 +144,12 @@ class TransportationTest extends TestCase
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'message'
+                    'driver_name',
+                    'driver_contact_number',
+                    'vehicle_type',
+                    'number_plate',
+                    'vehicle_capacity',
+                    'vendor_id',
                 ]
         ]);
 
@@ -150,6 +161,8 @@ class TransportationTest extends TestCase
      */
     public function testUpdateTransportation()
     {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
+        $this->json('POST', 'api/v1/transportation/create', $this->creationTransportationData(), $this->getHeader());
         $payload =  [
             'id' => 1,
             'driver_name' => 'name',
@@ -233,5 +246,39 @@ class TransportationTest extends TestCase
                     'message'
                 ]
         ]);
+    }
+    
+    /**
+     * @return array
+     */
+    public function creationVendorData(): array
+    {
+        return [
+            'name' => 'test',
+            'type' => 'type',
+            'email_address' => 'email@gmail.com',
+            'contact_number' => random_int(10, 1000),
+            'person_in_charge' => 'test',
+            'pic_contact_number' => random_int(10, 1000),
+            'address' => 'address',
+            'state' => 'state',
+            'city' => 'city',
+            'postcode' => random_int(10, 1000),
+            'remarks' => 'test',
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function creationTransportationData(): array
+    {
+        return [
+            'driver_name' => 'name',
+            'driver_contact_number' => random_int(10, 1000),
+            'vehicle_type' => 'type',
+            'number_plate' => random_int(10, 1000),
+            'vehicle_capacity' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
     }
 }

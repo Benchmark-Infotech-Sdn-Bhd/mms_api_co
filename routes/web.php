@@ -137,6 +137,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('create', 'V1\CRMController@create');
             $router->post('update', 'V1\CRMController@update');
             $router->post('deleteAttachment', 'V1\CRMController@deleteAttachment');
+            $router->post('dropDownCompanies', 'V1\CRMController@dropDownCompanies');
+            $router->post('getProspectDetails', 'V1\CRMController@getProspectDetails');
+        });
+        /**
+         * Routes for Direct Recruitment.
+         */
+        $router->group(['prefix' => 'directRecruitment'], function () use ($router) {
+            $router->post('addService', 'V1\DirectRecruitmentController@addService');
+            $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
         });
         /**
          * Routes for Vendors.
@@ -150,7 +159,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('search', 'V1\VendorController@search');
             $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
             $router->post('filter', 'V1\VendorController@filter');
-            $router->post('sendMail', 'V1\VendorController@sendMail');
         });
         /**
          * Routes for FOMEMA Clinics.
@@ -230,6 +238,22 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'directRecrutment'], function () use ($router) {
             $router->post('submitProposal', 'V1\DirectRecruitmentController@submitProposal');
             $router->post('showProposal', 'V1\DirectRecruitmentController@showProposal');
+            $router->post('deleteAttachment', 'V1\DirectRecruitmentController@deleteAttachment');
+        });
+        /**
+        * Routes for DocumentChecklistAttachments.
+        */
+        $router->group(['prefix' => 'checklistAttachment'], function () use ($router) {
+            $router->post('create', 'V1\DocumentChecklistAttachmentsController@create');
+            $router->post('delete', 'V1\DocumentChecklistAttachmentsController@delete');
+            $router->post('list', 'V1\DocumentChecklistAttachmentsController@list');
+        });
+        /**
+        * Routes for DirectRecruitmentApplicationDocumentChecklist.
+        */
+        $router->group(['prefix' => 'directRecruitmentApplicationChecklist'], function () use ($router) {
+            $router->post('update', 'V1\DirectRecruitmentApplicationChecklistController@update');
+            $router->post('show', 'V1\DirectRecruitmentApplicationChecklistController@show');
         });
     });
 });

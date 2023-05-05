@@ -201,7 +201,7 @@ class BranchServices
      */
     public function dropDown(): mixed
     {
-        return $this->branch->select('id','branch_name')->orderBy('branch.created_at','DESC')->get();
+        return $this->branch::where('status', '=' ,1)->select('id','branch_name')->orderBy('branch.created_at','DESC')->get();
     }
 
     /**

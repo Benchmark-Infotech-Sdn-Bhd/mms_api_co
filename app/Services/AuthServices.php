@@ -126,6 +126,40 @@ class AuthServices extends Controller
      */
     public function show($request) : mixed
     {
-        return $this->user->with('userRoleType')->findOrFail($request['id']);
+        $user = $this->user->find($request['id']);
+        if($user['id']){
+            $user = $this->userWithRoles($user);
+        }
+        return $user;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function userWithRolesBasedOnReferenceId($request) : mixed
+    {
+        $user = $this->user->where('reference_id',$request['id'])->first();
+        if($user['id']){
+            $user = $this->userWithRoles($user);
+        }
+        return $user;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function userWithRoles($user) : mixed
+    {
+        $roles = $this->uesrRoleType->join('roles',function($join){
+            $join->on('roles.id','=','user_role_type.role_id');
+            $join->where('roles.status','=',1);
+        })
+        ->where('user_id',$user['id'])->get()->first();
+        if(is_null($roles)){
+            $user['role_id'] = null;
+        } else {
+            $user['role_id'] = $roles['role_id'];
+        }
+        return $user;
     }
 }
