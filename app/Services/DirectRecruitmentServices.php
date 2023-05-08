@@ -163,7 +163,7 @@ class DirectRecruitmentServices
                 $query->where('crm_prospect_services.contract_type', $request['contract_type']);
             }
         })
-        ->select('directrecruitment_applications.id','crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospect_services.contract_type as type', 'directrecruitment_applications.quota_applied as applied_quota', 'directrecruitment_applications.status')
+        ->select('directrecruitment_applications.id','crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.service_name', 'crm_prospect_services.sector_name', 'crm_prospects.pic_name', 'directrecruitment_applications.quota_applied as applied_quota', 'directrecruitment_applications.status')
         ->orderBy('directrecruitment_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }

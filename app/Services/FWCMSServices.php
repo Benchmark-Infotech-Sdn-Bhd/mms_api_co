@@ -58,7 +58,8 @@ class FWCMSServices
     {
         return $this->fwcms->where('application_id', $request['application_id'])
         ->select('id', 'application_id', 'submission_date', 'applied_quota', 'status', 'ksm_reference_number', 'updated_at')
-        ->get();
+        ->orderBy('id', 'desc')
+        ->paginate(Config::get('services.paginate_row'));
     }
     /**
      * @param $request

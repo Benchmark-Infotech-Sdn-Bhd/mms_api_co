@@ -95,7 +95,7 @@ class FWCMSController extends Controller
             $param['modified_by'] = $user['id'];
             $response = $this->fwcmsServices->update($request);
             if (isset($response['error'])) {
-                return $this->sendError($response['error']);
+                return $this->validationError($response['error']);
             }
             return $this->sendSuccess(['message' => 'FWCMS Details Updated Successfully']);
         } catch (Exception $e) {
