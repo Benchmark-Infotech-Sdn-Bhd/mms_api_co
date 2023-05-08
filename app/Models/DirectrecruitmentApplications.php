@@ -115,4 +115,11 @@ class DirectrecruitmentApplications extends Model implements Auditable
     {
         return $this->belongsTo(CRMProspectService::class, 'service_id');
     } 
+    /**
+     * @return HasMany
+     */
+    public function applicationFWCMS(): HasMany
+    {
+        return $this->hasMany(FWCMS::class, 'application_id');
+    }
 }
