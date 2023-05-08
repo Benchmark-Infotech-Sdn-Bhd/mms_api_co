@@ -85,15 +85,12 @@ class DocumentChecklistAttachmentsServices
         }
         $count = $this->documentChecklistAttachments->whereNull('deleted_at')
         ->where(function ($query) use ($params) {
-            if (isset($params['document_checklist_id'])) {
-                $query->where('document_checklist_attachments.document_checklist_id',$params['document_checklist_id']);
-            }
             if (isset($params['application_id'])) {
                 $query->where('document_checklist_attachments.application_id',$params['application_id']);
             }
         })->count('id');
         if($count == 1){
-            $result =  $this->directRecruitmentApplicationChecklistServices->updateStatusBasedOnApplication([ 'application_id' => $params['application_id'], 'status' => 'Completed' ]);
+            $result =  $this->directRecruitmentApplicationChecklistServices->updateStatusBasedOnApplication([ 'application_id' => $params['application_id'], 'status' => 'Completed', 'user_id' => $user['id']]);
         }
         return [
             "isUploaded" => true,
@@ -111,6 +108,7 @@ class DocumentChecklistAttachmentsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
+        $user = JWTAuth::parseToken()->authenticate();
         $directrecruitmentApplicationAttachment = $this->documentChecklistAttachments->find($request['id']);
         if(is_null($directrecruitmentApplicationAttachment)){
             return [
@@ -125,18 +123,15 @@ class DocumentChecklistAttachmentsServices
         if($res['isDeleted']){
             $count = $this->documentChecklistAttachments->whereNull('deleted_at')
             ->where(function ($query) use ($directrecruitmentApplicationAttachment) {
-                if (isset($directrecruitmentApplicationAttachment['document_checklist_id'])) {
-                    $query->where('document_checklist_attachments.document_checklist_id',$directrecruitmentApplicationAttachment['document_checklist_id']);
-                }
                 if (isset($directrecruitmentApplicationAttachment['application_id'])) {
                     $query->where('document_checklist_attachments.application_id',$directrecruitmentApplicationAttachment['application_id']);
                 }
             })->count('id');
             if($count == 0){
-                $result =  $this->directRecruitmentApplicationChecklistServices->updateStatusBasedOnApplication([ 'application_id' => $directrecruitmentApplicationAttachment['application_id'], 'status' => 'Pending' ]);
+                $result =  $this->directRecruitmentApplicationChecklistServices->updateStatusBasedOnApplication([ 'application_id' => $directrecruitmentApplicationAttachment['application_id'], 'status' => 'Pending', 'user_id' => $user['id'] ]);
             }
         }
-        return $directrecruitmentApplicationAttachment;
+        return $res;
     }
     /**
      * @param $request

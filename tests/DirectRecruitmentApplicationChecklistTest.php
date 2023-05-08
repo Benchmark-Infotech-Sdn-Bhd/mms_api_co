@@ -65,6 +65,36 @@ class DirectRecruitmentApplicationChecklistTest extends TestCase
         ]);
     }
     /**
+     * A test method for validate Application Id required.
+     *
+     * @return void
+     */
+    public function testApplicationIdRetrieveValidation()
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/showBasedOnApplication', ['application_id' => ''], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                "application_id" => [
+                    "The application id field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * A test method for retrieve DR Application checklist Based on Application.
+     *
+     * @return void
+     */
+    public function testRetrieveSpecificDRApplicationChecklistBasedOnApplication()
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/showBasedOnApplication', ['application_id' => 1], $this->getHeader());
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data'
+        ]);
+    }
+    /**
      * @return array
      */
     public function updationData(): array
