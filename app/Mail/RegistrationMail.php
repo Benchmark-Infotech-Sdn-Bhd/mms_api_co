@@ -32,7 +32,7 @@ class RegistrationMail extends Mailable
      */
     public function build()
     {
-        $link = env('URL');
+        $link = env('APP_URL');
         return $this->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))->subject('Registration of new Account')->view('email.RegistrationMail')->with([
             'name' => $this->name,
             'email' => $this->email,
