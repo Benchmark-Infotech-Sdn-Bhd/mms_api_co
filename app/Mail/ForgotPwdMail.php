@@ -28,7 +28,7 @@ class ForgotPwdMail extends Mailable
      */
     public function build()
     {
-        $link = 'https://hcm.benchmarkit.com.my/';
+        $link = env('URL');
         return $this->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))->subject('Password Reset Instructions')->view('email.ForgotMail')->with([
             'name' => $this->name,
             'link' => $link,

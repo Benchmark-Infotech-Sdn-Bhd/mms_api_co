@@ -9,4 +9,4 @@
 
 <p>Thanks You.</p>
 
-<p>If there are any questions, please contact Administrative</p>
+<p>If there are any questions, please contact Administrative.</p>
