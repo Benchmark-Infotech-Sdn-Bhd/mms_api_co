@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Config;
 
 class RegistrationMail extends Mailable
 {
@@ -32,7 +33,7 @@ class RegistrationMail extends Mailable
      */
     public function build()
     {
-        $link = env('APP_URL');
+        $link = Config::get('services.app_url');
         return $this->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))->subject('Registration of new Account')->view('email.RegistrationMail')->with([
             'name' => $this->name,
             'email' => $this->email,

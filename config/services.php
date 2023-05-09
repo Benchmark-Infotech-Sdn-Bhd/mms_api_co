@@ -41,5 +41,6 @@ return [
     ],
 
     'paginate_row' => env('PAGINATE_ROW', 10),
+    'app_url' => env('APP_URL', ''),
 
 ];

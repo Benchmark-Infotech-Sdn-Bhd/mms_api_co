@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Config;
 
 class ForgotPwdMail extends Mailable
 {
@@ -28,7 +29,7 @@ class ForgotPwdMail extends Mailable
      */
     public function build()
     {
-        $link = env('APP_URL');
+        $link = Config::get('services.app_url');
         return $this->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))->subject('Password Reset Instructions')->view('email.ForgotMail')->with([
             'name' => $this->name,
             'link' => $link,
