@@ -48,7 +48,7 @@ class RolesServices
      */
     public function list($request): mixed
     {
-        return $this->role->where('status', 1)
+        return $this->role
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('role_name', 'like', '%'.$request['search'].'%');

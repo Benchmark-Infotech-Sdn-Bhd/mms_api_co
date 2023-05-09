@@ -143,7 +143,7 @@ class CRMServices
                 }
             })
             ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.director_or_owner', 'crm_prospects.created_at', 'employee.employee_name as registered_by')
-            ->with(['prospectServices', 'prospectServices.prospectAttachment', 'prospectLoginCredentials'])->distinct()
+            ->with(['prospectServices', 'prospectServices.prospectAttachment', 'prospectLoginCredentials'])->distinct('crm_prospects.id')
             ->orderBy('crm_prospects.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
@@ -175,12 +175,12 @@ class CRMServices
             'company_name'          => $request['company_name'] ?? '',
             'roc_number'            => $request['roc_number'] ?? '',
             'director_or_owner'     => $request['director_or_owner'] ?? '',
-            'contact_number'        => (int)$request['contact_number'] ?? 0,
+            'contact_number'        => $request['contact_number'] ?? 0,
             'email'                 => $request['email'] ?? '',
             'address'               => $request['address'] ?? '',
             'status'                => $request['status'] ?? 1,
             'pic_name'              => $request['pic_name'] ?? '',
-            'pic_contact_number'    => (int)$request['pic_contact_number'] ?? 0,
+            'pic_contact_number'    => $request['pic_contact_number'] ?? 0,
             'pic_designation'       => $request['pic_designation'] ?? '',
             'registered_by'         => $request['registered_by'] ?? 0,
             'created_by'            => $request['created_by'] ?? 0,
@@ -261,12 +261,12 @@ class CRMServices
         $prospect['company_name'] = $request['company_name'] ?? $prospect['company_name'];
         $prospect['roc_number'] = $request['roc_number'] ?? $prospect['roc_number'];
         $prospect['director_or_owner'] = $request['director_or_owner'] ?? $prospect['director_or_owner'];
-        $prospect['contact_number'] = (int)$request['contact_number'] ?? $prospect['contact_number'];
+        $prospect['contact_number'] = $request['contact_number'] ?? $prospect['contact_number'];
         $prospect['email'] = $request['email'] ?? $prospect['email'];
         $prospect['address'] = $request['address'] ?? $prospect['address'];
         $prospect['status'] = $request['status'] ?? $prospect['status'];
         $prospect['pic_name'] = $request['pic_name'] ?? $prospect['pic_name'];
-        $prospect['pic_contact_number'] = (int)$request['pic_contact_number'] ?? $prospect['pic_contact_number'];
+        $prospect['pic_contact_number'] = $request['pic_contact_number'] ?? $prospect['pic_contact_number'];
         $prospect['pic_designation'] = $request['pic_designation'] ?? $prospect['pic_designation'];
         $prospect['registered_by'] = $request['registered_by'] ?? $prospect['registered_by'];
         $prospect['modified_by'] = $request['modified_by'] ?? $prospect['modified_by'];
