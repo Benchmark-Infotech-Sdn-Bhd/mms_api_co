@@ -68,7 +68,7 @@ class FWCMSServices
     public function show($request): mixed
     {
         return $this->fwcms->where('id', $request['id'])
-        ->select('id', 'application_id', 'submission_date', 'applied_quota', 'status', 'ksm_reference_number', 'updated_at')
+        ->select('id', 'application_id', 'submission_date', 'applied_quota', 'status', 'ksm_reference_number', 'remarks')
         ->get();
     }
     /**

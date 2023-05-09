@@ -378,12 +378,7 @@ class FWCMSUnitTest extends TestCase
                     'applied_quota',
                     'status',
                     'ksm_reference_number',
-                    'remarks',
-                    'created_by',
-                    'modified_by',
-                    'created_at',
-                    'updated_at',
-                    'deleted_at'
+                    'remarks'
                 ]
             ]
         ]);
@@ -441,7 +436,25 @@ class FWCMSUnitTest extends TestCase
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
 
-        $this->artisan("db:seed --class=unit_testing_employee");
+        $payload = [
+            'employee_name' => 'Test', 
+            'gender' => 'Female', 
+            'date_of_birth' => '1998-11-02', 
+            'ic_number' => 222223434, 
+            'passport_number' => 'ADI', 
+            'email' => 'test@gmail.com', 
+            'contact_number' => 238467,
+            'address' => 'Addres', 
+            'postcode' => 2344, 
+            'position' => 'Position', 
+            'branch_id' => 1,
+            'role_id' => 1, 
+            'salary' => 67.00, 
+            'status' => 1, 
+            'city' => 'ABC', 
+            'state' => 'Malaysia'
+        ];
+        $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
         $payload =  [
             'sector_name' => 'Agriculture',
