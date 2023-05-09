@@ -127,8 +127,8 @@ class FWCMSServices
 
         $fwcmsCount = $this->fwcms->where('application_id', $request['application_id'])->count();
         $fwcmsApprovedCount = $this->fwcms->where('application_id', $request['application_id'])
-                    ->where('status', 'Approved')
-                    ->count();
+                        ->where('status', 'Approved')
+                        ->count();
         if($fwcmsCount == $fwcmsApprovedCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = 'FWCMS Completed';
