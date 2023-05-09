@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\FWCMS;
+use App\Models\DirectrecruitmentApplications;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 
@@ -14,12 +15,19 @@ class FWCMSServices
     private FWCMS $fwcms;
 
     /**
+     * @var DirectrecruitmentApplications
+     */
+    private DirectrecruitmentApplications $directrecruitmentApplications;
+
+    /**
      * FWCMSServices Constructor
      * @param FWCMS $fwcms
+     * @param DirectrecruitmentApplications $directrecruitmentApplications
      */
-    public function __construct(FWCMS $fwcms)
+    public function __construct(FWCMS $fwcms, DirectrecruitmentApplications $directrecruitmentApplications)
     {
         $this->fwcms = $fwcms;
+        $this->directrecruitmentApplications = $directrecruitmentApplications;
     }
     /**
      * @return array
@@ -116,6 +124,16 @@ class FWCMSServices
         $fwcmsDetails->remarks              = $request['remarks'] ?? $fwcmsDetails->remarks;
         $fwcmsDetails->modified_by          = $request['modified_by'] ?? $fwcmsDetails->modified_by;
         $fwcmsDetails->save();
+
+        $fwcmsCount = $this->fwcms->where('application_id', $request['application_id'])->count();
+        $fwcmsApprovedCount = $this->fwcms->where('application_id', $request['application_id'])
+                    ->where('status', 'Approved')
+                    ->count();
+        if($fwcmsCount == $fwcmsApprovedCount) {
+            $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+            $applicationDetails->status = 'FWCMS Completed';
+            $applicationDetails->save();
+        }
         return true;
     }
 }
