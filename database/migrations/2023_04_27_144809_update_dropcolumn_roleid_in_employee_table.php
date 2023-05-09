@@ -15,8 +15,8 @@ return new class extends Migration
             if (DB::getDriverName() !== 'sqlite') {
                 $table->dropForeign('employee_role_id_foreign');
                 $table->dropIndex('employee_role_id_index');
-                $table->dropColumn('role_id');
             }
+                $table->dropColumn('role_id');
         });
     }
 
