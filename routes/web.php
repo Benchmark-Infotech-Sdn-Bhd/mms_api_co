@@ -254,6 +254,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'directRecruitmentApplicationChecklist'], function () use ($router) {
             $router->post('update', 'V1\DirectRecruitmentApplicationChecklistController@update');
             $router->post('show', 'V1\DirectRecruitmentApplicationChecklistController@show');
+            $router->post('showBasedOnApplication', 'V1\DirectRecruitmentApplicationChecklistController@showBasedOnApplication');
         });
     });
 });

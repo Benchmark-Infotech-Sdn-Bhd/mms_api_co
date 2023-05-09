@@ -104,9 +104,30 @@ class DirectRecruitmentApplicationChecklistServices
             ];
         }
         $directRecruitmentApplicationChecklist->application_checklist_status = $request['status'];
+        $directRecruitmentApplicationChecklist->modified_by = $request['user_id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
         return  [
             "isUpdated" => $directRecruitmentApplicationChecklist->save() == 1,
             "message" => "Updated Successfully"
         ];
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function showBasedOnApplication($request) : mixed
+    {
+        if(!($this->validationServices->validate($request,['application_id' => 'required']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklist->where('application_id',$request['application_id'])->first();
+        if(is_null($directRecruitmentApplicationChecklist)){
+            return [
+                "isPresent" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        return $directRecruitmentApplicationChecklist;
     }
 }
