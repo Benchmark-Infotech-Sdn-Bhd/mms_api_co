@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::table('employee', function (Blueprint $table) {
             if (DB::getDriverName() !== 'sqlite') {
                 $table->dropIndex('employee_email_unique');
-                $table->dropColumn('email');
             }
+                $table->dropColumn('email');
         });
     }
 

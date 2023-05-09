@@ -251,7 +251,8 @@ class EmployeeServices
             if (isset($request['role_id'])) {
                 $query->where('roles.id',$request['role_id']);
             }
-        })->select('employee.id','employee.employee_name','users.email','employee.position','branch.branch_name','roles.role_name','employee.salary','employee.status','employee.created_at')
+        })->select('employee.id','employee.employee_name','users.email','employee.position','branch.branch_name','employee.salary','employee.status','employee.created_at')
+        ->selectRaw("(CASE WHEN (roles.status = 1) THEN roles.role_name ELSE null END) as role_name")
         ->distinct()
         ->orderBy('employee.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
