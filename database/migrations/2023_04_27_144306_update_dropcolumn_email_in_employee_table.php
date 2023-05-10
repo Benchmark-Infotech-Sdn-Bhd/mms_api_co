@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('employee', function (Blueprint $table) {
             if (DB::getDriverName() !== 'sqlite') {
-                $table->dropIndex('employee_email_unique');
+                $table->dropIndex('employee_email_deleted_at_unique');
             }
                 $table->dropColumn('email');
         });

@@ -261,4 +261,23 @@ class DirectRecruitmentServices
             "message" => "Deleted Successfully"
         ];
     }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatus($request) : array
+    {
+        $directrecruitmentApplications = $this->directrecruitmentApplications->find($request['id']);
+        if(is_null($directrecruitmentApplications)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        $directrecruitmentApplications->status = $request['status'];
+        return [
+            "isUpdated" => $directrecruitmentApplications->save() == 1,
+            "message" => "Updated Successfully"
+        ];
+    }
 }

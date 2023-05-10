@@ -7,6 +7,7 @@ use App\Models\DocumentChecklist;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\DocumentChecklistServices;
+use App\Services\DirectRecruitmentServices;
 use App\Services\DirectRecruitmentApplicationChecklistServices;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -19,6 +20,7 @@ class DocumentChecklistAttachmentsServices
     private DocumentChecklist $documentChecklist;
     private Storage $storage;
     private DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices;
+    private DirectRecruitmentServices $directRecruitmentServices;
     /**
      * DocumentChecklistAttachmentsServices constructor.
      * @param DocumentChecklistAttachments $documentChecklistAttachments
@@ -27,10 +29,12 @@ class DocumentChecklistAttachmentsServices
      * @param DocumentChecklistServices $documentChecklistServices
      * @param DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices
      * @param Storage $storage
+     * @param DirectRecruitmentServices $directRecruitmentServices
      */
     public function __construct(DocumentChecklistAttachments $documentChecklistAttachments,ValidationServices $validationServices,
     DocumentChecklistServices $documentChecklistServices,DocumentChecklist $documentChecklist,
-    Storage $storage,DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices)
+    Storage $storage,DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices,
+    DirectRecruitmentServices $directRecruitmentServices)
     {
         $this->documentChecklistAttachments = $documentChecklistAttachments;
         $this->validationServices = $validationServices;
@@ -38,6 +42,7 @@ class DocumentChecklistAttachmentsServices
         $this->documentChecklist = $documentChecklist;
         $this->storage = $storage;
         $this->directRecruitmentApplicationChecklistServices = $directRecruitmentApplicationChecklistServices;
+        $this->directRecruitmentServices = $directRecruitmentServices;
     }
 
     /**
@@ -55,6 +60,7 @@ class DocumentChecklistAttachmentsServices
             ];
         }
         $documentChecklist = $this->documentChecklist->find($params['document_checklist_id']);
+        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" => $params['application_id']]);
         if(is_null($documentChecklist)){
             return [
                 "isUploaded" => false,
@@ -71,6 +77,7 @@ class DocumentChecklistAttachmentsServices
                 $this->documentChecklistAttachments->create([
                             "document_checklist_id" => $params['document_checklist_id'],
                             "application_id" => $params['application_id'],
+                            "application_checklist_id" => $directRecruitmentApplicationChecklist['id'] ?? 0,
                             "file_type" => 'checklist',
                             "file_url" =>  $fileUrl ,
                             "created_by"    => $params['created_by'] ?? 0,
@@ -91,6 +98,7 @@ class DocumentChecklistAttachmentsServices
         })->count('id');
         if($count == 1){
             $result =  $this->directRecruitmentApplicationChecklistServices->updateStatusBasedOnApplication([ 'application_id' => $params['application_id'], 'status' => 'Completed', 'user_id' => $user['id']]);
+            $res = $this->directRecruitmentServices->updateStatus(['id' => $params['application_id'] , 'status' => 'Checklist Completed']);
         }
         return [
             "isUploaded" => true,
@@ -129,6 +137,7 @@ class DocumentChecklistAttachmentsServices
             })->count('id');
             if($count == 0){
                 $result =  $this->directRecruitmentApplicationChecklistServices->updateStatusBasedOnApplication([ 'application_id' => $directrecruitmentApplicationAttachment['application_id'], 'status' => 'Pending', 'user_id' => $user['id'] ]);
+                $resUpdate = $this->directRecruitmentServices->updateStatus(['id' => $directrecruitmentApplicationAttachment['application_id'] , 'status' => 'Checklist Pending']);
             }
         }
         return $res;
