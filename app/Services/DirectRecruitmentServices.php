@@ -166,7 +166,7 @@ class DirectRecruitmentServices
         ->select('directrecruitment_applications.id', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospect_services.contract_type as type', 'directrecruitment_applications.quota_applied as applied_quota', 'directrecruitment_applications.status')
         ->orderBy('directrecruitment_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
-    }
+    }        
     /**
      * @param $request
      * @return mixed | boolean
