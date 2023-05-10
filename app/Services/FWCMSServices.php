@@ -98,7 +98,7 @@ class FWCMSServices
             'ksm_reference_number' => $request['ksm_reference_number'] ?? '',
             'remarks' => $request['remarks'] ?? '',
             'created_by' =>  $request['created_by'] ?? 0,
-            'modified_by' =>  $request['modified_by'] ?? 0
+            'modified_by' =>  $request['created_by'] ?? 0
         ]);
         return true;
     }
