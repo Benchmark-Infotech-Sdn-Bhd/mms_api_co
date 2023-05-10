@@ -11,6 +11,7 @@ use App\Services\DirectRecruitmentServices;
 use App\Services\DirectRecruitmentApplicationChecklistServices;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Carbon\Carbon;
 
 class DocumentChecklistAttachmentsServices
 {
@@ -96,10 +97,14 @@ class DocumentChecklistAttachmentsServices
                 $query->where('document_checklist_attachments.application_id',$params['application_id']);
             }
         })->count('id');
+        $directRecruitmentApplicationChecklist->modified_on = Carbon::now();
         if($count == 1){
-            $result =  $this->directRecruitmentApplicationChecklistServices->updateStatusBasedOnApplication([ 'application_id' => $params['application_id'], 'status' => 'Completed', 'user_id' => $user['id']]);
             $res = $this->directRecruitmentServices->updateStatus(['id' => $params['application_id'] , 'status' => 'Checklist Completed']);
+            $directRecruitmentApplicationChecklist->application_checklist_status = 'Completed';
+            $directRecruitmentApplicationChecklist->modified_by = $user['id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
+            $directRecruitmentApplicationChecklist->submitted_on = Carbon::now();
         }
+        $directRecruitmentApplicationChecklist->save();
         return [
             "isUploaded" => true,
             "message" => "Document uploaded Successfully"
@@ -124,6 +129,7 @@ class DocumentChecklistAttachmentsServices
                 "message" => "Data not found"
             ];
         }
+        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" =>  $directrecruitmentApplicationAttachment['application_id']]);
         $res = [
             "isDeleted" => $directrecruitmentApplicationAttachment->delete(),
             "message" => "Deleted Successfully"
@@ -135,10 +141,13 @@ class DocumentChecklistAttachmentsServices
                     $query->where('document_checklist_attachments.application_id',$directrecruitmentApplicationAttachment['application_id']);
                 }
             })->count('id');
+            $directRecruitmentApplicationChecklist->modified_on = Carbon::now();
             if($count == 0){
-                $result =  $this->directRecruitmentApplicationChecklistServices->updateStatusBasedOnApplication([ 'application_id' => $directrecruitmentApplicationAttachment['application_id'], 'status' => 'Pending', 'user_id' => $user['id'] ]);
                 $resUpdate = $this->directRecruitmentServices->updateStatus(['id' => $directrecruitmentApplicationAttachment['application_id'] , 'status' => 'Checklist Pending']);
+                $directRecruitmentApplicationChecklist->application_checklist_status = 'Pending';
+                $directRecruitmentApplicationChecklist->modified_by = $user['id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
             }
+            $directRecruitmentApplicationChecklist->save();
         }
         return $res;
     }
