@@ -30,7 +30,7 @@ class ForgotPwdMail extends Mailable
     public function build()
     {
         $link = Config::get('services.app_url');
-        return $this->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))->subject('Password Reset Instructions')->view('email.ForgotMail')->with([
+        return $this->from(Config::get('mail_from_address'), Config::get('mail_from_name'))->subject('Password Reset Instructions')->view('email.ForgotMail')->with([
             'name' => $this->name,
             'link' => $link,
         ]);
