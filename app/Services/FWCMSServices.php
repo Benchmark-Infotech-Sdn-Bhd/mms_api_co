@@ -84,7 +84,7 @@ class FWCMSServices
      */
     public function create($request): bool|array
     {
-        $validator = Validator::make($request->toArray(), $this->createValidation());
+        $validator = Validator::make($request, $this->createValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
@@ -108,7 +108,7 @@ class FWCMSServices
      */
     public function update($request): bool|array
     {
-        $validator = Validator::make($request->toArray(), $this->updateValidation());
+        $validator = Validator::make($request, $this->updateValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()

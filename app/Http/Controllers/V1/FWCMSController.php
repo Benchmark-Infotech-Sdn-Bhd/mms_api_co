@@ -70,8 +70,8 @@ class FWCMSController extends Controller
         try{
             $param = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $param['created_at'] = $user['id'];
-            $response = $this->fwcmsServices->create($request);
+            $param['created_by'] = $user['id'];
+            $response = $this->fwcmsServices->create($param);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -93,7 +93,7 @@ class FWCMSController extends Controller
             $param = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $param['modified_by'] = $user['id'];
-            $response = $this->fwcmsServices->update($request);
+            $response = $this->fwcmsServices->update($param);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
