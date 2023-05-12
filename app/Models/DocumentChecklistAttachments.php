@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\DocumentChecklist;
+use App\Models\DirectRecruitmentApplicationChecklist;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class DocumentChecklistAttachments extends Model implements Auditable
@@ -23,13 +24,20 @@ class DocumentChecklistAttachments extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['document_checklist_id','application_id','file_type','file_url','created_by','modified_by'];
+    protected $fillable = ['document_checklist_id','application_id','application_checklist_id','file_type','file_url','created_by','modified_by'];
     /**
      * @return BelongsTo
      */
     public function documentChecklist()
     {
         return $this->belongsTo(DocumentChecklist::class, 'document_checklist_id');
+    }
+        /**
+     * @return BelongsTo
+     */
+    public function directRecruitmentApplicationChecklist()
+    {
+        return $this->belongsTo(DirectRecruitmentApplicationChecklist::class, 'application_checklist_id');
     }
     /**
      * The attributes that are required.

@@ -163,7 +163,7 @@ class DirectRecruitmentServices
                 $query->where('crm_prospect_services.contract_type', $request['contract_type']);
             }
         })
-        ->select('directrecruitment_applications.id', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospect_services.contract_type as type', 'directrecruitment_applications.quota_applied as applied_quota', 'directrecruitment_applications.status')
+        ->select('directrecruitment_applications.id', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'directrecruitment_applications.status')
         ->orderBy('directrecruitment_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }        
@@ -259,6 +259,25 @@ class DirectRecruitmentServices
         return [
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
+        ];
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatus($request) : array
+    {
+        $directrecruitmentApplications = $this->directrecruitmentApplications->find($request['id']);
+        if(is_null($directrecruitmentApplications)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        $directrecruitmentApplications->status = $request['status'];
+        return [
+            "isUpdated" => $directrecruitmentApplications->save() == 1,
+            "message" => "Updated Successfully"
         ];
     }
 }

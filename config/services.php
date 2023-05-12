@@ -41,5 +41,8 @@ return [
     ],
 
     'paginate_row' => env('PAGINATE_ROW', 10),
+    'app_url' => env('APP_URL', ''),
+    'mail_from_address' => env('MAIL_FROM_ADDRESS', ''),
+    'mail_from_name' => env('MAIL_FROM_NAME', ''),
 
 ];
