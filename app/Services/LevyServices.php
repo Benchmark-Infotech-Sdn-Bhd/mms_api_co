@@ -51,6 +51,7 @@ class LevyServices
         ];
     }
     /**
+     * @param $param
      * @return array
      */
     public function updateValidation($param): array
