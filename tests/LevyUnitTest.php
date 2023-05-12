@@ -286,6 +286,356 @@ class LevyUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test to Update Levy Details ID mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationIdRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'id' => ['The id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to Update Levy Details Application ID mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationApplicationIdRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['application_id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'application_id' => ['The application id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to Update Levy Details Payment Date mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationPaymentDateRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_date' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'payment_date' => ['The payment date field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to Update Levy Details Payment Amount mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationPaymentAmountRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_amount' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'payment_amount' => ['The payment amount field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to Update Levy Details Approved Quota mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationApprovedQuotaRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approved_quota' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'approved_quota' => ['The approved quota field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to Update Levy Details KSM Reference Number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationKSMReferenceNumberRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['ksm_reference_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'ksm_reference_number' => ['The ksm reference number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to Update Levy Details Payment Reference Number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationPaymentReferenceNumberRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_reference_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'payment_reference_number' => ['The payment reference number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to Update Levy Details Approval Number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationApprovalNumberRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approval_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'approval_number' => ['The approval number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to Update Levy Details New KSM Reference Number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationNewKSMReferenceNumberRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['new_ksm_reference_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'new_ksm_reference_number' => ['The new ksm reference number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Update Levy Details Payment Date Format Type validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationPaymentDateFormatValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_date' => '05-05-2023']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'payment_date' => ['The payment date does not match the format Y-m-d.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Update Levy Details Payment Future Date validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationPaymentFutureDateValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_date' => '2100-05-10']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'payment_date' => ['The payment date must be a date before tomorrow.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Update Levy Details Payment Amount Decimal validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationPaymentAmountDecimalValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_amount' => 10.6565]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'payment_amount' => ['The payment amount field must have 0-2 decimal places.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Update Levy Details Approved Quota Maximum validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationApprovedQuotaMaximumValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approved_quota' => 10000]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'approved_quota' => ['The approved quota must not be greater than 3 characters.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Update Levy Details Approved Quota Format validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationApprovedQuotaFormatValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approved_quota' => 'ABC']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'approved_quota' => ['The approved quota format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Update Levy Details Payment Reference Number Format validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationPaymentReferenceNumberFormatValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_reference_number' => 'SVZ498787$$']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'payment_reference_number' => ['The payment reference number format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Update Levy Details Approval Number Format validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationApprovalNumberFormatValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approval_number' => 'SVZ498787$$']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'approval_number' => ['The approval number format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Update Levy Details New KMS Referenece Number Type validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationNewKMSReferenceNumberTypeValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['new_ksm_reference_number' => 'My/992/095648967*%$']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'new_ksm_reference_number' => ['The new ksm reference number format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Update Levy Details 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', $this->updationData(), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Levy Details Updated SUccessfully']
+        ]);
+    }
+    /**
+     * Functional test to List Levy Details 
+     * 
+     * @return void
+     */
+    public function testToListLevyDetails(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/list', ['application_id' => 1], $this->getHeader());
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
+        ]);
+    }
+    /**
+     * Functional test to Display Levy Details 
+     * 
+     * @return void
+     */
+    public function testToDisplayLevyDetails(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/show', ['id' => 1], $this->getHeader());
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' => [
+                'id',
+                'application_id',
+                'item',
+                'payment_date',
+                'payment_amount',
+                'approved_quota',
+                'status',
+                'ksm_reference_number',
+                'payment_reference_number',
+                'approval_number',
+                'new_ksm_reference_number',
+                'remarks',
+                'created_by',
+                'modified_by',
+                'created_at',
+                'updated_at',
+                'deleted_at'
+            ]
+        ]);
+    }
+    /**
      * @return array
      */
     public function creationSeeder(): void
