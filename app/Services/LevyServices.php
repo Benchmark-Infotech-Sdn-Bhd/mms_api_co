@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Levy;
 use App\Models\DirectrecruitmentApplications;
+use App\Models\FWCMS;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 
@@ -18,14 +19,20 @@ class LevyServices
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
     /**
+     * @var fwcms
+     */
+    private FWCMS $fwcms;
+    /**
      * LevyServices Constructor
      * @param Levy $levy
      * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * @param FWCMS $fwcms;
      */
-    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications)
+    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms)
     {
         $this->levy = $levy;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->fwcms = $fwcms;
     }
     /**
      * @return array
@@ -37,7 +44,7 @@ class LevyServices
             'payment_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
             'payment_amount' => 'required|decimal:0,2',
             'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
-            'ksm_reference_number' => 'required',
+            'ksm_reference_number' => 'required|unique:levy',
             'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'approval_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'new_ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21',
@@ -46,7 +53,7 @@ class LevyServices
     /**
      * @return array
      */
-    public function updateValidation(): array
+    public function updateValidation($param): array
     {
         return [
             'id' => 'required',
@@ -54,7 +61,7 @@ class LevyServices
             'payment_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
             'payment_amount' => 'required|decimal:0,2',
             'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
-            'ksm_reference_number' => 'required',
+            'ksm_reference_number' => 'required|unique:levy,ksm_reference_number,'.$param['id'],
             'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'approval_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'new_ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21',
@@ -106,6 +113,16 @@ class LevyServices
             'created_by' =>  $request['created_by'] ?? 0,
             'modified_by' =>  $request['created_by'] ?? 0
         ]);
+
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        $levyPaidCount = $this->levy->where('application_id', $request['application_id'])
+                        ->where('status', 'Paid')
+                        ->count();
+        if($ksmCount == $levyPaidCount) {
+            $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+            $applicationDetails->status = 'Levy Completed';
+            $applicationDetails->save();
+        } 
         return true;
     }
     /**
@@ -114,7 +131,7 @@ class LevyServices
      */
     public function update($request): bool|array
     {
-        $validator = Validator::make($request, $this->updateValidation());
+        $validator = Validator::make($request, $this->updateValidation($request));
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
@@ -132,6 +149,16 @@ class LevyServices
         $levyDetails->remarks                   = $request['remarks'] ?? $levyDetails->remarks;
         $levyDetails->modified_by               = $request['modified_by'] ?? $levyDetails->modified_by;
         $levyDetails->save();
+
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        $levyPaidCount = $this->levy->where('application_id', $request['application_id'])
+                        ->where('status', 'Paid')
+                        ->count();
+        if($ksmCount == $levyPaidCount) {
+            $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+            $applicationDetails->status = 'Levy Completed';
+            $applicationDetails->save();
+        }
         return true;
     }
 }
