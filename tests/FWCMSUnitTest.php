@@ -371,15 +371,13 @@ class FWCMSUnitTest extends TestCase
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' => [
-                [
-                    'id',
-                    'application_id',
-                    'submission_date',
-                    'applied_quota',
-                    'status',
-                    'ksm_reference_number',
-                    'remarks'
-                ]
+                'id',
+                'application_id',
+                'submission_date',
+                'applied_quota',
+                'status',
+                'ksm_reference_number',
+                'remarks'
             ]
         ]);
     }
