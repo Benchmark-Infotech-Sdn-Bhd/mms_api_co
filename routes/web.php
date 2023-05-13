@@ -158,18 +158,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         });
 
         /**
-         * Routes for Application Interview.
-         */
-        $router->group(['prefix' => 'applicationInterview'], function () use ($router) {
-            $router->post('list', 'V1\ApplicationInterviewController@list');
-            $router->post('show', 'V1\ApplicationInterviewController@show');
-            $router->post('create', 'V1\ApplicationInterviewController@create');
-            $router->post('update', 'V1\ApplicationInterviewController@update');
-            $router->post('deleteAttachment', 'V1\ApplicationInterviewController@deleteAttachment');
-            $router->post('dropdownKsmReferenceNumber', 'V1\ApplicationInterviewController@dropdownKsmReferenceNumber');
-        });
-
-        /**
          * Routes for Vendors.
          */
         $router->group(['prefix' => 'vendor'], function () use ($router) {
@@ -278,5 +266,48 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('show', 'V1\DirectRecruitmentApplicationChecklistController@show');
             $router->post('showBasedOnApplication', 'V1\DirectRecruitmentApplicationChecklistController@showBasedOnApplication');
         });
+
+        /**
+         * Routes for FWCMS.
+         */
+        $router->group(['prefix' => 'fwcms'], function () use ($router) {
+            $router->post('list', 'V1\FWCMSController@list');
+            $router->post('show', 'V1\FWCMSController@show');
+            $router->post('create', 'V1\FWCMSController@create');
+            $router->post('update', 'V1\FWCMSController@update');
+        });
+        /**
+         * Routes for Levy.
+         */
+        $router->group(['prefix' => 'levy'], function () use ($router) {
+            $router->post('list', 'V1\LevyController@list');
+            $router->post('show', 'V1\LevyController@show');
+            $router->post('create', 'V1\LevyController@create');
+            $router->post('update', 'V1\LevyController@update');
+        });
+
+        /**
+         * Routes for Application Interview.
+         */
+        $router->group(['prefix' => 'applicationInterview'], function () use ($router) {
+            $router->post('list', 'V1\ApplicationInterviewController@list');
+            $router->post('show', 'V1\ApplicationInterviewController@show');
+            $router->post('create', 'V1\ApplicationInterviewController@create');
+            $router->post('update', 'V1\ApplicationInterviewController@update');
+            $router->post('deleteAttachment', 'V1\ApplicationInterviewController@deleteAttachment');
+            $router->post('dropdownKsmReferenceNumber', 'V1\ApplicationInterviewController@dropdownKsmReferenceNumber');
+        });
+
+        /**
+        * Routes for DirectRecruitmentApplicationApproval.
+        */
+        $router->group(['prefix' => 'directRecruitmentApplicationApproval'], function () use ($router) {
+            $router->post('list', 'V1\DirectRecruitmentApplicationApprovalController@list');
+            $router->post('show', 'V1\DirectRecruitmentApplicationApprovalController@show');
+            $router->post('create', 'V1\DirectRecruitmentApplicationApprovalController@create');
+            $router->post('update', 'V1\DirectRecruitmentApplicationApprovalController@update');
+            $router->post('deleteAttachment', 'V1\DirectRecruitmentApplicationApprovalController@deleteAttachment');
+        });
+
     });
 });
