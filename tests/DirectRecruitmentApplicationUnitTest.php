@@ -23,7 +23,7 @@ class DirectRecruitmentApplicationUnitTest extends TestCase
     public function testForAddService(): void
     {
         $this->crmCreationSeeder();
-        $response = $this->json('POST', 'api/v1/crm/create', $this->crmProspectCreationData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/crm/create', $this->crmProspectCreationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/directRecruitment/addService', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
@@ -175,16 +175,38 @@ class DirectRecruitmentApplicationUnitTest extends TestCase
             'remarks' => 'test'
         ];   
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
+
         $payload =  [
             'name' => 'Admin'
         ];
-        $res = $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
-        $this->artisan("db:seed --class=unit_testing_employee");
+        $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'employee_name' => 'Test', 
+            'gender' => 'Female', 
+            'date_of_birth' => '1998-11-02', 
+            'ic_number' => 222223434, 
+            'passport_number' => 'ADI', 
+            'email' => 'test@gmail.com', 
+            'contact_number' => 238467,
+            'address' => 'Addres', 
+            'postcode' => 2344, 
+            'position' => 'Position', 
+            'branch_id' => 1,
+            'role_id' => 1, 
+            'salary' => 67.00, 
+            'status' => 1, 
+            'city' => 'ABC', 
+            'state' => 'Malaysia'
+        ];
+        $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
+
         $payload =  [
             'sector_name' => 'Agriculture',
             'sub_sector_name' => 'Agriculture'
         ];  
         $this->json('POST', 'api/v1/sector/create', $payload, $this->getHeader(false));
+
         $payload =  [
             'sector_name' => 'IT',
             'sub_sector_name' => 'IT'

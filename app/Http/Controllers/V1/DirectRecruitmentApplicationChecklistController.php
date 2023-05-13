@@ -69,4 +69,25 @@ class DirectRecruitmentApplicationChecklistController extends Controller
             return $this->sendError(['message' => $data['error']]);
         }
     }
+    /**
+     * Retrieve the specified DirectRecruitmentApplicationChecklist Based on Application.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function showBasedOnApplication(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
 }

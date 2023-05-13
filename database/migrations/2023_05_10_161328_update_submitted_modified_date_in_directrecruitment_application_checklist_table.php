@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('employee', function (Blueprint $table) {
-            if (DB::getDriverName() !== 'sqlite') {
-                $table->dropIndex('employee_email_deleted_at_unique');
-            }
-                $table->dropColumn('email');
+        Schema::table('directrecruitment_application_checklist', function (Blueprint $table) {
+            $table->date('submitted_on')->nullable();
+            $table->date('modified_on')->nullable();
         });
     }
 
@@ -24,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('employee', function (Blueprint $table) {
+        Schema::table('directrecruitment_application_checklist', function (Blueprint $table) {
             //
         });
     }

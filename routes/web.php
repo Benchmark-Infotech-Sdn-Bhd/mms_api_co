@@ -141,13 +141,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('getProspectDetails', 'V1\CRMController@getProspectDetails');
         });
         /**
-         * Routes for Direct Recruitment.
-         */
-        $router->group(['prefix' => 'directRecruitment'], function () use ($router) {
-            $router->post('addService', 'V1\DirectRecruitmentController@addService');
-            $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
-        });
-        /**
          * Routes for Vendors.
          */
         $router->group(['prefix' => 'vendor'], function () use ($router) {
@@ -233,6 +226,14 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         });
 
         /**
+         * Routes for Direct Recruitment Application.
+         */
+        $router->group(['prefix' => 'directRecruitment'], function () use ($router) {
+            $router->post('addService', 'V1\DirectRecruitmentController@addService');
+            $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
+        });
+
+        /**
         * Routes for Direct recruitment.
         */
         $router->group(['prefix' => 'directRecrutment'], function () use ($router) {
@@ -254,6 +255,35 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'directRecruitmentApplicationChecklist'], function () use ($router) {
             $router->post('update', 'V1\DirectRecruitmentApplicationChecklistController@update');
             $router->post('show', 'V1\DirectRecruitmentApplicationChecklistController@show');
+            $router->post('showBasedOnApplication', 'V1\DirectRecruitmentApplicationChecklistController@showBasedOnApplication');
+        });
+        /**
+         * Routes for FWCMS.
+         */
+        $router->group(['prefix' => 'fwcms'], function () use ($router) {
+            $router->post('list', 'V1\FWCMSController@list');
+            $router->post('show', 'V1\FWCMSController@show');
+            $router->post('create', 'V1\FWCMSController@create');
+            $router->post('update', 'V1\FWCMSController@update');
+        });
+        /**
+         * Routes for Levy.
+         */
+        $router->group(['prefix' => 'levy'], function () use ($router) {
+            $router->post('list', 'V1\LevyController@list');
+            $router->post('show', 'V1\LevyController@show');
+            $router->post('create', 'V1\LevyController@create');
+            $router->post('update', 'V1\LevyController@update');
+        });
+        /**
+        * Routes for DirectRecruitmentApplicationApproval.
+        */
+        $router->group(['prefix' => 'directRecruitmentApplicationApproval'], function () use ($router) {
+            $router->post('list', 'V1\DirectRecruitmentApplicationApprovalController@list');
+            $router->post('show', 'V1\DirectRecruitmentApplicationApprovalController@show');
+            $router->post('create', 'V1\DirectRecruitmentApplicationApprovalController@create');
+            $router->post('update', 'V1\DirectRecruitmentApplicationApprovalController@update');
+            $router->post('deleteAttachment', 'V1\DirectRecruitmentApplicationApprovalController@deleteAttachment');
         });
     });
 });

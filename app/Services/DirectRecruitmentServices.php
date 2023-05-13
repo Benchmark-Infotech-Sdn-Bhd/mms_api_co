@@ -113,8 +113,8 @@ class DirectRecruitmentServices
         $sector = $this->sectors->findOrFail($request['sector']);
         $prospectService = $this->crmProspectService->create([
             'crm_prospect_id'   => $request['id'],
-            'service_id'        => $request['service_id'],
-            'service_name'      => $service->service_name,
+            'service_id'        => $request['service_id'] ?? 1,
+            'service_name'      => $service->service_name ?? 'Direct Recruitment',
             'sector_id'         => $request['sector'] ?? 0,
             'sector_name'       => $sector->sector_name,
             'contract_type'     => $service->id == 1 ? $request['contract_type'] : 'No Contract',
@@ -163,10 +163,10 @@ class DirectRecruitmentServices
                 $query->where('crm_prospect_services.contract_type', $request['contract_type']);
             }
         })
-        ->select('directrecruitment_applications.id','crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospect_services.contract_type as type', 'directrecruitment_applications.quota_applied as applied_quota', 'directrecruitment_applications.status')
+        ->select('directrecruitment_applications.id', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'directrecruitment_applications.status')
         ->orderBy('directrecruitment_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
-    }
+    }        
     /**
      * @param $request
      * @return mixed | boolean
@@ -259,6 +259,25 @@ class DirectRecruitmentServices
         return [
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
+        ];
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatus($request) : array
+    {
+        $directrecruitmentApplications = $this->directrecruitmentApplications->find($request['id']);
+        if(is_null($directrecruitmentApplications)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        $directrecruitmentApplications->status = $request['status'];
+        return [
+            "isUpdated" => $directrecruitmentApplications->save() == 1,
+            "message" => "Updated Successfully"
         ];
     }
 }

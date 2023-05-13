@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('employee', function (Blueprint $table) {
-            if (DB::getDriverName() !== 'sqlite') {
-                $table->dropIndex('employee_email_deleted_at_unique');
-            }
-                $table->dropColumn('email');
+        Schema::table('crm_prospects', function (Blueprint $table) {
+            $table->string('contact_number', 15)->nullable()->change();
+            $table->string('pic_contact_number', 15)->nullable()->change();
         });
     }
 
@@ -24,8 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('employee', function (Blueprint $table) {
-            //
-        });
+        //
     }
 };
