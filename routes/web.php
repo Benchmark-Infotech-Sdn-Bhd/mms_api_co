@@ -275,5 +275,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('create', 'V1\LevyController@create');
             $router->post('update', 'V1\LevyController@update');
         });
+        /**
+        * Routes for DirectRecruitmentApplicationApproval.
+        */
+        $router->group(['prefix' => 'directRecruitmentApplicationApproval'], function () use ($router) {
+            $router->post('list', 'V1\DirectRecruitmentApplicationApprovalController@list');
+            $router->post('show', 'V1\DirectRecruitmentApplicationApprovalController@show');
+            $router->post('create', 'V1\DirectRecruitmentApplicationApprovalController@create');
+            $router->post('update', 'V1\DirectRecruitmentApplicationApprovalController@update');
+            $router->post('deleteAttachment', 'V1\DirectRecruitmentApplicationApprovalController@deleteAttachment');
+        });
     });
 });
