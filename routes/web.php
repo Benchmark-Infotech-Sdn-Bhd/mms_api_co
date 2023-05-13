@@ -156,6 +156,19 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('create', 'V1\FWCMSController@create');
             $router->post('update', 'V1\FWCMSController@update');
         });
+
+        /**
+         * Routes for Application Interview.
+         */
+        $router->group(['prefix' => 'applicationInterview'], function () use ($router) {
+            $router->post('list', 'V1\ApplicationInterviewController@list');
+            $router->post('show', 'V1\ApplicationInterviewController@show');
+            $router->post('create', 'V1\ApplicationInterviewController@create');
+            $router->post('update', 'V1\ApplicationInterviewController@update');
+            $router->post('deleteAttachment', 'V1\ApplicationInterviewController@deleteAttachment');
+            $router->post('dropdownKsmReferenceNumber', 'V1\ApplicationInterviewController@dropdownKsmReferenceNumber');
+        });
+
         /**
          * Routes for Vendors.
          */
