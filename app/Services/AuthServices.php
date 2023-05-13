@@ -8,9 +8,11 @@ use App\Models\User;
 use App\Models\UserRoleType;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use App\Services\EmailServices;
 
 class AuthServices extends Controller
 {
+    private EmailServices $emailServices;
     /**
      * @var User
      */
@@ -23,11 +25,13 @@ class AuthServices extends Controller
      * AuthServices constructor.
      * @param User $user
      * @param UserRoleType $uesrRoleType
+     * @param EmailServices $emailServices
      */
-    public function __construct(User $user, UserRoleType $uesrRoleType)
+    public function __construct(User $user, UserRoleType $uesrRoleType, EmailServices $emailServices)
     {
         $this->user = $user;
         $this->uesrRoleType = $uesrRoleType;
+        $this->emailServices = $emailServices;
     }
 
     /**
@@ -75,6 +79,10 @@ class AuthServices extends Controller
             'created_by' => $request['user_id'],
             'modified_by' => $request['user_id']
         ]);
+        $name = $request['name'];
+        $email = $request['email'];
+        $password = $request['password'];
+        $this->emailServices->sendRegistrationMail($name,$email,$password); 
         return true;
     }
     /**

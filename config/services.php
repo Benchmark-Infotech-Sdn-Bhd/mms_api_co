@@ -41,6 +41,9 @@ return [
     ],
 
     'paginate_row' => env('PAGINATE_ROW', 10),
+    'app_url' => env('APP_URL', ''),
+    'mail_from_address' => env('MAIL_FROM_ADDRESS', ''),
+    'mail_from_name' => env('MAIL_FROM_NAME', ''),
 
     'APPLICATION_INTERVIEW_ITEM_NAME' => 'Interview details',
     'APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS' => ['Approved']

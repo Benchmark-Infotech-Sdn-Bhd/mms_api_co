@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('fwcms', function (Blueprint $table) {
             // FWCMS Id column
             $table->id();
-            // Direct Recruitment Application Checklist Id column
+            // Direct Recruitment Application Id column
             $table->unsignedBigInteger('application_id');
             // Foreign key from Direct Recruitment Application table
             $table->foreign('application_id')
