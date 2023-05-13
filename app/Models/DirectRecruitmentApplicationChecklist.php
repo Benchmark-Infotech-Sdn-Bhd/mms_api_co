@@ -26,7 +26,7 @@ class DirectRecruitmentApplicationChecklist extends Model implements Auditable
      * @var array
      */
     protected $fillable = ['application_id','item_name','application_checklist_status','remarks',
-    'file_url','created_by','modified_by'];
+    'file_url','created_by','modified_by', 'submitted_on', 'modified_on'];
     /**
      * @return BelongsTo
      */
