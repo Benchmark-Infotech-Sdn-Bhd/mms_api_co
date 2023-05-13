@@ -92,7 +92,7 @@ class ApplicationInterviewsServices
     public function list($request): mixed
     {
         return $this->applicationInterviews->where('application_id', $request['application_id'])
-        ->select('id', 'ksm_reference_number', 'schedule_date', 'approved_quota', 'approval_date', 'status', 'remarks', 'updated_at')
+        ->select('id', 'ksm_reference_number', 'item_name', 'schedule_date', 'approved_quota', 'approval_date', 'status', 'remarks', 'updated_at')
         ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -104,7 +104,7 @@ class ApplicationInterviewsServices
     public function show($request): mixed
     {
         return $this->applicationInterviews->where('id', $request['id'])->with('applicationInterviewAttachments')
-                ->first(['id', 'ksm_reference_number', 'schedule_date', 'approved_quota', 'approval_date', 'status', 'remarks']);
+                ->first(['id', 'ksm_reference_number', 'item_name', 'schedule_date', 'approved_quota', 'approval_date', 'status', 'remarks']);
     }
 
     /**
@@ -121,6 +121,7 @@ class ApplicationInterviewsServices
         }
         $applicationInterview = $this->applicationInterviews->create([
             'application_id' => $request['application_id'] ?? 0,
+            'item_name' => Config::get('services.APPLICATION_INTERVIEW_ITEM_NAME'),
             'ksm_reference_number' => $request['ksm_reference_number'] ?? '',
             'schedule_date' => $request['schedule_date'] ?? '',
             'approved_quota' => $request['approved_quota'] ?? 0,
@@ -167,6 +168,7 @@ class ApplicationInterviewsServices
 
         $applicationInterviewsDetails->application_id = $request['application_id'] ?? $applicationInterviewsDetails->application_id;
         $applicationInterviewsDetails->ksm_reference_number = $request['ksm_reference_number'] ?? $applicationInterviewsDetails->ksm_reference_number;
+        $applicationInterviewsDetails->item_name = $request['item_name'] ?? $applicationInterviewsDetails->item_name;
         $applicationInterviewsDetails->schedule_date = $request['schedule_date'] ?? $applicationInterviewsDetails->schedule_date;
         $applicationInterviewsDetails->approved_quota        = $request['approved_quota'] ?? $applicationInterviewsDetails->approved_quota;
         $applicationInterviewsDetails->approval_date = $request['approval_date'] ?? $applicationInterviewsDetails->approval_date;
@@ -232,6 +234,6 @@ class ApplicationInterviewsServices
      */
     public function dropdownKsmReferenceNumber($request): mixed
     {
-        return $this->fwcms::where('application_id', $request['id'])->whereIn('status', ['Approved'])->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
+        return $this->fwcms::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
     }
 }

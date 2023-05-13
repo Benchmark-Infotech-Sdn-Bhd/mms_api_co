@@ -19,6 +19,8 @@ return new class extends Migration
             // Foreign key from Direct Recruitment Application table
             $table->foreign('application_id')
               ->references('id')->on('directrecruitment_applications')->onDelete('cascade');
+            // Item Name column
+            $table->string('item_name', 255);
             // KSM reference number column
             $table->string('ksm_reference_number', 255);
             // Schedule Date column

@@ -42,4 +42,7 @@ return [
 
     'paginate_row' => env('PAGINATE_ROW', 10),
 
+    'APPLICATION_INTERVIEW_ITEM_NAME' => 'Interview details',
+    'APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS' => ['Approved']
+
 ];

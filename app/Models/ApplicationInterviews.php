@@ -23,7 +23,7 @@ class ApplicationInterviews extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['application_id', 'ksm_reference_number', 'schedule_date', 'approved_quota', 'approval_date', 'status', 'remarks', 'created_by', 'modified_by'];
+    protected $fillable = ['application_id', 'item_name', 'ksm_reference_number', 'schedule_date', 'approved_quota', 'approval_date', 'status', 'remarks', 'created_by', 'modified_by'];
 
     /**
      * @return HasMany
