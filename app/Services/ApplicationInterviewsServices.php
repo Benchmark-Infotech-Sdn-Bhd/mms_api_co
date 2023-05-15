@@ -60,7 +60,7 @@ class ApplicationInterviewsServices
         return
             [
                 'application_id' => 'required',
-                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21',
+                'ksm_reference_number' => 'required|unique:directrecruitment_application_approval',
                 'schedule_date' => 'required|date|date_format:Y-m-d|after:yesterday',
                 'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'approval_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
@@ -71,13 +71,13 @@ class ApplicationInterviewsServices
      /**
      * @return array
      */
-    public function updateValidation(): array
+    public function updateValidation($param): array
     {
         return
             [
                 'id' => 'required',
                 'application_id' => 'required',
-                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21',
+                'ksm_reference_number' => 'required|unique:directrecruitment_application_approval,ksm_reference_number,'.$param['id'],
                 'schedule_date' => 'required|date|date_format:Y-m-d|after:yesterday',
                 'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'approval_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
@@ -157,7 +157,7 @@ class ApplicationInterviewsServices
      */
     public function update($request): bool|array
     {
-        $validator = Validator::make($request->toArray(), $this->updateValidation());
+        $validator = Validator::make($request->toArray(), $this->updateValidation($request));
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
@@ -177,11 +177,11 @@ class ApplicationInterviewsServices
         $applicationInterviewsDetails->modified_by          = $request['modified_by'] ?? $applicationInterviewsDetails->modified_by;
         $applicationInterviewsDetails->save();
 
-        $applicationInterviewCount = $this->applicationInterviews->where('application_id', $request['application_id'])->count();
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
         $applicationInterviewApprovedCount = $this->applicationInterviews->where('application_id', $request['application_id'])
                         ->where('status', 'Approved')
                         ->count();
-        if($applicationInterviewCount == $applicationInterviewApprovedCount) {
+        if($ksmCount == $applicationInterviewApprovedCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = 'Application Interview Completed';
             $applicationDetails->save();
