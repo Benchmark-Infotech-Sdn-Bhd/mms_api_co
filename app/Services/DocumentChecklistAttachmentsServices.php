@@ -143,7 +143,7 @@ class DocumentChecklistAttachmentsServices
             })->count('id');
             $directRecruitmentApplicationChecklist->modified_on = Carbon::now();
             if($count == 0){
-                $resUpdate = $this->directRecruitmentServices->updateStatus(['id' => $directrecruitmentApplicationAttachment['application_id'] , 'status' => 'Checklist Pending']);
+                $resUpdate = $this->directRecruitmentServices->updateStatus(['id' => $directrecruitmentApplicationAttachment['application_id'] , 'status' => 'Proposal Submitted']);
                 $directRecruitmentApplicationChecklist->application_checklist_status = 'Pending';
                 $directRecruitmentApplicationChecklist->modified_by = $user['id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
             }

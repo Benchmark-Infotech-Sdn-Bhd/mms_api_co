@@ -62,8 +62,7 @@ class EmployeeServices
             'role_id' => (int)$request['role_id'],
             'user_id' => $request['created_by'],
             'status' => 1,
-            // 'password' => Str::random(8),
-            'password' => 'Test123',
+            'password' => Str::random(8),
             'reference_id' => $employee['id'],
             'user_type' => "Employee"
         ]);
