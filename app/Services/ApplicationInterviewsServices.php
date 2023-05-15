@@ -157,7 +157,7 @@ class ApplicationInterviewsServices
      */
     public function update($request): bool|array
     {
-        $validator = Validator::make($request->toArray(), $this->updateValidation());
+        $validator = Validator::make($request->toArray(), $this->updateValidation($request));
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
