@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\DirectRecruitmentApplicationApproval;
 use App\Models\ApprovalAttachments;
+use App\Models\DirectrecruitmentApplications;
+use App\Models\FWCMS;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -26,17 +28,30 @@ class DirectRecruitmentApplicationApprovalServices
     private Storage $storage;
 
     /**
+     * @var DirectrecruitmentApplications
+     */
+    private DirectrecruitmentApplications $directrecruitmentApplications;
+    /**
+     * @var fwcms
+     */
+    private FWCMS $fwcms;
+
+    /**
      * DirectRecruitmentApplicationApprovalServices Constructor
      * @param DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval
      * @param ApprovalAttachments $approvalAttachments
      * @param Storage $storage
+     * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * @param FWCMS $fwcms;
      */
     public function __construct(DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApprovalAttachments $approvalAttachments, 
-    Storage $storage)
+    Storage $storage, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms)
     {
         $this->directRecruitmentApplicationApproval = $directRecruitmentApplicationApproval;
         $this->approvalAttachments = $approvalAttachments;
         $this->storage = $storage;
+        $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->fwcms = $fwcms;
     }
     /**
      * @return array
@@ -46,7 +61,7 @@ class DirectRecruitmentApplicationApprovalServices
         return
             [
                 'application_id' => 'required',
-                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21',
+                'ksm_reference_number' => 'required|unique:directrecruitment_application_approval',
                 'received_date' => 'required|date|date_format:Y-m-d',
                 'valid_until' => 'required|date|date_format:Y-m-d'
             ];
@@ -54,13 +69,13 @@ class DirectRecruitmentApplicationApprovalServices
      /**
      * @return array
      */
-    public function updateValidation(): array
+    public function updateValidation($param): array
     {
         return
             [
                 'id' => 'required',
                 'application_id' => 'required',
-                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21',
+                'ksm_reference_number' => 'required|unique:directrecruitment_application_approval,ksm_reference_number,'.$param['id'],
                 'received_date' => 'required|date|date_format:Y-m-d',
                 'valid_until' => 'required|date|date_format:Y-m-d'
             ];
@@ -72,7 +87,7 @@ class DirectRecruitmentApplicationApprovalServices
     public function list($request): mixed
     {
         return $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])
-        ->select('id', 'application_id', 'ksm_reference_number',  'received_date',  'valid_until', 'updated_at')
+        ->select('id', 'application_id', 'item_name', 'ksm_reference_number',  'received_date',  'valid_until', 'updated_at')
         ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -141,6 +156,14 @@ class DirectRecruitmentApplicationApprovalServices
             }
         }
 
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        $approvalCount = $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        if($ksmCount == $approvalCount) {
+            $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+            $applicationDetails->status = 'Approval Submitted';
+            $applicationDetails->save();
+        }
+
         return true;
     }
     /**
@@ -149,7 +172,7 @@ class DirectRecruitmentApplicationApprovalServices
      */
     public function update($request): bool|array
     {
-        $validator = Validator::make($request->toArray(), $this->updateValidation());
+        $validator = Validator::make($request->toArray(), $this->updateValidation($request));
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
@@ -195,6 +218,14 @@ class DirectRecruitmentApplicationApprovalServices
                         "file_url" =>  $fileUrl         
                     ]);  
             }
+        }
+
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        $approvalCount = $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        if($ksmCount == $approvalCount) {
+            $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+            $applicationDetails->status = 'Approval Submitted';
+            $applicationDetails->save();
         }
 
         return true;
