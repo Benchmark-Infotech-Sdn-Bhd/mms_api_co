@@ -60,7 +60,7 @@ class ApplicationInterviewsServices
         return
             [
                 'application_id' => 'required',
-                'ksm_reference_number' => 'required|unique:directrecruitment_application_approval',
+                'ksm_reference_number' => 'required|unique:application_interviews',
                 'schedule_date' => 'required|date|date_format:Y-m-d|after:yesterday',
                 'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'approval_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
@@ -77,7 +77,7 @@ class ApplicationInterviewsServices
             [
                 'id' => 'required',
                 'application_id' => 'required',
-                'ksm_reference_number' => 'required|unique:directrecruitment_application_approval,ksm_reference_number,'.$param['id'],
+                'ksm_reference_number' => 'required|unique:application_interviews,ksm_reference_number,'.$param['id'],
                 'schedule_date' => 'required|date|date_format:Y-m-d|after:yesterday',
                 'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'approval_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
