@@ -665,7 +665,7 @@ class ApplicationInterviewUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['application_id' => 1, 'ksm_reference_number' => 'My/643/7684548', 'schedule_date' => '2023-05-16', 'approved_quota' => 100, 'approval_date' => '2023-05-16','status' => 'Scheduled','remarks' => 'test'];
+        return ['application_id' => 1, 'ksm_reference_number' => 'My/643/7684548', 'schedule_date' => Carbon::now()->format('Y-m-d'), 'approved_quota' => 100, 'approval_date' => Carbon::now()->format('Y-m-d'),'status' => 'Scheduled','remarks' => 'test'];
     }
 
     /**
@@ -673,6 +673,6 @@ class ApplicationInterviewUnitTest extends TestCase
      */
     public function updationData(): array
     {
-        return ['id' => 1, 'application_id' => 1, 'ksm_reference_number' => 'My/643/7684548', 'schedule_date' => '2023-05-16', 'approved_quota' => 100, 'approval_date' => '2023-05-16','status' => 'Completed','remarks' => 'test'];
+        return ['id' => 1, 'application_id' => 1, 'ksm_reference_number' => 'My/643/7684548', 'schedule_date' => Carbon::now()->format('Y-m-d'), 'approved_quota' => 100, 'approval_date' => Carbon::now()->format('Y-m-d'),'status' => 'Completed','remarks' => 'test'];
     }
 }
