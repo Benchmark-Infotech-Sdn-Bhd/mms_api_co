@@ -35,6 +35,10 @@ class DirectRecruitmentApplicationApprovalServices
      * @var fwcms
      */
     private FWCMS $fwcms;
+    /**
+     * @var ApplicationSummaryServices
+     */
+    private ApplicationSummaryServices $applicationSummaryServices;
 
     /**
      * DirectRecruitmentApplicationApprovalServices Constructor
@@ -43,15 +47,17 @@ class DirectRecruitmentApplicationApprovalServices
      * @param Storage $storage
      * @param DirectrecruitmentApplications $directrecruitmentApplications
      * @param FWCMS $fwcms;
+     * @param ApplicationSummaryServices $applicationSummaryServices;
      */
     public function __construct(DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApprovalAttachments $approvalAttachments, 
-    Storage $storage, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms)
+    Storage $storage, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices)
     {
         $this->directRecruitmentApplicationApproval = $directRecruitmentApplicationApproval;
         $this->approvalAttachments = $approvalAttachments;
         $this->storage = $storage;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->fwcms = $fwcms;
+        $this->applicationSummaryServices = $applicationSummaryServices;
     }
     /**
      * @return array
@@ -162,6 +168,10 @@ class DirectRecruitmentApplicationApprovalServices
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = 'Approval Submitted';
             $applicationDetails->save();
+
+            $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[6];
+            $request['status'] = 'Approval Submitted';
+            $this->applicationSummaryServices->updateStatus($request);
         }
 
         return true;
@@ -226,6 +236,10 @@ class DirectRecruitmentApplicationApprovalServices
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = 'Approval Submitted';
             $applicationDetails->save();
+
+            $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[6];
+            $request['status'] = 'Approval Submitted';
+            $this->applicationSummaryServices->updateStatus($request);
         }
 
         return true;

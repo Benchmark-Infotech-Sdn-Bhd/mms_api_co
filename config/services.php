@@ -46,6 +46,8 @@ return [
     'mail_from_name' => env('MAIL_FROM_NAME', ''),
 
     'APPLICATION_INTERVIEW_ITEM_NAME' => 'Interview details',
-    'APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS' => ['Approved']
+    'APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS' => ['Approved'],
+
+    'APPLICATION_SUMMARY_ACTION' => ([1 => 'Proposal Submission', 2 => 'Checklist Document', 3 => 'FWCMS Details', 4 => 'Interview Details', 5 => 'Levy Payment', 6 => 'Approval Letter']),
 
 ];
