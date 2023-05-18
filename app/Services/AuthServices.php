@@ -51,9 +51,9 @@ class AuthServices extends Controller
     public function registerValidation(): array
     {
         return [
+            'role' => 'required',
             'name' => 'required',
-            'email' => 'required|email|max:150|unique:users,email,NULL,id,deleted_at,NULL',
-            'password' => 'required',
+            'email' => 'required|email|max:150|unique:users,email,NULL,id,deleted_at,NULL'
         ];
     }
 
@@ -72,12 +72,15 @@ class AuthServices extends Controller
             'user_type' => $request['user_type'],
             'reference_id' => $request['reference_id']
         ]);
+        if($request['role'] == 'Admin') {
+            $request['role_id'] = 1;
+        }
         $this->uesrRoleType->create([
             'user_id' => $response->id,
             'role_id' => $request['role_id'],
             'status'  => $request['status'] ?? 1,
-            'created_by' => $request['user_id'],
-            'modified_by' => $request['user_id']
+            'created_by' => $request['user_id'] ?? 0,
+            'modified_by' => $request['user_id'] ?? 0
         ]);
         $name = $request['name'];
         $email = $request['email'];
