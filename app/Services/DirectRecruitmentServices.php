@@ -53,6 +53,10 @@ class DirectRecruitmentServices
      * @var Sectors
      */
     private Sectors $sectors;
+    /**
+     * @var ApplicationSummaryServices
+     */
+    private ApplicationSummaryServices $applicationSummaryServices;
 
     /**
      * DirectRecruitmentServices constructor.
@@ -65,11 +69,12 @@ class DirectRecruitmentServices
      * @param Services $services
      * @param Sectors $sectors
      * @param DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices
+     * @param ApplicationSummaryServices $applicationSummaryServices;
      */
     public function __construct(DirectrecruitmentApplications $directrecruitmentApplications, DirectrecruitmentApplicationAttachments $directrecruitmentApplicationAttachments, 
     Storage $storage, CRMProspect $crmProspect, CRMProspectService $crmProspectService, 
     CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors,
-    DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices)
+    DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices, ApplicationSummaryServices $applicationSummaryServices)
     {
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->directrecruitmentApplicationAttachments = $directrecruitmentApplicationAttachments;
@@ -80,6 +85,7 @@ class DirectRecruitmentServices
         $this->crmProspectAttachment = $crmProspectAttachment;
         $this->services = $services;
         $this->sectors = $sectors;
+        $this->applicationSummaryServices = $applicationSummaryServices;
     }       
     /**
      * @return array
@@ -228,6 +234,12 @@ class DirectRecruitmentServices
             }
         }
         $res = $data->update($input);
+
+        $input['application_id'] = $request['id'];
+        $input['created_by'] = $user['id'];
+        $input['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[1];
+        $this->applicationSummaryServices->updateStatus($input);
+
         if($res){
             $applicationChecklist = $this->directRecruitmentApplicationChecklistServices->create(
                 ['application_id' => $request['id'],

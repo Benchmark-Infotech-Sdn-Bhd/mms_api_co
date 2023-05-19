@@ -23,16 +23,22 @@ class LevyServices
      */
     private FWCMS $fwcms;
     /**
+     * @var ApplicationSummaryServices
+     */
+    private ApplicationSummaryServices $applicationSummaryServices;
+    /**
      * LevyServices Constructor
      * @param Levy $levy
      * @param DirectrecruitmentApplications $directrecruitmentApplications
      * @param FWCMS $fwcms;
+     * @param ApplicationSummaryServices $applicationSummaryServices;
      */
-    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms)
+    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices)
     {
         $this->levy = $levy;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->fwcms = $fwcms;
+        $this->applicationSummaryServices = $applicationSummaryServices;
     }
     /**
      * @return array
@@ -123,6 +129,10 @@ class LevyServices
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = 'Levy Completed';
             $applicationDetails->save();
+
+            $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[5];
+            $request['status'] = 'Levy Completed';
+            $this->applicationSummaryServices->updateStatus($request);
         } 
         return true;
     }
@@ -159,6 +169,10 @@ class LevyServices
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = 'Levy Completed';
             $applicationDetails->save();
+
+            $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[5];
+            $request['status'] = 'Levy Completed';
+            $this->applicationSummaryServices->updateStatus($request);
         }
         return true;
     }
