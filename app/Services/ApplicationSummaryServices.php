@@ -37,7 +37,7 @@ class ApplicationSummaryServices
     public function list($request): mixed
     {
         return $this->applicationSummary->where('application_id', $request['application_id'])
-        ->select('id', 'application_id', 'action', 'status', 'status', 'created_at', 'updated_at')
+        ->select('id', 'application_id', 'action', 'status', 'created_at', 'updated_at')
         ->orderBy('id', 'asc')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -51,7 +51,7 @@ class ApplicationSummaryServices
         $applicationSummary = $this->applicationSummary->where([
             ['application_id', $request['application_id']],
             ['action', $request['action']]
-        ])->first();
+        ])->first(['id', 'application_id', 'action', 'status', 'created_by', 'modified_by', 'created_at', 'updated_at']);
 
         if(is_null($applicationSummary)){
             $this->applicationSummary->create([
