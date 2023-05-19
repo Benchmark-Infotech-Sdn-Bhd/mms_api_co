@@ -70,10 +70,15 @@ class RolesServices
 
     /**
      * @param $request
-     * @return bool
+     * @return bool|array
      */
-    public function create($request): bool
+    public function create($request): bool|array
     {
+        if ($request['name'] == 'Admin' || $request['name'] == 'admin') {
+            return [
+                'adminError' => true
+            ];
+        }
         $this->role->create([
             'role_name'     => $request['name'] ?? '',
             'system_role'   => $request['system_role'] ?? 0,

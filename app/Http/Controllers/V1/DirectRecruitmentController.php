@@ -38,7 +38,10 @@ class DirectRecruitmentController extends Controller
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $response = $this->directRecruitmentServices->submitProposal($request);       
+            $response = $this->directRecruitmentServices->submitProposal($request); 
+            if(isset($response['error'])) {
+                return $this->sendError(['message' => 'Please finish the previous process before submitting a new application as this company service is still in progress.']);
+            }      
             return $this->sendSuccess($response);
             
         } catch (Exception $e) {

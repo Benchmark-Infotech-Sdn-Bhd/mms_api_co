@@ -70,7 +70,7 @@ class CRMServices
     {
         return [
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
-            'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
+            'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/|unique:crm_prospects,roc_number,NULL,id,deleted_at,NULL',
             'director_or_owner' => 'required|regex:/^[a-zA-Z ]*$/',
             'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
             'email' => 'required|email|unique:crm_prospects,email,NULL,id,deleted_at,NULL',
@@ -93,7 +93,7 @@ class CRMServices
         return [
             'id' => 'required',
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
-            'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
+            'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/|unique:crm_prospects,roc_number,'.$params['id'].',id,deleted_at,NULL',
             'director_or_owner' => 'required|regex:/^[a-zA-Z ]*$/',
             'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
             'email' => 'required|unique:crm_prospects,email,'.$params['id'].',id,deleted_at,NULL',
@@ -198,7 +198,7 @@ class CRMServices
                     'sector_id'         => $request['sector_type'] ?? 0,
                     'sector_name'       => $sector->sector_name,
                     'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract',
-                    'status'            => $request['status'] ?? 1
+                    'status'            => $request['status'] ?? 0
                 ]);
                 if (request()->hasFile('attachment')) {
                     foreach($request->file('attachment') as $file) {                
@@ -227,7 +227,7 @@ class CRMServices
                        'remarks' => '',
                        'created_by' => $request["created_by"] ?? 0,
                    ]);
-               }
+                }
             }
         }
 
@@ -287,7 +287,7 @@ class CRMServices
                     'sector_id'         => $request['sector_type'] ?? 0,
                     'sector_name'       => $sector->sector_name,
                     'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract',
-                    'status'            => $request['status'] ?? 1
+                    'status'            => $request['status'] ?? 0
                 ]);
                 if (request()->hasFile('attachment')) {
                     foreach($request->file('attachment') as $file) {                

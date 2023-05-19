@@ -43,7 +43,7 @@ class FWCMSServices
         return
             [
                 'application_id' => 'required',
-                'submission_date' => 'required|date|date_format:Y-m-d|before:today',
+                'submission_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'applied_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'status' => 'required',
                 'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21'
@@ -58,7 +58,7 @@ class FWCMSServices
             [
                 'id' => 'required',
                 'application_id' => 'required',
-                'submission_date' => 'required|date|date_format:Y-m-d|before:today',
+                'submission_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'applied_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'status' => 'required',
                 'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21'
