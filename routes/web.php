@@ -309,5 +309,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('deleteAttachment', 'V1\DirectRecruitmentApplicationApprovalController@deleteAttachment');
         });
 
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'applicationSummary'], function () use ($router) {
+            $router->post('list', 'V1\ApplicationSummaryController@list');
+        });
+
     });
 });

@@ -22,6 +22,7 @@ class DocumentChecklistAttachmentsServices
     private Storage $storage;
     private DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices;
     private DirectRecruitmentServices $directRecruitmentServices;
+    private ApplicationSummaryServices $applicationSummaryServices;
     /**
      * DocumentChecklistAttachmentsServices constructor.
      * @param DocumentChecklistAttachments $documentChecklistAttachments
@@ -31,11 +32,12 @@ class DocumentChecklistAttachmentsServices
      * @param DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices
      * @param Storage $storage
      * @param DirectRecruitmentServices $directRecruitmentServices
+     * @param ApplicationSummaryServices $applicationSummaryServices;
      */
     public function __construct(DocumentChecklistAttachments $documentChecklistAttachments,ValidationServices $validationServices,
     DocumentChecklistServices $documentChecklistServices,DocumentChecklist $documentChecklist,
     Storage $storage,DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices,
-    DirectRecruitmentServices $directRecruitmentServices)
+    DirectRecruitmentServices $directRecruitmentServices, ApplicationSummaryServices $applicationSummaryServices)
     {
         $this->documentChecklistAttachments = $documentChecklistAttachments;
         $this->validationServices = $validationServices;
@@ -44,6 +46,7 @@ class DocumentChecklistAttachmentsServices
         $this->storage = $storage;
         $this->directRecruitmentApplicationChecklistServices = $directRecruitmentApplicationChecklistServices;
         $this->directRecruitmentServices = $directRecruitmentServices;
+        $this->applicationSummaryServices = $applicationSummaryServices;
     }
 
     /**
@@ -103,6 +106,11 @@ class DocumentChecklistAttachmentsServices
             $directRecruitmentApplicationChecklist->application_checklist_status = 'Completed';
             $directRecruitmentApplicationChecklist->modified_by = $user['id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
             $directRecruitmentApplicationChecklist->submitted_on = Carbon::now();
+
+            $params['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[2];
+            $params['status'] = 'Checklist Completed';
+            $this->applicationSummaryServices->updateStatus($params);
+
         }
         $directRecruitmentApplicationChecklist->save();
         return [
@@ -146,6 +154,10 @@ class DocumentChecklistAttachmentsServices
                 $resUpdate = $this->directRecruitmentServices->updateStatus(['id' => $directrecruitmentApplicationAttachment['application_id'] , 'status' => 'Proposal Submitted']);
                 $directRecruitmentApplicationChecklist->application_checklist_status = 'Pending';
                 $directRecruitmentApplicationChecklist->modified_by = $user['id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
+
+                $request['application_id'] = $directrecruitmentApplicationAttachment['application_id'];
+                $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[2];
+                $this->applicationSummaryServices->deleteStatus($request);
             }
             $directRecruitmentApplicationChecklist->save();
         }

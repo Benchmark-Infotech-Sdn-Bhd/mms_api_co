@@ -13,6 +13,10 @@ class FWCMSServices
      * @var FWCMS
      */
     private FWCMS $fwcms;
+    /**
+     * @var ApplicationSummaryServices
+     */
+    private ApplicationSummaryServices $applicationSummaryServices;
 
     /**
      * @var DirectrecruitmentApplications
@@ -23,11 +27,13 @@ class FWCMSServices
      * FWCMSServices Constructor
      * @param FWCMS $fwcms
      * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * @param ApplicationSummaryServices $applicationSummaryServices;
      */
-    public function __construct(FWCMS $fwcms, DirectrecruitmentApplications $directrecruitmentApplications)
+    public function __construct(FWCMS $fwcms, DirectrecruitmentApplications $directrecruitmentApplications, ApplicationSummaryServices $applicationSummaryServices)
     {
         $this->fwcms = $fwcms;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->applicationSummaryServices = $applicationSummaryServices;
     }
     /**
      * @return array
@@ -132,6 +138,10 @@ class FWCMSServices
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = 'FWCMS Completed';
             $applicationDetails->save();
+
+            $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
+            $request['status'] = 'FWCMS Completed';
+            $this->applicationSummaryServices->updateStatus($request);
         }
         return true;
     }
