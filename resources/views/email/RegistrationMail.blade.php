@@ -7,6 +7,6 @@
 <p>Password: {{ $password }}</p>
 <p>URL: {{ $link }}</p>
 
-<p>Thanks You.</p>
+<p>Thank You.</p>
 
 <p>If there are any questions, please contact Administrative.</p>

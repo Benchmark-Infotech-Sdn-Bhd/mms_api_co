@@ -9,6 +9,7 @@ use App\Models\UserRoleType;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Services\EmailServices;
+use Illuminate\Support\Str;
 
 class AuthServices extends Controller
 {
@@ -51,7 +52,7 @@ class AuthServices extends Controller
     public function registerValidation(): array
     {
         return [
-            'role' => 'required',
+            'user_type' => 'required',
             'name' => 'required',
             'email' => 'required|email|max:150|unique:users,email,NULL,id,deleted_at,NULL'
         ];
@@ -63,25 +64,27 @@ class AuthServices extends Controller
      */
     public function create($request)
     {
+        if($request['user_type'] == 'Admin') {
+            $request['password'] = Str::random(8);
+        }
         $response = $this->user->create([
             'name' => $request['name'],
             'email' => $request['email'],
             'password' => Hash::make($request['password']),
             'created_by' => $request['user_id'],
             'modified_by' => $request['user_id'],
-            'user_type' => $request['user_type'],
-            'reference_id' => $request['reference_id']
+            'user_type' => $request['user_type'] ?? '',
+            'reference_id' => $request['reference_id'] ?? 0
         ]);
-        if($request['role'] == 'Admin') {
-            $request['role_id'] = 1;
+        if($request['user_type'] != 'Admin') {
+            $this->uesrRoleType->create([
+                'user_id' => $response->id,
+                'role_id' => $request['role_id'],
+                'status'  => $request['status'] ?? 1,
+                'created_by' => $request['user_id'] ?? 0,
+                'modified_by' => $request['user_id'] ?? 0
+            ]);
         }
-        $this->uesrRoleType->create([
-            'user_id' => $response->id,
-            'role_id' => $request['role_id'],
-            'status'  => $request['status'] ?? 1,
-            'created_by' => $request['user_id'] ?? 0,
-            'modified_by' => $request['user_id'] ?? 0
-        ]);
         $name = $request['name'];
         $email = $request['email'];
         $password = $request['password'];

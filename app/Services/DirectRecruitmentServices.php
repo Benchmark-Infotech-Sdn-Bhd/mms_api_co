@@ -118,7 +118,7 @@ class DirectRecruitmentServices
             'sector_id'         => $request['sector'] ?? 0,
             'sector_name'       => $sector->sector_name,
             'contract_type'     => $service->id == 1 ? $request['contract_type'] : 'No Contract',
-            'status'            => $request['status'] ?? 1
+            'status'            => $request['status'] ?? 0
         ]);
         if (request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file) {                
@@ -136,6 +136,16 @@ class DirectRecruitmentServices
                 ]);  
             }
         }
+        $this->directrecruitmentApplications::create([
+            'crm_prospect_id' => $request['id'],
+            'service_id' => $prospectService->id,
+            'quota_applied' => 0,
+            'person_incharge' => '',
+            'cost_quoted' => 0,
+            'status' => 'Pending Proposal',
+            'remarks' => '',
+            'created_by' => $request["created_by"] ?? 0,
+        ]);
         return true;
     }
     /**
@@ -145,7 +155,7 @@ class DirectRecruitmentServices
     public function applicationListing($request): mixed
     {
         return $this->directrecruitmentApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
-        ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
+        ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
         ->where('crm_prospect_services.service_id', 1)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->where(function ($query) use ($request) {
@@ -163,7 +173,8 @@ class DirectRecruitmentServices
                 $query->where('crm_prospect_services.contract_type', $request['contract_type']);
             }
         })
-        ->select('directrecruitment_applications.id', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'directrecruitment_applications.status')
+        ->select('directrecruitment_applications.id', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'directrecruitment_applications.status', 'crm_prospect_services.status as service_status')
+        ->distinct('directrecruitment_applications.id')
         ->orderBy('directrecruitment_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }        
@@ -206,8 +217,17 @@ class DirectRecruitmentServices
      * @return array
      */
     public function submitProposal($request): array
-    {    
+    {   
         $data = $this->directrecruitmentApplications::findorfail($request['id']);
+        $activeServiceCount = $this->crmProspectService->where('crm_prospect_id', $data->crm_prospect_id)
+                            ->where('status', 1)
+                            ->where('service_id', 1)
+                            ->count('id');
+        if($activeServiceCount > 0) {
+            return [
+                'error' => true
+            ];
+        }
         $input = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $input['modified_by'] = $user['id']; 
@@ -228,6 +248,9 @@ class DirectRecruitmentServices
             }
         }
         $res = $data->update($input);
+        $serviceData = $this->crmProspectService->findOrFail($data->service_id);
+        $serviceData->status = 1;
+        $serviceData->save();
         if($res){
             $applicationChecklist = $this->directRecruitmentApplicationChecklistServices->create(
                 ['application_id' => $request['id'],

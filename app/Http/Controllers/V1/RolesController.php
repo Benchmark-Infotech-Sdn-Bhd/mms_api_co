@@ -78,8 +78,11 @@ class RolesController extends Controller
             $validator = Validator::make($params, $this->rolesServices->createValidation());
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());
+            } 
+            $response = $this->rolesServices->create($params);
+            if(isset($response['adminError'])) {
+                return $this->sendError(['message' => 'Role Name as Admin is not allowed, kindly provide a different Role Name.']);
             }
-            $this->rolesServices->create($params);
             return $this->sendSuccess(['message' => 'Role Created Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
