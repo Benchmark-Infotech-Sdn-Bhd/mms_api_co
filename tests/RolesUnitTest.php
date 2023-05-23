@@ -22,10 +22,23 @@ class RolesUnitTest extends TestCase
      */
     public function testForRoleCreationNameValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/role/create', array_merge($this->creationData(), ['name' => 'Admin123']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/role/create', array_merge($this->creationData(), ['name' => 'HR123']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => ['name' => ['The name format is invalid.']]
+        ]);
+    }
+    /**
+     * Functional test to validate Admin name in Role creation
+     * 
+     * @return void
+     */
+    public function testForRoleCreationAdminNameValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/role/create', array_merge($this->creationData(), ['name' => 'Admin']), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Role Name as Admin is not allowed, kindly provide a different Role Name.']
         ]);
     }
     /**
@@ -35,7 +48,7 @@ class RolesUnitTest extends TestCase
      */
     public function testForRoleUpdationNameValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/role/update', array_merge($this->updationData(), ['name' => 'Admin$']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/role/update', array_merge($this->updationData(), ['name' => 'HR$']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => ['name' => ['The name format is invalid.']]
@@ -184,13 +197,13 @@ class RolesUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['name' => 'Admin'];
+        return ['name' => 'Manager'];
     }
     /**
      * @return array
      */
     public function updationData(): array
     {
-        return ['id' => 1, 'name' => 'Admin'];
+        return ['id' => 1, 'name' => 'Manager'];
     }
 }
