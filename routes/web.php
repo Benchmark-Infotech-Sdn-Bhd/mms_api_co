@@ -240,6 +240,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('show', 'V1\DirectRecruitmentOnboardingCountryController@show');
                     $router->post('create', 'V1\DirectRecruitmentOnboardingCountryController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingCountryController@update');
+                    $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
                 });
             });
         });

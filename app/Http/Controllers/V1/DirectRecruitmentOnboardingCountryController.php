@@ -104,4 +104,21 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             return $this->sendError(['message' => 'Faild to Update Country'], 400);
         }
     }
+    /**
+     * List KSM Referenec Number
+     * 
+     * @param Request $request
+     * @return JsonResponse   
+     */
+    public function ksmReferenceNumberList(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error = ' . print_r($e-getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Onboarding Countries'], 400);
+        }
+    }
 }

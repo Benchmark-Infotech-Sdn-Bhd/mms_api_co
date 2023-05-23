@@ -107,4 +107,15 @@ class DirectRecruitmentOnboardingCountryServices
         $onboardingCountry->save();
         return true;
     }
+    /**
+     * @param $request
+     * @return mixed
+     */   
+    public function ksmReferenceNumberList($request): mixed
+    {
+        return $this->directRecruitmentOnboardingCountry->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.id', 'directrecruitment_onboarding_countries.application_id')
+            ->where('directrecruitment_onboarding_countries.application_id', $request['application_id'])
+            ->select('directrecruitment_onboarding_countries.id', 'directrecruitment_application_approval.ksm_reference_number', 'directrecruitment_onboarding_countries.quota', 'directrecruitment_onboarding_countries.utilised_quota')
+            ->get();
+    }
 }

@@ -46,6 +46,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('directrecruitment_onboarding');
+        Schema::dropIfExists('directrecruitment_onboarding_countries');
     }
 };
