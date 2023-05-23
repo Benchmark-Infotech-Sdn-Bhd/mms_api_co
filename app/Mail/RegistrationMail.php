@@ -33,7 +33,7 @@ class RegistrationMail extends Mailable
      */
     public function build()
     {
-        $link = Config::get('services.app_url');
+        $link = Config::get('services.FRONTEND_URL');
         return $this->from(Config::get('services.mail_from_address'), Config::get('services.mail_from_name'))->subject('Registration of new Account')->view('email.RegistrationMail')->with([
             'name' => $this->name,
             'email' => $this->email,
