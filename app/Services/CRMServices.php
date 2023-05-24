@@ -7,6 +7,7 @@ use App\Models\CRMProspectService;
 use App\Models\CRMProspectAttachment;
 use App\Models\LoginCredential;
 use App\Models\Sectors;
+use App\Models\SystemType;
 use App\Models\DirectrecruitmentApplications;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -42,6 +43,10 @@ class CRMServices
      * @var DirectrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
+    /**
+     * @var SystemType
+     */
+    private SystemType $systemType;
 
     /**
      * RolesServices constructor.
@@ -52,8 +57,9 @@ class CRMServices
      * @param Storage $storage
      * @param Sectors $sectors
      * @param DirectrecruitmentApplications $directrecruitmentApplications;
+     * @param SystemType $systemType;
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -62,6 +68,7 @@ class CRMServices
         $this->storage = $storage;
         $this->sectors = $sectors;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->systemType = $systemType;
     }
     /**
      * @return array
@@ -348,6 +355,15 @@ class CRMServices
     {
         return $this->crmProspect->where('id', $request['id'])
             ->select('id', 'company_name', 'contact_number', 'email', 'pic_name')
+            ->get();
+    }
+    /**
+     * @return mixed
+     */
+    public function systemList(): mixed
+    {
+        return $this->systemType->where('status', 1)
+            ->select('id', 'system_name')
             ->get();
     }
 }
