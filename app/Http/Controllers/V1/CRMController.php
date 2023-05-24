@@ -150,4 +150,20 @@ class CRMController extends Controller
             return $this->sendError(['message' => 'Faild to Get Prospect Details']);
         }
     }
+    /**
+     * Get System List.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function systemList(Request $request): JsonResponse
+    {
+        try {
+            $response = $this->crmServices->systemList();
+            return $this->sendSuccess($response);
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Faild to List Systems']);
+        }
+    }
 }
