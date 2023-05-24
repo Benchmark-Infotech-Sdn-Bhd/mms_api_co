@@ -115,6 +115,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('show', 'V1\AgentController@show');
             $router->post('list', 'V1\AgentController@list');
             $router->post('updateStatus', 'V1\AgentController@updateStatus');
+            $router->post('dropdown', 'V1\AgentController@dropdown');
         });
         /**
          * Routes for Employees.
@@ -242,6 +243,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('create', 'V1\DirectRecruitmentOnboardingCountryController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingCountryController@update');
                     $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
+                });
+                $router->group(['prefix' => 'agent'], function () use ($router) {
+                    $router->post('list', 'V1\DirectRecruitmentOnboardingAgentController@list');
+                    $router->post('show', 'V1\DirectRecruitmentOnboardingAgentController@show');
+                    $router->post('create', 'V1\DirectRecruitmentOnboardingAgentController@create');
+                    $router->post('update', 'V1\DirectRecruitmentOnboardingAgentController@update');
                 });
             });
         });

@@ -192,4 +192,20 @@ class AgentController extends Controller
             return $this->sendError(['message' => $data['error']]);
         }
     }
+    /**
+     * Retrieve all Agent.
+     *
+     * @return JsonResponse
+     */
+    public function dropdown(): JsonResponse
+    {
+        try {
+            $data = $this->agentServices->dropdown();
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve All failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
 }

@@ -209,4 +209,11 @@ class AgentServices
             "message" => "Updated Successfully"
         ];
     }
+    /**
+     * @return mixed
+     */
+    public function dropdown() : mixed
+    {
+        return $this->agent->where('status', 1)->select('id','agent_name')->orderBy('agent.created_at','DESC')->get();
+    }
 }
