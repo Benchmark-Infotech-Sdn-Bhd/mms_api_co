@@ -37,10 +37,18 @@ class DirectRecruitmentApplicationChecklist extends Model implements Auditable
     /**
      * @return HasMany
      */
-    public function documentChecklistAttachment(): HasMany
+    /*public function documentChecklistAttachment(): HasMany
     {
         return $this->hasMany(DocumentChecklistAttachments::class, 'application_checklist_id');
+    }*/
+    /**
+     * @return HasMany
+     */
+    public function applicationChecklistAttachments(): HasMany
+    {
+        return $this->hasMany(ApplicationChecklistAttachments::class, 'application_checklist_id');
     }
+
     /**
      * The attributes that are required.
      *
