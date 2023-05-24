@@ -28,6 +28,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->get('logout', 'V1\AuthController@logout');
             $router->get('refresh', 'V1\AuthController@refresh');
         });
+        /**
+         * Routes for Company.
+         */
+        $router->group(['prefix' => 'company'], function () use ($router) {
+            $router->post('list', 'V1\AuthController@list');
+            $router->post('show', 'V1\AuthController@show');
+            $router->post('create', 'V1\AuthController@create');
+            $router->post('update', 'V1\AuthController@update');
+            $router->post('statusUpdate', 'V1\AuthController@statusUpdate');
+        });
          /**
          * Routes for Roles.
          */
