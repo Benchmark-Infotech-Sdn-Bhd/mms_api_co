@@ -35,6 +35,10 @@ class ApplicationInterviewsServices
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var ApplicationSummaryServices
+     */
+    private ApplicationSummaryServices $applicationSummaryServices;
 
     /**
      * ApplicationInterviews Constructor
@@ -42,14 +46,16 @@ class ApplicationInterviewsServices
      * @param ApplicationInterviewAttachments $applicationInterviewAttachments
      * @param FWCMS $fwcms
      * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * @param ApplicationSummaryServices $applicationSummaryServices;
      */
-    public function __construct(ApplicationInterviews $applicationInterviews, ApplicationInterviewAttachments $applicationInterviewAttachments,  DirectrecruitmentApplications $directrecruitmentApplications, Storage $storage, FWCMS $fwcms)
+    public function __construct(ApplicationInterviews $applicationInterviews, ApplicationInterviewAttachments $applicationInterviewAttachments,  DirectrecruitmentApplications $directrecruitmentApplications, Storage $storage, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices)
     {
         $this->applicationInterviews = $applicationInterviews;
         $this->applicationInterviewAttachments = $applicationInterviewAttachments;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->storage = $storage;
         $this->fwcms = $fwcms;
+        $this->applicationSummaryServices = $applicationSummaryServices;
     }
 
     /**
@@ -185,6 +191,10 @@ class ApplicationInterviewsServices
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = 'Application Interview Completed';
             $applicationDetails->save();
+
+            $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[4];
+            $request['status'] = 'Application Interview Completed';
+            $this->applicationSummaryServices->updateStatus($request);
         }
 
         if (request()->hasFile('attachment')){

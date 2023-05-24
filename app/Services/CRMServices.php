@@ -7,6 +7,7 @@ use App\Models\CRMProspectService;
 use App\Models\CRMProspectAttachment;
 use App\Models\LoginCredential;
 use App\Models\Sectors;
+use App\Models\SystemType;
 use App\Models\DirectrecruitmentApplications;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -42,6 +43,10 @@ class CRMServices
      * @var DirectrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
+    /**
+     * @var SystemType
+     */
+    private SystemType $systemType;
 
     /**
      * RolesServices constructor.
@@ -52,8 +57,9 @@ class CRMServices
      * @param Storage $storage
      * @param Sectors $sectors
      * @param DirectrecruitmentApplications $directrecruitmentApplications;
+     * @param SystemType $systemType;
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -62,6 +68,7 @@ class CRMServices
         $this->storage = $storage;
         $this->sectors = $sectors;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->systemType = $systemType;
     }
     /**
      * @return array
@@ -70,7 +77,7 @@ class CRMServices
     {
         return [
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
-            'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
+            'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/|unique:crm_prospects,roc_number,NULL,id,deleted_at,NULL',
             'director_or_owner' => 'required|regex:/^[a-zA-Z ]*$/',
             'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
             'email' => 'required|email|unique:crm_prospects,email,NULL,id,deleted_at,NULL',
@@ -93,7 +100,7 @@ class CRMServices
         return [
             'id' => 'required',
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
-            'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
+            'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/|unique:crm_prospects,roc_number,'.$params['id'].',id,deleted_at,NULL',
             'director_or_owner' => 'required|regex:/^[a-zA-Z ]*$/',
             'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
             'email' => 'required|unique:crm_prospects,email,'.$params['id'].',id,deleted_at,NULL',
@@ -198,7 +205,7 @@ class CRMServices
                     'sector_id'         => $request['sector_type'] ?? 0,
                     'sector_name'       => $sector->sector_name,
                     'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract',
-                    'status'            => $request['status'] ?? 1
+                    'status'            => $request['status'] ?? 0
                 ]);
                 if (request()->hasFile('attachment')) {
                     foreach($request->file('attachment') as $file) {                
@@ -227,7 +234,7 @@ class CRMServices
                        'remarks' => '',
                        'created_by' => $request["created_by"] ?? 0,
                    ]);
-               }
+                }
             }
         }
 
@@ -287,7 +294,7 @@ class CRMServices
                     'sector_id'         => $request['sector_type'] ?? 0,
                     'sector_name'       => $sector->sector_name,
                     'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract',
-                    'status'            => $request['status'] ?? 1
+                    'status'            => $request['status'] ?? 0
                 ]);
                 if (request()->hasFile('attachment')) {
                     foreach($request->file('attachment') as $file) {                
@@ -348,6 +355,15 @@ class CRMServices
     {
         return $this->crmProspect->where('id', $request['id'])
             ->select('id', 'company_name', 'contact_number', 'email', 'pic_name')
+            ->get();
+    }
+    /**
+     * @return mixed
+     */
+    public function systemList(): mixed
+    {
+        return $this->systemType->where('status', 1)
+            ->select('id', 'system_name')
             ->get();
     }
 }

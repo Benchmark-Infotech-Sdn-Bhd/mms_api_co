@@ -38,6 +38,13 @@ class Countries extends Model implements Auditable
         return $this->hasMany(Agent::class, 'country_id');
     }
     /**
+     * @return HasMany
+     */
+    public function onboardingCountries()
+    {
+        return $this->hasMany(DirectRecruitmentOnboardingCountry::class, 'country_id');
+    }
+    /**
      * The attributes that are required.
      *
      * @var array

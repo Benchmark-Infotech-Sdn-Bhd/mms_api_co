@@ -115,6 +115,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('show', 'V1\AgentController@show');
             $router->post('list', 'V1\AgentController@list');
             $router->post('updateStatus', 'V1\AgentController@updateStatus');
+            $router->post('dropdown', 'V1\AgentController@dropdown');
         });
         /**
          * Routes for Employees.
@@ -139,24 +140,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('deleteAttachment', 'V1\CRMController@deleteAttachment');
             $router->post('dropDownCompanies', 'V1\CRMController@dropDownCompanies');
             $router->post('getProspectDetails', 'V1\CRMController@getProspectDetails');
+            $router->post('systemList', 'V1\CRMController@systemList');
         });
-        /**
-         * Routes for Direct Recruitment Application.
-         */
-        $router->group(['prefix' => 'directRecruitment'], function () use ($router) {
-            $router->post('addService', 'V1\DirectRecruitmentController@addService');
-            $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
-        });
-        /**
-         * Routes for FWCMS.
-         */
-        $router->group(['prefix' => 'fwcms'], function () use ($router) {
-            $router->post('list', 'V1\FWCMSController@list');
-            $router->post('show', 'V1\FWCMSController@show');
-            $router->post('create', 'V1\FWCMSController@create');
-            $router->post('update', 'V1\FWCMSController@update');
-        });
-
         /**
          * Routes for Vendors.
          */
@@ -241,7 +226,32 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('dropDown', 'V1\BranchController@dropdown');
             $router->post('updateStatus', 'V1\BranchController@updateStatus');
         });
+        /**
+         * Routes for Direct Recruitment.
+         */
+        $router->group(['prefix' => 'directRecruitment'], function () use ($router) {
+            $router->post('addService', 'V1\DirectRecruitmentController@addService');
+            $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
 
+            /**
+            * Routes for Onboarding
+            */
+            $router->group(['prefix' => 'onboarding'], function () use ($router) {
+                $router->group(['prefix' => 'countries'], function () use ($router) {
+                    $router->post('list', 'V1\DirectRecruitmentOnboardingCountryController@list');
+                    $router->post('show', 'V1\DirectRecruitmentOnboardingCountryController@show');
+                    $router->post('create', 'V1\DirectRecruitmentOnboardingCountryController@create');
+                    $router->post('update', 'V1\DirectRecruitmentOnboardingCountryController@update');
+                    $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
+                });
+                $router->group(['prefix' => 'agent'], function () use ($router) {
+                    $router->post('list', 'V1\DirectRecruitmentOnboardingAgentController@list');
+                    $router->post('show', 'V1\DirectRecruitmentOnboardingAgentController@show');
+                    $router->post('create', 'V1\DirectRecruitmentOnboardingAgentController@create');
+                    $router->post('update', 'V1\DirectRecruitmentOnboardingAgentController@update');
+                });
+            });
+        });
         /**
         * Routes for Direct recruitment.
         */
@@ -250,14 +260,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('showProposal', 'V1\DirectRecruitmentController@showProposal');
             $router->post('deleteAttachment', 'V1\DirectRecruitmentController@deleteAttachment');
         });
+
         /**
-        * Routes for DocumentChecklistAttachments.
+        * Routes for ApplicationChecklistAttachments.
         */
         $router->group(['prefix' => 'checklistAttachment'], function () use ($router) {
-            $router->post('create', 'V1\DocumentChecklistAttachmentsController@create');
-            $router->post('delete', 'V1\DocumentChecklistAttachmentsController@delete');
-            $router->post('list', 'V1\DocumentChecklistAttachmentsController@list');
+            $router->post('create', 'V1\ApplicationChecklistAttachmentsController@create');
+            $router->post('delete', 'V1\ApplicationChecklistAttachmentsController@delete');
+            $router->post('list', 'V1\ApplicationChecklistAttachmentsController@list');
         });
+
         /**
         * Routes for DirectRecruitmentApplicationDocumentChecklist.
         */
@@ -308,6 +320,11 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('update', 'V1\DirectRecruitmentApplicationApprovalController@update');
             $router->post('deleteAttachment', 'V1\DirectRecruitmentApplicationApprovalController@deleteAttachment');
         });
-
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'applicationSummary'], function () use ($router) {
+            $router->post('list', 'V1\ApplicationSummaryController@list');
+        });
     });
 });

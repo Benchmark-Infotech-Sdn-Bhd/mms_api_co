@@ -13,6 +13,10 @@ class FWCMSServices
      * @var FWCMS
      */
     private FWCMS $fwcms;
+    /**
+     * @var ApplicationSummaryServices
+     */
+    private ApplicationSummaryServices $applicationSummaryServices;
 
     /**
      * @var DirectrecruitmentApplications
@@ -23,11 +27,13 @@ class FWCMSServices
      * FWCMSServices Constructor
      * @param FWCMS $fwcms
      * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * @param ApplicationSummaryServices $applicationSummaryServices;
      */
-    public function __construct(FWCMS $fwcms, DirectrecruitmentApplications $directrecruitmentApplications)
+    public function __construct(FWCMS $fwcms, DirectrecruitmentApplications $directrecruitmentApplications, ApplicationSummaryServices $applicationSummaryServices)
     {
         $this->fwcms = $fwcms;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->applicationSummaryServices = $applicationSummaryServices;
     }
     /**
      * @return array
@@ -37,7 +43,7 @@ class FWCMSServices
         return
             [
                 'application_id' => 'required',
-                'submission_date' => 'required|date|date_format:Y-m-d|before:today',
+                'submission_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'applied_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'status' => 'required',
                 'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21'
@@ -52,7 +58,7 @@ class FWCMSServices
             [
                 'id' => 'required',
                 'application_id' => 'required',
-                'submission_date' => 'required|date|date_format:Y-m-d|before:today',
+                'submission_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'applied_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'status' => 'required',
                 'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21'
@@ -132,6 +138,10 @@ class FWCMSServices
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = 'FWCMS Completed';
             $applicationDetails->save();
+
+            $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
+            $request['status'] = 'FWCMS Completed';
+            $this->applicationSummaryServices->updateStatus($request);
         }
         return true;
     }

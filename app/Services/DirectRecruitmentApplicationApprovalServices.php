@@ -6,6 +6,7 @@ use App\Models\DirectRecruitmentApplicationApproval;
 use App\Models\ApprovalAttachments;
 use App\Models\DirectrecruitmentApplications;
 use App\Models\FWCMS;
+use App\Models\CRMProspectService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -35,6 +36,14 @@ class DirectRecruitmentApplicationApprovalServices
      * @var fwcms
      */
     private FWCMS $fwcms;
+    /**
+     * @var ApplicationSummaryServices
+     */
+    private ApplicationSummaryServices $applicationSummaryServices;
+    /**
+     * @var CRMProspectService
+     */
+    private CRMProspectService $crmProspectService;
 
     /**
      * DirectRecruitmentApplicationApprovalServices Constructor
@@ -43,15 +52,19 @@ class DirectRecruitmentApplicationApprovalServices
      * @param Storage $storage
      * @param DirectrecruitmentApplications $directrecruitmentApplications
      * @param FWCMS $fwcms;
+     * @param ApplicationSummaryServices $applicationSummaryServices;
+     * @param CRMProspectService $crmProspectServicez
      */
     public function __construct(DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApprovalAttachments $approvalAttachments, 
-    Storage $storage, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms)
+    Storage $storage, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices, CRMProspectService $crmProspectService)
     {
         $this->directRecruitmentApplicationApproval = $directRecruitmentApplicationApproval;
         $this->approvalAttachments = $approvalAttachments;
         $this->storage = $storage;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->fwcms = $fwcms;
+        $this->applicationSummaryServices = $applicationSummaryServices;
+        $this->crmProspectService = $crmProspectService;
     }
     /**
      * @return array
@@ -162,6 +175,14 @@ class DirectRecruitmentApplicationApprovalServices
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = 'Approval Submitted';
             $applicationDetails->save();
+
+            $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[6];
+            $request['status'] = 'Approval Submitted';
+            $this->applicationSummaryServices->updateStatus($request);
+
+            $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
+            $serviceDetails->status = 0;
+            $serviceDetails->save();
         }
 
         return true;
@@ -226,6 +247,14 @@ class DirectRecruitmentApplicationApprovalServices
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = 'Approval Submitted';
             $applicationDetails->save();
+
+            $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[6];
+            $request['status'] = 'Approval Submitted';
+            $this->applicationSummaryServices->updateStatus($request);
+
+            $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
+            $serviceDetails->status = 0;
+            $serviceDetails->save();
         }
 
         return true;
