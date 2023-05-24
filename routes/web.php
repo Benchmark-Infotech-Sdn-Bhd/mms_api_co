@@ -260,14 +260,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('showProposal', 'V1\DirectRecruitmentController@showProposal');
             $router->post('deleteAttachment', 'V1\DirectRecruitmentController@deleteAttachment');
         });
+
         /**
-        * Routes for DocumentChecklistAttachments.
+        * Routes for ApplicationChecklistAttachments.
         */
         $router->group(['prefix' => 'checklistAttachment'], function () use ($router) {
-            $router->post('create', 'V1\DocumentChecklistAttachmentsController@create');
-            $router->post('delete', 'V1\DocumentChecklistAttachmentsController@delete');
-            $router->post('list', 'V1\DocumentChecklistAttachmentsController@list');
+            $router->post('create', 'V1\ApplicationChecklistAttachmentsController@create');
+            $router->post('delete', 'V1\ApplicationChecklistAttachmentsController@delete');
+            $router->post('list', 'V1\ApplicationChecklistAttachmentsController@list');
         });
+
         /**
         * Routes for DirectRecruitmentApplicationDocumentChecklist.
         */

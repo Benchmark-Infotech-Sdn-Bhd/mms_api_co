@@ -188,13 +188,10 @@ class DocumentChecklistAttachmentTest extends TestCase
     public function testForDocumentChecklistAttachmentListingRequiredValidation(): void
     {
         $response = $this->json('POST', 'api/v1/checklistAttachment/list', array_merge($this->updationData(), 
-        ['sector_id' => '','application_id' => '']), $this->getHeader());
+        ['application_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [
-                "sector_id" => [
-                    "The sector id field is required."
-                ],
                 "application_id" => [
                     "The application id field is required."
                 ]
