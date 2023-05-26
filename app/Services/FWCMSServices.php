@@ -148,7 +148,7 @@ class FWCMSServices
         
         $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
         $fwcmsDetails = $this->fwcms->findOrFail($request['id']);
-        if($applicationDetails->status >= 6)
+        if($applicationDetails->status >= Config::get('services.LEVY_COMPLETED'))
         {
             return [
                 'processError' => true
@@ -162,10 +162,11 @@ class FWCMSServices
                     ];
                 } else {
                     $interviewDetails = $this->applicationInterviews->where('ksm_reference_number', $fwcmsDetails->ksm_reference_number)
+                                        ->where('application_id', $request['application_id'])
                                         ->select('id')
-                                        ->get()->toArray();
+                                        ->first();
                     if(!empty($interviewDetails)) {
-                        $this->applicationInterviews->where('id', $interviewDetails[0]['id'])->update(['ksm_reference_number' => $request['ksm_reference_number']]);
+                        $this->applicationInterviews->where('id', $interviewDetails->id)->update(['ksm_reference_number' => $request['ksm_reference_number']]);
                     }
                 }
             }
