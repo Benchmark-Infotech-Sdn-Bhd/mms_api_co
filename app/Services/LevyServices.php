@@ -127,7 +127,7 @@ class LevyServices
                         ->count();
         if($ksmCount == $levyPaidCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-            $applicationDetails->status = 'Levy Completed';
+            $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[5];
@@ -167,7 +167,7 @@ class LevyServices
                         ->count();
         if($ksmCount == $levyPaidCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-            $applicationDetails->status = 'Levy Completed';
+            $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[5];

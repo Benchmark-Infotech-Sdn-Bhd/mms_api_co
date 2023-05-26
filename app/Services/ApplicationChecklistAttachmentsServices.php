@@ -87,7 +87,7 @@ class ApplicationChecklistAttachmentsServices
         })->count('id');
         $directRecruitmentApplicationChecklist->modified_on = Carbon::now();
         if($count == 1){
-            $res = $this->directRecruitmentServices->updateStatus(['id' => $params['application_id'] , 'status' => 'Checklist Completed']);
+            $res = $this->directRecruitmentServices->updateStatus(['id' => $params['application_id'] , 'status' => Config::get('services.CHECKLIST_COMPLETED')]);
             $directRecruitmentApplicationChecklist->application_checklist_status = 'Completed';
             $directRecruitmentApplicationChecklist->modified_by = $user['id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
             $directRecruitmentApplicationChecklist->submitted_on = Carbon::now();
@@ -135,7 +135,7 @@ class ApplicationChecklistAttachmentsServices
             })->count('id');
             $directRecruitmentApplicationChecklist->modified_on = Carbon::now();
             if($count == 0){
-                $resUpdate = $this->directRecruitmentServices->updateStatus(['id' => $directrecruitmentApplicationAttachment['application_id'] , 'status' => 'Proposal Submitted']);
+                $resUpdate = $this->directRecruitmentServices->updateStatus(['id' => $directrecruitmentApplicationAttachment['application_id'] , 'status' => Config::get('services.PROPOSAL_SUBMITTED')]);
                 $directRecruitmentApplicationChecklist->application_checklist_status = 'Pending';
                 $directRecruitmentApplicationChecklist->modified_by = $user['id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
             }

@@ -189,7 +189,7 @@ class ApplicationInterviewsServices
                         ->count();
         if($ksmCount == $applicationInterviewApprovedCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-            $applicationDetails->status = 'Application Interview Completed';
+            $applicationDetails->status = Config::get('services.INTERVIEW_COMPLETED');
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[4];
