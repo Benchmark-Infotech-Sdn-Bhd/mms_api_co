@@ -12,6 +12,7 @@ use App\Models\CRMProspectService;
 use App\Models\CRMProspectAttachment;
 use App\Models\Services;
 use App\Models\Sectors;
+use App\Models\DirectRecruitmentApplicationStatus;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 
@@ -57,6 +58,10 @@ class DirectRecruitmentServices
      * @var ApplicationSummaryServices
      */
     private ApplicationSummaryServices $applicationSummaryServices;
+    /**
+     * @var DirectRecruitmentApplicationStatus
+     */
+    private DirectRecruitmentApplicationStatus $directRecruitmentApplicationStatus;
 
     /**
      * DirectRecruitmentServices constructor.
@@ -70,11 +75,12 @@ class DirectRecruitmentServices
      * @param Sectors $sectors
      * @param DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices
      * @param ApplicationSummaryServices $applicationSummaryServices;
+     * @param DirectRecruitmentApplicationStatus $directRecruitmentApplicationStatus;
      */
     public function __construct(DirectrecruitmentApplications $directrecruitmentApplications, DirectrecruitmentApplicationAttachments $directrecruitmentApplicationAttachments, 
     Storage $storage, CRMProspect $crmProspect, CRMProspectService $crmProspectService, 
     CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors,
-    DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices, ApplicationSummaryServices $applicationSummaryServices)
+    DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices, ApplicationSummaryServices $applicationSummaryServices, DirectRecruitmentApplicationStatus $directRecruitmentApplicationStatus)
     {
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->directrecruitmentApplicationAttachments = $directrecruitmentApplicationAttachments;
@@ -86,6 +92,7 @@ class DirectRecruitmentServices
         $this->services = $services;
         $this->sectors = $sectors;
         $this->applicationSummaryServices = $applicationSummaryServices;
+        $this->directRecruitmentApplicationStatus = $directRecruitmentApplicationStatus;
     }       
     /**
      * @return array
@@ -148,7 +155,7 @@ class DirectRecruitmentServices
             'quota_applied' => 0,
             'person_incharge' => '',
             'cost_quoted' => 0,
-            'status' => 'Pending Proposal',
+            'status' => Config::get('services.PENDING_PROPOSAL'),
             'remarks' => '',
             'created_by' => $request["created_by"] ?? 0,
         ]);
@@ -162,6 +169,7 @@ class DirectRecruitmentServices
     {
         return $this->directrecruitmentApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
+        ->leftJoin('direct_recruitment_application_status', 'direct_recruitment_application_status.id', 'directrecruitment_applications.status')
         ->where('crm_prospect_services.service_id', 1)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->where(function ($query) use ($request) {
@@ -179,7 +187,7 @@ class DirectRecruitmentServices
                 $query->where('crm_prospect_services.contract_type', $request['contract_type']);
             }
         })
-        ->select('directrecruitment_applications.id', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'directrecruitment_applications.status', 'crm_prospect_services.status as service_status')
+        ->select('directrecruitment_applications.id', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'direct_recruitment_application_status.status_name as status', 'crm_prospect_services.status as service_status')
         ->distinct('directrecruitment_applications.id')
         ->orderBy('directrecruitment_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
@@ -237,7 +245,7 @@ class DirectRecruitmentServices
         $input = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $input['modified_by'] = $user['id']; 
-        $input['status'] = 'Proposal Submitted'; 
+        $input['status'] = Config::get('services.PROPOSAL_SUBMITTED');
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
@@ -315,5 +323,14 @@ class DirectRecruitmentServices
             "isUpdated" => $directrecruitmentApplications->save() == 1,
             "message" => "Updated Successfully"
         ];
+    }
+    /**
+     * @return mixed
+     */
+    public function dropDownFilter() : mixed
+    {
+        return $this->directRecruitmentApplicationStatus->where('status', 1)
+                    ->select('id', 'status_name')
+                    ->get();
     }
 }

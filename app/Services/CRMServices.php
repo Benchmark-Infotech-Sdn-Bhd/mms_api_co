@@ -230,7 +230,7 @@ class CRMServices
                        'quota_applied' => 0,
                        'person_incharge' => '',
                        'cost_quoted' => 0,
-                       'status' => 'Pending Proposal',
+                       'status' => Config::get('services.PENDING_PROPOSAL'),
                        'remarks' => '',
                        'created_by' => $request["created_by"] ?? 0,
                    ]);
