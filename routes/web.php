@@ -232,6 +232,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'directRecruitment'], function () use ($router) {
             $router->post('addService', 'V1\DirectRecruitmentController@addService');
             $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
+            $router->post('dropDownFilter', 'V1\DirectRecruitmentController@dropDownFilter');
 
             /**
             * Routes for Onboarding

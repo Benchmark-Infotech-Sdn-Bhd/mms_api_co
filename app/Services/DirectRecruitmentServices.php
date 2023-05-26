@@ -12,6 +12,7 @@ use App\Models\CRMProspectService;
 use App\Models\CRMProspectAttachment;
 use App\Models\Services;
 use App\Models\Sectors;
+use App\Models\DirectRecruitmentApplicationStatus;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 
@@ -57,6 +58,10 @@ class DirectRecruitmentServices
      * @var ApplicationSummaryServices
      */
     private ApplicationSummaryServices $applicationSummaryServices;
+    /**
+     * @var DirectRecruitmentApplicationStatus
+     */
+    private DirectRecruitmentApplicationStatus $directRecruitmentApplicationStatus;
 
     /**
      * DirectRecruitmentServices constructor.
@@ -70,11 +75,12 @@ class DirectRecruitmentServices
      * @param Sectors $sectors
      * @param DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices
      * @param ApplicationSummaryServices $applicationSummaryServices;
+     * @param DirectRecruitmentApplicationStatus $directRecruitmentApplicationStatus;
      */
     public function __construct(DirectrecruitmentApplications $directrecruitmentApplications, DirectrecruitmentApplicationAttachments $directrecruitmentApplicationAttachments, 
     Storage $storage, CRMProspect $crmProspect, CRMProspectService $crmProspectService, 
     CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors,
-    DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices, ApplicationSummaryServices $applicationSummaryServices)
+    DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices, ApplicationSummaryServices $applicationSummaryServices, DirectRecruitmentApplicationStatus $directRecruitmentApplicationStatus)
     {
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->directrecruitmentApplicationAttachments = $directrecruitmentApplicationAttachments;
@@ -86,6 +92,7 @@ class DirectRecruitmentServices
         $this->services = $services;
         $this->sectors = $sectors;
         $this->applicationSummaryServices = $applicationSummaryServices;
+        $this->directRecruitmentApplicationStatus = $directRecruitmentApplicationStatus;
     }       
     /**
      * @return array
@@ -316,5 +323,14 @@ class DirectRecruitmentServices
             "isUpdated" => $directrecruitmentApplications->save() == 1,
             "message" => "Updated Successfully"
         ];
+    }
+    /**
+     * @return mixed
+     */
+    public function dropDownFilter() : mixed
+    {
+        return $this->directRecruitmentApplicationStatus->where('status', 1)
+                    ->select('id', 'status_name')
+                    ->get();
     }
 }
