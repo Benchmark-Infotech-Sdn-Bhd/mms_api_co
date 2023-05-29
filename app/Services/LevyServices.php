@@ -121,6 +121,11 @@ class LevyServices
             'modified_by' =>  $request['created_by'] ?? 0
         ]);
 
+        $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? '';
+        $request['status'] = $request['status'] ?? 'Paid';
+        $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[5];
+        $this->applicationSummaryServices->ksmUpdateStatus($request);
+
         $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
         $levyPaidCount = $this->levy->where('application_id', $request['application_id'])
                         ->where('status', 'Paid')
