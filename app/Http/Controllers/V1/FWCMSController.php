@@ -96,6 +96,8 @@ class FWCMSController extends Controller
             $response = $this->fwcmsServices->update($param);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['processError'])) {
+                return $this->sendError(['message' => 'Levy payment has been made for the selected KSM reference Number, further modification is not allowed']);
             }
             return $this->sendSuccess(['message' => 'FWCMS Details Updated Successfully']);
         } catch (Exception $e) {

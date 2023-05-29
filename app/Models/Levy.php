@@ -31,4 +31,19 @@ class Levy extends Model implements Auditable
     {
         return $this->belongsTo(DirectrecruitmentApplications::class, 'application_id');
     }
+    /**
+     * Function to get Levy Paid KSM reference Number
+     * 
+     * @param $application_id
+     * @return array
+     */
+    public function levyKSM($application_id): array
+    {
+        $ksmReferenceNumbers = Levy::where('application_id', $application_id)
+                ->where('status', 'Paid')
+                ->select('ksm_reference_number')
+                ->get()
+                ->toArray();
+        return (count($ksmReferenceNumbers)) ? array_column($ksmReferenceNumbers, 'ksm_reference_number') : [];
+    }
 }
