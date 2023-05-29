@@ -26,14 +26,18 @@ return new class extends Migration
             $table->string('pic_name', 255);
             // Column for role name
             $table->string('role', 255);
+            // Column for Company status
+            $table->tinyInteger('status')->default(1);
             // Column for user id who created the Company
             $table->integer('created_by')->default(0);
             // Column for user id who modified the Company
             $table->integer('modified_by')->default(0);
-            // Onboarding created time and modified time columns 
+            // Company created time and modified time columns 
             $table->timestamps();
             // for softdelete
             $table->softDeletes();
+            // Unique field for users
+            $table->unique(['register_number', 'deleted_at']);
         });
     }
 
