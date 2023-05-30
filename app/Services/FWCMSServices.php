@@ -196,6 +196,10 @@ class FWCMSServices
                 }
             }
         }
+        $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? $fwcmsDetails->ksm_reference_number;
+        $request['status'] = $request['status'] ?? $fwcmsDetails->status;
+        $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
+        $this->applicationSummaryServices->ksmUpdateStatus($request);
 
         if($fwcmsCount == $fwcmsRejectedCount) {
             $applicationDetails->status = Config::get('services.FWCMS_REJECTED');
