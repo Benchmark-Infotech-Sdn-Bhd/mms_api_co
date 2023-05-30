@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Services\EmailServices;
 use Illuminate\Support\Str;
+use App\Models\PasswordResets;
+use Illuminate\Support\Facades\Config;
 
 class AuthServices extends Controller
 {
@@ -23,16 +25,22 @@ class AuthServices extends Controller
      */
     private $userRoleType;
     /**
+     * @var PasswordResets
+     */
+    private $passwordResets;
+    /**
      * AuthServices constructor.
      * @param User $user
      * @param UserRoleType $uesrRoleType
      * @param EmailServices $emailServices
+     * @param PasswordResets $passwordResets
      */
-    public function __construct(User $user, UserRoleType $uesrRoleType, EmailServices $emailServices)
+    public function __construct(User $user, UserRoleType $uesrRoleType, EmailServices $emailServices, PasswordResets $passwordResets)
     {
         $this->user = $user;
         $this->uesrRoleType = $uesrRoleType;
         $this->emailServices = $emailServices;
+        $this->passwordResets = $passwordResets;
     }
 
     /**
@@ -55,6 +63,28 @@ class AuthServices extends Controller
             'user_type' => 'required',
             'name' => 'required',
             'email' => 'required|email|max:150|unique:users,email,NULL,id,deleted_at,NULL'
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function forgotPasswordValidation(): array
+    {
+        return [
+            'email' => 'required|email'
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function forgotPasswordUpdateValidation(): array
+    {
+        return [
+            'email' => 'required|email',
+            'password' => 'required',
+            'token' => 'required'
         ];
     }
 
@@ -175,5 +205,48 @@ class AuthServices extends Controller
             $user['role_id'] = $roles['role_id'];
         }
         return $user;
+    }
+
+    /**
+     * @param $request
+     * @return bool
+     */
+    public function forgotPassword($request)
+    {
+        $data = $this->user->where('email', $request['email'])->first(['id', 'name']);
+        if (isset($data->id)) {
+            $token = Hash::make(rand(100000, 999999));
+            $this->passwordResets->create([
+                'email' => $request['email'],
+                'token' => $token
+            ]);
+            $params = [
+                'name' => $data->name,
+                'email' => $request['email'],
+                'token' => $token,
+                'url' => Config::get('services.FRONTEND_URL')
+            ];
+            $this->emailServices->sendForgotPasswordMail($params);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    /**
+     * @param $request
+     * @return bool
+     */
+    public function forgotPasswordUpdate($request)
+    {
+        $data = $this->passwordResets->where('token', $request['token'])->first(['id', 'email', 'token']);
+        if (isset($data['email']) && $data['email'] == $request['email']) {
+            $this->user->where('email', $request['email'])->update([
+                'password' => Hash::make($request['password'])
+            ]);
+            $this->passwordResets->where('token', $data['token'])->delete();
+            return true;
+        } else {
+            return false;
+        }
     }
 }

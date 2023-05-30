@@ -165,4 +165,44 @@ class AuthController extends Controller
     {
         return $this->respondWithToken($this->guard()->refresh(), Auth::user());
     }
+
+    /**
+     * Forgot Password
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function forgotPassword(Request $request)
+    {
+        $credentials = $this->getRequest($request);
+        $validator = Validator::make($credentials, $this->authServices->forgotPasswordValidation());
+        if ($validator->fails()) {
+            return $this->validationError($validator->errors());
+        }
+        $response = $this->authServices->forgotPassword($request);
+        if($response == true) {
+            return $this->sendSuccess(['message' => 'Successfully forgot password was created']);
+        } else {
+            return $this->sendError(['message' => 'Email was not found']);
+        }
+    }
+    /**
+     * Forgot password update
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function forgotPasswordUpdate(Request $request)
+    {
+        $credentials = $this->getRequest($request);
+        $validator = Validator::make($credentials, $this->authServices->forgotPasswordUpdateValidation());
+        if ($validator->fails()) {
+            return $this->validationError($validator->errors());
+        }
+        $response = $this->authServices->forgotPasswordUpdate($credentials);
+        if($response == true) {
+            return $this->sendSuccess(['message' => 'Successfully password was reset']);
+        } else {
+            return $this->sendError(['message' => 'Invalid Token']);
+        }
+    }
 }

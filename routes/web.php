@@ -19,6 +19,8 @@ $router->get('/', function () use ($router) {
 
 $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function () use ($router) {
     $router->post('login', 'V1\AuthController@login');
+    $router->post('forgotPassword', 'V1\AuthController@forgotPassword');
+    $router->post('forgotPasswordUpdate', 'V1\AuthController@forgotPasswordUpdate');
     $router->group(['middleware' => ['jwt.verify']], function () use ($router) {  
         /**
          * Routes for Users.
