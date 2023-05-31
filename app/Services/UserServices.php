@@ -48,7 +48,7 @@ class UserServices
             }
         })
         ->where('users.user_type', Config::get('services.ROLE_TYPE_ADMIN'))
-        ->select('users.id', 'users.name', 'users.email', 'users.created_at')
+        ->select('users.id', 'users.name', 'users.email', 'users.created_at', 'users.user_type', 'users.status')
         ->distinct()
         ->orderBy('users.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
