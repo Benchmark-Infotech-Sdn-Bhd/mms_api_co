@@ -29,6 +29,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('register', 'V1\AuthController@register');
             $router->get('logout', 'V1\AuthController@logout');
             $router->get('refresh', 'V1\AuthController@refresh');
+            $router->post('adminList', 'V1\UserController@adminList');
+            $router->post('adminShow', 'V1\UserController@adminShow');
+            $router->post('adminUpdate', 'V1\UserController@adminUpdate');
+            $router->post('adminUpdateStatus', 'V1\UserController@adminUpdateStatus');
         });
          /**
          * Routes for Roles.
