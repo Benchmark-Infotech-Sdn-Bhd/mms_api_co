@@ -332,6 +332,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         */
         $router->group(['prefix' => 'applicationSummary'], function () use ($router) {
             $router->post('list', 'V1\ApplicationSummaryController@list');
+            $router->post('listKsmReferenceNumber', 'V1\ApplicationSummaryController@listKsmReferenceNumber');
         });
     });
 });

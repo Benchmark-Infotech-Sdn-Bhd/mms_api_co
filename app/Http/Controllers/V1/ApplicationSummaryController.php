@@ -42,4 +42,21 @@ class ApplicationSummaryController extends Controller
             return $this->sendError(['message' => 'Failed to List Application Summary']);
         }
     }
+    /**
+     * List the Ksm Reference Number.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function listKsmReferenceNumber(Request $request): JsonResponse
+    {   
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->applicationSummaryServices->listKsmReferenceNumber($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Ksm Reference Number']);
+        }        
+    }
     }

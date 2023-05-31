@@ -108,7 +108,7 @@ class DocumentChecklistAttachmentsServices
             $directRecruitmentApplicationChecklist->submitted_on = Carbon::now();
 
             $params['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[2];
-            $params['status'] = 'Checklist Completed';
+            $params['status'] = 'Completed';
             $this->applicationSummaryServices->updateStatus($params);
 
         }

@@ -154,6 +154,11 @@ class ApplicationInterviewsServices
             }
         }
 
+        $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? '';
+        $request['status'] = $request['status'] ?? '';
+        $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[4];
+        $this->applicationSummaryServices->ksmUpdateStatus($request);
+
         return true;
     }
 
@@ -199,7 +204,7 @@ class ApplicationInterviewsServices
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[4];
-            $request['status'] = 'Application Interview Completed';
+            $request['status'] = 'Completed';
             $this->applicationSummaryServices->updateStatus($request);
         }
 
