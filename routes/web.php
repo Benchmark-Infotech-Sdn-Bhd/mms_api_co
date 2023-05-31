@@ -19,6 +19,8 @@ $router->get('/', function () use ($router) {
 
 $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function () use ($router) {
     $router->post('login', 'V1\AuthController@login');
+    $router->post('forgotPassword', 'V1\AuthController@forgotPassword');
+    $router->post('forgotPasswordUpdate', 'V1\AuthController@forgotPasswordUpdate');
     $router->group(['middleware' => ['jwt.verify']], function () use ($router) {  
         /**
          * Routes for Users.
@@ -27,6 +29,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('register', 'V1\AuthController@register');
             $router->get('logout', 'V1\AuthController@logout');
             $router->get('refresh', 'V1\AuthController@refresh');
+            $router->post('adminList', 'V1\UserController@adminList');
+            $router->post('adminShow', 'V1\UserController@adminShow');
+            $router->post('adminUpdate', 'V1\UserController@adminUpdate');
+            $router->post('adminUpdateStatus', 'V1\UserController@adminUpdateStatus');
         });
          /**
          * Routes for Roles.
@@ -232,6 +238,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'directRecruitment'], function () use ($router) {
             $router->post('addService', 'V1\DirectRecruitmentController@addService');
             $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
+            $router->post('dropDownFilter', 'V1\DirectRecruitmentController@dropDownFilter');
 
             /**
             * Routes for Onboarding

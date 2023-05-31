@@ -119,4 +119,20 @@ class DirectRecruitmentController extends Controller
             return $this->sendError(['message' => $e->getMessage()]);
         }        
     }
+    /**
+     * Listing Prospect services.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function dropDownFilter(Request $request): JsonResponse
+    {
+        try {
+            $response = $this->directRecruitmentServices->dropDownFilter();
+            return $this->sendSuccess($response);
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Filters'], 400);
+        }
+    }
 }

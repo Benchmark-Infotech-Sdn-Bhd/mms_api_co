@@ -32,4 +32,13 @@ class EmailServices
         Mail::to($email)->send(new RegistrationMail($name,$email,$password));
         return true;
     }
+    /**
+     * @param $params
+     * @return mixed | boolean
+     */
+    public function sendForgotPasswordMail($params)
+    {
+        Mail::to($params['email'])->send(new ForgotPwdMail($params));
+        return true;
+    }
 }

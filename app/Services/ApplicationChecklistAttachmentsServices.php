@@ -87,7 +87,7 @@ class ApplicationChecklistAttachmentsServices
         })->count('id');
         $directRecruitmentApplicationChecklist->modified_on = Carbon::now();
         if($count == 1){
-            $res = $this->directRecruitmentServices->updateStatus(['id' => $params['application_id'] , 'status' => 'Checklist Completed']);
+            $res = $this->directRecruitmentServices->updateStatus(['id' => $params['application_id'] , 'status' => Config::get('services.CHECKLIST_COMPLETED')]);
             $directRecruitmentApplicationChecklist->application_checklist_status = 'Completed';
             $directRecruitmentApplicationChecklist->modified_by = $user['id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
             $directRecruitmentApplicationChecklist->submitted_on = Carbon::now();
@@ -135,7 +135,7 @@ class ApplicationChecklistAttachmentsServices
             })->count('id');
             $directRecruitmentApplicationChecklist->modified_on = Carbon::now();
             if($count == 0){
-                $resUpdate = $this->directRecruitmentServices->updateStatus(['id' => $directrecruitmentApplicationAttachment['application_id'] , 'status' => 'Proposal Submitted']);
+                $resUpdate = $this->directRecruitmentServices->updateStatus(['id' => $directrecruitmentApplicationAttachment['application_id'] , 'status' => Config::get('services.PROPOSAL_SUBMITTED')]);
                 $directRecruitmentApplicationChecklist->application_checklist_status = 'Pending';
                 $directRecruitmentApplicationChecklist->modified_by = $user['id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
             }
@@ -154,10 +154,15 @@ class ApplicationChecklistAttachmentsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->directRecruitmentApplicationChecklist->where('application_id',$request['application_id'])
+        return $this->directRecruitmentApplicationChecklist
+        ->leftJoin('application_checklist_attachments', 'application_checklist_attachments.application_checklist_id',  'directrecruitment_application_checklist.id')
+        ->leftJoin('document_checklist', 'document_checklist.id',  'application_checklist_attachments.document_checklist_id')
+        ->where('directrecruitment_application_checklist.application_id',$request['application_id'])
         ->with(["applicationChecklistAttachments" => function($attachment) use ($request){
             $attachment->where('application_id',$request['application_id']);
         }])->orderBy('directrecruitment_application_checklist.created_at','DESC')
+        ->select('directrecruitment_application_checklist.id', 'directrecruitment_application_checklist.application_id', 'directrecruitment_application_checklist.application_checklist_status', 'directrecruitment_application_checklist.submitted_on', 'directrecruitment_application_checklist.modified_on', 'directrecruitment_application_checklist.created_by', 'directrecruitment_application_checklist.modified_by', 'directrecruitment_application_checklist.created_at', 'directrecruitment_application_checklist.updated_at', 'directrecruitment_application_checklist.deleted_at', 'directrecruitment_application_checklist.remarks', 'document_checklist.sector_id','document_checklist.document_title')
+        ->distinct('directrecruitment_application_checklist.id')
         ->paginate(Config::get('services.paginate_row'));
     }
 }

@@ -51,4 +51,15 @@ return [
     'APPLICATION_SUMMARY_ACTION' => ([1 => 'Proposal Submission', 2 => 'Checklist Document', 3 => 'FWCMS Details', 4 => 'Interview Details', 5 => 'Levy Payment', 6 => 'Approval Letter']),
 
     'FRONTEND_URL' => env('FRONTEND_URL', 'https://hcm.benchmarkit.com.my/'),
+
+    'PENDING_PROPOSAL' => env('PENDING_PROPOSAL', 1),
+    'PROPOSAL_SUBMITTED' => env('PROPOSAL_SUBMITTED', 2),
+    'CHECKLIST_COMPLETED' => env('CHECKLIST_COMPLETED', 3),
+    'FWCMS_COMPLETED' => env('FWCMS_COMPLETED', 4),
+    'INTERVIEW_COMPLETED' => env('INTERVIEW_COMPLETED', 5),
+    'LEVY_COMPLETED' => env('LEVY_COMPLETED', 6),
+    'APPROVAL_COMPLETED' => env('APPROVAL_COMPLETED', 7),
+    'FWCMS_REJECTED' => env('FWCMS_REJECTED', 8),
+
+    'ROLE_TYPE_ADMIN' => 'Admin'
 ];

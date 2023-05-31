@@ -22,7 +22,7 @@ class ApplicationSummary extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['application_id', 'action', 'status', 'created_by', 'modified_by'];
+    protected $fillable = ['application_id', 'action', 'status', 'created_by', 'modified_by', 'ksm_reference_number'];
 
     /**
      * @return BelongsTo

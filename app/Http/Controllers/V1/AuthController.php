@@ -16,6 +16,7 @@ use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Services\EmployeeServices;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Config;
 
 class AuthController extends Controller
 {
@@ -73,6 +74,11 @@ class AuthController extends Controller
                 return $this->sendError(['message' => 'User not found'], 400);
             }
             if(is_null($emp['branches']) || ($emp['status'] == 0) || ($emp['branches']['status'] == 0)){
+                return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
+            }
+        }
+        if($user['user_type'] == Config::get('services.ROLE_TYPE_ADMIN')){
+            if($user['status'] == 0){
                 return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
             }
         }
@@ -164,5 +170,45 @@ class AuthController extends Controller
     public function refresh()
     {
         return $this->respondWithToken($this->guard()->refresh(), Auth::user());
+    }
+
+    /**
+     * Forgot Password
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function forgotPassword(Request $request)
+    {
+        $credentials = $this->getRequest($request);
+        $validator = Validator::make($credentials, $this->authServices->forgotPasswordValidation());
+        if ($validator->fails()) {
+            return $this->validationError($validator->errors());
+        }
+        $response = $this->authServices->forgotPassword($request);
+        if($response == true) {
+            return $this->sendSuccess(['message' => 'Successfully forgot password was created']);
+        } else {
+            return $this->sendError(['message' => 'Email was not found']);
+        }
+    }
+    /**
+     * Forgot password update
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function forgotPasswordUpdate(Request $request)
+    {
+        $credentials = $this->getRequest($request);
+        $validator = Validator::make($credentials, $this->authServices->forgotPasswordUpdateValidation());
+        if ($validator->fails()) {
+            return $this->validationError($validator->errors());
+        }
+        $response = $this->authServices->forgotPasswordUpdate($credentials);
+        if($response == true) {
+            return $this->sendSuccess(['message' => 'Successfully password was reset']);
+        } else {
+            return $this->sendError(['message' => 'Invalid Token']);
+        }
     }
 }

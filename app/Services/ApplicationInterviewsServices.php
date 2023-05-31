@@ -183,13 +183,19 @@ class ApplicationInterviewsServices
         $applicationInterviewsDetails->modified_by          = $request['modified_by'] ?? $applicationInterviewsDetails->modified_by;
         $applicationInterviewsDetails->save();
 
+        $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? $applicationInterviewsDetails->ksm_reference_number;
+        $request['status'] = $request['status'] ?? $applicationInterviewsDetails->status;
+        $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[4];
+        $this->applicationSummaryServices->ksmUpdateStatus($request);
+        
+        
         $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
         $applicationInterviewApprovedCount = $this->applicationInterviews->where('application_id', $request['application_id'])
                         ->where('status', 'Approved')
                         ->count();
         if($ksmCount == $applicationInterviewApprovedCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-            $applicationDetails->status = 'Application Interview Completed';
+            $applicationDetails->status = Config::get('services.INTERVIEW_COMPLETED');
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[4];
