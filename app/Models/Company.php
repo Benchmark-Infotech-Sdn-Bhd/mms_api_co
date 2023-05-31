@@ -32,8 +32,7 @@ class Company extends Model implements Auditable
         'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
         'register_number' => 'required|regex:/^[a-zA-Z0-9\-]*$/|unique:company,register_number,NULL,id,deleted_at,NULL',
         'country' => 'required|regex:/^[a-zA-Z ]*$/',
-        'state' => 'required|regex:/^[a-zA-Z ]*$/',
-        'pic_name' => 'required'
+        'state' => 'required|regex:/^[a-zA-Z ]*$/'
     ];
     /**
      * The function returns array that are required for updation.
@@ -48,8 +47,7 @@ class Company extends Model implements Auditable
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'register_number' => 'required|regex:/^[a-zA-Z0-9\-]*$/|unique:company,register_number,'.$id.',id,deleted_at,NULL',
             'country' => 'required|regex:/^[a-zA-Z]*$/',
-            'state' => 'required|regex:/^[a-zA-Z ]*$/',
-            'pic_name' => 'required'
+            'state' => 'required|regex:/^[a-zA-Z ]*$/'
         ];
     }
 }
