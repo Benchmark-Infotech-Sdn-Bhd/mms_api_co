@@ -309,6 +309,64 @@ class CompanyUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for Companies list
+     * 
+     * @return void
+     */
+    public function testForCompaniesListWithSearch(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/list', ['search' => ''], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
+        ]);
+    }
+    /**
+     * Functional test for Company Show
+     * 
+     * @return void
+     */
+    public function testForCompanyShow(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/show', ['id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'id',
+                    'company_name',
+                    'register_number',
+                    'country',
+                    'state',
+                    'pic_name',
+                    'role',
+                    'status',
+                    'created_by',
+                    'modified_by',
+                    'created_at',
+                    'updated_at',
+                    'deleted_at'
+                ]
+        ]);
+    }
+    /**
      * @return array
      */
     public function creationData(): array
