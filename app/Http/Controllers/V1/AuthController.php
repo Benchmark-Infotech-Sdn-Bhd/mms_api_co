@@ -188,7 +188,7 @@ class AuthController extends Controller
         if($response == true) {
             return $this->sendSuccess(['message' => 'Successfully forgot password was created']);
         } else {
-            return $this->sendError(['message' => 'Email was not found']);
+            return $this->sendError(['message' => 'Email was not found'], 400);
         }
     }
     /**

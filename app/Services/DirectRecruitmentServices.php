@@ -278,7 +278,7 @@ class DirectRecruitmentServices
         $input['application_id'] = $request['id'];
         $input['created_by'] = $user['id'];
         $input['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[1];
-        $input['status'] = 'Proposal Submitted';
+        $input['status'] = 'Submitted';
         $this->applicationSummaryServices->updateStatus($input);
 
         return  [
