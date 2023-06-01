@@ -34,6 +34,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('adminUpdate', 'V1\UserController@adminUpdate');
             $router->post('adminUpdateStatus', 'V1\UserController@adminUpdateStatus');
         });
+        /**
+         * Routes for Company.
+         */
+        $router->group(['prefix' => 'company'], function () use ($router) {
+            $router->post('list', 'V1\CompanyController@list');
+            $router->post('show', 'V1\CompanyController@show');
+            $router->post('create', 'V1\CompanyController@create');
+            $router->post('update', 'V1\CompanyController@update');
+            $router->post('updateStatus', 'V1\CompanyController@updateStatus');
+        });
          /**
          * Routes for Roles.
          */
