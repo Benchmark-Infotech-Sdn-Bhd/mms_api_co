@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ApplicationSummary;
 use App\Models\DirectrecruitmentApplications;
+use App\Models\FWCMS;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
@@ -21,14 +22,21 @@ class ApplicationSummaryServices
     private DirectrecruitmentApplications $directrecruitmentApplications;
 
     /**
+     * @var FWCMS
+     */
+    private FWCMS $fwcms;
+
+    /**
      * ApplicationSummaryServices Constructor
      * @param ApplicationSummary $applicationSummary
      * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * @param FWCMS $fwcms
      */
-    public function __construct(ApplicationSummary $applicationSummary, DirectrecruitmentApplications $directrecruitmentApplications)
+    public function __construct(ApplicationSummary $applicationSummary, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms)
     {
         $this->applicationSummary = $applicationSummary;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->fwcms = $fwcms;
     }
     /**
      * @param $request
@@ -131,6 +139,14 @@ class ApplicationSummaryServices
             ]);
         }
         return true;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function listKsmReferenceNumber($request): mixed
+    {
+        return $this->fwcms->where('application_id', $request['application_id'])->select('id', 'ksm_reference_number')->orderBy('created_at','DESC')->get();
     }
     
 }

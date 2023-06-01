@@ -45,6 +45,49 @@ class DirectRecruitmentApplicationSummaryUnitTest extends TestCase
     ]);
     }
     /**
+     * Functional test to List Application Summary with KSM reference number
+     * 
+     * @return void
+     */
+    public function testToListApplicationSummarybyksm(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/applicationSummary/list', ['application_id' => 1, 'ksm_reference_number' => 'My/643/7684548'], $this->getHeader());
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
+    ]);
+    }
+    /**
+     * Functional test to List Application  Summary KsmReferenceNumber
+     * 
+     * @return void
+     */
+    public function testToListApplicationSummaryKsmReferenceNumber(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/applicationSummary/listKsmReferenceNumber', ['application_id' => 1], $this->getHeader());
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data'
+        ]);
+    }
+    /**
      * @return array
      */
     public function creationSeeder(): void
@@ -118,5 +161,16 @@ class DirectRecruitmentApplicationSummaryUnitTest extends TestCase
             'remarks' => 'test'
         ];
         $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'submission_date' => '2023-05-31', 
+            'applied_quota' => 10, 
+            'status' => 'Submitted', 
+            'ksm_reference_number' => 
+            'My/643/7684548', 
+            'remarks' => 'test'
+        ];
+        $this->json('POST', 'api/v1/fwcms/create', $payload, $this->getHeader(false));
     }
 }

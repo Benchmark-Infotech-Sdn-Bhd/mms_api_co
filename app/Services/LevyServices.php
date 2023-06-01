@@ -136,7 +136,7 @@ class LevyServices
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[5];
-            $request['status'] = 'Levy Completed';
+            $request['status'] = 'Completed';
             $this->applicationSummaryServices->updateStatus($request);
         } 
         return true;
@@ -176,7 +176,7 @@ class LevyServices
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[5];
-            $request['status'] = 'Levy Completed';
+            $request['status'] = 'Completed';
             $this->applicationSummaryServices->updateStatus($request);
         }
         return true;
