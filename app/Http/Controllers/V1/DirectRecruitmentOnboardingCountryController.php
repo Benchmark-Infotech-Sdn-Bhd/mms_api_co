@@ -39,7 +39,7 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             $response = $this->directRecruitmentOnboardingCountryServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
-            Log::error('Error = ' . print_r($e-getMessage(), true));
+            Log::error('Error = ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Onboarding Countries'], 400);
         }
     }
@@ -117,7 +117,7 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             $response = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
-            Log::error('Error = ' . print_r($e-getMessage(), true));
+            Log::error('Error = ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Onboarding Countries'], 400);
         }
     }
