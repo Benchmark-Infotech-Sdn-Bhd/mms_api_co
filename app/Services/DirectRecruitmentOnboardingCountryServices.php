@@ -5,6 +5,8 @@ namespace App\Services;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use App\Models\DirectRecruitmentOnboardingCountry;
+use App\Models\DirectRecruitmentApplicationApproval;
+use App\Models\ApplicationInterviews;
 use App\Services\ValidationServices;
 
 class DirectRecruitmentOnboardingCountryServices
@@ -15,13 +17,25 @@ class DirectRecruitmentOnboardingCountryServices
      */
     private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
     /**
-     * DirectRecruitmentOnboardingCountryServices constructor.
-     * @param DirectRecruitmentOnboardingCountry    $directRecruitmentOnboardingCountry;
-     * @param ValidationServices                    $validationServices
+     * @var DirectRecruitmentApplicationApproval
      */
-    public function __construct(DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry,ValidationServices $validationServices)
+    private DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval;
+    /**
+     * @var ApplicationInterviews
+     */
+    private ApplicationInterviews $applicationInterviews;
+    /**
+     * DirectRecruitmentOnboardingCountryServices constructor.
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+     * @param DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval;
+     * @param ApplicationInterviews $applicationInterviews
+     * @param ValidationServices                    $validationServices;
+     */
+    public function __construct(DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApplicationInterviews $applicationInterviews, ValidationServices $validationServices)
     {
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
+        $this->directRecruitmentApplicationApproval = $directRecruitmentApplicationApproval;
+        $this->applicationInterviews = $applicationInterviews;
         $this->validationServices = $validationServices;
     }
     /**
@@ -92,6 +106,16 @@ class DirectRecruitmentOnboardingCountryServices
                 'error' => $validator->errors()
             ];
         }
+        $interviewApproved = $this->applicationInterviews->where('application_id', $request['application_id'])
+                        ->where('status', 'Approved')->sum('approved_quota');
+        $countriesQuota = $this->directRecruitmentOnboardingCountry->where('application_id', $request['application_id'])
+                            ->sum('quota');
+        $countriesQuota += $request['quota'];
+        if($countriesQuota > $interviewApproved) {
+            return [
+                'quotaError' => true
+            ];
+        }
         $this->directRecruitmentOnboardingCountry->create([
             'application_id' => $request['application_id'] ?? 0,
             'country_id' => $request['country_id'] ?? 0,
@@ -116,6 +140,16 @@ class DirectRecruitmentOnboardingCountryServices
             ];
         }
         $onboardingCountry = $this->directRecruitmentOnboardingCountry->findOrFail($request['id']);
+        $interviewApproved = $this->applicationInterviews->where('application_id', $onboardingCountry->application_id)
+                        ->where('status', 'Approved')->sum('approved_quota');
+        $countriesQuota = $this->directRecruitmentOnboardingCountry->where('application_id', $onboardingCountry->application_id)
+                            ->sum('quota');
+        $countriesQuota += $request['quota'];
+        if($countriesQuota > $interviewApproved) {
+            return [
+                'quotaError' => true
+            ];
+        }
         $onboardingCountry->application_id =  $request['application_id'] ?? $onboardingCountry->application_id;
         $onboardingCountry->country_id =  $request['country_id'] ?? $onboardingCountry->country_id;
         $onboardingCountry->quota =  $request['quota'] ?? $onboardingCountry->quota;
@@ -131,9 +165,11 @@ class DirectRecruitmentOnboardingCountryServices
      */   
     public function ksmReferenceNumberList($request): mixed
     {
-        return $this->directRecruitmentOnboardingCountry->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.application_id', 'directrecruitment_onboarding_countries.application_id')
-            ->where('directrecruitment_onboarding_countries.application_id', $request['application_id'])
-            ->select('directrecruitment_onboarding_countries.id', 'directrecruitment_application_approval.ksm_reference_number', 'directrecruitment_onboarding_countries.quota', 'directrecruitment_onboarding_countries.utilised_quota')
-            ->get();
+        return $this->directRecruitmentApplicationApproval
+                ->leftJoin('application_interviews', 'application_interviews.application_id', 'directrecruitment_application_approval.application_id')
+                ->leftJoin('directrecruitment_onboarding_countries', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_application_approval.application_id')
+                ->where('directrecruitment_application_approval.application_id', $request['application_id'])
+                ->select('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'application_interviews.approved_quota', 'directrecruitment_onboarding_countries.utilised_quota')->distinct()
+                ->get();
     }
 }

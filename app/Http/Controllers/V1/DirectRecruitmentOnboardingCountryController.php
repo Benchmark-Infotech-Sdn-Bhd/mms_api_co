@@ -75,6 +75,8 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             $response = $this->directRecruitmentOnboardingCountryServices->create($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'Quota should not exceed to the approved quota'], 400);
             }
             return $this->sendSuccess(['message' => 'Country Added Successfully']);
         } catch (Exception $e) {
@@ -97,6 +99,8 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             $response = $this->directRecruitmentOnboardingCountryServices->update($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'Quota should not exceed to the approved quota'], 400);
             }
             return $this->sendSuccess(['message' => 'Country Updated Successfully']);
         } catch (Exception $e) {
