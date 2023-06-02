@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Models\DirectRecruitmentApplicationApproval;
 use App\Models\ApplicationInterviews;
+use App\Services\ValidationServices;
 
 class DirectRecruitmentOnboardingCountryServices
 {
+    private ValidationServices $validationServices;
     /**
      * @var DirectRecruitmentOnboardingCountry
      */
@@ -27,12 +29,14 @@ class DirectRecruitmentOnboardingCountryServices
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
      * @param DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval;
      * @param ApplicationInterviews $applicationInterviews
+     * @param ValidationServices                    $validationServices;
      */
-    public function __construct(DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApplicationInterviews $applicationInterviews)
+    public function __construct(DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApplicationInterviews $applicationInterviews, ValidationServices $validationServices)
     {
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->directRecruitmentApplicationApproval = $directRecruitmentApplicationApproval;
         $this->applicationInterviews = $applicationInterviews;
+        $this->validationServices = $validationServices;
     }
     /**
      * @return array
@@ -62,8 +66,22 @@ class DirectRecruitmentOnboardingCountryServices
      */   
     public function list($request): mixed
     {
+
+        if(isset($request['search_param']) && !empty($request['search_param'])){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|regex:/^[a-zA-Z ]*$/|min:3']))){
+                return [
+                    'validate' => $this->validationServices->errors()
+                ];
+            }
+        }
+        
         return $this->directRecruitmentOnboardingCountry->leftJoin('countries', 'countries.id', 'directrecruitment_onboarding_countries.country_id')
             ->where('directrecruitment_onboarding_countries.application_id', $request['application_id'])
+            ->where(function ($query) use ($request) {
+                if (isset($request['search_param']) && !empty($request['search_param'])) {
+                    $query->where('countries.country_name', 'like', "%{$request['search_param']}%");
+                }
+            })
             ->select('directrecruitment_onboarding_countries.id', 'countries.country_name as country', 'countries.system_type as system', 'directrecruitment_onboarding_countries.quota', 'directrecruitment_onboarding_countries.utilised_quota')
             ->orderBy('directrecruitment_onboarding_countries.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
