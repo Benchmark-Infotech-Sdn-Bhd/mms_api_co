@@ -12,13 +12,21 @@ class DirectRecruitmentOnboardingAgentServices
      * @var DirectRecruitmentOnboardingAgent
      */
     private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
+
+    /**
+     * @var DirectRecruitmentOnboardingAttestationServices
+     */
+    private DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices;
+
     /**
      * DirectRecruitmentOnboardingAgentServices constructor.
      * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
+     * @param DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices;
      */
-    public function __construct(DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent)
+    public function __construct(DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent, DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices)
     {
         $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
+        $this->directRecruitmentOnboardingAttestationServices = $directRecruitmentOnboardingAttestationServices;
     }
     /**
      * @return array
@@ -84,6 +92,7 @@ class DirectRecruitmentOnboardingAgentServices
             'created_by' => $request['created_by'] ?? 0,
             'modified_by' => $request['created_by'] ?? 0
         ]);
+        $this->directRecruitmentOnboardingAttestationServices->create($request);
         return true;
     }
     /**
