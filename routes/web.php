@@ -267,6 +267,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('create', 'V1\DirectRecruitmentOnboardingAgentController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingAgentController@update');
                 });
+                $router->group(['prefix' => 'callingVisa'], function () use ($router) {
+                    $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');
+                    $router->post('submitCallingVisa', 'V1\DirectRecruitmentCallingVisaController@submitCallingVisa');
+                    $router->post('updateCallingVisa', 'V1\DirectRecruitmentCallingVisaController@updateCallingVisa');
+                    $router->post('workersList', 'V1\DirectRecruitmentCallingVisaController@workersList');
+                });
             });
         });
         /**
