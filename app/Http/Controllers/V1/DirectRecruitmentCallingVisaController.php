@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
-use App\Services\CallingVisaServices;
+use App\Services\DirectRecruitmentCallingVisaServices;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -57,6 +57,8 @@ class DirectRecruitmentCallingVisaController extends Controller
             $response = $this->directRecruitmentCallingVisaServices->submitCallingVisa($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['workerCountError'])) {
+                return $this->sendError(['message' => 'Worker Count should not exceed to 30'], 400);
             }
             return $this->sendSuccess(['message' => 'Calling Visa Submitted Successfully']);
         } catch (Exception $e) {
@@ -79,6 +81,8 @@ class DirectRecruitmentCallingVisaController extends Controller
             $response = $this->directRecruitmentCallingVisaServices->updateCallingVisa($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['workerCountError'])) {
+                return $this->sendError(['message' => 'Worker Count should not exceed to 30'], 400);
             }
             return $this->sendSuccess(['message' => 'Calling Visa Updated Successfully']);
         } catch (Exception $e) {
