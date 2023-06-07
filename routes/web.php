@@ -267,6 +267,21 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('create', 'V1\DirectRecruitmentOnboardingAgentController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingAgentController@update');
                 });
+                $router->group(['prefix' => 'attestation'], function () use ($router) {
+                    //Attestation
+                    $router->post('list', 'V1\DirectRecruitmentOnboardingAttestationController@list');
+                    $router->post('show', 'V1\DirectRecruitmentOnboardingAttestationController@show');
+                    $router->post('create', 'V1\DirectRecruitmentOnboardingAttestationController@create');
+                    $router->post('update', 'V1\DirectRecruitmentOnboardingAttestationController@update');
+                    //Dispatch
+                    $router->post('showDispatch', 'V1\DirectRecruitmentOnboardingAttestationController@showDispatch');
+                    $router->post('updateDispatch', 'V1\DirectRecruitmentOnboardingAttestationController@updateDispatch');
+                    //Embassy Attestation Costing
+                    $router->post('listEmbassy', 'V1\DirectRecruitmentOnboardingAttestationController@listEmbassy');
+                    $router->post('showEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@showEmbassyFile');
+                    $router->post('uploadEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@uploadEmbassyFile');
+                    $router->post('deleteEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@deleteEmbassyFile');
+                });
             });
         });
         /**
