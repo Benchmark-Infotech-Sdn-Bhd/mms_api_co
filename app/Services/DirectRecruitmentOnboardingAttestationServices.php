@@ -218,7 +218,7 @@ class DirectRecruitmentOnboardingAttestationServices
                 'onboarding_attestation_id' => $request['onboarding_attestation_id'] ?? 0,
                 'date' => $request['date'] ?? '',
                 'time' => $request['time'] ?? '',
-                'reference_number' => $request['reference_number'] ?? '',
+                'reference_number' => $request['reference_number'],
                 'employee_id' => $request['employee_id'] ?? '',
                 'from' => $request['from'] ?? '',
                 'calltime' => $request['calltime'] ?? '',
@@ -364,9 +364,9 @@ class DirectRecruitmentOnboardingAttestationServices
     /**
      * delete embassy file
      * @param $request
-     * @return mixed
+     * @return array
      */    
-    public function deleteEmbassyFile($request): mixed
+    public function deleteEmbassyFile($request): array
     {   
         $data = $this->onboardingEmbassy::find($request['onboarding_embassy_id']); 
         if(is_null($data)){

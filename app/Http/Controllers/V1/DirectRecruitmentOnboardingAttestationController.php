@@ -39,7 +39,7 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
             $response = $this->directRecruitmentOnboardingAttestationServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
-            Log::error('Error = ' . print_r($e-getMessage(), true));
+            Log::error('Error = ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Onboarding Attestation'], 400);
         }
     }
@@ -156,7 +156,7 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
             $response = $this->directRecruitmentOnboardingAttestationServices->listEmbassy($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
-            Log::error('Error = ' . print_r($e-getMessage(), true));
+            Log::error('Error = ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Embassy Attestation Costing'], 400);
         }
     }
