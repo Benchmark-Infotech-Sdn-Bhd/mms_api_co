@@ -317,6 +317,12 @@ class DirectRecruitmentOnboardingAttestationServices
                 'error' => $validator->errors()
             ];
         }
+
+        $onboardingEmbassy = $this->onboardingEmbassy->where([
+            ['onboarding_attestation_id', $request['onboarding_attestation_id']],
+            ['embassy_attestation_id', $request['embassy_attestation_id']],
+            ['deleted_at', null],
+        ])->first(['id', 'onboarding_attestation_id', 'embassy_attestation_id', 'file_name', 'file_type', 'file_url', 'amount']);
         
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
@@ -325,12 +331,6 @@ class DirectRecruitmentOnboardingAttestationServices
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-
-                $onboardingEmbassy = $this->onboardingEmbassy->where([
-                    ['onboarding_attestation_id', $request['onboarding_attestation_id']],
-                    ['embassy_attestation_id', $request['embassy_attestation_id']],
-                    ['deleted_at', null],
-                ])->first(['id', 'onboarding_attestation_id', 'embassy_attestation_id', 'file_name', 'file_type', 'file_url', 'amount']);
 
                 if(is_null($onboardingEmbassy)){
                     $this->onboardingEmbassy::create([
@@ -345,17 +345,31 @@ class DirectRecruitmentOnboardingAttestationServices
                     ]); 
                 }else{
                     $onboardingEmbassy->update([
-                        "onboarding_attestation_id" => $request['onboarding_attestation_id'] ?? 0,
-                        "embassy_attestation_id" => $request['embassy_attestation_id'] ?? 0,
                         "file_name" => $fileName,
-                        "file_type" => 'Embassy Attestation Costing',
                         "file_url" =>  $fileUrl,
-                        "amount" => $request['amount'] ?? 0,
+                        "amount" => $request['amount'] ?? $onboardingEmbassy->amount,
                         "modified_by" =>  $params['created_by'] ?? 0
                     ]); 
                 }
 
             }
+        }elseif( isset($request['amount'])){
+            if(is_null($onboardingEmbassy)){
+                $this->onboardingEmbassy::create([
+                    "onboarding_attestation_id" => $request['onboarding_attestation_id'] ?? 0,
+                    "embassy_attestation_id" => $request['embassy_attestation_id'] ?? 0,
+                    "amount" => $request['amount'] ?? 0,
+                    "created_by" =>  $params['created_by'] ?? 0,
+                    "modified_by" =>  $params['created_by'] ?? 0
+                ]); 
+            }else{
+                $onboardingEmbassy->update([
+                    "amount" => $request['amount'],
+                    "modified_by" =>  $params['created_by'] ?? 0
+                ]); 
+            }
+        }else{
+            return false;
         }
         return true;
     }

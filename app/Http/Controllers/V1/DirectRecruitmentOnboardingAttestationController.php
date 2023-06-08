@@ -190,10 +190,14 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
-            return $this->sendSuccess(['message' => 'Embassy Attestation Costing Added Successfully']);
+            if($response == true) {
+                return $this->sendSuccess(['message' => 'Embassy Attestation Costing Updated Successfully']);
+            } else {
+                return $this->sendError(['message' => 'Failed to Update Embassy Attestation Costing'], 400);
+            }
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Faild to Add Embassy Attestation Costing'], 400);
+            return $this->sendError(['message' => 'Faild to Update Embassy Attestation Costing'], 400);
         }
     }
     /**
