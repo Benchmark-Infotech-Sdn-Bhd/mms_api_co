@@ -282,6 +282,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('uploadEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@uploadEmbassyFile');
                     $router->post('deleteEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@deleteEmbassyFile');
                 });
+                $router->group(['prefix' => 'callingVisa'], function () use ($router) {
+                    $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');
+                    $router->post('submitCallingVisa', 'V1\DirectRecruitmentCallingVisaController@submitCallingVisa');
+                    $router->post('updateCallingVisa', 'V1\DirectRecruitmentCallingVisaController@updateCallingVisa');
+                    $router->post('workersList', 'V1\DirectRecruitmentCallingVisaController@workersList');
+                });
             });
         });
         /**
