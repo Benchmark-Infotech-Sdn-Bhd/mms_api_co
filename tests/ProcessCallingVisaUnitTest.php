@@ -23,7 +23,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForProcessCallingVisaReferenceNumberRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', array_merge($this->creationData(), ['calling_visa_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['calling_visa_reference_number' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -38,7 +38,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForProcessCallingVisaSubmissionDateRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -53,7 +53,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForProcessCallingVisaReferenceNumberFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', array_merge($this->creationData(), ['calling_visa_reference_number' => 'SGHG36472&&&&']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['calling_visa_reference_number' => 'SGHG36472&&&&']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -68,7 +68,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForProcessCallingVisaSubmissionDateFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '05-05-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '05-05-2023']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -83,7 +83,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForProcessCallingVisaSubmissionDateFutureValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '2053-05-05']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '2053-05-05']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -99,7 +99,7 @@ class ProcessCallingVisaUnitTest extends TestCase
     public function testForProcessCallingVisaSubmission(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Calling Visa Submitted Successfully']
@@ -112,7 +112,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForUpdateProcessCallingVisaReferenceNumberRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', array_merge($this->updationData(), ['calling_visa_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->updationData(), ['calling_visa_reference_number' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -127,7 +127,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForUpdateProcessCallingVisaSubmissionDateRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', array_merge($this->updationData(), ['submitted_on' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->updationData(), ['submitted_on' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -142,7 +142,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForUpdateProcessCallingVisaReferenceNumberFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', array_merge($this->updationData(), ['calling_visa_reference_number' => 'SGHG36472&&&&']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->updationData(), ['calling_visa_reference_number' => 'SGHG36472&&&&']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -157,7 +157,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForUpdateProcessCallingVisaSubmissionDateFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', array_merge($this->updationData(), ['submitted_on' => '05-05-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->updationData(), ['submitted_on' => '05-05-2023']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -172,7 +172,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForUpdateProcessCallingVisaSubmissionDateFutureValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', array_merge($this->updationData(), ['submitted_on' => '2053-05-05']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->updationData(), ['submitted_on' => '2053-05-05']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -188,8 +188,8 @@ class ProcessCallingVisaUnitTest extends TestCase
     public function testForProcessCallingVisaUpdation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/updateCallingVisa', $this->UpdationData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/updateCallingVisa', $this->UpdationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Calling Visa Updated Successfully']
@@ -203,8 +203,38 @@ class ProcessCallingVisaUnitTest extends TestCase
     public function testForCallingVisaStatusList(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/callingVisaStatusList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1], $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/callingVisaStatusList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
+        ]);
+    }
+     /**
+     * Functional test for workers list 
+     * 
+     * @return void
+     */
+    public function testForWorkersList(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -226,15 +256,45 @@ class ProcessCallingVisaUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for calling visa status list 
+     * Functional test for wprker list with filter
      * 
      * @return void
      */
-    public function testForWorkersList(): void
+    public function testForWorkersListFilter(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/submitCallingVisa', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1], $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'filter' => 'Processed'], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
+        ]);
+    }
+    /**
+     * Functional test for worker list with search
+     * 
+     * @return void
+     */
+    public function testForWorkersListWithSearch(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'search' => 'Work'], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
