@@ -18,7 +18,7 @@ class DirectRecruitmentCallingVisa extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'application_id', 'onboarding_country_id', 'agent_id', 'worker_id', 'calling_visa_status_id', 'calling_visa_reference_number', 'submitted_on', 'status', 'created_by', 'modified_by'
+        'application_id', 'onboarding_country_id', 'agent_id', 'worker_id', 'calling_visa_reference_number', 'submitted_on', 'status', 'created_by', 'modified_by'
     ];
     /**
      * The attributes that are required.
@@ -37,9 +37,8 @@ class DirectRecruitmentCallingVisa extends Model implements Auditable
     public function rulesForUpdation(): array
     {
         return [
-            'calling_visa_status_id' => 'required',
-            'calling_visa_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/',
-            'submitted_on' => 'required|date|date_format:Y-m-d|before:tomorrow',
+            'calling_visa_reference_number' => 'regex:/^[a-zA-Z0-9\/]*$/',
+            'submitted_on' => 'date|date_format:Y-m-d|before:tomorrow',
         ];
     }
     /**

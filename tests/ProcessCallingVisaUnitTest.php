@@ -106,43 +106,13 @@ class ProcessCallingVisaUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for update process calling visa, visa reference number mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForUpdateProcessCallingVisaReferenceNumberRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->updationData(), ['calling_visa_reference_number' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'calling_visa_reference_number' => ['The calling visa reference number field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for update process calling visa, submission date mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForUpdateProcessCallingVisaSubmissionDateRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->updationData(), ['submitted_on' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'submitted_on' => ['The submitted on field is required.']
-            ]
-        ]);
-    }
-    /**
      * Functional test for update process calling visa, visa reference number Format validation 
      * 
      * @return void
      */
     public function testForUpdateProcessCallingVisaReferenceNumberFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->updationData(), ['calling_visa_reference_number' => 'SGHG36472&&&&']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/updateCallingVisa', array_merge($this->updationData(), ['calling_visa_reference_number' => 'SGHG36472&&&&']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -157,7 +127,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForUpdateProcessCallingVisaSubmissionDateFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->updationData(), ['submitted_on' => '05-05-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/updateCallingVisa', array_merge($this->updationData(), ['submitted_on' => '05-05-2023']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -172,7 +142,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForUpdateProcessCallingVisaSubmissionDateFutureValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->updationData(), ['submitted_on' => '2053-05-05']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/updateCallingVisa', array_merge($this->updationData(), ['submitted_on' => '2053-05-05']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -462,13 +432,13 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'quota' => 10, 'calling_visa_reference_number' => 'AGTF/7637', 'submitted_on' => '2023-05-30', 'workers' => [1,2]];
+        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'calling_visa_reference_number' => 'AGTF/7637', 'submitted_on' => '2023-05-30', 'workers' => [1]];
     }
     /**
      * @return array
      */
     public function UpdationData(): array
     {
-        return ['calling_visa_status_id' => 1, 'application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'quota' => 10, 'calling_visa_reference_number' => 'FEGHH/7637', 'submitted_on' => '2023-05-30'];
+        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'calling_visa_reference_number' => 'FEGHH/7637', 'submitted_on' => '2023-05-30', 'workers' => [1]];
     }
 }

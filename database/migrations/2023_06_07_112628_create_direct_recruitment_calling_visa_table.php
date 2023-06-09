@@ -32,13 +32,8 @@ return new class extends Migration
             // Column for worker Id 
             $table->unsignedBigInteger('worker_id');
             // Foreign key from Workers table
-            // $table->foreign('worker_id')
-            //   ->references('id')->on('workers')->onDelete('cascade');
-            // Calling visa status id column
-            $table->unsignedBigInteger('calling_visa_status_id');
-            // Foreign key from Onboarding calling visa status table
-            $table->foreign('calling_visa_status_id')
-              ->references('id')->on('direct_recruitment_calling_visa_status')->onDelete('cascade');
+            $table->foreign('worker_id')
+              ->references('id')->on('workers')->onDelete('cascade');
             // Calling visa reference number column
             $table->string('calling_visa_reference_number', 255);
             // Column for calling visa submitted time
