@@ -42,4 +42,15 @@ class DirectRecruitmentCallingVisa extends Model implements Auditable
             'submitted_on' => 'required|date|date_format:Y-m-d|before:tomorrow',
         ];
     }
+    /**
+     * The function returns array that are required for search.
+     * 
+     * @return array
+     */
+    public function rulesForSearch(): array
+    {
+        return [
+            'search' => 'required|min:3'
+        ];
+    }
 }
