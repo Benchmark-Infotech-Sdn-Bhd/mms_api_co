@@ -72,30 +72,32 @@ class DirectRecruitmentCallingVisaServices
             ];
         }
         if(isset($request['workers']) && !empty($request['workers']) && !empty($request['calling_visa_reference_number'])) {
-            $workerCount = $this->directRecruitmentCallingVisa->where('calling_visa_reference_number', $request['calling_visa_reference_number'])->count('worker_id');
+            $workerCount = $this->workerVisa->where('calling_visa_reference_number', $request['calling_visa_reference_number'])->count('worker_id');
             $workerCount +=count($request['workers']);
             if($workerCount > Config::get('services.CALLING_VISA_WORKER_COUNT')) {
                 return [
                     'workerCountError' => true
                 ];
+            } else {
+                $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['calling_visa_reference_number' => $request['calling_visa_reference_number'], 'submitted_on' => $request['submitted_on'], 'status' => 'Processed', 'modified_by' => $request['modified_by']]);
             }
         }
-        if(isset($request['workers']) && !empty($request['workers'])) {
-            foreach ($request['workers'] as $workerId) {
-                $this->directRecruitmentCallingVisa->create([
-                    'application_id' => $request['application_id'] ?? 0,
-                    'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
-                    'agent_id' => $request['agent_id'] ?? 0,
-                    'worker_id' => $workerId,
-                    'calling_visa_reference_number' => $request['calling_visa_reference_number'] ?? 0,
-                    'submitted_on' => $request['submitted_on'] ?? 0,
-                    'status' => 'Processed',
-                    'created_by' => $request['created_by'] ?? 0,
-                    'modified_by' => $request['created_by'] ?? 0
-                ]);
-                $this->workerVisa->where('worker_id', $workerId)->update(['calling_visa_reference_number' => $request['calling_visa_reference_number']]);
-            } 
-        }
+        // if(isset($request['workers']) && !empty($request['workers'])) {
+        //     foreach ($request['workers'] as $workerId) {
+        //         $this->directRecruitmentCallingVisa->create([
+        //             'application_id' => $request['application_id'] ?? 0,
+        //             'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+        //             'agent_id' => $request['agent_id'] ?? 0,
+        //             'worker_id' => $workerId,
+        //             'calling_visa_reference_number' => $request['calling_visa_reference_number'] ?? 0,
+        //             'submitted_on' => $request['submitted_on'] ?? 0,
+        //             'status' => 'Processed',
+        //             'created_by' => $request['created_by'] ?? 0,
+        //             'modified_by' => $request['created_by'] ?? 0
+        //         ]);
+        //         $this->workerVisa->where('worker_id', $workerId)->update(['calling_visa_reference_number' => $request['calling_visa_reference_number']]);
+        //     } 
+        // }
         $this->directRecruitmentCallingVisaStatus->where([
             'application_id' => $request['application_id'],
             'onboarding_country_id' => $request['onboarding_country_id'],
@@ -116,7 +118,7 @@ class DirectRecruitmentCallingVisaServices
             ];
         }
         if(isset($request['workers']) && !empty($request['workers']) && !empty($request['calling_visa_reference_number'])) {
-            $workerCount = $this->directRecruitmentCallingVisa->where('calling_visa_reference_number', $request['calling_visa_reference_number'])->count('worker_id');
+            $workerCount = $this->workerVisa->where('calling_visa_reference_number', $request['calling_visa_reference_number'])->count('worker_id');
             $workerCount +=count($request['workers']);
             if($workerCount > Config::get('services.CALLING_VISA_WORKER_COUNT')) {
                 return [
@@ -178,13 +180,12 @@ class DirectRecruitmentCallingVisaServices
         return $this->workers
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->leftJoin('direct_recruitment_calling_visa', 'direct_recruitment_calling_visa.worker_id', 'workers.id')
             ->where([
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'workers.agent_id' => $request['agent_id']
+                'workers.agent_id' => $request['agent_id'],
+                'worker_visa.status' => 'Pending'
             ])
-            ->where('direct_recruitment_calling_visa.deleted_at', NULL)
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
@@ -194,11 +195,24 @@ class DirectRecruitmentCallingVisaServices
             })
             ->where(function ($query) use ($request) {
                 if(isset($request['filter']) && !empty($request['filter'])) {
-                    $query->where('direct_recruitment_calling_visa.status', $request['filter']);
+                    $query->where('worker_visa.status', $request['filter']);
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'direct_recruitment_calling_visa.calling_visa_reference_number', 'direct_recruitment_calling_visa.submitted_on', 'direct_recruitment_calling_visa.status')->distinct('workers.id')
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function showProcessCallingVisa($request): mixed
+    {
+        return $this->workers
+            ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
+            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->where('workers.id', $request['worker_id'])
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status')
+            ->get();
     }
 }

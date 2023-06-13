@@ -53,7 +53,7 @@ class DirectRecruitmentCallingVisaController extends Controller
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['created_by'] = $user['id'];
+            $params['modified_by'] = $user['id'];
             $response = $this->directRecruitmentCallingVisaServices->submitCallingVisa($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
@@ -107,7 +107,24 @@ class DirectRecruitmentCallingVisaController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Update Calling Visa'], 400);
+            return $this->sendError(['message' => 'Failed to List Calling Visa'], 400);
+        }
+    }
+    /**
+     * Dispaly the calling visa process.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function showProcessCallingVisa(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentCallingVisaServices->showProcessCallingVisa($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Display Calling Visa'], 400);
         }
     }
 }
