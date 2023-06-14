@@ -31,11 +31,14 @@ class DirectRecruitmentCallingVisaApprovalController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function workersListForApproval(Request $request) : JsonResponse
+    public function workersList(Request $request) : JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $response = $this->directRecruitmentCallingVisaApprovalServices->workersListForApproval($params);
+            $response = $this->directRecruitmentCallingVisaApprovalServices->workersList($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -48,20 +51,37 @@ class DirectRecruitmentCallingVisaApprovalController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function callingVisaStatusUpdate(Request $request) : JsonResponse
+    public function approvalStatusUpdate(Request $request) : JsonResponse
     {
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['created_by'] = $user['id'];
-            $response = $this->directRecruitmentCallingVisaApprovalServices->callingVisaStatusUpdate($params);
+            $params['modified_by'] = $user['id'];
+            $response = $this->directRecruitmentCallingVisaApprovalServices->approvalStatusUpdate($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
-            return $this->sendSuccess(['message' => 'Calling Visa Submitted Successfully']);
+            return $this->sendSuccess(['message' => 'Approval Status Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Update Calling Visa Status'], 400);
+            return $this->sendError(['message' => 'Failed to Update Approval Status'], 400);
+        }
+    }
+    /**
+     * Display the approval calling visa details.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function show(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentCallingVisaApprovalServices->show($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Display Calling Visa Approval Details'], 400);
         }
     }
 }

@@ -19,13 +19,6 @@ class DirectRecruitmentCallingVisaStatus extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'application_id', 'onboarding_country_id', 'agent_id', 'item', 'updated_on', 'created_by', 'modified_by'
+        'application_id', 'onboarding_country_id', 'agent_id', 'item', 'updated_on', 'status', 'created_by', 'modified_by'
     ];
-    /**
-     * @return HasMany
-     */
-    public function callingVisa(): HasMany
-    {
-        return $this->hasMany(DirectRecruitmentCallingVisa::class, 'calling_visa_status_id');
-    }
 }

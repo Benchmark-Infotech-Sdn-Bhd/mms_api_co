@@ -5,7 +5,7 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-class ProcessCallingVisaUnitTest extends TestCase
+class CallingVisaApprovalUnitTest extends TestCase
 {
     use DatabaseMigrations;
     
@@ -17,132 +17,104 @@ class ProcessCallingVisaUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test for process calling visa, visa reference number mandatory field validation 
+     * Functional test for approval calling visa, visa generated date mandatory field validation 
      * 
      * @return void
      */
-    public function testForProcessCallingVisaReferenceNumberRequiredValidation(): void
+    public function testForCallingVisaApprovalVisaGeneratedDateRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['calling_visa_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/approvalStatusUpdate', array_merge($this->creationData(), ['calling_visa_generated' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'calling_visa_reference_number' => ['The calling visa reference number field is required.']
+                'calling_visa_generated' => ['The calling visa generated field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for process calling visa, submission date mandatory field validation 
+     * Functional test for approval calling visa, valid until date mandatory field validation 
      * 
      * @return void
      */
-    public function testForProcessCallingVisaSubmissionDateRequiredValidation(): void
+    public function testForCallingVisaApprovalCallingVisaValidUntilDateRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/approvalStatusUpdate', array_merge($this->creationData(), ['calling_visa_valid_until' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'submitted_on' => ['The submitted on field is required.']
+                'calling_visa_valid_until' => ['The calling visa valid until field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for process calling visa, visa reference number Format validation 
+     * Functional test for approval calling visa, status mandatory field validation 
      * 
      * @return void
      */
-    public function testForProcessCallingVisaReferenceNumberFormatValidation(): void
+    public function testForCallingVisaApprovalStatusRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['calling_visa_reference_number' => 'SGHG36472&&&&']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/approvalStatusUpdate', array_merge($this->creationData(), ['status' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'calling_visa_reference_number' => ['The calling visa reference number format is invalid.']
+                'status' => ['The status field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for process calling visa, submission date Format validation 
+     * Functional test for approval calling visa, visa generated date type validation 
      * 
      * @return void
      */
-    public function testForProcessCallingVisaSubmissionDateFormatValidation(): void
+    public function testForCallingVisaApprovalVisaGeneratedDateTypeValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '05-05-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/approvalStatusUpdate', array_merge($this->creationData(), ['calling_visa_generated' => '2025-05-05']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'submitted_on' => ['The submitted on does not match the format Y-m-d.']
+                'calling_visa_generated' => ['The calling visa generated must be a date before tomorrow.']
             ]
         ]);
     }
     /**
-     * Functional test for process calling visa, submission date future validation 
+     * Functional test for approval calling visa, valid until date type validation 
      * 
      * @return void
      */
-    public function testForProcessCallingVisaSubmissionDateFutureValidation(): void
+    public function testForCallingVisaApprovalCallingVisaValidUntilDateTypeValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '2053-05-05']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/approvalStatusUpdate', array_merge($this->creationData(), ['calling_visa_valid_until' => '2023-05-05']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'submitted_on' => ['The submitted on must be a date before tomorrow.']
+                'calling_visa_valid_until' => ['The calling visa valid until must be a date after today.']
+            ]
+        ]);
+    }
+     /**
+     * Functional test for approval calling visa, serach field validation 
+     * 
+     * @return void
+     */
+    public function testForCallingVisaApprovalSearchValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/workersList', array_merge($this->creationData(), ['search' => 'wo']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'search' => ['The search must be at least 3 characters.']
             ]
         ]);
     }
     /**
-     * Functional test for process calling visa submission
-     * 
-     * @return void
-     */
-    public function testForProcessCallingVisaSubmission(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $this->creationData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Calling Visa Submitted Successfully']
-        ]);
-    }
-    /**
-     * Functional test for calling visa status list 
-     * 
-     * @return void
-     */
-    public function testForCallingVisaStatusList(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/callingVisaStatusList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' =>
-                [
-                    'current_page',
-                    'data',
-                    'first_page_url',
-                    'from',
-                    'last_page',
-                    'last_page_url',
-                    'links',
-                    'next_page_url',
-                    'path',
-                    'per_page',
-                    'prev_page_url',
-                    'to',
-                    'total'
-                ]
-        ]);
-    }
-    /**
-     * Functional test for workers list 
+     * Functional test for approval workers list 
      * 
      * @return void
      */
     public function testForWorkersList(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -171,7 +143,7 @@ class ProcessCallingVisaUnitTest extends TestCase
     public function testForWorkersListWithSearch(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'search' => 'Work'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'search' => 'Work'], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -200,7 +172,7 @@ class ProcessCallingVisaUnitTest extends TestCase
     public function testForShow(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/show', ['worker_id' => 1], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/show', ['worker_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -355,6 +327,6 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'calling_visa_reference_number' => 'AGTF/7637', 'submitted_on' => '2023-05-30', 'workers' => [1]];
+        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'calling_visa_generated' => '2023-06-13', 'calling_visa_valid_until' => '2025-07-25', 'status' => 'Approved', 'workers' => [1], 'remarks' => 'test'];
     }
 }

@@ -33,6 +33,8 @@ return new class extends Migration
             $table->string('item', 255)->nullable();
             // Column for calling visa updated time
             $table->date('updated_on')->nullable();
+            // Column for status
+            $table->integer('status')->default(1)->index();
             // Column for user id who created the calling visa status
             $table->integer('created_by')->default(0);
             // Column for user id who modified the calling visa status

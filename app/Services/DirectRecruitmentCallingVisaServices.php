@@ -62,7 +62,7 @@ class DirectRecruitmentCallingVisaServices
     public function callingVisaStatusList($request): mixed
     {
         return $this->directRecruitmentCallingVisaStatus
-            ->select('id', 'item', 'updated_on')
+            ->select('id', 'item', 'updated_on', 'status')
             ->where([
                 'application_id' => $request['application_id'],
                 'onboarding_country_id' => $request['onboarding_country_id'],
@@ -139,7 +139,7 @@ class DirectRecruitmentCallingVisaServices
      * @param $request
      * @return mixed
      */
-    public function showProcessCallingVisa($request): mixed
+    public function show($request): mixed
     {
         return $this->workers
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')

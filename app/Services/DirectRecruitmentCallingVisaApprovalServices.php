@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\DirectRecruitmentCallingVisaApproval;
 use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\Workers;
+use App\Models\WorkerVisa;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -12,13 +12,13 @@ use Carbon\Carbon;
 class DirectRecruitmentCallingVisaApprovalServices
 {
     /**
-     * @var DirectRecruitmentCallingVisaApproval
-     */
-    private DirectRecruitmentCallingVisaApproval $directRecruitmentCallingVisaApproval;
-    /**
      * @var Workers
      */
     private Workers $workers;
+    /**
+     * @var WorkerVisa
+     */
+    private WorkerVisa $workerVisa;
     /**
      * @var DirectRecruitmentCallingVisaStatus
      */
@@ -26,40 +26,56 @@ class DirectRecruitmentCallingVisaApprovalServices
 
     /**
      * DirectRecruitmentCallingVisaApprovalServices constructor.
-     * @param DirectRecruitmentCallingVisaApproval $directRecruitmentCallingVisaApproval
      * @param Workers $workers
+     * @param WorkerVisa $workerVisa
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
      */
-    public function __construct(DirectRecruitmentCallingVisaApproval $directRecruitmentCallingVisaApproval, Workers $workers, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
     {
-        $this->directRecruitmentCallingVisaApproval   = $directRecruitmentCallingVisaApproval;
         $this->workers                                = $workers;
-        $this->directRecruitmentCallingVisaStatus                             = $directRecruitmentCallingVisaStatus;
+        $this->workerVisa                             = $workerVisa;
+        $this->directRecruitmentCallingVisaStatus     = $directRecruitmentCallingVisaStatus;
+    }
+    /**
+     * @return array
+     */
+    public function createValidation(): array
+    {
+        return [
+            'calling_visa_generated' => 'required|date|date_format:Y-m-d|before:tomorrow',
+            'calling_visa_valid_until' => 'required|date|date_format:Y-m-d|after:today',
+            'status' => 'required'
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function searchValidation(): array
+    {
+        return [
+            'search' => 'required|min:3'
+        ];
     }
     /**
      * @param $request
      * @return bool|array
      */
-    public function callingVisaStatusUpdate($request): bool|array
+    public function approvalStatusUpdate($request): bool|array
     {
-        if(isset($request['workers']) && !empty($request['workers'])) {
-            foreach ($request['workers'] as $workerId) {
-                $this->directRecruitmentCallingVisaApproval->create([
-                    'worker_id' => $workerId,
-                    'status' => $request['status'] ?? 'Pending',
-                    'calling_visa_generated' => $request['calling_visa_generated'] ?? '',
-                    'calling_visa_valid_until' => $request['calling_visa_valid_until'] ?? '',
-                    'remarks' => $request['remarks'] ?? '',
-                    'created_by' => $request['created_by'] ?? 0,
-                    'modified_by' => $request['created_by'] ?? 0
-                ]);
+        $validator = Validator::make($request, $this->createValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
             }
+        if(isset($request['workers']) && !empty($request['workers'])) {
+            $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['calling_visa_generated' => $request['calling_visa_generated'], 'calling_visa_valid_until' => $request['calling_visa_valid_until'], 'remarks' => $request['remarks'], 'approval_status' => $request['status'], 'modified_by' => $request['modified_by']]);
         }
         $this->directRecruitmentCallingVisaStatus->where([
             'application_id' => $request['application_id'],
             'onboarding_country_id' => $request['onboarding_country_id'],
             'agent_id' => $request['agent_id']
-        ])->update(['updated_on' => Carbon::now(), 'modified_by' => $request['created_by']]);
+        ])->update(['updated_on' => Carbon::now(), 'modified_by' => $request['modified_by']]);
         return true;
     }
     /**
@@ -69,7 +85,7 @@ class DirectRecruitmentCallingVisaApprovalServices
     public function workersList($request): mixed
     {
         if(isset($request['search']) && !empty($request['search'])){
-            $validator = Validator::make($request, $this->directRecruitmentCallingVisa->rulesForSearch());
+            $validator = Validator::make($request, $this->searchValidation());
             if($validator->fails()) {
                 return [
                     'error' => $validator->errors()
@@ -80,11 +96,12 @@ class DirectRecruitmentCallingVisaApprovalServices
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'workers.id')
+            ->where('worker_visa.approval_status', '!=', 'Approved')
             ->where([
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
                 'workers.agent_id' => $request['agent_id'],
-                'worker_insurance_details.status' => 'Purchased'
+                'worker_insurance_details.insurance_status' => 'Purchased'
             ])
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
@@ -96,11 +113,24 @@ class DirectRecruitmentCallingVisaApprovalServices
             })
             ->where(function ($query) use ($request) {
                 if(isset($request['filter']) && !empty($request['filter'])) {
-                    $query->where('worker_visa.approved_status', $request['filter']);
+                    $query->where('worker_visa.approval_status', $request['filter']);
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approved_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')->distinct('workers.id')
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approval_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function show($request): mixed
+    {
+        return $this->workers
+            ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
+            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->where('workers.id', $request['worker_id'])
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approval_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')
+            ->get();
     }
 }
