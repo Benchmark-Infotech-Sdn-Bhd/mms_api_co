@@ -107,7 +107,11 @@ class DirectRecruitmentOnboardingAttestationServices
      */   
     public function list($request): mixed
     {
-        return $this->onboardingAttestation->where('application_id', $request['application_id'])
+        return $this->onboardingAttestation
+        ->where([
+            ['application_id', $request['application_id']],
+            ['onboarding_country_id', $request['onboarding_country_id']],
+        ])
         ->select('id', 'application_id', 'onboarding_country_id', 'item_name', 'status', 'submission_date', 'collection_date', 'created_at', 'updated_at')
         ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
