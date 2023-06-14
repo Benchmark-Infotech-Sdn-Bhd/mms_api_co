@@ -106,66 +106,6 @@ class ProcessCallingVisaUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for update process calling visa, visa reference number Format validation 
-     * 
-     * @return void
-     */
-    public function testForUpdateProcessCallingVisaReferenceNumberFormatValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/updateCallingVisa', array_merge($this->updationData(), ['calling_visa_reference_number' => 'SGHG36472&&&&']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'calling_visa_reference_number' => ['The calling visa reference number format is invalid.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for update process calling visa, submission date Format validation 
-     * 
-     * @return void
-     */
-    public function testForUpdateProcessCallingVisaSubmissionDateFormatValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/updateCallingVisa', array_merge($this->updationData(), ['submitted_on' => '05-05-2023']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'submitted_on' => ['The submitted on does not match the format Y-m-d.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for update process calling visa, submission date future validation 
-     * 
-     * @return void
-     */
-    public function testForUpdateProcessCallingVisaSubmissionDateFutureValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/updateCallingVisa', array_merge($this->updationData(), ['submitted_on' => '2053-05-05']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'submitted_on' => ['The submitted on must be a date before tomorrow.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for process calling visa updation
-     * 
-     * @return void
-     */
-    public function testForProcessCallingVisaUpdation(): void
-    {
-        $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/updateCallingVisa', $this->UpdationData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Calling Visa Updated Successfully']
-        ]);
-    }
-    /**
      * Functional test for calling visa status list 
      * 
      * @return void
@@ -433,12 +373,5 @@ class ProcessCallingVisaUnitTest extends TestCase
     public function creationData(): array
     {
         return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'calling_visa_reference_number' => 'AGTF/7637', 'submitted_on' => '2023-05-30', 'workers' => [1]];
-    }
-    /**
-     * @return array
-     */
-    public function UpdationData(): array
-    {
-        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'calling_visa_reference_number' => 'FEGHH/7637', 'submitted_on' => '2023-05-30', 'workers' => [1]];
     }
 }

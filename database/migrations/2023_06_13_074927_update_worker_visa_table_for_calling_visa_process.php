@@ -16,8 +16,10 @@ return new class extends Migration
             $table->date('submitted_on')->nullable()->after('calling_visa_reference_number');
             // Column for calling visa generated date
             $table->date('calling_visa_generated')->nullable()->after('submitted_on');
-            // Column for calling visa status
-            $table->enum('status',['Pending', 'Processed', 'Approved', 'Rejected'])->default('Pending')->after('calling_visa_valid_until');
+            // Column for calling visa process status
+            $table->enum('status',['Pending', 'Processed'])->default('Pending')->after('calling_visa_valid_until');
+            // Column for calling visa approval status
+            $table->enum('approval_status',['Pending', 'Approved', 'Rejected'])->default('Pending')->after('status');
             // Column for calling visa remarks
             $table->text('remarks')->nullable()->after('work_permit_valid_until');
         });

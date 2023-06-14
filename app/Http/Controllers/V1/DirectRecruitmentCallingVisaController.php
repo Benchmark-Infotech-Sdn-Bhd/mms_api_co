@@ -67,30 +67,6 @@ class DirectRecruitmentCallingVisaController extends Controller
         }
     }
     /**
-     * Update calling visa.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateCallingVisa(Request $request) : JsonResponse
-    {
-        try {
-            $params = $this->getRequest($request);
-            $user = JWTAuth::parseToken()->authenticate();
-            $params['modified_by'] = $user['id'];
-            $response = $this->directRecruitmentCallingVisaServices->updateCallingVisa($params);
-            if(isset($response['error'])) {
-                return $this->validationError($response['error']);
-            } else if(isset($response['workerCountError'])) {
-                return $this->sendError(['message' => 'Worker Count should not exceed to 30'], 400);
-            }
-            return $this->sendSuccess(['message' => 'Calling Visa Updated Successfully']);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Update Calling Visa'], 400);
-        }
-    }
-    /**
      * Dispaly list of workers for calling visa.
      *
      * @param Request $request
