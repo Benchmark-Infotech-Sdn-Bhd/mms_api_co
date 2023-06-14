@@ -57,8 +57,6 @@ class DirectRecruitmentCallingVisaApprovalController extends Controller
             $response = $this->directRecruitmentCallingVisaApprovalServices->callingVisaStatusUpdate($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
-            } else if(isset($response['workerCountError'])) {
-                return $this->sendError(['message' => 'Worker Count should not exceed to 30'], 400);
             }
             return $this->sendSuccess(['message' => 'Calling Visa Submitted Successfully']);
         } catch (Exception $e) {

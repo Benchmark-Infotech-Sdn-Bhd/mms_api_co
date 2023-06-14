@@ -79,14 +79,13 @@ class DirectRecruitmentCallingVisaApprovalServices
         return $this->workers
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->leftJoin('insurance_purchase', 'insurance_purchase.worker_id', 'workers.id')
-            ->leftJoin('direct_recruitment_calling_visa_approval', 'direct_recruitment_calling_visa_approval.worker_id', 'workers.id')
+            ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'workers.id')
             ->where([
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'workers.agent_id' => $request['agent_id']
+                'workers.agent_id' => $request['agent_id'],
+                'worker_insurance_details.status' => 'Purchased'
             ])
-            ->where('insurance_purchase.status', 'Purchased')
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
@@ -97,10 +96,10 @@ class DirectRecruitmentCallingVisaApprovalServices
             })
             ->where(function ($query) use ($request) {
                 if(isset($request['filter']) && !empty($request['filter'])) {
-                    $query->where('direct_recruitment_calling_visa_approval.status', $request['filter']);
+                    $query->where('worker_visa.approved_status', $request['filter']);
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'direct_recruitment_calling_visa_approval.status', 'direct_recruitment_calling_visa_approval.calling_visa_generated', 'direct_recruitment_calling_visa_approval.calling_visa_valid_until', 'direct_recruitment_calling_visa_approval.remarks')->distinct('workers.id')
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approved_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
