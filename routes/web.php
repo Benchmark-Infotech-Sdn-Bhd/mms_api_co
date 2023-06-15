@@ -283,11 +283,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('deleteEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@deleteEmbassyFile');
                 });
                 $router->group(['prefix' => 'callingVisa'], function () use ($router) {
+                    $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');
                     $router->group(['prefix' => 'process'], function () use ($router) {
-                        $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');
                         $router->post('submitCallingVisa', 'V1\DirectRecruitmentCallingVisaController@submitCallingVisa');
                         $router->post('workersList', 'V1\DirectRecruitmentCallingVisaController@workersList');
-                        $router->post('showProcessCallingVisa', 'V1\DirectRecruitmentCallingVisaController@showProcessCallingVisa');
+                        $router->post('show', 'V1\DirectRecruitmentCallingVisaController@show');
+                    });
+                    $router->group(['prefix' => 'approval'], function () use ($router) {
+                        $router->post('approvalStatusUpdate', 'V1\DirectRecruitmentCallingVisaApprovalController@approvalStatusUpdate');
+                        $router->post('workersList', 'V1\DirectRecruitmentCallingVisaApprovalController@workersList');
+                        $router->post('show', 'V1\DirectRecruitmentCallingVisaApprovalController@show');
                     });
                 });
             });
