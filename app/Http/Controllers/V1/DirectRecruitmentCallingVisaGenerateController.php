@@ -38,7 +38,7 @@ class DirectRecruitmentCallingVisaGenerateController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
             $this->directRecruitmentCallingVisaGenerateServices->generatedStatusUpdate($params);
-            return $this->sendSuccess(['message' => 'Callin Visa Generated Status Updated Successfully']);
+            return $this->sendSuccess(['message' => 'Calling Visa Generated Status Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Update Calling Visa Generated Status'], 400);
@@ -78,7 +78,7 @@ class DirectRecruitmentCallingVisaGenerateController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to List Workers'], 400);
+            return $this->sendError(['message' => 'Failed to List Calling Visa'], 400);
         }
     }
 }

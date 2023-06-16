@@ -103,4 +103,25 @@ class DirectRecruitmentCallingVisaController extends Controller
             return $this->sendError(['message' => 'Failed to Display Calling Visa Process Details'], 400);
         }
     }
+    /**
+     * Function to Cancel worker.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function cancelWorker(Request $request) : JsonResponse
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['modified_by'] = $user['id'];
+            $response = $this->directRecruitmentCallingVisaServices->cancelWorker($request);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess(['message' => 'Worker Cancellation Completed Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Cancel Worker'], 400);
+        }
+    }
 }
