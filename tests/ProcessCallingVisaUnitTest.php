@@ -192,7 +192,7 @@ class ProcessCallingVisaUnitTest extends TestCase
                 ]
         ]);
     }
-     /**
+    /**
      * Functional test for show process calling visa
      * 
      * @return void
@@ -206,6 +206,20 @@ class ProcessCallingVisaUnitTest extends TestCase
             'data' =>
                 [
                 ]
+        ]);
+    }
+    /**
+     * Functional test for cancel worker from calling visa
+     * 
+     * @return void
+     */
+    public function testForWorkerCancellation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/cancelWorker', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'worker_id' => 1, 'remarks' => 'test remark'], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Worker Cancellation Completed Successfully']
         ]);
     }
     /**
