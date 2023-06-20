@@ -22,7 +22,7 @@ class Workers extends Model implements Auditable
      * @var array
      */
     protected $fillable = ['onboarding_country_id','agent_id','application_id','name','gender','date_of_birth','passport_number',
-    'passport_valid_until','fomema_valid_until','address','status',
+    'passport_valid_until','fomema_valid_until','address','status', 'cancel_Status', 'remarks',
     'city','state','created_by','modified_by'];
    
     /**

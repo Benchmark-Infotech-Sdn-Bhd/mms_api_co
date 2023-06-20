@@ -285,6 +285,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 });
                 $router->group(['prefix' => 'callingVisa'], function () use ($router) {
                     $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');
+                    $router->post('cancelWorker', 'V1\DirectRecruitmentCallingVisaController@cancelWorker');
                     $router->group(['prefix' => 'process'], function () use ($router) {
                         $router->post('submitCallingVisa', 'V1\DirectRecruitmentCallingVisaController@submitCallingVisa');
                         $router->post('workersList', 'V1\DirectRecruitmentCallingVisaController@workersList');
@@ -304,6 +305,11 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentImmigrationFeePaidController@listBasedOnCallingVisa');
                         $router->post('update', 'V1\DirectRecruitmentImmigrationFeePaidController@update');
                         $router->post('workersList', 'V1\DirectRecruitmentImmigrationFeePaidController@workersList');
+                    });
+                    $router->group(['prefix' => 'generation'], function () use ($router) {
+                        $router->post('generatedStatusUpdate', 'V1\DirectRecruitmentCallingVisaGenerateController@generatedStatusUpdate');
+                        $router->post('workersList', 'V1\DirectRecruitmentCallingVisaGenerateController@workersList');
+                        $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentCallingVisaGenerateController@listBasedOnCallingVisa');
                     });
                     $router->group(['prefix' => 'dispatch'], function () use ($router) {
                         $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentCallingVisaDispatchController@listBasedOnCallingVisa');

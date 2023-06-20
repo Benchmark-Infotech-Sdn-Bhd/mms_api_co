@@ -101,6 +101,7 @@ class DirectRecruitmentCallingVisaApprovalServices
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
                 'workers.agent_id' => $request['agent_id'],
+                'workers.cancel_status' => 0,
                 'worker_insurance_details.insurance_status' => 'Purchased'
             ])
             ->where(function ($query) use ($request) {
