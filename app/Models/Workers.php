@@ -74,7 +74,7 @@ class Workers extends Model implements Auditable
      */
     public function workerAttachments()
     {
-        return $this->hasMany(workerAttachments::class, 'file_id');
+        return $this->hasMany(WorkerAttachments::class, 'file_id');
     }
 
     /**
@@ -82,7 +82,7 @@ class Workers extends Model implements Auditable
      */
     public function workerKin()
     {
-        return $this->hasOne(workerKin::class, 'worker_id');
+        return $this->hasOne(WorkerKin::class, 'worker_id');
     }
 
     /**
@@ -90,7 +90,7 @@ class Workers extends Model implements Auditable
      */
     public function workerVisa()
     {
-        return $this->hasOne(workerVisa::class, 'worker_id');
+        return $this->hasOne(WorkerVisa::class, 'worker_id');
     }
 
     /**
@@ -98,7 +98,7 @@ class Workers extends Model implements Auditable
      */
     public function workerBioMedical()
     {
-        return $this->hasOne(workerBioMedical::class, 'worker_id');
+        return $this->hasOne(WorkerBioMedical::class, 'worker_id');
     }
 
     /**
@@ -106,7 +106,7 @@ class Workers extends Model implements Auditable
      */
     public function workerFomema()
     {
-        return $this->hasOne(workerFomema::class, 'worker_id');
+        return $this->hasOne(WorkerFomema::class, 'worker_id');
     }
 
     /**
@@ -114,7 +114,7 @@ class Workers extends Model implements Auditable
      */
     public function workerInsuranceDetails()
     {
-        return $this->hasOne(workerInsuranceDetails::class, 'worker_id');
+        return $this->hasOne(WorkerInsuranceDetails::class, 'worker_id');
     }
 
     /**
@@ -122,6 +122,6 @@ class Workers extends Model implements Auditable
      */
     public function workerBankDetails()
     {
-        return $this->hasOne(workerBankDetails::class, 'worker_id');
+        return $this->hasOne(WorkerBankDetails::class, 'worker_id');
     }
 }
