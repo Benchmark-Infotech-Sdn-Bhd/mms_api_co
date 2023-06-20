@@ -126,11 +126,12 @@ class DirectRecruitmentCallingVisaApprovalServices
      */
     public function show($request): mixed
     {
-        return $this->workers
-            ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
-            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->where('workers.id', $request['worker_id'])
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approval_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')
+        return $this->workers->with(['workerBioMedical' => function ($query) { 
+                $query->select(['id', 'worker_id', 'bio_medical_valid_until']);
+            }])->with(['workerVisa' => function ($query) {
+                $query->select(['id', 'worker_id', 'ksm_reference_number', 'calling_visa_reference_number', 'approval_status', 'calling_visa_generated', 'calling_visa_valid_until', 'remarks']);
+            }])->where('workers.id', $request['worker_id'])
+            ->select('id', 'name', 'passport_number', 'application_id', 'onboarding_country_id', 'agent_id')
             ->get();
     }
 }
