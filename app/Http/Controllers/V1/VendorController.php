@@ -132,5 +132,20 @@ class VendorController extends Controller
             return $this->sendError(['message' => 'Delete attachments was failed']);
         }        
     }
+    /**
+     * Display a listing of the insurance vendor list.
+     * @param Request $request
+     * @return JsonResponse
+     */   
+    public function insuranceVendorList(Request $request): JsonResponse
+    {   
+        try {
+            $response = $this->vendorServices->insuranceVendorList($request); 
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Retrieve insurance Vendors data was failed'], 400);
+        }
+    }
     
 }

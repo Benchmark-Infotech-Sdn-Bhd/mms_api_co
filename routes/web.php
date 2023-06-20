@@ -170,6 +170,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('search', 'V1\VendorController@search');
             $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
             $router->post('filter', 'V1\VendorController@filter');
+            $router->post('insuranceVendorList', 'V1\VendorController@insuranceVendorList');
         });
         /**
          * Routes for FOMEMA Clinics.
@@ -283,6 +284,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('deleteEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@deleteEmbassyFile');
                 });
 
+
                 $router->group(['prefix' => 'callingVisa'], function () use ($router) {
                     $router->group(['prefix' => 'process'], function () use ($router) {
                         $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');
@@ -290,6 +292,23 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('workersList', 'V1\DirectRecruitmentCallingVisaController@workersList');
                         $router->post('showProcessCallingVisa', 'V1\DirectRecruitmentCallingVisaController@showProcessCallingVisa');
                     });
+                    $router->group(['prefix' => 'insurancePurchase'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentInsurancePurchaseController@workersList');
+                        $router->post('show', 'V1\DirectRecruitmentInsurancePurchaseController@show');
+                        $router->post('submit', 'V1\DirectRecruitmentInsurancePurchaseController@submit');
+                    });
+    
+                    $router->group(['prefix' => 'immigrationFeePaid'], function () use ($router) {
+                        $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentImmigrationFeePaidController@listBasedOnCallingVisa');
+                        $router->post('update', 'V1\DirectRecruitmentImmigrationFeePaidController@update');
+                        $router->post('workersList', 'V1\DirectRecruitmentImmigrationFeePaidController@workersList');
+                    });
+    
+                    $router->group(['prefix' => 'dispatch'], function () use ($router) {
+                        $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentCallingVisaDispatchController@listBasedOnCallingVisa');
+                        $router->post('update', 'V1\DirectRecruitmentCallingVisaDispatchController@update');
+                        $router->post('workersList', 'V1\DirectRecruitmentCallingVisaDispatchController@workersList');
+					});
                 });
             });
         });
