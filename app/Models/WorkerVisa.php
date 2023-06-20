@@ -78,6 +78,6 @@ class WorkerVisa extends Model implements Auditable
      */
     public function workerVisaAttachments()
     {
-        return $this->hasMany(workerVisaAttachments::class, 'file_id');
+        return $this->hasMany(WorkerVisaAttachments::class, 'file_id');
     }
 }
