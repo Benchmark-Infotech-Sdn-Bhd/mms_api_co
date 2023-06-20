@@ -267,6 +267,22 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('create', 'V1\DirectRecruitmentOnboardingAgentController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingAgentController@update');
                 });
+                $router->group(['prefix' => 'attestation'], function () use ($router) {
+                    //Attestation
+                    $router->post('list', 'V1\DirectRecruitmentOnboardingAttestationController@list');
+                    $router->post('show', 'V1\DirectRecruitmentOnboardingAttestationController@show');
+                    $router->post('create', 'V1\DirectRecruitmentOnboardingAttestationController@create');
+                    $router->post('update', 'V1\DirectRecruitmentOnboardingAttestationController@update');
+                    //Dispatch
+                    $router->post('showDispatch', 'V1\DirectRecruitmentOnboardingAttestationController@showDispatch');
+                    $router->post('updateDispatch', 'V1\DirectRecruitmentOnboardingAttestationController@updateDispatch');
+                    //Embassy Attestation Costing
+                    $router->post('listEmbassy', 'V1\DirectRecruitmentOnboardingAttestationController@listEmbassy');
+                    $router->post('showEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@showEmbassyFile');
+                    $router->post('uploadEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@uploadEmbassyFile');
+                    $router->post('deleteEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@deleteEmbassyFile');
+                });
+
                 $router->group(['prefix' => 'callingVisa'], function () use ($router) {
                     $router->group(['prefix' => 'process'], function () use ($router) {
                         $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');
@@ -351,6 +367,20 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'applicationSummary'], function () use ($router) {
             $router->post('list', 'V1\ApplicationSummaryController@list');
             $router->post('listKsmReferenceNumber', 'V1\ApplicationSummaryController@listKsmReferenceNumber');
+        });
+
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'worker'], function () use ($router) {
+            $router->post('list', 'V1\WorkersController@list');
+            $router->post('show', 'V1\WorkersController@show');
+            $router->post('create', 'V1\WorkersController@create');
+            $router->post('update', 'V1\WorkersController@update');
+            $router->post('export', 'V1\WorkersController@export');
+            $router->post('dropdown', 'V1\WorkersController@dropdown');
+            $router->post('updateStatus', 'V1\WorkersController@updateStatus');
+            $router->post('kinRelationship', 'V1\WorkersController@kinRelationship');
         });
     });
 });
