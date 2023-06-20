@@ -101,7 +101,7 @@ class DirectRecruitmentCallingVisaGenerateServices
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
                 'workers.agent_id' => $request['agent_id'],
-                'workers.cancel_Status' => 0,
+                'workers.cancel_status' => 0,
                 'worker_immigration.immigration_status' => 'Paid'
             ])
             ->where(function ($query) use ($request) {
@@ -111,7 +111,7 @@ class DirectRecruitmentCallingVisaGenerateServices
                 }
             })
             ->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_valid_until', DB::raw('COUNT(workers.id) as workers', 'worker_immigration.immigration_status'))
-            ->groupBy('worker_visa.calling_visa_reference_number', 'worker_visa.ksm_reference_number')
+            ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_valid_until', 'worker_immigration.immigration_status')
             ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
