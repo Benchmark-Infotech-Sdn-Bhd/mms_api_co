@@ -22,7 +22,7 @@ class WorkerVisa extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['worker_id','ksm_reference_number','calling_visa_reference_number','calling_visa_valid_until','entry_visa_valid_until','work_permit_valid_until','created_by','modified_by'];
+    protected $fillable = ['worker_id','ksm_reference_number','calling_visa_reference_number','calling_visa_valid_until','entry_visa_valid_until','work_permit_valid_until','created_by','modified_by', 'dispatch_method', 'dispatch_consignment_number', 'dispatch_acknowledgement_number', 'dispatch_submitted_on', 'dispatch_status'];
 
     protected $appends = ['worker_visa_attachments'];
    
