@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
 
-class Workers extends Model implements Auditable
+class WorkerKin extends Model implements Auditable
 {
     use \OwenIt\Auditing\Auditable;
     use SoftDeletes;
@@ -22,7 +22,7 @@ class Workers extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['worker_id','name','relationship_id','contact_number','created_by','modified_by'];
+    protected $fillable = ['worker_id','kin_name','kin_relationship_id','kin_contact_number','created_by','modified_by'];
    
     /**
      * The attributes that are required.
@@ -31,9 +31,9 @@ class Workers extends Model implements Auditable
      */
     public $rules = [
         'worker_id' => 'required|regex:/^[0-9]+$/',
-        'name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
-        'relationship_id' => 'required|regex:/^[0-9]+$/',
-        'contact_number' => 'required|regex:/^[0-9]+$/'
+        'kin_name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+        'kin_relationship_id' => 'required|regex:/^[0-9]+$/',
+        'kin_contact_number' => 'required|regex:/^[0-9]+$/'
     ];
     /**
      * The function returns array that are required for updation.
@@ -45,9 +45,9 @@ class Workers extends Model implements Auditable
         // Unique name with deleted at
         return [
             'worker_id' => 'required|regex:/^[0-9]+$/',
-            'name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
-            'relationship_id' => 'required|regex:/^[0-9]+$/',
-            'contact_number' => 'required|regex:/^[0-9]+$/'
+            'kin_name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+            'kin_relationship_id' => 'required|regex:/^[0-9]+$/',
+            'kin_contact_number' => 'required|regex:/^[0-9]+$/'
         ];
     }
 

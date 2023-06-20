@@ -37,13 +37,12 @@ class Workers extends Model implements Auditable
         'name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
         'date_of_birth' => 'required|date_format:Y-m-d',
         'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
-        'passport_number' => 'required|passport_number|regex:/^[a-zA-Z0-9]*$/|unique:workers,passport_number,NULL,id,deleted_at,NULL',
+        'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
         'passport_valid_until' => 'required|date_format:Y-m-d',
         'fomema_valid_until' => 'required|date_format:Y-m-d',
         'address' => 'required',
         'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
         'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
-        
     ];
     /**
      * The function returns array that are required for updation.
@@ -61,12 +60,68 @@ class Workers extends Model implements Auditable
             'name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
             'date_of_birth' => 'required|date_format:Y-m-d',
             'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
-            'passport_number' => 'required|passport_number|regex:/^[a-zA-Z0-9]*$/|unique:workers,passport_number,'.$id.',id,deleted_at,NULL',
+            'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'passport_valid_until' => 'required|date_format:Y-m-d',
             'fomema_valid_until' => 'required|date_format:Y-m-d',
             'address' => 'required',
             'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
-            'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'            
+            'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
         ];
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function workerAttachments()
+    {
+        return $this->hasMany(workerAttachments::class, 'file_id');
+    }
+
+    /**
+     * @return HasOne
+     */
+    public function workerKin()
+    {
+        return $this->hasOne(workerKin::class, 'worker_id');
+    }
+
+    /**
+     * @return HasOne
+     */
+    public function workerVisa()
+    {
+        return $this->hasOne(workerVisa::class, 'worker_id');
+    }
+
+    /**
+     * @return HasOne
+     */
+    public function workerBioMedical()
+    {
+        return $this->hasOne(workerBioMedical::class, 'worker_id');
+    }
+
+    /**
+     * @return HasOne
+     */
+    public function workerFomema()
+    {
+        return $this->hasOne(workerFomema::class, 'worker_id');
+    }
+
+    /**
+     * @return HasOne
+     */
+    public function workerInsuranceDetails()
+    {
+        return $this->hasOne(workerInsuranceDetails::class, 'worker_id');
+    }
+
+    /**
+     * @return HasOne
+     */
+    public function workerBankDetails()
+    {
+        return $this->hasOne(workerBankDetails::class, 'worker_id');
     }
 }
