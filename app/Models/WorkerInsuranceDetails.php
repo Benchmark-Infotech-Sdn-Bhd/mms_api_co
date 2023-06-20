@@ -22,7 +22,7 @@ class WorkerInsuranceDetails extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['worker_id','ig_policy_number','ig_policy_number_valid_until','hospitalization_policy_number','hospitalization_policy_number_valid_until','created_by','modified_by'];
+    protected $fillable = ['worker_id','ig_policy_number','ig_policy_number_valid_until','hospitalization_policy_number','hospitalization_policy_number_valid_until','created_by','modified_by', 'insurance_provider_id', 'ig_amount', 'hospitalization_amount', 'insurance_submitted_on', 'insurance_expiry_date', 'insurance_status'];
    
     /**
      * The attributes that are required.
