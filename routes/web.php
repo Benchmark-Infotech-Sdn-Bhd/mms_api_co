@@ -344,5 +344,19 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('list', 'V1\ApplicationSummaryController@list');
             $router->post('listKsmReferenceNumber', 'V1\ApplicationSummaryController@listKsmReferenceNumber');
         });
+
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'worker'], function () use ($router) {
+            $router->post('list', 'V1\WorkersController@list');
+            $router->post('show', 'V1\WorkersController@show');
+            $router->post('create', 'V1\WorkersController@create');
+            $router->post('update', 'V1\WorkersController@update');
+            $router->post('export', 'V1\WorkersController@export');
+            $router->post('dropdown', 'V1\WorkersController@dropdown');
+            $router->post('updateStatus', 'V1\WorkersController@updateStatus');
+            $router->post('kinRelationship', 'V1\WorkersController@kinRelationship');
+        });
     });
 });
