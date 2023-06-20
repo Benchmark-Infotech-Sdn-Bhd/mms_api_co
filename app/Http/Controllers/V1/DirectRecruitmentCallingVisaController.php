@@ -87,20 +87,20 @@ class DirectRecruitmentCallingVisaController extends Controller
         }
     }
     /**
-     * Dispaly the calling visa process.
+     * Dispaly the calling visa process details.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function showProcessCallingVisa(Request $request) : JsonResponse
+    public function show(Request $request) : JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $response = $this->directRecruitmentCallingVisaServices->showProcessCallingVisa($params);
+            $response = $this->directRecruitmentCallingVisaServices->show($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Display Calling Visa'], 400);
+            return $this->sendError(['message' => 'Failed to Display Calling Visa Process Details'], 400);
         }
     }
 }
