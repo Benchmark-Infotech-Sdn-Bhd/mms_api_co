@@ -23,6 +23,8 @@ class WorkerVisa extends Model implements Auditable
      * @var array
      */
     protected $fillable = ['worker_id','ksm_reference_number','calling_visa_reference_number', 'submitted_on', 'calling_visa_generated', 'calling_visa_valid_until', 'status', 'approval_status', 'entry_visa_valid_until','work_permit_valid_until', 'remarks', 'created_by','modified_by'];
+
+    protected $appends = ['worker_visa_attachments'];
    
     /**
      * The attributes that are required.
@@ -53,5 +55,29 @@ class WorkerVisa extends Model implements Auditable
     public function Workers()
     {
         return $this->belongsTo(Workers::class);
+    }
+
+
+    public $worker_visa_attachments_temp = null;
+
+    public function setWorkerVisaAttachmentsTempAttribute(array $value)
+    {
+        return $this->worker_visa_attachments_temp = $value;
+    }
+    public function getWorkerVisaAttachmentsTempAttribute()
+    {
+        return $this->worker_visa_attachments_temp;
+    } 
+    public function getWorkerVisaAttachmentsAttribute()
+    {
+        return $this->WorkerVisaAttachments()->get();
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function workerVisaAttachments()
+    {
+        return $this->hasMany(workerVisaAttachments::class, 'file_id');
     }
 }

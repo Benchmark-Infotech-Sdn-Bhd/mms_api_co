@@ -11,19 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('worker_kin', function (Blueprint $table) {
-            // Worker kin id column
+        Schema::create('kin_relationship', function (Blueprint $table) {
+            // Column for Id 
             $table->id();
-            // worker kin workerid column
-            $table->bigInteger('worker_id')->unsigned()->nullable();
-            // Foreign key from Worker table
-            $table->foreign('worker_id')->references('id')->on('workers')->onDelete('cascade');
-            // Column for Worker kin name
-            $table->string('kin_name', 255);
-            // Column for Worker kin relationship name
-            $table->integer('kin_relationship_id');
-            // Column for Worker kin contact number column
-            $table->bigInteger('kin_contact_number')->default(0);
+            // Column for Worker name
+            $table->string('name', 255);
+            // Column for Worker status
+            $table->tinyInteger('status')->default(1);
             // Column for user id who created the Worker
             $table->integer('created_by')->default(0);
             // Column for user id who modified the Worker
@@ -40,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('worker_kin');
+        Schema::dropIfExists('kin_relationship');
     }
 };
