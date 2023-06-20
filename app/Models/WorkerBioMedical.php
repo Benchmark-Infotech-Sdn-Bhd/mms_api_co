@@ -79,6 +79,6 @@ class WorkerBioMedical extends Model implements Auditable
      */
     public function workerBioMedicalAttachments()
     {
-        return $this->hasMany(workerBioMedicalAttachments::class, 'file_id');
+        return $this->hasMany(WorkerBioMedicalAttachments::class, 'file_id');
     }
 }

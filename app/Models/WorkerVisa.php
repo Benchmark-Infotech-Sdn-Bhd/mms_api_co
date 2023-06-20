@@ -78,6 +78,6 @@ protected $fillable = ['worker_id','ksm_reference_number','calling_visa_referenc
      */
     public function workerVisaAttachments()
     {
-        return $this->hasMany(workerVisaAttachments::class, 'file_id');
+        return $this->hasMany(WorkerVisaAttachments::class, 'file_id');
     }
 }
