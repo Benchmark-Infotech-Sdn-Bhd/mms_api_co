@@ -37,8 +37,14 @@ class DirectRecruitmentCallingVisaDispatchController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
-            $this->directRecruitmentCallingVisaDispatchServices->update($params);
-            return $this->sendSuccess(['message' => 'Calling Visa Dispatch Updated Successfully']);
+            $response = $this->directRecruitmentCallingVisaDispatchServices->update($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            } else if($response == true) {
+                return $this->sendSuccess(['message' => 'Calling Visa Dispatch Updated Successfully']);
+            } else {
+                return $this->sendError(['message' => 'Failed to Update Calling Visa Dispatch'], 400);
+            }
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Update Calling Visa Dispatch'], 400);
