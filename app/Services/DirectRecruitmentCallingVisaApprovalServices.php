@@ -73,8 +73,7 @@ class DirectRecruitmentCallingVisaApprovalServices
         }
         $this->directRecruitmentCallingVisaStatus->where([
             'application_id' => $request['application_id'],
-            'onboarding_country_id' => $request['onboarding_country_id'],
-            'agent_id' => $request['agent_id']
+            'onboarding_country_id' => $request['onboarding_country_id']
         ])->update(['updated_on' => Carbon::now(), 'modified_by' => $request['modified_by']]);
         return true;
     }
@@ -100,7 +99,6 @@ class DirectRecruitmentCallingVisaApprovalServices
             ->where([
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'workers.agent_id' => $request['agent_id'],
                 'workers.cancel_status' => 0,
                 'worker_insurance_details.insurance_status' => 'Purchased'
             ])
@@ -115,6 +113,11 @@ class DirectRecruitmentCallingVisaApprovalServices
             ->where(function ($query) use ($request) {
                 if(isset($request['filter']) && !empty($request['filter'])) {
                     $query->where('worker_visa.approval_status', $request['filter']);
+                }
+            })
+            ->where(function ($query) use ($request) {
+                if(isset($request['agent_id']) && !empty($request['agent_id'])) {
+                    $query->where('workers.agent_id', $request['agent_id']);
                 }
             })
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approval_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')->distinct('workers.id')
