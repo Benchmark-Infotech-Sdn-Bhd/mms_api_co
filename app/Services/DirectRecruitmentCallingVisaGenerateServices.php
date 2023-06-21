@@ -58,7 +58,6 @@ class DirectRecruitmentCallingVisaGenerateServices
         $this->directRecruitmentCallingVisaStatus->where([
             'application_id' => $request['application_id'],
             'onboarding_country_id' => $request['onboarding_country_id'],
-            'agent_id' => $request['agent_id']
         ])->update(['updated_on' => Carbon::now(), 'modified_by' => $request['modified_by']]);
         return true;
     }
@@ -100,7 +99,6 @@ class DirectRecruitmentCallingVisaGenerateServices
             ->where([
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'workers.agent_id' => $request['agent_id'],
                 'workers.cancel_status' => 0,
                 'worker_immigration.immigration_status' => 'Paid'
             ])
@@ -108,6 +106,11 @@ class DirectRecruitmentCallingVisaGenerateServices
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->Where('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
                     ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
+                }
+            })
+            ->where(function ($query) use ($request) {
+                if(isset($request['agent_id']) && !empty($request['agent_id'])) {
+                    $query->where('workers.agent_id', $request['agent_id']);
                 }
             })
             ->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_valid_until', DB::raw('COUNT(workers.id) as workers', 'worker_immigration.immigration_status'))
