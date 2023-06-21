@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Workers extends Model implements Auditable
 {
@@ -123,5 +124,13 @@ class Workers extends Model implements Auditable
     public function workerBankDetails()
     {
         return $this->hasOne(WorkerBankDetails::class, 'worker_id');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function workerInsuranceAttachments(): HasMany
+    {
+        return $this->hasMany(WorkerInsuranceAttachments::class, 'file_id');
     }
 }
