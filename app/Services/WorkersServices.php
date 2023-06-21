@@ -13,6 +13,7 @@ use App\Models\WorkerFomema;
 use App\Models\WorkerInsuranceDetails;
 use App\Models\WorkerBankDetails;
 use App\Models\KinRelationship;
+use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -33,6 +34,7 @@ class WorkersServices
     Private WorkerInsuranceDetails $workerInsuranceDetails;
     Private WorkerBankDetails $workerBankDetails;
     Private KinRelationship $kinRelationship;
+    Private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
     private ValidationServices $validationServices;
     private AuthServices $authServices;
     private Storage $storage;
@@ -49,25 +51,27 @@ class WorkersServices
      * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param WorkerBankDetails $workerBankDetails
      * @param KinRelationship $kinRelationship
+     * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
      */
     public function __construct(
-            Workers                     $workers,
-            WorkerAttachments           $workerAttachments,
-            WorkerKin                   $workerKin,
-            WorkerVisa                  $workerVisa,
-            WorkerVisaAttachments       $workerVisaAttachments,
-            WorkerBioMedical            $workerBioMedical,
-            WorkerBioMedicalAttachments $workerBioMedicalAttachments,
-            WorkerFomema                $workerFomema,
-            WorkerInsuranceDetails      $workerInsuranceDetails,
-            WorkerBankDetails           $workerBankDetails,
-            KinRelationship             $kinRelationship,
-            ValidationServices          $validationServices,
-            AuthServices                $authServices,
-            Storage                     $storage
+            Workers                             $workers,
+            WorkerAttachments                   $workerAttachments,
+            WorkerKin                           $workerKin,
+            WorkerVisa                          $workerVisa,
+            WorkerVisaAttachments               $workerVisaAttachments,
+            WorkerBioMedical                    $workerBioMedical,
+            WorkerBioMedicalAttachments         $workerBioMedicalAttachments,
+            WorkerFomema                        $workerFomema,
+            WorkerInsuranceDetails              $workerInsuranceDetails,
+            WorkerBankDetails                   $workerBankDetails,
+            KinRelationship                     $kinRelationship,
+            DirectRecruitmentCallingVisaStatus  $directRecruitmentCallingVisaStatus,
+            ValidationServices                  $validationServices,
+            AuthServices                        $authServices,
+            Storage                             $storage
     )
     {
         $this->workers = $workers;
@@ -84,6 +88,7 @@ class WorkersServices
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
+        $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
     }
 
     /**
@@ -243,6 +248,24 @@ class WorkersServices
             "account_number" => $request['account_number'] ?? '',
             "socso_number" =>  $request['socso_number'] ?? ''
         ]);
+
+        $checkCallingVisa = $this->directRecruitmentCallingVisaStatus
+        ->where('application_id', $request['application_id'])
+        ->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->where('agent_id', $request['agent_id'])->first();
+
+        if(isset($checkCallingVisa) && count($checkCallingVisa) == 0 ){
+            $callingVisaStatus = $this->directRecruitmentCallingVisaStatus->create([
+                'application_id' => $request['application_id'] ?? 0,
+                'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+                'agent_id' => $request['agent_id'] ?? 0,
+                'item' => 'Calling Visa Status',
+                'updated_on' => '',
+                'status' => 1,
+                'created_by' => $request['created_by'] ?? 0,
+                'modified_by' => $request['created_by'] ?? 0,
+            ]);
+        }        
 
         return $worker;
     }
@@ -450,6 +473,7 @@ class WorkersServices
             }
         }
         return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+        ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
         ->join('worker_insurance_details', 'workers.id', '=', 'worker_insurance_details.worker_id')
         ->where('workers.application_id', $request['application_id'])
         ->where('workers.onboarding_country_id', $request['onboarding_country_id'])
@@ -466,7 +490,9 @@ class WorkersServices
             if (isset($request['status'])) {
                 $query->where('workers.status',$request['status']);
             }
-        })->select('workers.id','workers.name','workers.passport_number','worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number','worker_insurance_details.ig_policy_number','worker_insurance_details.hospitalization_policy_number','worker_insurance_details.hospitalization_policy_number_valid_until','workers.created_at')
+        })->select('workers.id','workers.name','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as status'
+
+        'worker_visa.calling_visa_reference_number','worker_insurance_details.ig_policy_number','worker_insurance_details.hospitalization_policy_number','worker_insurance_details.hospitalization_policy_number_valid_until','workers.created_at')
         ->distinct()
         ->orderBy('workers.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
