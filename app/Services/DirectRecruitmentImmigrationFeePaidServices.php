@@ -65,7 +65,6 @@ class DirectRecruitmentImmigrationFeePaidServices
             [
                 'application_id' => 'required',
                 'onboarding_country_id' => 'required',
-                'agent_id' => 'required',
                 'total_fee' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
                 'immigration_reference_number' => 'required',
                 'payment_date' => 'required|date|date_format:Y-m-d'
@@ -135,8 +134,7 @@ class DirectRecruitmentImmigrationFeePaidServices
                 }
                 $this->directRecruitmentCallingVisaStatus->where([
                     'application_id' => $request['application_id'],
-                    'onboarding_country_id' => $request['onboarding_country_id'],
-                    'agent_id' => $request['agent_id']
+                    'onboarding_country_id' => $request['onboarding_country_id']
                 ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
                 return true;
             
@@ -184,7 +182,6 @@ class DirectRecruitmentImmigrationFeePaidServices
             ->where([
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'workers.agent_id' => $request['agent_id'],
                 'workers.cancel_status' => 0
             ])
             ->where(function ($query) use ($request) {

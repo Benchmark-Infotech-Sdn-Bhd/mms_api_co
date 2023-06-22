@@ -73,7 +73,9 @@ class DirectRecruitmentInsurancePurchaseController extends Controller
                 return $this->validationError($response['error']);
             } else if(isset($response['workerCountError'])) {
                 return $this->sendError(['message' => 'Please select all worker names from the list before submitting'], 400);
-            }else if($response == true) {
+            } else if(isset($response['visaReferenceNumberCountError'])) {
+                return $this->sendError(['message' => 'Please check the calling visa reference number in selected worker name from the listing'], 400);
+            } else if($response == true) {
                 return $this->sendSuccess(['message' => 'Insurance Purchase Submitted Successfully']);
             } else {
                 return $this->sendError(['message' => 'Failed to Submit Insurance Purchase'], 400);
