@@ -211,5 +211,18 @@ class VendorServices
             "message" => "Deleted Successfully"
         ];
     }
+    /**
+     * Display a listing of the insurance Vendors.
+     *
+     * @param $request
+     * @return LengthAwarePaginator
+     */
+    public function insuranceVendorList($request)
+    {
+        return $this->vendor::where('type', 'Insurance')
+        ->select('id', 'name', 'type')
+        ->orderBy('vendors.created_at','DESC')
+        ->get();
+    }
 
 }

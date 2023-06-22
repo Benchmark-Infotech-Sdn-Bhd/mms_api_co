@@ -12,13 +12,21 @@ class DirectRecruitmentOnboardingAgentServices
      * @var DirectRecruitmentOnboardingAgent
      */
     private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
+
+    /**
+     * @var DirectRecruitmentOnboardingAttestationServices
+     */
+    private DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices;
+
     /**
      * DirectRecruitmentOnboardingAgentServices constructor.
      * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
+     * @param DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices;
      */
-    public function __construct(DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent)
+    public function __construct(DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent, DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices)
     {
         $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
+        $this->directRecruitmentOnboardingAttestationServices = $directRecruitmentOnboardingAttestationServices;
     }
     /**
      * @return array
@@ -50,7 +58,10 @@ class DirectRecruitmentOnboardingAgentServices
     public function list($request): mixed
     {
         return $this->directRecruitmentOnboardingAgent->leftJoin('agent', 'agent.id', 'directrecruitment_onboarding_agent.agent_id')
-            ->where('directrecruitment_onboarding_agent.application_id', $request['application_id'])
+            ->where([
+                ['directrecruitment_onboarding_agent.application_id', $request['application_id']],
+                ['directrecruitment_onboarding_agent.onboarding_country_id', $request['onboarding_country_id']],
+            ])
             ->select('directrecruitment_onboarding_agent.id', 'agent.agent_name', 'agent.person_in_charge', 'agent.pic_contact_number', 'directrecruitment_onboarding_agent.quota', 'directrecruitment_onboarding_agent.updated_at')
             ->orderBy('directrecruitment_onboarding_agent.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
@@ -84,6 +95,7 @@ class DirectRecruitmentOnboardingAgentServices
             'created_by' => $request['created_by'] ?? 0,
             'modified_by' => $request['created_by'] ?? 0
         ]);
+        $this->directRecruitmentOnboardingAttestationServices->create($request);
         return true;
     }
     /**

@@ -14,12 +14,15 @@ use App\Models\WorkerInsuranceDetails;
 use App\Models\WorkerBankDetails;
 use App\Models\KinRelationship;
 use App\Models\DirectRecruitmentCallingVisaStatus;
+use App\Models\DirectRecruitmentOnboardingAgent;
+use App\Models\WorkerStatus;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Carbon;
 
 class WorkersServices
 {
@@ -35,6 +38,8 @@ class WorkersServices
     Private WorkerBankDetails $workerBankDetails;
     Private KinRelationship $kinRelationship;
     Private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
+    Private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
+    private WorkerStatus $workerStatus;
     private ValidationServices $validationServices;
     private AuthServices $authServices;
     private Storage $storage;
@@ -52,6 +57,8 @@ class WorkersServices
      * @param WorkerBankDetails $workerBankDetails
      * @param KinRelationship $kinRelationship
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
+     * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent
+     * @param WorkerStatus $workerStatus
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
@@ -69,6 +76,8 @@ class WorkersServices
             WorkerBankDetails                   $workerBankDetails,
             KinRelationship                     $kinRelationship,
             DirectRecruitmentCallingVisaStatus  $directRecruitmentCallingVisaStatus,
+            DirectRecruitmentOnboardingAgent    $directRecruitmentOnboardingAgent,
+            WorkerStatus                        $workerStatus,
             ValidationServices                  $validationServices,
             AuthServices                        $authServices,
             Storage                             $storage
@@ -85,10 +94,12 @@ class WorkersServices
         $this->workerInsuranceDetails = $workerInsuranceDetails;
         $this->workerBankDetails = $workerBankDetails;
         $this->kinRelationship = $kinRelationship;
+        $this->workerStatus = $workerStatus;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
+        $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
     }
 
     /**
@@ -262,10 +273,32 @@ class WorkersServices
                 'item' => 'Calling Visa Status',
                 'updated_on' => '',
                 'status' => 1,
-                'created_by' => $request['created_by'] ?? 0,
-                'modified_by' => $request['created_by'] ?? 0,
+                'created_by' => $params['created_by'] ?? 0,
+                'modified_by' => $params['created_by'] ?? 0,
             ]);
-        }        
+        }
+
+        $checkWorkerStatus = $this->workerStatus
+        ->where('application_id', $request['application_id'])
+        ->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->get()->toArray();
+
+        if(isset($checkWorkerStatus) && count($checkWorkerStatus) > 0 ){
+            $this->workerStatus->where([
+                'application_id' => $request['application_id'],
+                'onboarding_country_id' => $request['onboarding_country_id']
+            ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
+        } else {
+            $workerStatus = $this->workerStatus->create([
+                'application_id' => $request['application_id'] ?? 0,
+                'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+                'item' => 'Worker Biodata',
+                'updated_on' => Carbon::now(),
+                'status' => 1,
+                'created_by' => $params['created_by'] ?? 0,
+                'modified_by' => $params['created_by'] ?? 0,
+            ]);            
+        }
 
         return $worker;
     }
@@ -441,6 +474,11 @@ class WorkersServices
             }
         }
 
+        $this->workerStatus->where([
+            'application_id' => $request['application_id'],
+            'onboarding_country_id' => $request['onboarding_country_id']
+        ])->update(['updated_on' => Carbon::now(), 'modified_by' => $request['modified_by']]);
+
         return true;
     }
     
@@ -474,7 +512,6 @@ class WorkersServices
         }
         return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
-        ->join('worker_insurance_details', 'workers.id', '=', 'worker_insurance_details.worker_id')
         ->where('workers.application_id', $request['application_id'])
         ->where('workers.onboarding_country_id', $request['onboarding_country_id'])
         ->where('workers.agent_id', $request['agent_id'])
@@ -483,16 +520,12 @@ class WorkersServices
                 $query->where('workers.name', 'like', "%{$request['search_param']}%")
                 ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%')
-                ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search_param'].'%')
-                ->orWhere('worker_insurance_details.ig_policy_number', 'like', '%'.$request['search_param'].'%')
-                ->orWhere('worker_insurance_details.hospitalization_policy_number', 'like', '%'.$request['search_param'].'%');
+                ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search_param'].'%');
             }
             if (isset($request['status'])) {
                 $query->where('workers.status',$request['status']);
             }
-        })->select('workers.id','workers.name','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as status'
-
-        'worker_visa.calling_visa_reference_number','worker_insurance_details.ig_policy_number','worker_insurance_details.hospitalization_policy_number','worker_insurance_details.hospitalization_policy_number_valid_until','workers.created_at')
+        })->select('workers.id','workers.name','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as status','workers.created_at')
         ->distinct()
         ->orderBy('workers.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
@@ -536,12 +569,14 @@ class WorkersServices
      */
     public function dropdown($request) : mixed
     {
-        return $this->workers->where('status', 1)
-        ->where('application_id', $request['application_id'])
-        ->where('onboarding_country_id', $request['onboarding_country_id'])
-        ->where('agent_id', $request['agent_id'])
-        ->select('id','name')
-        ->orderBy('created_at','DESC')->get();
+        return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+        ->where('workers.status', 1)
+        ->where('workers.application_id', $request['application_id'])
+        ->where('workers.onboarding_country_id', $request['onboarding_country_id'])
+        ->where('workers.agent_id', $request['agent_id'])
+        ->where('worker_visa.status', 'Pending')
+        ->select('workers.id','workers.name')
+        ->orderBy('workers.created_at','DESC')->get();
     }
     /**
      * @param $request
@@ -566,5 +601,56 @@ class WorkersServices
         return $this->kinRelationship->where('status', 1)
         ->select('id','name')
         ->orderBy('id','ASC')->get();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function onboardingAgent($request) : mixed
+    {
+        return $this->directRecruitmentOnboardingAgent
+        ->join('agent', 'agent.id', '=', 'directrecruitment_onboarding_agent.agent_id')
+        ->where('directrecruitment_onboarding_agent.status', 1)
+        ->where('directrecruitment_onboarding_agent.application_id', $request['application_id'])
+        ->where('directrecruitment_onboarding_agent.onboarding_country_id', $request['onboarding_country_id'])
+        ->select('agent.id','agent.agent_name')
+        ->orderBy('agent.id','ASC')->get();
+    }
+
+    /**
+     * @param $request
+     * @return array
+     */
+    public function replaceWorker($request) : array
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+
+        $worker = $this->workers
+        ->where('id', $request['id'])
+        ->update([
+            'replace_worker_id' => $request['replace_worker_id'],
+            'replace_by' => $user['id'],
+            'replace_at' => Carbon::now()->format('Y-m-d H:i:s')
+        ]);
+        return  [
+            "isUpdated" => $worker,
+            "message" => "Updated Successfully"
+        ];
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function workerStatusList($request): mixed
+    {
+        return $this->workerStatus
+            ->select('id', 'item', 'updated_on', 'status')
+            ->where([
+                'application_id' => $request['application_id'],
+                'onboarding_country_id' => $request['onboarding_country_id']
+            ])
+            ->orderBy('id', 'desc')
+            ->paginate(Config::get('services.paginate_row'));
     }
 }
