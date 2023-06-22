@@ -407,6 +407,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('dropdown', 'V1\WorkersController@dropdown');
             $router->post('updateStatus', 'V1\WorkersController@updateStatus');
             $router->post('kinRelationship', 'V1\WorkersController@kinRelationship');
+            $router->post('onboardingAgent', 'V1\WorkersController@onboardingAgent');
+            $router->post('replaceWorker', 'V1\WorkersController@replaceWorker');
+            $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
         });
     });
 });
