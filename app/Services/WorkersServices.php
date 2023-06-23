@@ -477,7 +477,7 @@ class WorkersServices
         $this->workerStatus->where([
             'application_id' => $request['application_id'],
             'onboarding_country_id' => $request['onboarding_country_id']
-        ])->update(['updated_on' => Carbon::now(), 'modified_by' => $request['modified_by']]);
+        ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['modified_by']]);
 
         return true;
     }
@@ -514,18 +514,21 @@ class WorkersServices
         ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
         ->where('workers.application_id', $request['application_id'])
         ->where('workers.onboarding_country_id', $request['onboarding_country_id'])
-        ->where('workers.agent_id', $request['agent_id'])
         ->where(function ($query) use ($request) {
+            if (isset($request['agent_id'])) {
+                $query->where('workers.agent_id',$request['agent_id']);
+            }
+            if (isset($request['status'])) {
+                $query->where('worker_visa.approval_status',$request['status']);
+            }
+            
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('workers.name', 'like', "%{$request['search_param']}%")
                 ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
-                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%')
-                ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search_param'].'%');
+                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
-            if (isset($request['status'])) {
-                $query->where('workers.status',$request['status']);
-            }
-        })->select('workers.id','workers.name','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as status','workers.created_at')
+            
+        })->select('workers.id','workers.name','workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as status','workers.created_at')
         ->distinct()
         ->orderBy('workers.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
