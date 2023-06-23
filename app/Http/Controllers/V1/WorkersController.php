@@ -185,4 +185,61 @@ class WorkersController extends Controller
             return $this->sendError(['message' => $data['error']]);
         }
     }
+
+    /**
+     * Onboarding Agent dropdown.
+     *
+     * @return JsonResponse
+     */
+    public function onboardingAgent(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->workersServices->onboardingAgent($request);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
+
+    /**
+     * Worker Replace.
+     *
+     * @return JsonResponse
+     */
+    public function replaceWorker(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->workersServices->replaceWorker($request);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Update failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
+
+    /**
+     * Search & Retrieve Worker StatusList.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function workerStatusList(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->workersServices->workerStatusList($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
+    
 }
