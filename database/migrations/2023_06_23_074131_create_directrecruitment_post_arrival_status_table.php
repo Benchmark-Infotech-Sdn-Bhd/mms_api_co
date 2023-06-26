@@ -22,7 +22,7 @@ return new class extends Migration
             // Country Id column
             $table->unsignedBigInteger('onboarding_country_id');
             // Foreign key from directrecruitment onboarding countries table
-            $table->foreign('onboarding_country_id', 'dr_calling_visa_status_onboarding_country_id')
+            $table->foreign('onboarding_country_id', 'dr_post_arrival_status_onboarding_country_id')
               ->references('id')->on('directrecruitment_onboarding_countries')->onDelete('cascade');
               // Column for post arrival status item name
             $table->string('item', 255)->nullable();

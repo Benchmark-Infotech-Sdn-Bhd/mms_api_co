@@ -318,10 +318,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
 					});
                 });
                 $router->group(['prefix' => 'postArrival'], function () use ($router) {
-                    $router->post('updatePostArrivalStatus', 'V1\DirecRecruitmentPostArrivalController@updatePostArrivalStatus');
-                    $router->post('show', 'V1\DirecRecruitmentPostArrivalController@show');
-                    $router->post('create', 'V1\DirecRecruitmentPostArrivalController@create');
-                    $router->post('update', 'V1\DirecRecruitmentPostArrivalController@update');
+                    $router->post('updatePostArrival', 'V1\DirecRecruitmentPostArrivalController@updatePostArrival');
+                    $router->post('UpdateJTKSubmission', 'V1\DirecRecruitmentPostArrivalController@UpdateJTKSubmission');
+                    $router->post('updateCancellation', 'V1\DirecRecruitmentPostArrivalController@updateCancellation');
+                    $router->post('updatePostponed', 'V1\DirecRecruitmentPostArrivalController@updatePostponed');
                 });
             });
         });

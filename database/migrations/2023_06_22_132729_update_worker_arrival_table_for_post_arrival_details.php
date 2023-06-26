@@ -18,12 +18,8 @@ return new class extends Migration
             $table->date('entry_visa_valid_until')->nullable()->after('arrived_date');
             // Column for JTK Report submitted on
             $table->date('jtk_submitted_on')->nullable()->after('entry_visa_valid_until');
-            // Column for new arrival date if postponed
-            $table->date('new_arrival_date')->nullable()->after('jtk_submitted_on');
-            // Coulmn for flight number
-            $table->string('flight_number')->nullable()->after('new_arrival_date');
-            // Column for arrival time
-            $table->time('arrival_time')->nullable()->after('flight_number');
+            // Column for remarks
+            $table->text('remarks')->nullable()->after('jtk_submitted_on');
         });
     }
 

@@ -26,25 +26,91 @@ class DirecRecruitmentPostArrivalController extends Controller
         $this->direcRecruitmentPostArrivalServices = $direcRecruitmentPostArrivalServices;
     }
     /**
-     * Update post arrival status.
+     * Update post arrival details.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function updatePostArrivalStatus(Request $request) : JsonResponse
+    public function updatePostArrival(Request $request) : JsonResponse
     {
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
-            $response = $this->direcRecruitmentPostArrivalServices->updatePostArrivalStatus($params);
+            $response = $this->direcRecruitmentPostArrivalServices->updatePostArrival($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
-            return $this->sendSuccess(['message' => 'Post Arrival Status Updated Successfully']);
+            return $this->sendSuccess(['message' => 'Post Arrival Details Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Update Post Arrival'], 400);
+            return $this->sendError(['message' => 'Failed to Update Post Arrival Details'], 400);
+        }
+    }
+    /**
+     * Update JTK submission date.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function UpdateJTKSubmission(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $response = $this->direcRecruitmentPostArrivalServices->UpdateJTKSubmission($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess(['message' => 'JTK Submission Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update JTK Submission'], 400);
+        }
+    }
+    /**
+     * Update cancellation.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateCancellation(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $response = $this->direcRecruitmentPostArrivalServices->updateCancellation($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess(['message' => 'Cancellation Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update Cancellation'], 400);
+        }
+    }
+    /**
+     * Update Postponed.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updatePostponed(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $response = $this->direcRecruitmentPostArrivalServices->updatePostponed($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess(['message' => 'Postponed Status Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update Postponed Status'], 400);
         }
     }
 }
