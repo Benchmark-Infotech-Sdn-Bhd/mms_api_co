@@ -146,7 +146,19 @@ class ApplicationSummaryServices
      */
     public function listKsmReferenceNumber($request): mixed
     {
-        return $this->fwcms->where('application_id', $request['application_id'])->select('id', 'ksm_reference_number')->orderBy('created_at','DESC')->get();
+        return $this->fwcms
+        ->leftJoin('application_interviews', function ($join) {
+            $join->on('application_interviews.ksm_reference_number', '=', 'fwcms.ksm_reference_number')
+            ->where('application_interviews.status', '=', 'Approved');
+        })
+        ->leftJoin('levy', 'levy.ksm_reference_number', 'application_interviews.ksm_reference_number')
+        ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.ksm_reference_number', 'levy.ksm_reference_number')
+        ->where([
+            ['fwcms.application_id', $request['application_id']],
+            ['fwcms.status', 'Approved']
+        ])->select('fwcms.id', 'fwcms.ksm_reference_number', 'application_interviews.approval_date', 'levy.approved_quota', 'directrecruitment_application_approval.valid_until')
+        ->distinct('fwcms.id','fwcms.ksm_reference_number')
+        ->orderBy('fwcms.id','DESC')->get();
     }
     
 }

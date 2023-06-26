@@ -170,6 +170,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('search', 'V1\VendorController@search');
             $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
             $router->post('filter', 'V1\VendorController@filter');
+            $router->post('insuranceVendorList', 'V1\VendorController@insuranceVendorList');
         });
         /**
          * Routes for FOMEMA Clinics.
@@ -267,6 +268,64 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('create', 'V1\DirectRecruitmentOnboardingAgentController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingAgentController@update');
                 });
+                $router->group(['prefix' => 'attestation'], function () use ($router) {
+                    //Attestation
+                    $router->post('list', 'V1\DirectRecruitmentOnboardingAttestationController@list');
+                    $router->post('show', 'V1\DirectRecruitmentOnboardingAttestationController@show');
+                    $router->post('create', 'V1\DirectRecruitmentOnboardingAttestationController@create');
+                    $router->post('update', 'V1\DirectRecruitmentOnboardingAttestationController@update');
+                    //Dispatch
+                    $router->post('showDispatch', 'V1\DirectRecruitmentOnboardingAttestationController@showDispatch');
+                    $router->post('updateDispatch', 'V1\DirectRecruitmentOnboardingAttestationController@updateDispatch');
+                    //Embassy Attestation Costing
+                    $router->post('listEmbassy', 'V1\DirectRecruitmentOnboardingAttestationController@listEmbassy');
+                    $router->post('showEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@showEmbassyFile');
+                    $router->post('uploadEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@uploadEmbassyFile');
+                    $router->post('deleteEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@deleteEmbassyFile');
+                });
+                $router->group(['prefix' => 'callingVisa'], function () use ($router) {
+                    $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');
+                    $router->post('cancelWorker', 'V1\DirectRecruitmentCallingVisaController@cancelWorker');
+                    $router->group(['prefix' => 'process'], function () use ($router) {
+                        $router->post('submitCallingVisa', 'V1\DirectRecruitmentCallingVisaController@submitCallingVisa');
+                        $router->post('workersList', 'V1\DirectRecruitmentCallingVisaController@workersList');
+                        $router->post('show', 'V1\DirectRecruitmentCallingVisaController@show');
+                    });
+                    $router->group(['prefix' => 'insurancePurchase'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentInsurancePurchaseController@workersList');
+                        $router->post('show', 'V1\DirectRecruitmentInsurancePurchaseController@show');
+                        $router->post('submit', 'V1\DirectRecruitmentInsurancePurchaseController@submit');
+                    });
+                    $router->group(['prefix' => 'approval'], function () use ($router) {
+                        $router->post('approvalStatusUpdate', 'V1\DirectRecruitmentCallingVisaApprovalController@approvalStatusUpdate');
+                        $router->post('workersList', 'V1\DirectRecruitmentCallingVisaApprovalController@workersList');
+                        $router->post('show', 'V1\DirectRecruitmentCallingVisaApprovalController@show');
+                    });
+                    $router->group(['prefix' => 'immigrationFeePaid'], function () use ($router) {
+                        $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentImmigrationFeePaidController@listBasedOnCallingVisa');
+                        $router->post('update', 'V1\DirectRecruitmentImmigrationFeePaidController@update');
+                        $router->post('workersList', 'V1\DirectRecruitmentImmigrationFeePaidController@workersList');
+                    });
+                    $router->group(['prefix' => 'generation'], function () use ($router) {
+                        $router->post('generatedStatusUpdate', 'V1\DirectRecruitmentCallingVisaGenerateController@generatedStatusUpdate');
+                        $router->post('workersList', 'V1\DirectRecruitmentCallingVisaGenerateController@workersList');
+                        $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentCallingVisaGenerateController@listBasedOnCallingVisa');
+                    });
+                    $router->group(['prefix' => 'dispatch'], function () use ($router) {
+                        $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentCallingVisaDispatchController@listBasedOnCallingVisa');
+                        $router->post('update', 'V1\DirectRecruitmentCallingVisaDispatchController@update');
+                        $router->post('workersList', 'V1\DirectRecruitmentCallingVisaDispatchController@workersList');
+					});
+                });
+                $router->group(['prefix' => 'arrival'], function () use ($router) {
+                    $router->post('list', 'V1\DirectRecruitmentArrivalController@list');
+                    $router->post('submit', 'V1\DirectRecruitmentArrivalController@submit');
+                    $router->post('update', 'V1\DirectRecruitmentArrivalController@update');
+                    $router->post('show', 'V1\DirectRecruitmentArrivalController@show');
+                    $router->post('workersListForSubmit', 'V1\DirectRecruitmentArrivalController@workersListForSubmit');
+                    $router->post('workersListForUpdate', 'V1\DirectRecruitmentArrivalController@workersListForUpdate');
+                    $router->post('cancelWorker', 'V1\DirectRecruitmentArrivalController@cancelWorker');
+                });
             });
         });
         /**
@@ -343,6 +402,23 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'applicationSummary'], function () use ($router) {
             $router->post('list', 'V1\ApplicationSummaryController@list');
             $router->post('listKsmReferenceNumber', 'V1\ApplicationSummaryController@listKsmReferenceNumber');
+        });
+
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'worker'], function () use ($router) {
+            $router->post('list', 'V1\WorkersController@list');
+            $router->post('show', 'V1\WorkersController@show');
+            $router->post('create', 'V1\WorkersController@create');
+            $router->post('update', 'V1\WorkersController@update');
+            $router->post('export', 'V1\WorkersController@export');
+            $router->post('dropdown', 'V1\WorkersController@dropdown');
+            $router->post('updateStatus', 'V1\WorkersController@updateStatus');
+            $router->post('kinRelationship', 'V1\WorkersController@kinRelationship');
+            $router->post('onboardingAgent', 'V1\WorkersController@onboardingAgent');
+            $router->post('replaceWorker', 'V1\WorkersController@replaceWorker');
+            $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
         });
     });
 });

@@ -61,5 +61,6 @@ return [
     'APPROVAL_COMPLETED' => env('APPROVAL_COMPLETED', 7),
     'FWCMS_REJECTED' => env('FWCMS_REJECTED', 8),
 
-    'ROLE_TYPE_ADMIN' => 'Admin'
+    'ROLE_TYPE_ADMIN' => 'Admin',
+    'CALLING_VISA_WORKER_COUNT' => env('CALLING_VISA_WORKER_COUNT', 30),
 ];

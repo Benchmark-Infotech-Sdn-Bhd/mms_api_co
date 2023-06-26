@@ -1,0 +1,121 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\DirectRecruitmentCallingVisaStatus;
+use App\Models\Workers;
+use App\Models\WorkerVisa;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
+class DirectRecruitmentCallingVisaGenerateServices
+{
+    /**
+     * @var Workers
+     */
+    private Workers $workers;
+    /**
+     * @var WorkerVisa
+     */
+    private WorkerVisa $workerVisa;
+    /**
+     * @var DirectRecruitmentCallingVisaStatus
+     */
+    private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
+
+    /**
+     * DirectRecruitmentCallingVisaGenerateServices constructor.
+     * @param Workers $workers
+     * @param WorkerVisa $workerVisa
+     * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
+     */
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
+    {
+        $this->workers                                = $workers;
+        $this->workerVisa                             = $workerVisa;
+        $this->directRecruitmentCallingVisaStatus     = $directRecruitmentCallingVisaStatus;
+    }
+    /**
+     * @return array
+     */
+    public function searchValidation(): array
+    {
+        return [
+            'search' => 'required|min:3'
+        ];
+    }
+    /**
+     * @param $request
+     * @return bool|array
+     */
+    public function generatedStatusUpdate($request): bool|array
+    {
+        if(isset($request['workers']) && !empty($request['workers'])) {
+            $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['generated_status' => 'Generated', 'modified_by' => $request['modified_by']]);
+        }
+        $this->directRecruitmentCallingVisaStatus->where([
+            'application_id' => $request['application_id'],
+            'onboarding_country_id' => $request['onboarding_country_id'],
+        ])->update(['updated_on' => Carbon::now(), 'modified_by' => $request['modified_by']]);
+        return true;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function workersList($request): mixed
+    {
+        return $this->workers
+            ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
+            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'workers.id')
+            ->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number'])
+            ->where('worker_visa.ksm_reference_number', $request['ksm_reference_number'])
+            ->where('workers.cancel_status', 0)
+            ->select('workers.id', 'workers.name', 'workers.gender', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until')->distinct('workers.id')
+           ->get();
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function listBasedOnCallingVisa($request): mixed
+    {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
+        return $this->workers
+            ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
+            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->leftJoin('worker_immigration', 'worker_immigration.worker_id', 'workers.id')
+            ->where('worker_visa.generated_status', '!=', 'Generated')
+            ->where([
+                'workers.application_id' => $request['application_id'],
+                'workers.onboarding_country_id' => $request['onboarding_country_id'],
+                'workers.cancel_status' => 0,
+                'worker_immigration.immigration_status' => 'Paid'
+            ])
+            ->where(function ($query) use ($request) {
+                if(isset($request['search']) && !empty($request['search'])) {
+                    $query->Where('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
+                    ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
+                }
+            })
+            ->where(function ($query) use ($request) {
+                if(isset($request['agent_id']) && !empty($request['agent_id'])) {
+                    $query->where('workers.agent_id', $request['agent_id']);
+                }
+            })
+            ->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_valid_until', DB::raw('COUNT(workers.id) as workers', 'worker_immigration.immigration_status'))
+            ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_valid_until', 'worker_immigration.immigration_status')
+            ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
+            ->paginate(Config::get('services.paginate_row'));
+    }
+}
