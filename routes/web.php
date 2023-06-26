@@ -317,6 +317,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('workersList', 'V1\DirectRecruitmentCallingVisaDispatchController@workersList');
 					});
                 });
+                $router->group(['prefix' => 'arrival'], function () use ($router) {
+                    $router->post('list', 'V1\DirectRecruitmentArrivalController@list');
+                    $router->post('submit', 'V1\DirectRecruitmentArrivalController@submit');
+                    $router->post('update', 'V1\DirectRecruitmentArrivalController@update');
+                    $router->post('show', 'V1\DirectRecruitmentArrivalController@show');
+                    $router->post('workersListForSubmit', 'V1\DirectRecruitmentArrivalController@workersListForSubmit');
+                    $router->post('workersListForUpdate', 'V1\DirectRecruitmentArrivalController@workersListForUpdate');
+                    $router->post('cancelWorker', 'V1\DirectRecruitmentArrivalController@cancelWorker');
+                });
             });
         });
         /**
