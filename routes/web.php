@@ -327,11 +327,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('cancelWorker', 'V1\DirectRecruitmentArrivalController@cancelWorker');
                 });
                 $router->group(['prefix' => 'postArrival'], function () use ($router) {
-                    $router->post('updatePostArrival', 'V1\DirecRecruitmentPostArrivalController@updatePostArrival');
-                    $router->post('UpdateJTKSubmission', 'V1\DirecRecruitmentPostArrivalController@UpdateJTKSubmission');
-                    $router->post('updateCancellation', 'V1\DirecRecruitmentPostArrivalController@updateCancellation');
-                    $router->post('updatePostponed', 'V1\DirecRecruitmentPostArrivalController@updatePostponed');
-
+                    $router->group(['prefix' => 'arrival'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirecRecruitmentPostArrivalController@workersList');
+                        $router->post('updatePostArrival', 'V1\DirecRecruitmentPostArrivalController@updatePostArrival');
+                        $router->post('updateJTKSubmission', 'V1\DirecRecruitmentPostArrivalController@updateJTKSubmission');
+                        $router->post('updateCancellation', 'V1\DirecRecruitmentPostArrivalController@updateCancellation');
+                        $router->post('updatePostponed', 'V1\DirecRecruitmentPostArrivalController@updatePostponed');
+                    });
                 });
             });
         });

@@ -26,6 +26,26 @@ class DirecRecruitmentPostArrivalController extends Controller
         $this->direcRecruitmentPostArrivalServices = $direcRecruitmentPostArrivalServices;
     }
     /**
+     * Dispaly list of workers for post arrival.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function workersList(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->direcRecruitmentPostArrivalServices->workersList($params);
+            if(isset($response['error']) && !empty($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Workers'], 400);
+        }
+    }
+    /**
      * Update post arrival details.
      *
      * @param Request $request
@@ -53,7 +73,7 @@ class DirecRecruitmentPostArrivalController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function UpdateJTKSubmission(Request $request) : JsonResponse
+    public function updateJTKSubmission(Request $request) : JsonResponse
     {
         try {
             $params = $this->getRequest($request);
@@ -78,10 +98,9 @@ class DirecRecruitmentPostArrivalController extends Controller
     public function updateCancellation(Request $request) : JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['modified_by'] = $user['id'];
-            $response = $this->direcRecruitmentPostArrivalServices->updateCancellation($params);
+            $request['modified_by'] = $user['id'];
+            $response = $this->direcRecruitmentPostArrivalServices->updateCancellation($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }

@@ -7,6 +7,7 @@ use App\Models\WorkerVisa;
 use App\Models\DirectrecruitmentArrival;
 use App\Models\WorkerArrival;
 use App\Models\CancellationAttachment;
+use App\Models\DirectRecruitmentPostArrivalStatus;
 use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -42,6 +43,11 @@ class DirectRecruitmentArrivalServices
     private CancellationAttachment $cancellationAttachment;
 
     /**
+     * @var DirectRecruitmentPostArrivalStatus
+     */
+    private DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus;
+
+    /**
      * @var Storage
      */
     private Storage $storage;
@@ -54,15 +60,17 @@ class DirectRecruitmentArrivalServices
      * @param DirectrecruitmentArrival $directrecruitmentArrival
      * @param WorkerArrival $workerArrival
      * @param CancellationAttachment $cancellationAttachment
+     * @param DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus
      * @param Storage $storage;
      */
-    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectrecruitmentArrival $directrecruitmentArrival, WorkerArrival $workerArrival, CancellationAttachment $cancellationAttachment, Storage $storage)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectrecruitmentArrival $directrecruitmentArrival, WorkerArrival $workerArrival, CancellationAttachment $cancellationAttachment, DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, Storage $storage)
     {
         $this->workers                            = $workers;
         $this->workerVisa                         = $workerVisa;
         $this->directrecruitmentArrival           = $directrecruitmentArrival;
         $this->workerArrival                      = $workerArrival;
         $this->cancellationAttachment             = $cancellationAttachment;
+        $this->directRecruitmentPostArrivalStatus = $directRecruitmentPostArrivalStatus;
         $this->storage = $storage;
     }
     /**
@@ -235,6 +243,14 @@ class DirectRecruitmentArrivalServices
                     'modified_by' => $request['created_by']
                 ]);
             }
+            $this->directRecruitmentPostArrivalStatus->create([
+                'application_id' => $request['application_id'],
+                'onboarding_country_id' => $request['onboarding_country_id'],
+                'item' => 'Post Arrival',
+                'updated_on' => Carbon::now(),
+                'created_by' => $request['created_by'],
+                'modified_by' => $request['created_by']
+            ]);
             return true;
         }else{
             return false;
