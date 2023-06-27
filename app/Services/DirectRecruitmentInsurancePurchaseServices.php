@@ -169,12 +169,12 @@ class DirectRecruitmentInsurancePurchaseServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
 
-            $request['workers'] = explode(",", $request['workers']);
+            $workers = explode(",", $request['workers']);
 
-            if(is_array($request['workers'])){
+            if(is_array($workers)){
 
                 $workerVisaProcessed = $this->workerVisa
-            ->whereIn('worker_id', $request['workers'])
+            ->whereIn('worker_id', $workers)
             ->where('status', 'Processed')
             ->select('calling_visa_reference_number')
             ->groupBy('calling_visa_reference_number')
@@ -186,7 +186,7 @@ class DirectRecruitmentInsurancePurchaseServices
                     'calling_visa_reference_number' => $workerVisaProcessed[0]['calling_visa_reference_number'] ?? ''
                     ])->count('worker_id');
 
-                if( count($request['workers']) <> $callingVisaReferenceNumberCount ){
+                if( count($workers) <> $callingVisaReferenceNumberCount ){
                     return [
                         'workerCountError' => true
                     ];
@@ -210,7 +210,7 @@ class DirectRecruitmentInsurancePurchaseServices
                 $fileUrl = '';
             }
 
-            foreach ($request['workers'] as $workerId) {
+            foreach ($workers as $workerId) {
 
                 $this->workerInsuranceDetails->updateOrCreate(
                     ['worker_id' => $workerId],

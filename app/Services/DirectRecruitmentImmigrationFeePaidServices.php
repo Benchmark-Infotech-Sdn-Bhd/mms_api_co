@@ -98,9 +98,9 @@ class DirectRecruitmentImmigrationFeePaidServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
 
-            $request['workers'] = explode(",", $request['workers']);
+            $workers = explode(",", $request['workers']);
 
-            if(is_array($request['workers'])){
+            if(is_array($workers)){
 
                 if (request()->hasFile('attachment')){
                     foreach($request->file('attachment') as $file){
@@ -115,7 +115,7 @@ class DirectRecruitmentImmigrationFeePaidServices
                     $fileUrl = '';
                 }
 
-                foreach ($request['workers'] as $workerId) {
+                foreach ($workers as $workerId) {
 
                     $this->workerImmigration->updateOrCreate(
                         ['worker_id' => $workerId],
@@ -141,7 +141,7 @@ class DirectRecruitmentImmigrationFeePaidServices
                     'onboarding_country_id' => $request['onboarding_country_id']
                 ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
                 return true;
-                
+
             } else{
                 return  false;
             }

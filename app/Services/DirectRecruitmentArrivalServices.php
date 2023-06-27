@@ -301,9 +301,9 @@ class DirectRecruitmentArrivalServices
 
         if(isset($request['workers']) && !empty($request['workers'])) {
 
-            $request['workers'] = explode(",", $request['workers']);
+            $workers = explode(",", $request['workers']);
 
-            if(is_array($request['workers'])){
+            if(is_array($workers)){
 
                 if (request()->hasFile('attachment')){
                     foreach($request->file('attachment') as $file){
@@ -319,14 +319,14 @@ class DirectRecruitmentArrivalServices
                 }
     
                 $this->workerArrival
-                ->whereIn('worker_id', $request['workers'])
+                ->whereIn('worker_id', $workers)
                 ->where('arrival_id',  $request['arrival_id'])
                 ->update(
                     ['arrival_status' => 'Cancelled', 
                     'updated_at' => Carbon::now(),
                     'modified_by' => $params['created_by']]);
     
-                foreach ($request['workers'] as $workerId) {
+                foreach ($workers as $workerId) {
     
                     if(!empty($fileName) && !empty($fileUrl)){
                         $this->cancellationAttachment->updateOrCreate(
@@ -340,7 +340,7 @@ class DirectRecruitmentArrivalServices
     
                 }
                 return true;
-                
+
             } else{
                 return false;
             }
