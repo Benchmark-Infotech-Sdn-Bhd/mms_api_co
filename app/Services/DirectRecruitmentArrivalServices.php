@@ -301,41 +301,50 @@ class DirectRecruitmentArrivalServices
 
         if(isset($request['workers']) && !empty($request['workers'])) {
 
-            if (request()->hasFile('attachment')){
-                foreach($request->file('attachment') as $file){
-                    $fileName = $file->getClientOriginalName();
-                    $filePath = '/directRecruitment/arrival/cancellation/' . $fileName; 
-                    $linode = $this->storage::disk('linode');
-                    $linode->put($filePath, file_get_contents($file));
-                    $fileUrl = $this->storage::disk('linode')->url($filePath);  
+            $workers = explode(",", $request['workers']);
+
+            if(is_array($workers)){
+
+                if (request()->hasFile('attachment')){
+                    foreach($request->file('attachment') as $file){
+                        $fileName = $file->getClientOriginalName();
+                        $filePath = '/directRecruitment/arrival/cancellation/' . $fileName; 
+                        $linode = $this->storage::disk('linode');
+                        $linode->put($filePath, file_get_contents($file));
+                        $fileUrl = $this->storage::disk('linode')->url($filePath);  
+                    }
+                }else{
+                    $fileName = '';
+                    $fileUrl = '';
                 }
-            }else{
-                $fileName = '';
-                $fileUrl = '';
+    
+                $this->workerArrival
+                ->whereIn('worker_id', $workers)
+                ->where('arrival_id',  $request['arrival_id'])
+                ->update(
+                    ['arrival_status' => 'Cancelled', 
+                    'updated_at' => Carbon::now(),
+                    'modified_by' => $params['created_by']]);
+    
+                foreach ($workers as $workerId) {
+    
+                    if(!empty($fileName) && !empty($fileUrl)){
+                        $this->cancellationAttachment->updateOrCreate(
+                            ['file_id' => $workerId],
+                            ["file_name" => $fileName,
+                            "file_type" => 'Arrival Cancellation Letter',
+                            "file_url" =>  $fileUrl,
+                            "remarks" => $request['remarks'] ?? ''
+                        ]);
+                    }
+    
+                }
+                return true;
+
+            } else{
+                return false;
             }
 
-            $this->workerArrival
-            ->whereIn('worker_id', $request['workers'])
-            ->where('arrival_id',  $request['arrival_id'])
-            ->update(
-                ['arrival_status' => 'Cancelled', 
-                'updated_at' => Carbon::now(),
-                'modified_by' => $params['created_by']]);
-
-            foreach ($request['workers'] as $workerId) {
-
-                if(!empty($fileName) && !empty($fileUrl)){
-                    $this->cancellationAttachment->updateOrCreate(
-                        ['file_id' => $workerId],
-                        ["file_name" => $fileName,
-                        "file_type" => 'Arrival Cancellation Letter',
-                        "file_url" =>  $fileUrl,
-                        "remarks" => $request['remarks'] ?? ''
-                    ]);
-                }
-
-            }
-            return true;
         }else{
             return false;
         }
