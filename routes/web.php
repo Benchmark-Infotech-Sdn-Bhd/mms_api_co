@@ -334,6 +334,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('updateCancellation', 'V1\DirecRecruitmentPostArrivalController@updateCancellation');
                         $router->post('updatePostponed', 'V1\DirecRecruitmentPostArrivalController@updatePostponed');
                     });
+                    $router->group(['prefix' => 'fomema'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentPostArrivalFomemaController@workersList');
+                        $router->post('purchase', 'V1\DirectRecruitmentPostArrivalFomemaController@purchase');
+                        $router->post('fomemaFit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaFit');
+                        $router->post('fomemaUnfit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaUnfit');
+                    });
                 });
             });
         });
