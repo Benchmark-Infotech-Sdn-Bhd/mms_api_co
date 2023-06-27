@@ -168,8 +168,12 @@ class DirectRecruitmentInsurancePurchaseServices
             ];
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
-            
-            $workerVisaProcessed = $this->workerVisa
+
+            $request['workers'] = explode(",", $request['workers']);
+
+            if(is_array($request['workers'])){
+
+                $workerVisaProcessed = $this->workerVisa
             ->whereIn('worker_id', $request['workers'])
             ->where('status', 'Processed')
             ->select('calling_visa_reference_number')
@@ -237,6 +241,10 @@ class DirectRecruitmentInsurancePurchaseServices
                 'onboarding_country_id' => $request['onboarding_country_id'],
             ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
             return true;
+
+            }else{
+                return false;
+            }
         }else{
             return false;
         }
