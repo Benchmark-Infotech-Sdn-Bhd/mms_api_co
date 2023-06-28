@@ -213,7 +213,6 @@ class DirectRecruitmentPostArrivalFomemaServices
                 ]);
             if(request()->hasFile('attachment')) {
                 foreach ($request['workers'] as $workerId) {
-                    echo $workerId;
                     foreach($request->file('attachment') as $file) {
                         $fileName = $file->getClientOriginalName();
                         $filePath = 'directRecruitment/workers/fomema/' . $workerId. '/'. $fileName; 
