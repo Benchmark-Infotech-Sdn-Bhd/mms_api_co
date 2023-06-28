@@ -363,6 +363,44 @@ class ProcessCallingVisaUnitTest extends TestCase
             'quota' => 10
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1,
+            'onboarding_country_id' => 1,
+            'agent_id' => 1,
+            'name' => 'TestWorker',
+            'date_of_birth' => '2023-05-13',
+            'gender' => 'Female',
+            'passport_number' => 123456789154,
+            'passport_valid_until' => '2023-05-13',
+            'fomema_valid_until' => '2023-05-13',
+            'address' => 'address',
+            'city' => 'city',
+            'state' => 'state',
+            'kin_name' => 'Kin name',
+            'kin_relationship_id' => 1,
+            'kin_contact_number' => 1234567890,
+            'ksm_reference_number' => 'My/643/7684548',
+            'calling_visa_reference_number' => 'asdfdq434214',
+            'calling_visa_valid_until' => '2023-05-13',
+            'entry_visa_valid_until' => '2023-05-13',
+            'work_permit_valid_until' => '2023-05-13',
+            'bio_medical_reference_number' => 'BIO1234567',
+            'bio_medical_valid_until' => '2023-05-13',
+            'purchase_date' => '2023-05-13',
+            'clinic_name' => 'Test Clinic',
+            'doctor_code' => 'Doc123',
+            'allocated_xray' => 'Tst1234',
+            'xray_code' => 'Xray1234',
+            'ig_policy_number' => 'ig223422233',
+            'ig_policy_number_valid_until' => '2023-05-13',
+            'hospitalization_policy_number' => '2023-05-13',
+            'hospitalization_policy_number_valid_until' => '2023-05-13',
+            'bank_name' => 'Bank Name',
+            'account_number' => 1234556678,
+            'socso_number' => 12345678
+        ];
+        $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
     }
     /**
      * @return array

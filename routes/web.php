@@ -329,6 +329,21 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('cancelWorkerDetail', 'V1\DirectRecruitmentArrivalController@cancelWorkerDetail');
                     $router->post('callingvisaReferenceNumberList', 'V1\DirectRecruitmentArrivalController@callingvisaReferenceNumberList');
                 });
+                $router->group(['prefix' => 'postArrival'], function () use ($router) {
+                    $router->group(['prefix' => 'arrival'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirecRecruitmentPostArrivalController@workersList');
+                        $router->post('updatePostArrival', 'V1\DirecRecruitmentPostArrivalController@updatePostArrival');
+                        $router->post('updateJTKSubmission', 'V1\DirecRecruitmentPostArrivalController@updateJTKSubmission');
+                        $router->post('updateCancellation', 'V1\DirecRecruitmentPostArrivalController@updateCancellation');
+                        $router->post('updatePostponed', 'V1\DirecRecruitmentPostArrivalController@updatePostponed');
+                    });
+                    $router->group(['prefix' => 'fomema'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentPostArrivalFomemaController@workersList');
+                        $router->post('purchase', 'V1\DirectRecruitmentPostArrivalFomemaController@purchase');
+                        $router->post('fomemaFit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaFit');
+                        $router->post('fomemaUnfit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaUnfit');
+                    });
+                });
             });
         });
         /**

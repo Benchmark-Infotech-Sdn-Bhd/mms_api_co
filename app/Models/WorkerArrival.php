@@ -17,7 +17,5 @@ class WorkerArrival extends Model implements Auditable
      *
      * @var string[]
      */
-    protected $fillable = [
-        'arrival_id', 'worker_id', 'arrival_status', 'created_by', 'modified_by'
-    ];
+    protected $fillable = ['arrival_id', 'worker_id', 'arrival_status', 'arrived_date', 'entry_visa_valid_until', 'jtk_submitted_on', 'remarks', 'created_by', 'modified_by'];
 }
