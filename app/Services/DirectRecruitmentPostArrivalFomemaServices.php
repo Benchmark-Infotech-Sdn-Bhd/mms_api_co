@@ -101,7 +101,7 @@ class DirectRecruitmentPostArrivalFomemaServices
             'allocated_xray' => 'required|regex:/^[a-zA-Z ]*$/',
             'xray_code' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'fomema_valid_until' => 'required|date|date_format:Y-m-d|after:yesterday',
-            'attachment.*' => 'required|mimes:jpeg,pdf,png|max:2048'
+            'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];
     }
     /**
@@ -110,7 +110,7 @@ class DirectRecruitmentPostArrivalFomemaServices
     public function fomemaUnfitValidation(): array
     {
         return [
-            'attachment.*' => 'required|mimes:jpeg,pdf,png|max:2048'
+            'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
 
         ];
     }
