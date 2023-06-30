@@ -159,5 +159,64 @@ class DirectRecruitmentArrivalController extends Controller
             return $this->sendError(['message' => 'Failed to Cancel Worker'], 400);
         }
     }
+    /**
+     * Dispaly the worker detail
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function cancelWorkerDetail(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentArrivalServices->cancelWorkerDetail($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Display Worker Details'], 400);
+        }
+    }
+    /**
+     * Dispaly the calling visa reference numbers
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function callingvisaReferenceNumberList(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentArrivalServices->callingvisaReferenceNumberList($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Calling Visa Reference Number'], 400);
+        }
+    }
+    /**
+     * update workers.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateWorkers(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $response = $this->directRecruitmentArrivalServices->updateWorkers($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            } else if($response == true ){
+                return $this->sendSuccess(['message' => 'Workers Updated Successfully']);
+            }else{
+                return $this->sendError(['message' => 'Failed to Update Worker'], 400);
+            }
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update Worker'], 400);
+        }
+    }
     
 }
