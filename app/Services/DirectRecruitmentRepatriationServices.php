@@ -3,23 +3,28 @@
 namespace App\Services;
 
 use App\Models\DirectRecruitmentPostArrivalStatus;
-use App\Models\WorkerPLKSAttachments;
+use App\Models\WorkerRepatriation;
+use App\Models\WorkerRepatriationAttachments;
 use App\Models\Workers;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
-class DirectRecruitmentPostArrivalFomemaServices
+class DirectRecruitmentRepatriationServices
 {
     /**
      * @var DirectRecruitmentPostArrivalStatus
      */
     private DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus;
     /**
-     * @var WorkerPLKSAttachments
+     * @var WorkerRepatriation
      */
-    private WorkerPLKSAttachments $workerPLKSAttachments;
+    private WorkerRepatriation $workerRepatriation;
+    /**
+     * @var WorkerRepatriationAttachments
+     */
+    private WorkerRepatriationAttachments $workerRepatriationAttachments;
     /**
      * @var workers
      */
@@ -30,16 +35,18 @@ class DirectRecruitmentPostArrivalFomemaServices
     private Storage $storage;
 
     /**
-     * DirectRecruitmentPostArrivalFomemaServices constructor.
+     * DirectRecruitmentRepatriationServices constructor.
      * @param DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus
-     * @param WorkerPLKSAttachments $workerPLKSAttachments
+     * @param WorkerRepatriation $workerRepatriation
+     * @param WorkerRepatriationAttachments $workerRepatriationAttachments
      * @param Workers $workers
      * @param Storage $storage
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerPLKSAttachments $workerPLKSAttachments, Workers $workers, Storage $storage)
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerRepatriation $workerRepatriation, WorkerRepatriationAttachments $workerRepatriationAttachments, Workers $workers, Storage $storage)
     {
         $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
-        $this->workerPLKSAttachments                = $workerPLKSAttachments;
+        $this->workerRepatriation                   = $workerRepatriation;
+        $this->workerRepatriationAttachments        = $workerRepatriationAttachments;
         $this->workers                              = $workers;
         $this->storage                              = $storage;
     }
@@ -58,7 +65,10 @@ class DirectRecruitmentPostArrivalFomemaServices
     public function createValidation(): array
     {
         return [
-            'plks_expiry_date' => 'required|date|date_format:Y-m-d|after:yesterday',
+            'flight_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
+            'flight_date' => 'required|date|date_format:Y-m-d|after:yesterday',
+            'expenses' => 'required|regex:/^[0-9]*$/',
+            'checkout_memo_reference_number' => 'required|regex:/^[0-9]*$/',
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];
     }
@@ -93,7 +103,7 @@ class DirectRecruitmentPostArrivalFomemaServices
             ->where([
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'worker_fomema.fomema_status' => 'Fit'
+                'worker_fomema.fomema_status' => 'Unfit'
             ])
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
@@ -102,7 +112,7 @@ class DirectRecruitmentPostArrivalFomemaServices
                     ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%');
                 }
             })
-            ->select('workers.id', 'workers.application_id', 'workers.onboarding_country_id', 'workers.name', 'worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'workers.fomema_valid_until', 'workers.special_pass_valid_until', 'workers.plks_status')->distinct('workers.id')
+            ->select('workers.id', 'workers.application_id', 'workers.onboarding_country_id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'worker_fomema.fomema_status')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
@@ -110,7 +120,7 @@ class DirectRecruitmentPostArrivalFomemaServices
      * @param $request
      * @return array|bool
      */
-    public function updatePLKS($request): array|bool
+    public function updateRepatriation($request): array|bool
     {
         $validator = Validator::make($request->toArray(), $this->createValidation());
         if($validator->fails()) {
@@ -120,29 +130,30 @@ class DirectRecruitmentPostArrivalFomemaServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
             $request['workers'] = explode(',', $request['workers']);
-            $this->workers->whereIn('worker_id', $request['workers'])
-                ->update([
-                    'plks_status' => 'Approved', 
-                    'plks_expiry_date' => $request['plks_expiry_date'], 
+            foreach ($request['workers'] as $workerId) {
+                $this->workerRepatriation->create([
+                    'worker_id' => $workerId,
+                    'flight_number' => $request['flight_number'],
+                    'flight_date' => $request['flight_date'],
+                    'expenses' => $request['expenses'],
+                    'checkout_memo_reference_number' => $request['checkout_memo_reference_number'],
+                    'created_by' => $request['modified_by'],
                     'modified_by' => $request['modified_by']
                 ]);
-            if(request()->hasFile('attachment')) {
-                foreach ($request['workers'] as $workerId) {
-                    foreach($request->file('attachment') as $file) {
-                        $fileName = $file->getClientOriginalName();
-                        $filePath = 'directRecruitment/workers/plks/' . $workerId. '/'. $fileName; 
-                        $linode = $this->storage::disk('linode');
-                        $linode->put($filePath, file_get_contents($file));
-                        $fileUrl = $this->storage::disk('linode')->url($filePath);
-                        $this->workerPLKSAttachments->create([
-                            'file_id' => $workerId,
-                            'file_name' => $fileName,
-                            'file_type' => 'PLKS',
-                            'file_url' => $fileUrl,
-                            'created_by' => $request['modified_by'],
-                            'modified_by' => $request['modified_by']
-                        ]);
-                    }
+                foreach($request->file('attachment') as $file) {
+                    $fileName = $file->getClientOriginalName();
+                    $filePath = 'directRecruitment/workers/repatriation/' . $workerId. '/'. $fileName; 
+                    $linode = $this->storage::disk('linode');
+                    $linode->put($filePath, file_get_contents($file));
+                    $fileUrl = $this->storage::disk('linode')->url($filePath);
+                    $this->workerRepatriationAttachments->create([
+                        'file_id' => $workerId,
+                        'file_name' => $fileName,
+                        'file_type' => 'Repatriation',
+                        'file_url' => $fileUrl,
+                        'created_by' => $request['modified_by'],
+                        'modified_by' => $request['modified_by']
+                    ]);
                 }
             }
         }

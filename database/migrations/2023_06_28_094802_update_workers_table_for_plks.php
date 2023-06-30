@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('workers', function (Blueprint $table) {
             // Column for PLKS status
-            $table->date('plks_status')->nullable()->after('special_pass_valid_until');
+            $table->enum('plks_status', ['Pending', 'Approved'])->default('Pending')->after('special_pass_valid_until');
             // Column for PLKS expiry date
             $table->date('plks_expiry_date')->nullable()->after('plks_status');
         });
