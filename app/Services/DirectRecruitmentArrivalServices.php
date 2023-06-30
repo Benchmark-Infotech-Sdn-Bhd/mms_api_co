@@ -181,7 +181,7 @@ class DirectRecruitmentArrivalServices
                 ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
             }
         })
-        ->select('workers.id', 'workers.name', 'workers.passport_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on')
+        ->select('workers.id', 'workers.name', 'workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on')
         ->distinct('workers.id')
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
@@ -205,7 +205,7 @@ class DirectRecruitmentArrivalServices
             ['workers.cancel_status', 0],
             ['worker_arrival.arrival_id', $request['arrival_id']]
         ])
-        ->select('workers.id', 'workers.name', 'workers.passport_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_arrival.arrival_status')
+        ->select('workers.id', 'workers.name', 'workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_arrival.arrival_status')
         ->distinct('workers.id')
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
