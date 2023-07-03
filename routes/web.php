@@ -343,6 +343,14 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('fomemaFit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaFit');
                         $router->post('fomemaUnfit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaUnfit');
                     });
+                    $router->group(['prefix' => 'plks'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentPostArrivalPLKSController@workersList');
+                        $router->post('updatePLKS', 'V1\DirectRecruitmentPostArrivalPLKSController@updatePLKS');
+                    });
+                    $router->group(['prefix' => 'repatriation'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentRepatriationController@workersList');
+                        $router->post('updateRepatriation', 'V1\DirectRecruitmentRepatriationController@updateRepatriation');
+                    });
                 });
             });
         });

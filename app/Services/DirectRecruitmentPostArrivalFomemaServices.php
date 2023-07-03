@@ -3,9 +3,6 @@
 namespace App\Services;
 
 use App\Models\DirectRecruitmentPostArrivalStatus;
-use App\Models\WorkerVisa;
-use App\Models\WorkerArrival;
-use App\Models\DirectrecruitmentArrival;
 use App\Models\WorkerFomema;
 use App\Models\FOMEMAAttachment;
 use App\Models\Workers;
@@ -20,18 +17,6 @@ class DirectRecruitmentPostArrivalFomemaServices
      * @var DirectRecruitmentPostArrivalStatus
      */
     private DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus;
-    /**
-     * @var WorkerVisa
-     */
-    private WorkerVisa $workerVisa;
-    /**
-     * @var WorkerArrival
-     */
-    private WorkerArrival $workerArrival;
-    /**
-     * @var DirectrecruitmentArrival
-     */
-    private DirectrecruitmentArrival $directrecruitmentArrival;
     /**
      * @var WorkerFomema
      */
@@ -52,20 +37,14 @@ class DirectRecruitmentPostArrivalFomemaServices
     /**
      * DirectRecruitmentPostArrivalFomemaServices constructor.
      * @param DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus
-     * @param WorkerVisa $workerVisa
-     * @param WorkerArrival $workerArrival
-     * @param DirectrecruitmentArrival $directrecruitmentArrival
      * @param WorkerFomema $workerFomema
      * @param FOMEMAAttachment $fomemaAttachment
      * @param Workers $workers
      * @param Storage $storage
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerVisa $workerVisa, WorkerArrival $workerArrival, DirectrecruitmentArrival $directrecruitmentArrival, WorkerFomema $workerFomema, FOMEMAAttachment $fomemaAttachment, Workers $workers, Storage $storage)
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerFomema $workerFomema, FOMEMAAttachment $fomemaAttachment, Workers $workers, Storage $storage)
     {
         $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
-        $this->workerVisa                           = $workerVisa;
-        $this->workerArrival                        = $workerArrival;
-        $this->directrecruitmentArrival             = $directrecruitmentArrival;
         $this->workerFomema                         = $workerFomema;
         $this->fomemaAttachment                     = $fomemaAttachment;
         $this->workers                              = $workers;
@@ -199,7 +178,7 @@ class DirectRecruitmentPostArrivalFomemaServices
             $request['workers'] = explode(',', $request['workers']);
             $this->workerFomema->whereIn('worker_id', $request['workers'])
                 ->update([
-                    'clinic_name' => $request['purchase_date'], 
+                    'clinic_name' => $request['clinic_name'], 
                     'doctor_code' => $request['doctor_code'], 
                     'allocated_xray' => $request['allocated_xray'], 
                     'xray_code' => $request['xray_code'],
