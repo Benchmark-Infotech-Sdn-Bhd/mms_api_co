@@ -8,6 +8,7 @@ use App\Models\WorkerArrival;
 use App\Models\DirectrecruitmentArrival;
 use App\Models\CancellationAttachment;
 use App\Models\Workers;
+use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -40,6 +41,10 @@ class DirecRecruitmentPostArrivalServices
      */
     private Workers $workers;
     /**
+     * @var DirectRecruitmentOnboardingCountryServices
+     */
+    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+    /**
      * @var Storage
      */
     private Storage $storage;
@@ -52,17 +57,19 @@ class DirecRecruitmentPostArrivalServices
      * @param DirectrecruitmentArrival $directrecruitmentArrival
      * @param CancellationAttachment $cancellationAttachment
      * @param Workers $workers
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param Storage $storage
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerVisa $workerVisa, WorkerArrival $workerArrival, DirectrecruitmentArrival $directrecruitmentArrival, CancellationAttachment $cancellationAttachment, Workers $workers, Storage $storage)
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerVisa $workerVisa, WorkerArrival $workerArrival, DirectrecruitmentArrival $directrecruitmentArrival, CancellationAttachment $cancellationAttachment, Workers $workers, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, Storage $storage)
     {
-        $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
-        $this->workerVisa                           = $workerVisa;
-        $this->workerArrival                        = $workerArrival;
-        $this->directrecruitmentArrival             = $directrecruitmentArrival;
-        $this->cancellationAttachment               = $cancellationAttachment;
-        $this->workers                              = $workers;
-        $this->storage                              = $storage;
+        $this->directRecruitmentPostArrivalStatus           = $directRecruitmentPostArrivalStatus;
+        $this->workerVisa                                   = $workerVisa;
+        $this->workerArrival                                = $workerArrival;
+        $this->directrecruitmentArrival                     = $directrecruitmentArrival;
+        $this->cancellationAttachment                       = $cancellationAttachment;
+        $this->workers                                      = $workers;
+        $this->directRecruitmentOnboardingCountryServices   = $directRecruitmentOnboardingCountryServices;
+        $this->storage                                      = $storage;
     }
     /**
      * @return array
@@ -190,6 +197,12 @@ class DirecRecruitmentPostArrivalServices
                 ]);
         }
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
+
+        $onBoardingStatus['application_id'] = $request['application_id'];
+        $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
+        $onBoardingStatus['onboarding_status'] = 7; //Agent Added
+        $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+
         return true;
     }
     /**
