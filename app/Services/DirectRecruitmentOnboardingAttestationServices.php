@@ -8,6 +8,7 @@ use App\Models\OnboardingAttestation;
 use App\Models\OnboardingDispatch;
 use App\Models\OnboardingEmbassy;
 use App\Models\EmbassyAttestationFileCosting;
+use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -34,6 +35,11 @@ class DirectRecruitmentOnboardingAttestationServices
     private EmbassyAttestationFileCosting $embassyAttestationFileCosting;
 
     /**
+     * @var DirectRecruitmentOnboardingCountryServices
+     */
+    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+
+    /**
      * @var Storage
      */
     private Storage $storage;
@@ -44,14 +50,16 @@ class DirectRecruitmentOnboardingAttestationServices
      * @param OnboardingDispatch $onboardingDispatch;
      * @param OnboardingEmbassy $onboardingEmbassy;
      * @param EmbassyAttestationFileCosting $embassyAttestationFileCosting;
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param Storage $storage;
      */
-    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, Storage $storage)
+    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, Storage $storage)
     {
         $this->onboardingAttestation = $onboardingAttestation;
         $this->onboardingDispatch = $onboardingDispatch;
         $this->onboardingEmbassy = $onboardingEmbassy;
         $this->embassyAttestationFileCosting = $embassyAttestationFileCosting;
+        $this->directRecruitmentOnboardingCountryServices = $directRecruitmentOnboardingCountryServices;
         $this->storage = $storage;
     }
     /**
@@ -150,6 +158,12 @@ class DirectRecruitmentOnboardingAttestationServices
                 'created_by' => $request['created_by'] ?? 0,
                 'modified_by' => $request['created_by'] ?? 0
             ]);
+
+            $onBoardingStatus['application_id'] = $request['application_id'];
+            $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
+            $onBoardingStatus['onboarding_status'] = 3; //Agent Added
+            $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+
             return true;
         }else{
             return false;
