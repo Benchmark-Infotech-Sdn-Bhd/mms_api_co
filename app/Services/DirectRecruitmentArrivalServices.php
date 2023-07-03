@@ -264,7 +264,7 @@ class DirectRecruitmentArrivalServices
 
             $onBoardingStatus['application_id'] = $request['application_id'];
             $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
-            $onBoardingStatus['onboarding_status'] = 2; //Agent Added
+            $onBoardingStatus['onboarding_status'] = 6; //Agent Added
             $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
 
             return true;
