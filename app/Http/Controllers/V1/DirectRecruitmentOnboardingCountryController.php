@@ -125,4 +125,27 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             return $this->sendError(['message' => 'Failed to List Onboarding Countries'], 400);
         }
     }
+
+    /**
+     * Update country to Onboarding Process Status Update
+     * 
+     * @param Request $request
+     * @return JsonResponse   
+     */
+    public function onboarding_status_update(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $response = $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            } 
+            return $this->sendSuccess(['message' => 'Status Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error = ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Faild to Update Status'], 400);
+        }
+    }
 }

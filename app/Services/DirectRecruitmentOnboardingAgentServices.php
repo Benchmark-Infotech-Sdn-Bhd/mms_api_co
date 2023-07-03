@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use App\Models\DirectRecruitmentOnboardingAgent;
+use App\Services\DirectRecruitmentOnboardingCountryServices;
 
 class DirectRecruitmentOnboardingAgentServices
 {
@@ -19,14 +20,21 @@ class DirectRecruitmentOnboardingAgentServices
     private DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices;
 
     /**
+     * @var DirectRecruitmentOnboardingCountryServices
+     */
+    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+
+    /**
      * DirectRecruitmentOnboardingAgentServices constructor.
      * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
-     * @param DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices;
+     * @param DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      */
-    public function __construct(DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent, DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices)
+    public function __construct(DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent, DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices)
     {
         $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
         $this->directRecruitmentOnboardingAttestationServices = $directRecruitmentOnboardingAttestationServices;
+        $this->directRecruitmentOnboardingCountryServices = $directRecruitmentOnboardingCountryServices;
     }
     /**
      * @return array
@@ -96,6 +104,11 @@ class DirectRecruitmentOnboardingAgentServices
             'modified_by' => $request['created_by'] ?? 0
         ]);
         $this->directRecruitmentOnboardingAttestationServices->create($request);
+
+        $onBoardingStatus['application_id'] = $request['application_id'];
+        $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
+        $onBoardingStatus['onboarding_status'] = 2; //Agent Added
+        $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
         return true;
     }
     /**

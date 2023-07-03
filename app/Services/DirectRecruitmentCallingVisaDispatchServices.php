@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\Workers;
 use App\Models\WorkerVisa;
+use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,10 @@ class DirectRecruitmentCallingVisaDispatchServices
      */
     private WorkerVisa $workerVisa;
     /**
+     * @var DirectRecruitmentOnboardingCountryServices
+     */
+    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+    /**
      * @var DirectRecruitmentCallingVisaStatus
      */
     private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
@@ -29,13 +34,15 @@ class DirectRecruitmentCallingVisaDispatchServices
      * DirectRecruitmentCallingVisaDispatchServices constructor.
      * @param Workers $workers
      * @param WorkerVisa $workerVisa
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
      */
-    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
     {
-        $this->workers                                = $workers;
-        $this->workerVisa                             = $workerVisa;
-        $this->directRecruitmentCallingVisaStatus     = $directRecruitmentCallingVisaStatus;
+        $this->workers                                      = $workers;
+        $this->workerVisa                                   = $workerVisa;
+        $this->directRecruitmentOnboardingCountryServices   = $directRecruitmentOnboardingCountryServices;
+        $this->directRecruitmentCallingVisaStatus           = $directRecruitmentCallingVisaStatus;
     }
     /**
      * @return array
@@ -83,6 +90,12 @@ class DirectRecruitmentCallingVisaDispatchServices
             'application_id' => $request['application_id'],
             'onboarding_country_id' => $request['onboarding_country_id']
         ])->update(['updated_on' => Carbon::now(), 'modified_by' => $request['modified_by']]);
+
+        $onBoardingStatus['application_id'] = $request['application_id'];
+        $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
+        $onBoardingStatus['onboarding_status'] = 5; //Agent Added
+        $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+
         return true;
     }
     /**

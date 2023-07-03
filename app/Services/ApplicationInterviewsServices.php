@@ -6,6 +6,7 @@ use App\Models\ApplicationInterviews;
 use App\Models\ApplicationInterviewAttachments;
 use App\Models\FWCMS;
 use App\Models\DirectrecruitmentApplications;
+use App\Models\Levy;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -31,6 +32,12 @@ class ApplicationInterviewsServices
      * @var DirectrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
+
+    /**
+     * @var Levy
+     */
+    private Levy $levy;
+
     /**
      * @var Storage
      */
@@ -46,13 +53,15 @@ class ApplicationInterviewsServices
      * @param ApplicationInterviewAttachments $applicationInterviewAttachments
      * @param FWCMS $fwcms
      * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * @param Levy $levy
      * @param ApplicationSummaryServices $applicationSummaryServices;
      */
-    public function __construct(ApplicationInterviews $applicationInterviews, ApplicationInterviewAttachments $applicationInterviewAttachments,  DirectrecruitmentApplications $directrecruitmentApplications, Storage $storage, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices)
+    public function __construct(ApplicationInterviews $applicationInterviews, ApplicationInterviewAttachments $applicationInterviewAttachments,  DirectrecruitmentApplications $directrecruitmentApplications, Levy $levy,  Storage $storage, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices)
     {
         $this->applicationInterviews = $applicationInterviews;
         $this->applicationInterviewAttachments = $applicationInterviewAttachments;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->levy = $levy;
         $this->storage = $storage;
         $this->fwcms = $fwcms;
         $this->applicationSummaryServices = $applicationSummaryServices;
@@ -255,6 +264,24 @@ class ApplicationInterviewsServices
      */
     public function dropdownKsmReferenceNumber($request): mixed
     {
-        return $this->fwcms::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
+        if(isset($request['application_type']) && !empty($request['application_type'])){
+
+            switch ($request['application_type']) {
+            case 'FWCMS':
+            case 'INTERVIEW':
+                return $this->fwcms::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
+                break;
+
+            case 'LEVY':
+                return $this->applicationInterviews::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
+                break;
+
+            case 'APPROVAL':
+                return $this->levy::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_LEVY_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
+                break;
+
+            }
+        }
+        
     }
 }
