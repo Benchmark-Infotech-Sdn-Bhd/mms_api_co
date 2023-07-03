@@ -178,7 +178,7 @@ class DirectRecruitmentPostArrivalFomemaServices
             $request['workers'] = explode(',', $request['workers']);
             $this->workerFomema->whereIn('worker_id', $request['workers'])
                 ->update([
-                    'clinic_name' => $request['purchase_date'], 
+                    'clinic_name' => $request['clinic_name'], 
                     'doctor_code' => $request['doctor_code'], 
                     'allocated_xray' => $request['allocated_xray'], 
                     'xray_code' => $request['xray_code'],

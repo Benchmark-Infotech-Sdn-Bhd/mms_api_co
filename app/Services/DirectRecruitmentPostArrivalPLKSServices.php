@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
-class DirectRecruitmentPostArrivalFomemaServices
+class DirectRecruitmentPostArrivalPLKSServices
 {
     /**
      * @var DirectRecruitmentPostArrivalStatus
@@ -93,7 +93,8 @@ class DirectRecruitmentPostArrivalFomemaServices
             ->where([
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'worker_fomema.fomema_status' => 'Fit'
+                'worker_fomema.fomema_status' => 'Fit',
+                'workers.plks_status' => 'Pending'
             ])
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
@@ -120,7 +121,7 @@ class DirectRecruitmentPostArrivalFomemaServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
             $request['workers'] = explode(',', $request['workers']);
-            $this->workers->whereIn('worker_id', $request['workers'])
+            $this->workers->whereIn('id', $request['workers'])
                 ->update([
                     'plks_status' => 'Approved', 
                     'plks_expiry_date' => $request['plks_expiry_date'], 

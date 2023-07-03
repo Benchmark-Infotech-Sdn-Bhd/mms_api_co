@@ -51,7 +51,7 @@ class DirectRecruitmentRepatriationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function updatePLKS(Request $request) : JsonResponse
+    public function updateRepatriation(Request $request) : JsonResponse
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();

@@ -16,7 +16,7 @@ class WorkerRepatriation extends Model implements Auditable
      *
      * @var string
      */
-    protected $table = 'worker_visa';
+    protected $table = 'worker_repatriation';
     /**
      * The attributes that are mass assignable.
      *

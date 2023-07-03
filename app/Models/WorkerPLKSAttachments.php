@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
 
-class WorkerPLKSAttachments extends Model
+class WorkerPLKSAttachments extends Model implements Auditable
 {
     use \OwenIt\Auditing\Auditable, SoftDeletes;
     
