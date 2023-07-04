@@ -40,7 +40,6 @@ class Workers extends Model implements Auditable
         'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
         'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
         'passport_valid_until' => 'required|date_format:Y-m-d',
-        'fomema_valid_until' => 'required|date_format:Y-m-d',
         'address' => 'required',
         'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
         'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
@@ -63,7 +62,6 @@ class Workers extends Model implements Auditable
             'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
             'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'passport_valid_until' => 'required|date_format:Y-m-d',
-            'fomema_valid_until' => 'required|date_format:Y-m-d',
             'address' => 'required',
             'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
             'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
