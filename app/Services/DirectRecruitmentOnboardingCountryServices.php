@@ -182,7 +182,7 @@ class DirectRecruitmentOnboardingCountryServices
     {
         $onboardingCountry = $this->directRecruitmentOnboardingCountry
         ->where('application_id', $request['application_id'])
-        ->where('country_id', $request['country_id'])->first();
+        ->where('id', $request['country_id'])->first();
 
         if($request['onboarding_status'] > $onboardingCountry->onboarding_status){
 
