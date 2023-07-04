@@ -125,7 +125,7 @@ class WorkersServices
             'date_of_birth' => $request['date_of_birth'] ?? '',
             'passport_number' => $request['passport_number'] ?? '',
             'passport_valid_until' => $request['passport_valid_until'] ?? '',
-            'fomema_valid_until' => $request['fomema_valid_until'] ?? '',
+            'fomema_valid_until' => $request['fomema_valid_until'] ?? null,
             'status' => 1,
             'address' => $request['address'] ?? '',
             'city' => $request['city'] ?? '',
