@@ -134,6 +134,14 @@ class ApplicationInterviewsServices
                 'error' => $validator->errors()
             ];
         }
+        
+        $fwcmsQuota = $this->fwcms->where('ksm_reference_number', $request['ksm_reference_number'])->sum('applied_quota');
+        if($request['approved_quota'] > $fwcmsQuota) {
+            return [
+                'quotaError' => true
+            ];
+        }
+
         $applicationInterview = $this->applicationInterviews->create([
             'application_id' => $request['application_id'] ?? 0,
             'item_name' => Config::get('services.APPLICATION_INTERVIEW_ITEM_NAME'),
@@ -181,6 +189,13 @@ class ApplicationInterviewsServices
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+
+        $fwcmsQuota = $this->fwcms->where('ksm_reference_number', $request['ksm_reference_number'])->sum('applied_quota');
+        if($request['approved_quota'] > $fwcmsQuota) {
+            return [
+                'quotaError' => true
             ];
         }
 

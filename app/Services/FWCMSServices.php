@@ -67,13 +67,13 @@ class FWCMSServices
                 'submission_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'applied_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'status' => 'required',
-                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21'
+                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21|unique:fwcms'
             ];
     }
      /**
      * @return array
      */
-    public function updateValidation(): array
+    public function updateValidation($param): array
     {
         return
             [
@@ -82,7 +82,7 @@ class FWCMSServices
                 'submission_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'applied_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'status' => 'required',
-                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21'
+                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21|unique:fwcms,ksm_reference_number,'.$param['id']
             ];
     }
     /**
@@ -117,6 +117,19 @@ class FWCMSServices
                 'error' => $validator->errors()
             ];
         }
+
+        $proposalQuota = $this->directrecruitmentApplications->where('id', $request['application_id'])->sum('quota_applied');
+        $fwcmsQuota = $this->fwcms
+        ->where('application_id', $request['application_id'])
+        ->where('status', '<>' , 'Rejected')
+        ->sum('applied_quota');
+        $fwcmsQuota += $request['applied_quota'];
+        if($fwcmsQuota > $proposalQuota) {
+            return [
+                'quotaError' => true
+            ];
+        }
+
         $this->fwcms->create([
             'application_id' => $request['application_id'] ?? 0,
             'submission_date' => $request['submission_date'] ?? '',
@@ -145,10 +158,23 @@ class FWCMSServices
      */
     public function update($request): bool|array
     {
-        $validator = Validator::make($request, $this->updateValidation());
+        $validator = Validator::make($request, $this->updateValidation($request));
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+
+        $proposalQuota = $this->directrecruitmentApplications->where('id', $request['application_id'])->sum('quota_applied');
+        $fwcmsQuota = $this->fwcms
+        ->where('application_id', $request['application_id'])
+        ->where('status', '<>' , 'Rejected')
+        ->where('id', '<>' , $request['id'])
+        ->sum('applied_quota');
+        $fwcmsQuota += $request['applied_quota'];
+        if($fwcmsQuota > $proposalQuota) {
+            return [
+                'quotaError' => true
             ];
         }
         

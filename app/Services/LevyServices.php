@@ -53,7 +53,7 @@ class LevyServices
             'ksm_reference_number' => 'required|unique:levy',
             'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'approval_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
-            'new_ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21',
+            'new_ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21||unique:levy|different:ksm_reference_number'
         ];
     }
     /**
@@ -71,7 +71,7 @@ class LevyServices
             'ksm_reference_number' => 'required|unique:levy,ksm_reference_number,'.$param['id'],
             'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'approval_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
-            'new_ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21',
+            'new_ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21|different:ksm_reference_number|unique:levy,new_ksm_reference_number,'.$param['id'],
         ];
     }
     /**

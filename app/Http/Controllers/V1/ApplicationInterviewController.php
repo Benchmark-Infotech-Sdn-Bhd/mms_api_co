@@ -74,6 +74,8 @@ class ApplicationInterviewController extends Controller
             $response = $this->applicationInterviewsServices->create($request);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the FWCMS Quota'], 400);
             }
             return $this->sendSuccess(['message' => 'Application Interview Details Created Successfully']);
         } catch (Exception $e) {
@@ -96,6 +98,8 @@ class ApplicationInterviewController extends Controller
             $response = $this->applicationInterviewsServices->update($request);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the FWCMS Quota'], 400);
             }
             return $this->sendSuccess(['message' => 'Application Interview Details Updated Successfully']);
         } catch (Exception $e) {
