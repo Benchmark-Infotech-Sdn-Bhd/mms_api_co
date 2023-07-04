@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\Workers;
+use App\Models\WorkerVisa;
 use App\Models\WorkerInsuranceDetails;
 use App\Models\WorkerInsuranceAttachments;
 use Illuminate\Support\Facades\Config;
@@ -25,6 +26,11 @@ class DirectRecruitmentInsurancePurchaseServices
     private Workers $workers;
 
     /**
+     * @var WorkerVisa
+     */
+    private WorkerVisa $workerVisa;
+
+    /**
      * @var workerInsuranceDetails
      */
     private WorkerInsuranceDetails $workerInsuranceDetails;
@@ -44,14 +50,16 @@ class DirectRecruitmentInsurancePurchaseServices
      * DirectRecruitmentInsurancePurchaseServices constructor.
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
      * @param Workers $workers
+     * @param WorkerVisa $workerVisa
      * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param WorkerInsuranceAttachments $workerInsuranceAttachments
      * @param Storage $storage;
      */
-    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerInsuranceDetails $workerInsuranceDetails, WorkerInsuranceAttachments $workerInsuranceAttachments, Storage $storage)
+    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, WorkerInsuranceAttachments $workerInsuranceAttachments, Storage $storage)
     {
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->workers                            = $workers;
+        $this->workerVisa                         = $workerVisa;
         $this->workerInsuranceDetails             = $workerInsuranceDetails;
         $this->workerInsuranceAttachments         = $workerInsuranceAttachments;
         $this->storage = $storage;
@@ -65,8 +73,6 @@ class DirectRecruitmentInsurancePurchaseServices
             [
                 'application_id' => 'required',
                 'onboarding_country_id' => 'required',
-                'agent_id' => 'required',
-                'calling_visa_reference_number' => 'required',
                 'ig_policy_number' => 'required', 
                 'hospitalization_policy_number' => 'required', 
                 'insurance_provider_id' => 'required',
@@ -108,7 +114,6 @@ class DirectRecruitmentInsurancePurchaseServices
         ->where([
             ['workers.application_id', $request['application_id']],
             ['workers.onboarding_country_id', $request['onboarding_country_id']],
-            ['workers.agent_id', $request['agent_id']],
             ['workers.cancel_status', 0]
         ])
         ->where(function ($query) use ($request) {
@@ -164,86 +169,81 @@ class DirectRecruitmentInsurancePurchaseServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
 
-            $visaProcessedCount = $this->workers
-            ->join('worker_visa', function ($join) use ($request) {
-                $join->on('worker_visa.worker_id', '=', 'workers.id')
-                ->where([
-                    ['worker_visa.status', '=', 'Processed'],
-                    ['worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number']]
-                ]);
-            })
-            ->where([
-                ['workers.application_id', $request['application_id']],
-                ['workers.onboarding_country_id', $request['onboarding_country_id']],
-                ['workers.agent_id', $request['agent_id']],
-                ['workers.cancel_status', 0]
-            ])
-            ->select('workers.id')
-            ->distinct('workers.id')
+            $workers = explode(",", $request['workers']);
+
+            if(is_array($workers)){
+
+                $workerVisaProcessed = $this->workerVisa
+            ->whereIn('worker_id', $workers)
+            ->where('status', 'Processed')
+            ->select('calling_visa_reference_number')
+            ->groupBy('calling_visa_reference_number')
             ->get()->toArray();
 
-            $visaProcessedWorkersId = [];
-            foreach ($visaProcessedCount as $visaProcessed){
-                $visaProcessedWorkersId[] = $visaProcessed['id'];
-            }
+            if(count($workerVisaProcessed) == 1){
+                $callingVisaReferenceNumberCount = $this->workerVisa->where([
+                    'status' => 'Processed',
+                    'calling_visa_reference_number' => $workerVisaProcessed[0]['calling_visa_reference_number'] ?? ''
+                    ])->count('worker_id');
 
-            if($visaProcessedWorkersId === array_intersect($visaProcessedWorkersId, $request['workers']) && $request['workers'] === array_intersect($request['workers'], $visaProcessedWorkersId)) {
-                $visaReferenceNumberMatched = true;
-            } else {
-                $visaReferenceNumberMatched = false;
-            }
-
-            if(count($request['workers']) == count($visaProcessedCount) && $visaReferenceNumberMatched == true ) {
-
-                if (request()->hasFile('attachment')){
-                    foreach($request->file('attachment') as $file){
-                        $fileName = $file->getClientOriginalName();
-                        $filePath = '/directRecruitment/onboarding/insurancePurchase/' . $fileName; 
-                        $linode = $this->storage::disk('linode');
-                        $linode->put($filePath, file_get_contents($file));
-                        $fileUrl = $this->storage::disk('linode')->url($filePath);  
-                    }
-                }else{
-                    $fileName = '';
-                    $fileUrl = '';
-                }
-
-                foreach ($request['workers'] as $workerId) {
-
-                    $this->workerInsuranceDetails->updateOrCreate(
-                        ['worker_id' => $workerId],
-                        ['ig_policy_number' => $request['ig_policy_number'], 
-                        'hospitalization_policy_number' => $request['hospitalization_policy_number'], 
-                        'insurance_provider_id' => $request['insurance_provider_id'],
-                        'ig_amount' => $request['ig_amount'],
-                        'hospitalization_amount' => $request['hospitalization_amount'],
-                        'insurance_submitted_on' => $request['insurance_submitted_on'],
-                        'insurance_expiry_date' => $request['insurance_expiry_date'],
-                        'insurance_status' => 'Purchased', 
-                        'created_by' => $params['created_by'],
-                        'modified_by' => $params['created_by']
-                    ]);
-
-                    if(!empty($fileName) && !empty($fileUrl)){
-                        $this->workerInsuranceAttachments->updateOrCreate(
-                            ['file_id' => $workerId],
-                            ["file_name" => $fileName,
-                            "file_type" => 'Insurance Purchase',
-                            "file_url" =>  $fileUrl
-                        ]);
-                    }
-
-                }
-                $this->directRecruitmentCallingVisaStatus->where([
-                    'application_id' => $request['application_id'],
-                    'onboarding_country_id' => $request['onboarding_country_id'],
-                    'agent_id' => $request['agent_id']
-                ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
-                return true;
+                if( count($workers) <> $callingVisaReferenceNumberCount ){
+                    return [
+                        'workerCountError' => true
+                    ];
+                }  
             }else{
                 return [
-                    'workerCountError' => true
+                    'visaReferenceNumberCountError' => true
                 ];
+            }
+
+            if (request()->hasFile('attachment')){
+                foreach($request->file('attachment') as $file){
+                    $fileName = $file->getClientOriginalName();
+                    $filePath = '/directRecruitment/onboarding/insurancePurchase/' . $fileName; 
+                    $linode = $this->storage::disk('linode');
+                    $linode->put($filePath, file_get_contents($file));
+                    $fileUrl = $this->storage::disk('linode')->url($filePath);  
+                }
+            }else{
+                $fileName = '';
+                $fileUrl = '';
+            }
+
+            foreach ($workers as $workerId) {
+
+                $this->workerInsuranceDetails->updateOrCreate(
+                    ['worker_id' => $workerId],
+                    ['ig_policy_number' => $request['ig_policy_number'], 
+                    'hospitalization_policy_number' => $request['hospitalization_policy_number'], 
+                    'insurance_provider_id' => $request['insurance_provider_id'],
+                    'ig_amount' => $request['ig_amount'],
+                    'hospitalization_amount' => $request['hospitalization_amount'],
+                    'insurance_submitted_on' => $request['insurance_submitted_on'],
+                    'insurance_expiry_date' => $request['insurance_expiry_date'],
+                    'insurance_status' => 'Purchased', 
+                    'created_by' => $params['created_by'],
+                    'modified_by' => $params['created_by']
+                ]);
+
+                if(!empty($fileName) && !empty($fileUrl)){
+                    $this->workerInsuranceAttachments->updateOrCreate(
+                        ['file_id' => $workerId],
+                        ["file_name" => $fileName,
+                        "file_type" => 'Insurance Purchase',
+                        "file_url" =>  $fileUrl
+                    ]);
+                }
+
+            }
+            $this->directRecruitmentCallingVisaStatus->where([
+                'application_id' => $request['application_id'],
+                'onboarding_country_id' => $request['onboarding_country_id'],
+            ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
+            return true;
+
+            }else{
+                return false;
             }
         }else{
             return false;

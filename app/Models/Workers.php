@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Workers extends Model implements Auditable
 {
@@ -23,7 +24,7 @@ class Workers extends Model implements Auditable
      */
     protected $fillable = ['onboarding_country_id','agent_id','application_id','name','gender','date_of_birth','passport_number',
     'passport_valid_until','fomema_valid_until','address','status', 'cancel_Status', 'remarks',
-    'city','state','created_by','modified_by'];
+    'city','state', 'special_pass_valid_until', 'plks_status', 'plks_expiry_date', 'created_by','modified_by'];
    
     /**
      * The attributes that are required.
@@ -121,5 +122,13 @@ class Workers extends Model implements Auditable
     public function workerBankDetails()
     {
         return $this->hasOne(WorkerBankDetails::class, 'worker_id');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function workerInsuranceAttachments(): HasMany
+    {
+        return $this->hasMany(WorkerInsuranceAttachments::class, 'file_id');
     }
 }

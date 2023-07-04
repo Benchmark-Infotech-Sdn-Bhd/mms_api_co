@@ -5,7 +5,7 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-class ProcessCallingVisaUnitTest extends TestCase
+class PostArrivalRepatriationUnitTest extends TestCase
 {
     use DatabaseMigrations;
     
@@ -17,150 +17,154 @@ class ProcessCallingVisaUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test for process calling visa, visa reference number mandatory field validation 
+     * Functional test for post arrival, Repatriation flight date mandatory field validation 
      * 
      * @return void
      */
-    public function testForProcessCallingVisaReferenceNumberRequiredValidation(): void
+    public function testForPostArrivalRepatriationFlightDateRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['calling_visa_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['flight_date' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'calling_visa_reference_number' => ['The calling visa reference number field is required.']
+                'flight_date' => ['The flight date field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for process calling visa, submission date mandatory field validation 
+     * Functional test for post arrival, Repatriation flight date format validation 
      * 
      * @return void
      */
-    public function testForProcessCallingVisaSubmissionDateRequiredValidation(): void
+    public function testForPostArrivalRepatriationFlightDateFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['flight_date' => '06-06-2035']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'submitted_on' => ['The submitted on field is required.']
+                'flight_date' => ['The flight date does not match the format Y-m-d.']
             ]
         ]);
     }
     /**
-     * Functional test for process calling visa, visa reference number Format validation 
+     * Functional test for post arrival, Repatriation flight date future date validation 
      * 
      * @return void
      */
-    public function testForProcessCallingVisaReferenceNumberFormatValidation(): void
+    public function testForPostArrivalRepatriationFlightFutureDateValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['calling_visa_reference_number' => 'SGHG36472&&&&']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['flight_date' => '2023-07-27']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'calling_visa_reference_number' => ['The calling visa reference number format is invalid.']
+                'flight_date' => ['The flight date must be a date after yesterday.']
             ]
         ]);
     }
     /**
-     * Functional test for process calling visa, submission date Format validation 
+     * Functional test for post arrival, Repatriation flight number mandatory field validation 
      * 
      * @return void
      */
-    public function testForProcessCallingVisaSubmissionDateFormatValidation(): void
+    public function testForPostArrivalRepatriationFlightNumberRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '05-05-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['flight_number' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'submitted_on' => ['The submitted on does not match the format Y-m-d.']
+                'flight_number' => ['The flight number field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for process calling visa, submission date future validation 
+     * Functional test for post arrival, Repatriation flight number format validation 
      * 
      * @return void
      */
-    public function testForProcessCallingVisaSubmissionDateFutureValidation(): void
+    public function testForPostArrivalRepatriationFlightNumberFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '2053-05-05']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['flight_number' => 'DJU87348$$$']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'submitted_on' => ['The submitted on must be a date before tomorrow.']
+                'flight_number' => ['The flight number format is invalid.']
             ]
         ]);
     }
     /**
-     * Functional test for process calling visa submission
+     * Functional test for post arrival, Repatriation expenses mandatory field validation 
      * 
      * @return void
      */
-    public function testForProcessCallingVisaSubmission(): void
+    public function testForPostArrivalRepatriationExpensesRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['expenses' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'expenses' => ['The flight number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for post arrival, Repatriation expenses format validation 
+     * 
+     * @return void
+     */
+    public function testForPostArrivalRepatriationExpensesFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['expenses' => '12.22']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'expenses' => ['The expenses format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for post arrival, Repatriation checkout memo reference number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForPostArrivalRepatriationCheckoutMemoReferenceNumberRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['checkout_memo_reference_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'checkout_memo_reference_number' => ['The checkout memo reference number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for post arrival, Repatriation checkout memo reference number format validation 
+     * 
+     * @return void
+     */
+    public function testForPostArrivalRepatriationCheckoutMemoReferenceNumberFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['checkout_memo_reference_number' => '12.22$$$']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'checkout_memo_reference_number' => ['The checkout memo reference number format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker list search validation
+     * 
+     * @return void
+     */
+    public function testForWorkersListSearchValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $this->creationData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wo'], $this->getHeader(false));
+        $response->seeStatusCode(422);
         $response->seeJson([
-            'data' => ['message' => 'Calling Visa Submitted Successfully']
-        ]);
-    }
-    /**
-     * Functional test for calling visa status list 
-     * 
-     * @return void
-     */
-    public function testForCallingVisaStatusList(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/callingVisaStatusList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' =>
-                [
-                    'current_page',
-                    'data',
-                    'first_page_url',
-                    'from',
-                    'last_page',
-                    'last_page_url',
-                    'links',
-                    'next_page_url',
-                    'path',
-                    'per_page',
-                    'prev_page_url',
-                    'to',
-                    'total'
-                ]
-        ]);
-    }
-    /**
-     * Functional test for workers list 
-     * 
-     * @return void
-     */
-    public function testForWorkersList(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' =>
-                [
-                    'current_page',
-                    'data',
-                    'first_page_url',
-                    'from',
-                    'last_page',
-                    'last_page_url',
-                    'links',
-                    'next_page_url',
-                    'path',
-                    'per_page',
-                    'prev_page_url',
-                    'to',
-                    'total'
-                ]
+            'data' => [
+                'search' => ['The search must be at least 3 characters.']
+            ]
         ]);
     }
     /**
@@ -171,7 +175,7 @@ class ProcessCallingVisaUnitTest extends TestCase
     public function testForWorkersListWithSearch(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'search' => 'Work'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wor'], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -193,33 +197,17 @@ class ProcessCallingVisaUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for show process calling visa
+     * Functional test for post arrival, Repatriation updation
      * 
      * @return void
      */
-    public function testForShow(): void
+    public function testForRepatriationUpdate(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/show', ['worker_id' => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' =>
-                [
-                ]
-        ]);
-    }
-    /**
-     * Functional test for cancel worker from calling visa
-     * 
-     * @return void
-     */
-    public function testForWorkerCancellation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/cancelWorker', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'worker_id' => 1, 'remarks' => 'test remark'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', $this->updateData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'Worker Cancellation Completed Successfully']
+            'data' => ['message' => 'Repatriation Updated Successfully']
         ]);
     }
     /**
@@ -405,8 +393,8 @@ class ProcessCallingVisaUnitTest extends TestCase
     /**
      * @return array
      */
-    public function creationData(): array
+    public function updateData(): array
     {
-        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'calling_visa_reference_number' => 'AGTF/7637', 'submitted_on' => '2023-05-30', 'workers' => [1]];
+        return ['application_id' => 1, 'onboarding_country_id' => 1, 'flight_number' => 'TFDY754857', 'flight_date' => '2023-10-10', 'expenses' => 30, 'checkout_memo_reference_number' => 'ADG535674', 'workers' => 1];
     }
 }

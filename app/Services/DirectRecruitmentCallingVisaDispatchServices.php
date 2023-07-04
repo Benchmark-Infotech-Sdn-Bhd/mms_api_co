@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\Workers;
 use App\Models\WorkerVisa;
+use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,10 @@ class DirectRecruitmentCallingVisaDispatchServices
      */
     private WorkerVisa $workerVisa;
     /**
+     * @var DirectRecruitmentOnboardingCountryServices
+     */
+    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+    /**
      * @var DirectRecruitmentCallingVisaStatus
      */
     private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
@@ -29,13 +34,15 @@ class DirectRecruitmentCallingVisaDispatchServices
      * DirectRecruitmentCallingVisaDispatchServices constructor.
      * @param Workers $workers
      * @param WorkerVisa $workerVisa
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
      */
-    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
     {
-        $this->workers                                = $workers;
-        $this->workerVisa                             = $workerVisa;
-        $this->directRecruitmentCallingVisaStatus     = $directRecruitmentCallingVisaStatus;
+        $this->workers                                      = $workers;
+        $this->workerVisa                                   = $workerVisa;
+        $this->directRecruitmentOnboardingCountryServices   = $directRecruitmentOnboardingCountryServices;
+        $this->directRecruitmentCallingVisaStatus           = $directRecruitmentCallingVisaStatus;
     }
     /**
      * @return array
@@ -45,7 +52,6 @@ class DirectRecruitmentCallingVisaDispatchServices
         return [
                 'application_id' => 'required',
                 'onboarding_country_id' => 'required',
-                'agent_id' => 'required',
                 'dispatch_method' => 'required'
         ];
     }
@@ -82,9 +88,14 @@ class DirectRecruitmentCallingVisaDispatchServices
         }
         $this->directRecruitmentCallingVisaStatus->where([
             'application_id' => $request['application_id'],
-            'onboarding_country_id' => $request['onboarding_country_id'],
-            'agent_id' => $request['agent_id']
+            'onboarding_country_id' => $request['onboarding_country_id']
         ])->update(['updated_on' => Carbon::now(), 'modified_by' => $request['modified_by']]);
+
+        $onBoardingStatus['application_id'] = $request['application_id'];
+        $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
+        $onBoardingStatus['onboarding_status'] = 5; //Agent Added
+        $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+
         return true;
     }
     /**
@@ -127,7 +138,6 @@ class DirectRecruitmentCallingVisaDispatchServices
             ->where([
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'workers.agent_id' => $request['agent_id'],
                 'workers.cancel_status' => 0
             ])
             ->where(function ($query) use ($request) {
@@ -136,7 +146,7 @@ class DirectRecruitmentCallingVisaDispatchServices
                     ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
                 }
             })
-            ->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'worker_visa.dispatch_method', 'worker_visa.dispatch_consignment_number', 'worker_visa.dispatch_acknowledgement_number', 'worker_visa.dispatch_submitted_on',  'worker_visa.dispatch_status', DB::raw('COUNT(workers.id) as workers', 'worker_immigration.immigration_status'))
+            ->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'worker_visa.dispatch_method', 'worker_visa.dispatch_consignment_number', 'worker_visa.dispatch_acknowledgement_number', 'worker_visa.dispatch_submitted_on',  'worker_visa.dispatch_status', DB::raw('COUNT(workers.id) as workers', 'worker_immigration.immigration_status'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
             ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'worker_visa.dispatch_method', 'worker_visa.dispatch_consignment_number', 'worker_visa.dispatch_acknowledgement_number', 'worker_visa.dispatch_submitted_on',  'worker_visa.dispatch_status')
             ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
             ->paginate(Config::get('services.paginate_row'));

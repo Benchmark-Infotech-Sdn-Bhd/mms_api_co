@@ -16,6 +16,7 @@ use App\Models\KinRelationship;
 use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\DirectRecruitmentOnboardingAgent;
 use App\Models\WorkerStatus;
+use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -40,6 +41,7 @@ class WorkersServices
     Private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
     Private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
     private WorkerStatus $workerStatus;
+    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
     private ValidationServices $validationServices;
     private AuthServices $authServices;
     private Storage $storage;
@@ -59,28 +61,30 @@ class WorkersServices
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
      * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent
      * @param WorkerStatus $workerStatus
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
      */
     public function __construct(
-            Workers                             $workers,
-            WorkerAttachments                   $workerAttachments,
-            WorkerKin                           $workerKin,
-            WorkerVisa                          $workerVisa,
-            WorkerVisaAttachments               $workerVisaAttachments,
-            WorkerBioMedical                    $workerBioMedical,
-            WorkerBioMedicalAttachments         $workerBioMedicalAttachments,
-            WorkerFomema                        $workerFomema,
-            WorkerInsuranceDetails              $workerInsuranceDetails,
-            WorkerBankDetails                   $workerBankDetails,
-            KinRelationship                     $kinRelationship,
-            DirectRecruitmentCallingVisaStatus  $directRecruitmentCallingVisaStatus,
-            DirectRecruitmentOnboardingAgent    $directRecruitmentOnboardingAgent,
-            WorkerStatus                        $workerStatus,
-            ValidationServices                  $validationServices,
-            AuthServices                        $authServices,
-            Storage                             $storage
+            Workers                                     $workers,
+            WorkerAttachments                           $workerAttachments,
+            WorkerKin                                   $workerKin,
+            WorkerVisa                                  $workerVisa,
+            WorkerVisaAttachments                       $workerVisaAttachments,
+            WorkerBioMedical                            $workerBioMedical,
+            WorkerBioMedicalAttachments                 $workerBioMedicalAttachments,
+            WorkerFomema                                $workerFomema,
+            WorkerInsuranceDetails                      $workerInsuranceDetails,
+            WorkerBankDetails                           $workerBankDetails,
+            KinRelationship                             $kinRelationship,
+            DirectRecruitmentCallingVisaStatus          $directRecruitmentCallingVisaStatus,
+            DirectRecruitmentOnboardingAgent            $directRecruitmentOnboardingAgent,
+            WorkerStatus                                $workerStatus,
+            DirectRecruitmentOnboardingCountryServices  $directRecruitmentOnboardingCountryServices, 
+            ValidationServices                          $validationServices,
+            AuthServices                                $authServices,
+            Storage                                     $storage
     )
     {
         $this->workers = $workers;
@@ -96,6 +100,7 @@ class WorkersServices
         $this->kinRelationship = $kinRelationship;
         $this->workerStatus = $workerStatus;
         $this->validationServices = $validationServices;
+        $this->directRecruitmentOnboardingCountryServices = $directRecruitmentOnboardingCountryServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
@@ -299,6 +304,11 @@ class WorkersServices
                 'modified_by' => $params['created_by'] ?? 0,
             ]);            
         }
+
+        $onBoardingStatus['application_id'] = $request['application_id'];
+        $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
+        $onBoardingStatus['onboarding_status'] = 4; //Agent Added
+        $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
 
         return $worker;
     }

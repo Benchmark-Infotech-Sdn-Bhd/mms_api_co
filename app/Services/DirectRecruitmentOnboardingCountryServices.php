@@ -76,13 +76,14 @@ class DirectRecruitmentOnboardingCountryServices
         }
         
         return $this->directRecruitmentOnboardingCountry->leftJoin('countries', 'countries.id', 'directrecruitment_onboarding_countries.country_id')
+        ->leftJoin('directrecruitment_onboarding_status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_status.id')
             ->where('directrecruitment_onboarding_countries.application_id', $request['application_id'])
             ->where(function ($query) use ($request) {
                 if (isset($request['search_param']) && !empty($request['search_param'])) {
                     $query->where('countries.country_name', 'like', "%{$request['search_param']}%");
                 }
             })
-            ->select('directrecruitment_onboarding_countries.id', 'countries.country_name as country', 'countries.system_type as system', 'directrecruitment_onboarding_countries.quota', 'directrecruitment_onboarding_countries.utilised_quota')
+            ->select('directrecruitment_onboarding_countries.id', 'countries.country_name as country', 'countries.system_type as system', 'directrecruitment_onboarding_countries.quota', 'directrecruitment_onboarding_countries.utilised_quota', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_status.name as onboarding_status_name')
             ->orderBy('directrecruitment_onboarding_countries.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
@@ -92,7 +93,7 @@ class DirectRecruitmentOnboardingCountryServices
      */   
     public function show($request): mixed
     {
-        return $this->directRecruitmentOnboardingCountry->find($request['id']);
+        return $this->directRecruitmentOnboardingCountry->leftJoin('directrecruitment_onboarding_status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_status.id')->select('directrecruitment_onboarding_countries.*', 'directrecruitment_onboarding_status.name as onboarding_status_name')->find($request['id']);
     }
     /**
      * @param $request
@@ -171,5 +172,24 @@ class DirectRecruitmentOnboardingCountryServices
                 ->where('directrecruitment_application_approval.application_id', $request['application_id'])
                 ->select('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'application_interviews.approved_quota', 'directrecruitment_onboarding_countries.utilised_quota')->distinct()
                 ->get();
+    }
+
+    /**
+     * @param $request
+     * @return bool|array
+     */
+    public function onboarding_status_update($request): bool|array
+    {
+        $onboardingCountry = $this->directRecruitmentOnboardingCountry
+        ->where('application_id', $request['application_id'])
+        ->where('country_id', $request['country_id'])->first();
+
+        if($request['onboarding_status'] > $onboardingCountry->onboarding_status){
+
+            $onboardingCountry->onboarding_status =  $request['onboarding_status'];
+            $onboardingCountry->save();
+
+        }        
+        return true;
     }
 }

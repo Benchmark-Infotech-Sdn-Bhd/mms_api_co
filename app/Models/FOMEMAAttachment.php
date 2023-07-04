@@ -7,11 +7,11 @@ use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class DirectRecruitmentOnboardingCountry extends Model implements Auditable
+class FOMEMAAttachment extends Model implements Auditable
 {
     use \OwenIt\Auditing\Auditable, SoftDeletes;
 
-    protected $table = 'directrecruitment_onboarding_countries';
+    protected $table = 'fomema_attachment';
 
     /**
      * The attributes that are mass assignable.
@@ -19,7 +19,13 @@ class DirectRecruitmentOnboardingCountry extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'application_id', 'country_id', 'quota', 'utilised_quota', 'status', 'onboarding_status', 'created_by', 'modified_by'
+        'file_id', 'file_name', 'file_type', 'file_url', 'created_by', 'modified_by'
     ];
-
+    /**
+     * @return BelongsTo
+     */
+    public function workerFOMEMA()
+    {
+        return $this->belongsTo(Workers::class);
+    }
 }

@@ -22,7 +22,7 @@ class WorkerFomema extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['worker_id','purchase_date','clinic_name','doctor_code','allocated_xray','xray_code','created_by','modified_by'];
+    protected $fillable = ['worker_id','purchase_date','clinic_name','doctor_code','allocated_xray','xray_code', 'fomema_total_charge', 'convenient_fee', 'fomema_status', 'created_by','modified_by'];
    
     /**
      * The attributes that are required.
