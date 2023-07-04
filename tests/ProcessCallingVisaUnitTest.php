@@ -216,10 +216,84 @@ class ProcessCallingVisaUnitTest extends TestCase
     public function testForWorkerCancellation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/cancelWorker', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'worker_id' => 1, 'remarks' => 'test remark'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/cancelWorker', ['application_id' => 1, 'onboarding_country_id' => 1, 'workers' => 1, 'remarks' => 'test remark'], $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Worker Cancellation Completed Successfully']
+        ]);
+    }
+    /**
+     * Functional test for worker list for cancellation search validation
+     * 
+     * @return void
+     */
+    public function testForCancellationWorkersListSearchValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/workerListForCancellation', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wo' , 'calling_visa_reference_number' => ''], $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'search' => ['The search must be at least 3 characters.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker list for cancellation with search
+     * 
+     * @return void
+     */
+    public function testForCancellationWorkersListWithSearch(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/workerListForCancellation', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wor', 'calling_visa_reference_number' => ''], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
+        ]);
+    }
+    /**
+     * Functional test for worker list for cancellation with filter
+     * 
+     * @return void
+     */
+    public function testForCancellationWorkersListWithFilter(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/workerListForCancellation', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => '', 'calling_visa_reference_number' => 'AGTF/7637'], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
         ]);
     }
     /**

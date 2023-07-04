@@ -124,4 +124,24 @@ class DirectRecruitmentCallingVisaController extends Controller
             return $this->sendError(['message' => 'Failed to Cancel Worker'], 400);
         }
     }
+    /**
+     * Dispaly list of workers for cancellation.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function workerListForCancellation(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentCallingVisaServices->workerListForCancellation($params);
+            if(isset($response['error']) && !empty($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Workers'], 400);
+        }
+    }
 }

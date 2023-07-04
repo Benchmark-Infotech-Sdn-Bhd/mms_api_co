@@ -243,7 +243,14 @@ class DirecRecruitmentPostArrivalServices
             $request['workers'] = explode(',', $request['workers']);
             $this->workerArrival->whereIn('worker_id', $request['workers'])
                 ->update([
-                    'arrival_status' => 'Cancelled', 
+                    'arrival_status' => 'Cancelled',
+                    'remarks' => $request['remarks'] ?? '',
+                    'modified_by' => $request['modified_by']
+                ]);
+            $this->workers->whereIn('id', $request['workers'])
+                ->update([
+                    'cancel_status' => 1, 
+                    'remarks' => $request['remarks'] ?? '',
                     'modified_by' => $request['modified_by']
                 ]);
         }        
@@ -258,7 +265,7 @@ class DirecRecruitmentPostArrivalServices
                     $this->cancellationAttachment->create([
                         'file_id' => $workerId,
                         'file_name' => $fileName,
-                        'file_type' => 'Post Arrival Cancellation Letter',
+                        'file_type' => 'Cancellation Letter',
                         'file_url' => $fileUrl,
                         'created_by' => $request['modified_by'],
                         'modified_by' => $request['modified_by']

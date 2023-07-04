@@ -287,6 +287,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => 'callingVisa'], function () use ($router) {
                     $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');
                     $router->post('cancelWorker', 'V1\DirectRecruitmentCallingVisaController@cancelWorker');
+                    $router->post('workerListForCancellation', 'V1\DirectRecruitmentCallingVisaController@workerListForCancellation');
                     $router->group(['prefix' => 'process'], function () use ($router) {
                         $router->post('submitCallingVisa', 'V1\DirectRecruitmentCallingVisaController@submitCallingVisa');
                         $router->post('workersList', 'V1\DirectRecruitmentCallingVisaController@workersList');

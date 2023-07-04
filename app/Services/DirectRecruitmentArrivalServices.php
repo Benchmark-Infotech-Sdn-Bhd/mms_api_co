@@ -339,7 +339,7 @@ class DirectRecruitmentArrivalServices
                 if (request()->hasFile('attachment')){
                     foreach($request->file('attachment') as $file){
                         $fileName = $file->getClientOriginalName();
-                        $filePath = '/directRecruitment/arrival/cancellation/' . $fileName; 
+                        $filePath = '/directRecruitment/workers/cancellation/' . $fileName; 
                         $linode = $this->storage::disk('linode');
                         $linode->put($filePath, file_get_contents($file));
                         $fileUrl = $this->storage::disk('linode')->url($filePath);  
@@ -356,6 +356,12 @@ class DirectRecruitmentArrivalServices
                     ['arrival_status' => 'Cancelled', 
                     'updated_at' => Carbon::now(),
                     'modified_by' => $params['created_by']]);
+                $this->workers->whereIn('id', $request['workers'])
+                    ->update([
+                        'cancel_status' => 1, 
+                        'remarks' => $request['remarks'] ?? '',
+                        'modified_by' => $request['modified_by']
+                    ]);
     
                 foreach ($workers as $workerId) {
     
@@ -363,7 +369,7 @@ class DirectRecruitmentArrivalServices
                         $this->cancellationAttachment->updateOrCreate(
                             ['file_id' => $workerId],
                             ["file_name" => $fileName,
-                            "file_type" => 'Arrival Cancellation Letter',
+                            "file_type" => 'Cancellation Letter',
                             "file_url" =>  $fileUrl,
                             "remarks" => $request['remarks'] ?? ''
                         ]);
