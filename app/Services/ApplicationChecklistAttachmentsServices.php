@@ -20,6 +20,7 @@ class ApplicationChecklistAttachmentsServices
     private Storage $storage;
     private DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices;
     private DirectRecruitmentServices $directRecruitmentServices;
+    private ApplicationSummaryServices $applicationSummaryServices;
     /**
      * ApplicationChecklistAttachmentsServices constructor.
      * @param ApplicationChecklistAttachments $applicationChecklistAttachments
@@ -28,10 +29,11 @@ class ApplicationChecklistAttachmentsServices
      * @param DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices
      * @param Storage $storage
      * @param DirectRecruitmentServices $directRecruitmentServices
+     * @param ApplicationSummaryServices $applicationSummaryServices;
      */
     public function __construct(ApplicationChecklistAttachments $applicationChecklistAttachments, DirectRecruitmentApplicationChecklist $directRecruitmentApplicationChecklist, ValidationServices $validationServices,
     Storage $storage,DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices,
-    DirectRecruitmentServices $directRecruitmentServices)
+    DirectRecruitmentServices $directRecruitmentServices, ApplicationSummaryServices $applicationSummaryServices)
     {
         $this->applicationChecklistAttachments = $applicationChecklistAttachments;
         $this->directRecruitmentApplicationChecklist = $directRecruitmentApplicationChecklist;
@@ -39,6 +41,7 @@ class ApplicationChecklistAttachmentsServices
         $this->storage = $storage;
         $this->directRecruitmentApplicationChecklistServices = $directRecruitmentApplicationChecklistServices;
         $this->directRecruitmentServices = $directRecruitmentServices;
+        $this->applicationSummaryServices = $applicationSummaryServices;
     }
 
     /**
@@ -91,6 +94,10 @@ class ApplicationChecklistAttachmentsServices
             $directRecruitmentApplicationChecklist->application_checklist_status = 'Completed';
             $directRecruitmentApplicationChecklist->modified_by = $user['id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
             $directRecruitmentApplicationChecklist->submitted_on = Carbon::now();
+
+            $params['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[2];
+            $params['status'] = 'Completed';
+            $this->applicationSummaryServices->updateStatus($params);
         }
         $directRecruitmentApplicationChecklist->save();
         return [
@@ -138,6 +145,10 @@ class ApplicationChecklistAttachmentsServices
                 $resUpdate = $this->directRecruitmentServices->updateStatus(['id' => $directrecruitmentApplicationAttachment['application_id'] , 'status' => Config::get('services.PROPOSAL_SUBMITTED')]);
                 $directRecruitmentApplicationChecklist->application_checklist_status = 'Pending';
                 $directRecruitmentApplicationChecklist->modified_by = $user['id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
+
+                $request['application_id'] = $directrecruitmentApplicationAttachment['application_id'];
+                $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[2];
+                $this->applicationSummaryServices->deleteStatus($request);
             }
             $directRecruitmentApplicationChecklist->save();
         }
@@ -156,7 +167,11 @@ class ApplicationChecklistAttachmentsServices
         }
         return $this->directRecruitmentApplicationChecklist
         ->leftJoin('application_checklist_attachments', 'application_checklist_attachments.application_checklist_id',  'directrecruitment_application_checklist.id')
-        ->leftJoin('document_checklist', 'document_checklist.id',  'application_checklist_attachments.document_checklist_id')
+        ->leftJoin('document_checklist', function($join) use ($request){
+            $join->on('document_checklist.id', '=', 'application_checklist_attachments.document_checklist_id')
+            ->where('document_checklist.sector_id',$request['sector_id'])
+            ->orWhereNull('application_checklist_attachments.document_checklist_id');
+          })
         ->where('directrecruitment_application_checklist.application_id',$request['application_id'])
         ->with(["applicationChecklistAttachments" => function($attachment) use ($request){
             $attachment->where('application_id',$request['application_id']);
