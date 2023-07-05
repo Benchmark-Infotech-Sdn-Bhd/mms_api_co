@@ -180,9 +180,7 @@ class DirectRecruitmentOnboardingCountryServices
      */
     public function onboarding_status_update($request): bool|array
     {
-        $onboardingCountry = $this->directRecruitmentOnboardingCountry
-        ->where('application_id', $request['application_id'])
-        ->where('id', $request['country_id'])->first();
+        $onboardingCountry = $this->directRecruitmentOnboardingCountry->findOrFail($request['country_id']);
 
         if($request['onboarding_status'] > $onboardingCountry->onboarding_status){
 
