@@ -61,7 +61,7 @@ class DirectRecruitmentCallingVisaApprovalController extends Controller
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             } else if(isset($response['visaReferenceNumberCountError'])) {
-                return $this->sendError(['message' => 'Please select same calling visa reference number in worker listing'], 422);
+                return $this->sendError(['message' => 'Please select workers from same calling visa reference number'], 422);
             }
             return $this->sendSuccess(['message' => 'Approval Status Updated Successfully']);
         } catch (Exception $e) {
