@@ -218,7 +218,9 @@ class ApplicationInterviewsServices
         $this->applicationSummaryServices->ksmUpdateStatus($request);
         
         
-        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])
+                    ->where('status', '!=', 'Rejected')
+                    ->count('ksm_reference_number');
         $applicationInterviewApprovedCount = $this->applicationInterviews->where('application_id', $request['application_id'])
                         ->where('status', 'Approved')
                         ->count();

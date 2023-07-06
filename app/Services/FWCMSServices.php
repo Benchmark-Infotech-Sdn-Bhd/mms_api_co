@@ -129,7 +129,12 @@ class FWCMSServices
                 'quotaError' => true
             ];
         }
-
+        $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+        if($applicationDetails->status == Config::get('services.APPROVAL_COMPLETED')) {
+            return [
+                'processError' => true
+            ];
+        }
         $this->fwcms->create([
             'application_id' => $request['application_id'] ?? 0,
             'submission_date' => $request['submission_date'] ?? '',
@@ -140,10 +145,8 @@ class FWCMSServices
             'created_by' =>  $request['created_by'] ?? 0,
             'modified_by' =>  $request['created_by'] ?? 0
         ]);
-        $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-        if ($applicationDetails->status == Config::get('services.FWCMS_REJECTED')) {
-            $applicationDetails->status = Config::get('services.CHECKLIST_COMPLETED');
-        }
+        $applicationDetails->status = Config::get('services.CHECKLIST_COMPLETED');
+        $applicationDetails->save();
 
         $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? '';
         $request['status'] = $request['status'] ?? '';
@@ -180,26 +183,19 @@ class FWCMSServices
         
         $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
         $fwcmsDetails = $this->fwcms->findOrFail($request['id']);
-        if($applicationDetails->status >= Config::get('services.LEVY_COMPLETED'))
-        {
-            return [
-                'processError' => true
-            ];
-        } else {
-            $ksmReferenceNumbers = $this->levy->levyKSM($request['application_id']);
-            if(count($ksmReferenceNumbers) > 0) {
-                if(in_array($fwcmsDetails->ksm_reference_number, $ksmReferenceNumbers)) {
-                    return [
-                        'processError' => true
-                    ];
-                } else {
-                    $interviewDetails = $this->applicationInterviews->where('ksm_reference_number', $fwcmsDetails->ksm_reference_number)
-                                        ->where('application_id', $request['application_id'])
-                                        ->select('id')
-                                        ->first();
-                    if(!empty($interviewDetails)) {
-                        $this->applicationInterviews->where('id', $interviewDetails->id)->update(['ksm_reference_number' => $request['ksm_reference_number']]);
-                    }
+        $ksmReferenceNumbers = $this->levy->levyKSM($request['application_id']);
+        if(count($ksmReferenceNumbers) > 0) {
+            if(in_array($fwcmsDetails->ksm_reference_number, $ksmReferenceNumbers)) {
+                return [
+                    'processError' => true
+                ];
+            } else {
+                $interviewDetails = $this->applicationInterviews->where('ksm_reference_number', $fwcmsDetails->ksm_reference_number)
+                                    ->where('application_id', $request['application_id'])
+                                    ->select('id')
+                                    ->first();
+                if(!empty($interviewDetails)) {
+                    $this->applicationInterviews->where('id', $interviewDetails->id)->update(['ksm_reference_number' => $request['ksm_reference_number']]);
                 }
             }
         }
