@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\DirectRecruitmentCallingVisaStatus;
+use App\Models\WorkerInsuranceDetails;
 use App\Models\Workers;
 use App\Models\WorkerVisa;
 use Illuminate\Support\Facades\Config;
@@ -20,6 +21,10 @@ class DirectRecruitmentCallingVisaApprovalServices
      */
     private WorkerVisa $workerVisa;
     /**
+     * @var workerInsuranceDetails
+     */
+    private WorkerInsuranceDetails $workerInsuranceDetails;
+    /**
      * @var DirectRecruitmentCallingVisaStatus
      */
     private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
@@ -28,12 +33,14 @@ class DirectRecruitmentCallingVisaApprovalServices
      * DirectRecruitmentCallingVisaApprovalServices constructor.
      * @param Workers $workers
      * @param WorkerVisa $workerVisa
+     * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
      */
-    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
     {
         $this->workers                                = $workers;
         $this->workerVisa                             = $workerVisa;
+        $this->workerInsuranceDetails                 = $workerInsuranceDetails;
         $this->directRecruitmentCallingVisaStatus     = $directRecruitmentCallingVisaStatus;
     }
     /**
@@ -69,6 +76,18 @@ class DirectRecruitmentCallingVisaApprovalServices
                 ];
             }
         if(isset($request['workers']) && !empty($request['workers'])) {
+            $workerVisaProcessed = $this->workerInsuranceDetails
+                            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_insurance_details.worker_id')
+                            ->whereIn('worker_insurance_details.worker_id', $request['workers'])
+                            ->where('worker_insurance_details.insurance_status', 'Purchased')
+                            ->select('worker_visa.calling_visa_reference_number')
+                            ->groupBy('worker_visa.calling_visa_reference_number')
+                            ->get()->toArray();
+            if(count($workerVisaProcessed) != 1) {
+                return [
+                    'visaReferenceNumberCountError' => true
+                ];
+            }
             $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['calling_visa_generated' => $request['calling_visa_generated'], 'calling_visa_valid_until' => $request['calling_visa_valid_until'], 'remarks' => $request['remarks'], 'approval_status' => $request['status'], 'modified_by' => $request['modified_by']]);
         }
         $this->directRecruitmentCallingVisaStatus->where([

@@ -255,4 +255,20 @@ class DirectRecruitmentPostArrivalFomemaServices
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
         return true;
     }
+    /**
+     * @param $request
+     * @return array|bool
+     */
+    public function updateSpecialPass($request): array|bool
+    {
+        if(isset($request['workers']) && !empty($request['workers'])) {
+            $this->workers->whereIn('id', $request['workers'])
+                ->update([
+                    'special_pass' => 1, 
+                    'modified_by' => $request['modified_by']
+                ]);
+        }
+        $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
+        return true;
+    }
 }
