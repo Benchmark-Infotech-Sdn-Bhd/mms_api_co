@@ -100,7 +100,9 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             } else if(isset($response['quotaError'])) {
-                return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota'], 422);
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota.'], 422);
+            } else if(isset($response['editError'])) {
+                return $this->sendError(['message' => 'Attestation submission has been processed for this record, users are not allowed to modify the records.'], 422);
             }
             return $this->sendSuccess(['message' => 'Country Updated Successfully']);
         } catch (Exception $e) {

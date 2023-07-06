@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Models\DirectRecruitmentApplicationApproval;
 use App\Models\ApplicationInterviews;
+use App\Models\OnboardingAttestation;
 use App\Services\ValidationServices;
 
 class DirectRecruitmentOnboardingCountryServices
@@ -24,19 +25,26 @@ class DirectRecruitmentOnboardingCountryServices
      * @var ApplicationInterviews
      */
     private ApplicationInterviews $applicationInterviews;
+     /**
+     * @var OnboardingAttestation
+     */
+    private OnboardingAttestation $onboardingAttestation;
+
     /**
      * DirectRecruitmentOnboardingCountryServices constructor.
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
      * @param DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval;
      * @param ApplicationInterviews $applicationInterviews
-     * @param ValidationServices                    $validationServices;
+     * @param ValidationServices $validationServices;
+     * @param OnboardingAttestation $onboardingAttestation;
      */
-    public function __construct(DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApplicationInterviews $applicationInterviews, ValidationServices $validationServices)
+    public function __construct(DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApplicationInterviews $applicationInterviews, ValidationServices $validationServices, OnboardingAttestation $onboardingAttestation)
     {
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->directRecruitmentApplicationApproval = $directRecruitmentApplicationApproval;
         $this->applicationInterviews = $applicationInterviews;
         $this->validationServices = $validationServices;
+        $this->onboardingAttestation = $onboardingAttestation;
     }
     /**
      * @return array
@@ -149,6 +157,12 @@ class DirectRecruitmentOnboardingCountryServices
         if($countriesQuota > $interviewApproved) {
             return [
                 'quotaError' => true
+            ];
+        }
+        $attestationDetails = $this->onboardingAttestation->where('onboarding_country_id', $request['id'])->first(['status']);
+        if($attestationDetails->status == 'Collected') {
+            return [
+                'editError' => true
             ];
         }
         $onboardingCountry->application_id =  $request['application_id'] ?? $onboardingCountry->application_id;
