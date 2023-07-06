@@ -166,7 +166,9 @@ class LevyServices
         $levyDetails->modified_by               = $request['modified_by'] ?? $levyDetails->modified_by;
         $levyDetails->save();
 
-        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])
+                    ->where('status', '!=', 'Rejected')
+                    ->count('ksm_reference_number');
         $levyPaidCount = $this->levy->where('application_id', $request['application_id'])
                         ->where('status', 'Paid')
                         ->count();
