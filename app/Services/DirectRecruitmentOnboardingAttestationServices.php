@@ -159,11 +159,6 @@ class DirectRecruitmentOnboardingAttestationServices
                 'modified_by' => $request['created_by'] ?? 0
             ]);
 
-            $onBoardingStatus['application_id'] = $request['application_id'];
-            $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
-            $onBoardingStatus['onboarding_status'] = 3; //Agent Added
-            $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
-
             return true;
         }else{
             return false;
@@ -200,6 +195,12 @@ class DirectRecruitmentOnboardingAttestationServices
         $onboardingAttestation->status =  $request['status'] ?? $onboardingAttestation->status;
         $onboardingAttestation->modified_by =  $request['modified_by'] ?? $onboardingAttestation->modified_by;
         $onboardingAttestation->save();
+
+        $onBoardingStatus['application_id'] = $onboardingAttestation->application_id;
+        $onBoardingStatus['country_id'] = $onboardingAttestation->onboarding_country_id;
+        $onBoardingStatus['onboarding_status'] = 3; //Agent Added
+        $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+
         return true;
     }
     /**
