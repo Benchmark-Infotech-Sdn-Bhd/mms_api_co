@@ -3,21 +3,25 @@
 namespace App\Services;
 
 use App\Models\Agent;
+use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 
 class AgentServices
 {
     private Agent $agent;
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
     private ValidationServices $validationServices;
     /**
      * AgentServices constructor.
      * @param Agent $agent
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      * @param ValidationServices $validationServices
      */
-    public function __construct(Agent $agent,ValidationServices $validationServices)
+    public function __construct(Agent $agent,DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry,ValidationServices $validationServices)
     {
         $this->agent = $agent;
+        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->validationServices = $validationServices;
     }
 
@@ -212,8 +216,18 @@ class AgentServices
     /**
      * @return mixed
      */
-    public function dropdown() : mixed
+    public function dropdown($request) : mixed
     {
-        return $this->agent->where('status', 1)->select('id','agent_name')->orderBy('agent.created_at','DESC')->get();
+        if(isset($request['onboarding_country_id']) && !empty($request['onboarding_country_id'])){
+            $countryId = $this->directRecruitmentOnboardingCountry->find($request['onboarding_country_id']);
+        }
+        return $this->agent
+        ->where('status', 1)
+        ->where(function($query) use ($request) {
+            if (isset($request['onboarding_country_id']) && !empty($request['onboarding_country_id'])) {
+                $query->where('country_id', '=', $countryId->country_id);
+            }
+        })
+        ->select('id','agent_name')->orderBy('agent.created_at','DESC')->get();
     }
 }
