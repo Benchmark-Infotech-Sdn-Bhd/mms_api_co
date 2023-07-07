@@ -219,13 +219,14 @@ class AgentServices
     public function dropdown($request) : mixed
     {
         if(isset($request['onboarding_country_id']) && !empty($request['onboarding_country_id'])){
-            $countryId = $this->directRecruitmentOnboardingCountry->find($request['onboarding_country_id']);
+            $country = $this->directRecruitmentOnboardingCountry->find($request['onboarding_country_id']);
         }
+        $countryId = isset($country->country_id) ? $country->country_id : '';
         return $this->agent
         ->where('status', 1)
-        ->where(function($query) use ($request) {
+        ->where(function($query) use ($request, $countryId) {
             if (isset($request['onboarding_country_id']) && !empty($request['onboarding_country_id'])) {
-                $query->where('country_id', '=', $countryId->country_id);
+                $query->where('country_id', '=', $countryId);
             }
         })
         ->select('id','agent_name')->orderBy('agent.created_at','DESC')->get();
