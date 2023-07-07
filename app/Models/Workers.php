@@ -24,7 +24,7 @@ class Workers extends Model implements Auditable
      */
     protected $fillable = ['onboarding_country_id','agent_id','application_id','name','gender','date_of_birth','passport_number',
     'passport_valid_until','fomema_valid_until','address','status', 'cancel_status', 'remarks',
-    'city','state', 'special_pass_valid_until', 'plks_status', 'plks_expiry_date', 'created_by','modified_by'];
+    'city','state', 'special_pass', 'special_pass_submission_date', 'special_pass_valid_until', 'plks_status', 'plks_expiry_date', 'created_by','modified_by'];
    
     /**
      * The attributes that are required.
@@ -35,7 +35,7 @@ class Workers extends Model implements Auditable
         'onboarding_country_id' => 'required|regex:/^[0-9]+$/',
         'agent_id' => 'required|regex:/^[0-9]+$/',
         'application_id' => 'required|regex:/^[0-9]+$/',
-        'name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+        'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
         'date_of_birth' => 'required|date_format:Y-m-d',
         'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
         'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
@@ -57,7 +57,7 @@ class Workers extends Model implements Auditable
             'onboarding_country_id' => 'required|regex:/^[0-9]+$/',
             'agent_id' => 'required|regex:/^[0-9]+$/',
             'application_id' => 'required|regex:/^[0-9]+$/',
-            'name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+            'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
             'date_of_birth' => 'required|date_format:Y-m-d',
             'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
             'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',

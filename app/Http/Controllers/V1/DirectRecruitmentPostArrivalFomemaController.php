@@ -109,4 +109,23 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
             return $this->sendError(['message' => 'Failed to Update FOMEMA Status'], 400);
         }
     }
+    /**
+     * Update Special Pass Details.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateSpecialPass(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $this->directRecruitmentPostArrivalFomemaServices->updateSpecialPass($params);
+            return $this->sendSuccess(['message' => 'Special Pass Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update Special Pass'], 400);
+        }
+    }
 }
