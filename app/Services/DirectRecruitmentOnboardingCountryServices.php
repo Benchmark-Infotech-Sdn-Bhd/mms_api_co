@@ -169,7 +169,7 @@ class DirectRecruitmentOnboardingCountryServices
         return $this->directRecruitmentApplicationApproval
                 ->leftJoin('application_interviews', function($join) use ($request){
                     $join->on('application_interviews.application_id', '=', 'directrecruitment_application_approval.application_id')
-                    ->where('application_interviews.ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
+                    ->on('application_interviews.ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
                   })
                 ->leftJoin('directrecruitment_onboarding_countries', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_application_approval.application_id')
                 ->where('directrecruitment_application_approval.application_id', $request['application_id'])

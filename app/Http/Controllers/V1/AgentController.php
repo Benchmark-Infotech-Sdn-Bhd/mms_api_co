@@ -197,10 +197,10 @@ class AgentController extends Controller
      *
      * @return JsonResponse
      */
-    public function dropdown(): JsonResponse
+    public function dropdown(Request $request): JsonResponse
     {
         try {
-            $data = $this->agentServices->dropdown();
+            $data = $this->agentServices->dropdown($request);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

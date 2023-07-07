@@ -77,8 +77,6 @@ class ApplicationInterviewsServices
                 'application_id' => 'required',
                 'ksm_reference_number' => 'required|unique:application_interviews',
                 'schedule_date' => 'required|date|date_format:Y-m-d|after:yesterday',
-                'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
-                'approval_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'status' => 'required'                
             ];
     }
@@ -94,8 +92,6 @@ class ApplicationInterviewsServices
                 'application_id' => 'required',
                 'ksm_reference_number' => 'required|unique:application_interviews,ksm_reference_number,'.$param['id'],
                 'schedule_date' => 'required|date|date_format:Y-m-d|after:yesterday',
-                'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
-                'approval_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'status' => 'required'
             ];
     }
