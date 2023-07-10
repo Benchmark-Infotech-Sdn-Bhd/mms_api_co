@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ApplicationChecklistAttachments;
 use App\Models\DirectRecruitmentApplicationChecklist;
+use App\Models\DocumentChecklist;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\DirectRecruitmentServices;
@@ -16,6 +17,7 @@ class ApplicationChecklistAttachmentsServices
 {
     private ApplicationChecklistAttachments $applicationtChecklistAttachments;
     private DirectRecruitmentApplicationChecklist $directRecruitmentApplicationChecklist;
+    private DocumentChecklist $documentChecklist;
     private ValidationServices $validationServices;
     private Storage $storage;
     private DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices;
@@ -25,18 +27,20 @@ class ApplicationChecklistAttachmentsServices
      * ApplicationChecklistAttachmentsServices constructor.
      * @param ApplicationChecklistAttachments $applicationChecklistAttachments
      * @param DirectRecruitmentApplicationChecklist $directRecruitmentApplicationChecklist
+     * @param DocumentChecklist $documentChecklist
      * @param ValidationServices $validationServices
      * @param DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices
      * @param Storage $storage
      * @param DirectRecruitmentServices $directRecruitmentServices
      * @param ApplicationSummaryServices $applicationSummaryServices;
      */
-    public function __construct(ApplicationChecklistAttachments $applicationChecklistAttachments, DirectRecruitmentApplicationChecklist $directRecruitmentApplicationChecklist, ValidationServices $validationServices,
+    public function __construct(ApplicationChecklistAttachments $applicationChecklistAttachments, DirectRecruitmentApplicationChecklist $directRecruitmentApplicationChecklist, DocumentChecklist $documentChecklist, ValidationServices $validationServices,
     Storage $storage,DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices,
     DirectRecruitmentServices $directRecruitmentServices, ApplicationSummaryServices $applicationSummaryServices)
     {
         $this->applicationChecklistAttachments = $applicationChecklistAttachments;
         $this->directRecruitmentApplicationChecklist = $directRecruitmentApplicationChecklist;
+        $this->documentChecklist = $documentChecklist;
         $this->validationServices = $validationServices;
         $this->storage = $storage;
         $this->directRecruitmentApplicationChecklistServices = $directRecruitmentApplicationChecklistServices;
@@ -165,25 +169,15 @@ class ApplicationChecklistAttachmentsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->directRecruitmentApplicationChecklist
-        ->leftJoin('application_checklist_attachments', 'application_checklist_attachments.application_checklist_id',  'directrecruitment_application_checklist.id')
-        ->leftJoin('directrecruitment_applications', 'directrecruitment_applications.id', 'directrecruitment_application_checklist.application_id')
-        ->leftJoin('crm_prospect_services', function($join) use ($request){
-            $join->on('crm_prospect_services.crm_prospect_id', '=', 'directrecruitment_applications.crm_prospect_id')
-            ->where('crm_prospect_services.sector_id',$request['sector_id']);
-          })
-        ->leftJoin('document_checklist', 'document_checklist.id', 'crm_prospect_services.sector_id')
-        /*->leftJoin('document_checklist', function($join) use ($request){
-            $join->on('document_checklist.id', '=', 'application_checklist_attachments.document_checklist_id')
-            ->where('document_checklist.sector_id',$request['sector_id'])
-            ->orWhereNull('application_checklist_attachments.document_checklist_id');
-          })*/
-        ->where('directrecruitment_application_checklist.application_id',$request['application_id'])
-        ->with(["applicationChecklistAttachments" => function($attachment) use ($request){
-            $attachment->where('application_id',$request['application_id']);
-        }])->orderBy('directrecruitment_application_checklist.created_at','DESC')
-        ->select('directrecruitment_application_checklist.id', 'directrecruitment_application_checklist.application_id', 'directrecruitment_application_checklist.application_checklist_status', 'directrecruitment_application_checklist.submitted_on', 'directrecruitment_application_checklist.modified_on', 'directrecruitment_application_checklist.created_by', 'directrecruitment_application_checklist.modified_by', 'directrecruitment_application_checklist.created_at', 'directrecruitment_application_checklist.updated_at', 'directrecruitment_application_checklist.deleted_at', 'directrecruitment_application_checklist.remarks', 'document_checklist.sector_id','document_checklist.document_title')
-        ->distinct('directrecruitment_application_checklist.id')
-        ->paginate(Config::get('services.paginate_row'));
+
+          return $this->documentChecklist->where('document_checklist.sector_id', $request['sector_id'])
+          ->leftJoin('application_checklist_attachments', 'application_checklist_attachments.document_checklist_id', 'document_checklist.id')
+          ->leftJoin('directrecruitment_application_checklist', 'directrecruitment_application_checklist.id', 'application_checklist_attachments.application_checklist_id')
+          ->with(["applicationChecklistAttachments" => function($attachment) use ($request){
+                $attachment->where('application_id',$request['application_id']);
+            }])->orderBy('document_checklist.created_at','DESC')
+            ->select('document_checklist.id', 'document_checklist.sector_id','document_checklist.document_title', 'directrecruitment_application_checklist.application_id', 'directrecruitment_application_checklist.application_checklist_status', 'directrecruitment_application_checklist.submitted_on', 'directrecruitment_application_checklist.modified_on', 'directrecruitment_application_checklist.created_by', 'directrecruitment_application_checklist.modified_by', 'directrecruitment_application_checklist.created_at', 'directrecruitment_application_checklist.updated_at', 'directrecruitment_application_checklist.deleted_at', 'directrecruitment_application_checklist.remarks')
+            ->distinct('document_checklist.id')
+            ->paginate(Config::get('services.paginate_row'));
     }
 }
