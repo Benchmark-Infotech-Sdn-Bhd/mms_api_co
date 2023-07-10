@@ -31,6 +31,23 @@ class DirecRecruitmentPostArrivalController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
+    public function postArrivalStatusList(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->direcRecruitmentPostArrivalServices->postArrivalStatusList($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Status'], 400);
+        }
+    }
+    /**
+     * Dispaly list of workers for post arrival.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function workersList(Request $request) : JsonResponse
     {
         try {

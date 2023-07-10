@@ -332,6 +332,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('callingvisaReferenceNumberList', 'V1\DirectRecruitmentArrivalController@callingvisaReferenceNumberList');
                 });
                 $router->group(['prefix' => 'postArrival'], function () use ($router) {
+                    $router->post('postArrivalStatusList', 'V1\DirecRecruitmentPostArrivalController@postArrivalStatusList');
                     $router->group(['prefix' => 'arrival'], function () use ($router) {
                         $router->post('workersList', 'V1\DirecRecruitmentPostArrivalController@workersList');
                         $router->post('updatePostArrival', 'V1\DirecRecruitmentPostArrivalController@updatePostArrival');

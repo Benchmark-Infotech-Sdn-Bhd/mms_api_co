@@ -53,7 +53,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
      */
     public function testForPostArrivalArrivedDateFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', array_merge($this->arrivedData(), ['arrived_date' => '06-06-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', array_merge($this->arrivedData(), ['arrived_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -68,7 +68,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
      */
     public function testForPostArrivalEntryVisaValidUntilFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', array_merge($this->arrivedData(), ['entry_visa_valid_until' => '06-06-2035']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', array_merge($this->arrivedData(), ['entry_visa_valid_until' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -83,7 +83,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
      */
     public function testForPostArrivalArrivedDatePastDateValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', array_merge($this->arrivedData(), ['arrived_date' => '2035-07-27']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', array_merge($this->arrivedData(), ['arrived_date' => Carbon::now()->addYear()->format('Y-m-d')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -98,7 +98,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
      */
     public function testForPostArrivalEntryVisaValidUntilFutureDateValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', array_merge($this->arrivedData(), ['entry_visa_valid_until' => '2023-03-27']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', array_merge($this->arrivedData(), ['entry_visa_valid_until' => Carbon::now()->subYear()->format('Y-m-d')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -128,7 +128,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
      */
     public function testForPostArrivalJTKSubmissionDateFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateJTKSubmission', array_merge($this->jtkSubmissionData(), ['jtk_submitted_on' => '06-06-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateJTKSubmission', array_merge($this->jtkSubmissionData(), ['jtk_submitted_on' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -143,7 +143,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
      */
     public function testForPostArrivalJTKSubmissionPastDateValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateJTKSubmission', array_merge($this->jtkSubmissionData(), ['jtk_submitted_on' => '2035-07-27']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateJTKSubmission', array_merge($this->jtkSubmissionData(), ['jtk_submitted_on' => Carbon::now()->addYear()->format('Y-m-d')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -173,7 +173,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
      */
     public function testForPostArrivalNewArrivalDateFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostponed', array_merge($this->postponedData(), ['new_arrival_date' => '06-06-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostponed', array_merge($this->postponedData(), ['new_arrival_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -188,7 +188,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
      */
     public function testForPostArrivalNewArrivalFutureDateValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostponed', array_merge($this->postponedData(), ['new_arrival_date' => '2035-07-27']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostponed', array_merge($this->postponedData(), ['new_arrival_date' => Carbon::now()->subYear()->format('Y-m-d')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -365,7 +365,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
     public function testForWorkersListWithfilter(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => '', 'filter' => '2023-06-27'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => '', 'filter' => Carbon::now()->format('Y-m-d')], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -412,7 +412,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
-            'date_of_birth' => '1998-11-02', 
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'), 
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
@@ -462,7 +462,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'submission_date' => '2023-05-04', 
+            'submission_date' => Carbon::now()->format('Y-m-d'), 
             'applied_quota' => 100, 
             'status' => 'Approved', 
             'ksm_reference_number' => 'My/643/7684548', 
@@ -483,7 +483,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'payment_date' => '2023-05-10', 
+            'payment_date' => Carbon::now()->format('Y-m-d'), 
             'payment_amount' => 10.87, 
             'approved_quota' => 100, 
             'ksm_reference_number' => 'My/643/7684548', 
@@ -497,8 +497,8 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'ksm_reference_number' => 'My/643/7684548', 
-            'received_date' => '2023-05-13', 
-            'valid_until' => '2023-06-13'
+            'received_date' => Carbon::now()->format('Y-m-d'), 
+            'valid_until' => Carbon::now()->format('Y-m-d')
         ];
         $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $payload, $this->getHeader(false));
 
@@ -533,11 +533,11 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
             'onboarding_country_id' => 1,
             'agent_id' => 1,
             'name' => 'TestWorker',
-            'date_of_birth' => '2023-05-13',
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'),
             'gender' => 'Female',
             'passport_number' => 123456789154,
-            'passport_valid_until' => '2023-05-13',
-            'fomema_valid_until' => '2023-05-13',
+            'passport_valid_until' => Carbon::now()->format('Y-m-d'),
+            'fomema_valid_until' => Carbon::now()->format('Y-m-d'),
             'address' => 'address',
             'city' => 'city',
             'state' => 'state',
@@ -546,20 +546,20 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
             'kin_contact_number' => 1234567890,
             'ksm_reference_number' => 'My/643/7684548',
             'calling_visa_reference_number' => 'asdfdq434214',
-            'calling_visa_valid_until' => '2023-05-13',
-            'entry_visa_valid_until' => '2023-05-13',
-            'work_permit_valid_until' => '2023-05-13',
+            'calling_visa_valid_until' => Carbon::now()->format('Y-m-d'),
+            'entry_visa_valid_until' => Carbon::now()->format('Y-m-d'),
+            'work_permit_valid_until' => Carbon::now()->format('Y-m-d'),
             'bio_medical_reference_number' => 'BIO1234567',
-            'bio_medical_valid_until' => '2023-05-13',
-            'purchase_date' => '2023-05-13',
+            'bio_medical_valid_until' => Carbon::now()->format('Y-m-d'),
+            'purchase_date' => Carbon::now()->format('Y-m-d'),
             'clinic_name' => 'Test Clinic',
             'doctor_code' => 'Doc123',
             'allocated_xray' => 'Tst1234',
             'xray_code' => 'Xray1234',
             'ig_policy_number' => 'ig223422233',
-            'ig_policy_number_valid_until' => '2023-05-13',
-            'hospitalization_policy_number' => '2023-05-13',
-            'hospitalization_policy_number_valid_until' => '2023-05-13',
+            'ig_policy_number_valid_until' => Carbon::now()->format('Y-m-d'),
+            'hospitalization_policy_number' => Carbon::now()->format('Y-m-d'),
+            'hospitalization_policy_number_valid_until' => Carbon::now()->format('Y-m-d'),
             'bank_name' => 'Bank Name',
             'account_number' => 1234556678,
             'socso_number' => 12345678
@@ -592,6 +592,6 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
      */
     public function postponedData(): array
     {
-        return ['application_id' => 1, 'onboarding_country_id' => 1, 'new_arrival_date' => '2035-06-30', 'arrival_time' => '12:00 AM', 'flight_number' => 'ASG74837498', 'remarks' => 'test', 'workers' => [1]];
+        return ['application_id' => 1, 'onboarding_country_id' => 1, 'new_arrival_date' => Carbon::now()->addYear()->format('Y-m-d'), 'arrival_time' => '12:00 AM', 'flight_number' => 'ASG74837498', 'remarks' => 'test', 'workers' => [1]];
     }
 }
