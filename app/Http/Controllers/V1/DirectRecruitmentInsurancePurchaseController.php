@@ -85,4 +85,21 @@ class DirectRecruitmentInsurancePurchaseController extends Controller
             return $this->sendError(['message' => 'Failed to Submit Insurance Purchase'], 400);
         }
     }
+    /**
+     * Display list of Insurance Providers
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function insuranceProviderDropDown(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentInsurancePurchaseServices->insuranceProviderDropDown($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error = ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Insurance Provider'], 400);
+        }
+    }
 }

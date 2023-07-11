@@ -7,6 +7,7 @@ use App\Models\Workers;
 use App\Models\WorkerVisa;
 use App\Models\WorkerInsuranceDetails;
 use App\Models\WorkerInsuranceAttachments;
+use App\Models\Vendor;
 use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -39,6 +40,10 @@ class DirectRecruitmentInsurancePurchaseServices
      * @var workerInsuranceAttachments
      */
     private WorkerInsuranceAttachments $workerInsuranceAttachments;
+    /**
+     * @var Vendor
+     */
+    private Vendor $vendor;
 
     /**
      * @var Storage
@@ -53,15 +58,17 @@ class DirectRecruitmentInsurancePurchaseServices
      * @param WorkerVisa $workerVisa
      * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param WorkerInsuranceAttachments $workerInsuranceAttachments
+     * @param Vendor $vendor
      * @param Storage $storage;
      */
-    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, WorkerInsuranceAttachments $workerInsuranceAttachments, Storage $storage)
+    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, WorkerInsuranceAttachments $workerInsuranceAttachments, Vendor $vendor, Storage $storage)
     {
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->workers                            = $workers;
         $this->workerVisa                         = $workerVisa;
         $this->workerInsuranceDetails             = $workerInsuranceDetails;
         $this->workerInsuranceAttachments         = $workerInsuranceAttachments;
+        $this->vendor                             = $vendor;
         $this->storage = $storage;
     }
     /**
@@ -249,5 +256,17 @@ class DirectRecruitmentInsurancePurchaseServices
             return false;
         }
         
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function insuranceProviderDropDown($request): mixed
+    {
+        return $this->vendor
+        ->where('type', 'Insurance')
+        ->select('id', 'name')
+        ->distinct('id')
+        ->get();
     }
 }

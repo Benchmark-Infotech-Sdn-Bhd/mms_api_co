@@ -297,6 +297,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('workersList', 'V1\DirectRecruitmentInsurancePurchaseController@workersList');
                         $router->post('show', 'V1\DirectRecruitmentInsurancePurchaseController@show');
                         $router->post('submit', 'V1\DirectRecruitmentInsurancePurchaseController@submit');
+                        $router->post('insuranceProviderDropDown', 'V1\DirectRecruitmentInsurancePurchaseController@insuranceProviderDropDown');
                     });
                     $router->group(['prefix' => 'approval'], function () use ($router) {
                         $router->post('approvalStatusUpdate', 'V1\DirectRecruitmentCallingVisaApprovalController@approvalStatusUpdate');
