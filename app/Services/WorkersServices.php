@@ -268,7 +268,7 @@ class WorkersServices
         $checkCallingVisa = $this->directRecruitmentCallingVisaStatus
         ->where('application_id', $request['application_id'])
         ->where('onboarding_country_id', $request['onboarding_country_id'])
-        ->where('agent_id', $request['agent_id'])->first();
+        ->where('agent_id', $request['agent_id'])->get()->toArray();
 
         if(isset($checkCallingVisa) && count($checkCallingVisa) == 0 ){
             $callingVisaStatus = $this->directRecruitmentCallingVisaStatus->create([
@@ -276,7 +276,7 @@ class WorkersServices
                 'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
                 'agent_id' => $request['agent_id'] ?? 0,
                 'item' => 'Calling Visa Status',
-                'updated_on' => '',
+                'updated_on' => Carbon::now(),
                 'status' => 1,
                 'created_by' => $params['created_by'] ?? 0,
                 'modified_by' => $params['created_by'] ?? 0,
