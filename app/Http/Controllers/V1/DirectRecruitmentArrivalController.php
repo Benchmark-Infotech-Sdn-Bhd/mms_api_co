@@ -218,5 +218,22 @@ class DirectRecruitmentArrivalController extends Controller
             return $this->sendError(['message' => 'Failed to Update Worker'], 400);
         }
     }
+     /**
+     * Display list of workers for arrival submit
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function arrivalDateDropDown(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentArrivalServices->arrivalDateDropDown($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error = ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Arrival Dates'], 400);
+        }
+    }
     
 }

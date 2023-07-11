@@ -449,5 +449,18 @@ class DirectRecruitmentArrivalServices
         }
         
     }
+     /**
+     * @param $request
+     * @return mixed
+     */
+    public function arrivalDateDropDown($request): mixed
+    {
+        return $this->directrecruitmentArrival
+        ->where('application_id', $request['application_id'])
+        ->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->select( 'flight_date')
+        ->distinct()
+        ->get();
+    }
     
 }
