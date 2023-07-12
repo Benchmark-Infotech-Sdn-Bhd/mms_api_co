@@ -124,6 +124,21 @@ class DirecRecruitmentPostArrivalServices
      * @param $request
      * @return mixed
      */
+    public function postArrivalStatusList($request): mixed
+    {
+        return $this->directRecruitmentPostArrivalStatus
+            ->select('id', 'item', 'updated_on', 'status')
+            ->where([
+                'application_id' => $request['application_id'],
+                'onboarding_country_id' => $request['onboarding_country_id']
+            ])
+            ->orderBy('id', 'desc')
+            ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
     public function workersList($request): mixed
     {
         if(isset($request['search']) && !empty($request['search'])){

@@ -171,7 +171,10 @@ class ApplicationChecklistAttachmentsServices
         }
 
           return $this->documentChecklist->where('document_checklist.sector_id', $request['sector_id'])
-          ->leftJoin('application_checklist_attachments', 'application_checklist_attachments.document_checklist_id', 'document_checklist.id')
+          ->leftJoin('application_checklist_attachments', function($join) use ($request){
+            $join->on('application_checklist_attachments.document_checklist_id', '=', 'document_checklist.id')
+            ->where('application_checklist_attachments.application_id', '=', $request['application_id']);
+          })
           ->leftJoin('directrecruitment_application_checklist', 'directrecruitment_application_checklist.id', 'application_checklist_attachments.application_checklist_id')
           ->with(["applicationChecklistAttachments" => function($attachment) use ($request){
                 $attachment->where('application_id',$request['application_id']);

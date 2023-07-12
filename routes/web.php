@@ -297,6 +297,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('workersList', 'V1\DirectRecruitmentInsurancePurchaseController@workersList');
                         $router->post('show', 'V1\DirectRecruitmentInsurancePurchaseController@show');
                         $router->post('submit', 'V1\DirectRecruitmentInsurancePurchaseController@submit');
+                        $router->post('insuranceProviderDropDown', 'V1\DirectRecruitmentInsurancePurchaseController@insuranceProviderDropDown');
                     });
                     $router->group(['prefix' => 'approval'], function () use ($router) {
                         $router->post('approvalStatusUpdate', 'V1\DirectRecruitmentCallingVisaApprovalController@approvalStatusUpdate');
@@ -330,8 +331,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('updateWorkers', 'V1\DirectRecruitmentArrivalController@updateWorkers');
                     $router->post('cancelWorkerDetail', 'V1\DirectRecruitmentArrivalController@cancelWorkerDetail');
                     $router->post('callingvisaReferenceNumberList', 'V1\DirectRecruitmentArrivalController@callingvisaReferenceNumberList');
+                    $router->post('arrivalDateDropDown', 'V1\DirectRecruitmentArrivalController@arrivalDateDropDown');
                 });
                 $router->group(['prefix' => 'postArrival'], function () use ($router) {
+                    $router->post('postArrivalStatusList', 'V1\DirecRecruitmentPostArrivalController@postArrivalStatusList');
                     $router->group(['prefix' => 'arrival'], function () use ($router) {
                         $router->post('workersList', 'V1\DirecRecruitmentPostArrivalController@workersList');
                         $router->post('updatePostArrival', 'V1\DirecRecruitmentPostArrivalController@updatePostArrival');
@@ -456,11 +459,21 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
         });
         /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'directRecrutmentExpenses'], function () use ($router) {
+            $router->post('list', 'V1\DirectRecruitmentExpensesController@list');
+            $router->post('show', 'V1\DirectRecruitmentExpensesController@show');
+            $router->post('create', 'V1\DirectRecruitmentExpensesController@create');
+            $router->post('update', 'V1\DirectRecruitmentExpensesController@update');
+        });
+        /**
         * Routes for Total Management.
         */
         $router->group(['prefix' => 'totalManagement'], function () use ($router) {
             $router->post('addService', 'V1\TotalManagementController@addService');
             $router->post('getQuota', 'V1\TotalManagementController@getQuota');
-        });
+
+        });    
     });
 });

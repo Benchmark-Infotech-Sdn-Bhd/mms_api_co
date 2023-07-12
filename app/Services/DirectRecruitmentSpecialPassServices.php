@@ -171,9 +171,18 @@ class DirectRecruitmentSpecialPassServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
             $request['workers'] = explode(',', $request['workers']);
+            $submissionValidation = $this->workers
+                                    ->where('special_pass_submission_date', NULL)
+                                    ->whereIn('id', $request['workers'])
+                                    ->count('id');
+            if($submissionValidation > 0) {
+                return [
+                    'submissionError' => true
+                ];
+            }
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
-                    'special_pass_valid_until' => $request['valid_until'], 
+                    'special_pass_valid_until' => $request['valid_until'],
                     'modified_by' => $request['modified_by']
                 ]);
             if(request()->hasFile('attachment')) {

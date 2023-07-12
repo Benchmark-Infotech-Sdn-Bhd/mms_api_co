@@ -31,6 +31,23 @@ class DirecRecruitmentPostArrivalController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
+    public function postArrivalStatusList(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->direcRecruitmentPostArrivalServices->postArrivalStatusList($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Status'], 400);
+        }
+    }
+    /**
+     * Dispaly list of workers for post arrival.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function workersList(Request $request) : JsonResponse
     {
         try {
@@ -83,10 +100,10 @@ class DirecRecruitmentPostArrivalController extends Controller
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
-            return $this->sendSuccess(['message' => 'JTK Submission Updated Successfully']);
+            return $this->sendSuccess(['message' => 'JDK Submission Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Update JTK Submission'], 400);
+            return $this->sendError(['message' => 'Failed to Update JDK Submission'], 400);
         }
     }
     /**
