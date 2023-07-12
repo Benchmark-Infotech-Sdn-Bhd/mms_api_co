@@ -30,8 +30,6 @@ return new class extends Migration
             $table->float('cost_quoted')->default(0.0);
             // Column for application status
             $table->string('status')->default('Proposal')->index();
-            // Column for service type
-            $table->string('service_type')->default('Total Management');
             // Column for remarks
             $table->string('remarks',255)->nullable();
             // Column for user id who created the application

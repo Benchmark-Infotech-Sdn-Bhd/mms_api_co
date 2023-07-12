@@ -455,5 +455,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('replaceWorker', 'V1\WorkersController@replaceWorker');
             $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
         });
+        /**
+        * Routes for Total Management.
+        */
+        $router->group(['prefix' => 'totalManagement'], function () use ($router) {
+            $router->post('addService', 'V1\TotalManagementController@addService');
+            $router->post('getQuota', 'V1\TotalManagementController@getQuota');
+        });
     });
 });
