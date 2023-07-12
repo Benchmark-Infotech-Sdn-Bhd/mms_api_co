@@ -456,5 +456,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('replaceWorker', 'V1\WorkersController@replaceWorker');
             $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
         });
+
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'directRecrutmentExpenses'], function () use ($router) {
+            $router->post('list', 'V1\DirectRecruitmentExpensesController@list');
+            $router->post('show', 'V1\DirectRecruitmentExpensesController@show');
+            $router->post('create', 'V1\DirectRecruitmentExpensesController@create');
+            $router->post('update', 'V1\DirectRecruitmentExpensesController@update');
+        });
     });
 });
