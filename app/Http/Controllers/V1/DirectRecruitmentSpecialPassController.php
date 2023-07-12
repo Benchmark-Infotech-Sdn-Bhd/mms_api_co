@@ -81,7 +81,7 @@ class DirectRecruitmentSpecialPassController extends Controller
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
             } else if(isset($response['submissionError']) && !empty($response['submissionError'])) {
-                return $this->validationError(["message" => "Please select the valid workers"]);
+                return $this->validationError(["message" => "Please select the submission date before updating validity details"]);
             }
             return $this->sendSuccess(['message' => 'Validity Updated Successfully']);
         } catch (Exception $e) {
