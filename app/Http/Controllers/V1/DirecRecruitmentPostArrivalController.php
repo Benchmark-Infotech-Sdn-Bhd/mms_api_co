@@ -100,10 +100,10 @@ class DirecRecruitmentPostArrivalController extends Controller
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
-            return $this->sendSuccess(['message' => 'JTK Submission Updated Successfully']);
+            return $this->sendSuccess(['message' => 'JDK Submission Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Update JTK Submission'], 400);
+            return $this->sendError(['message' => 'Failed to Update JDK Submission'], 400);
         }
     }
     /**

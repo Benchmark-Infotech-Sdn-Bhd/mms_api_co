@@ -297,6 +297,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('workersList', 'V1\DirectRecruitmentInsurancePurchaseController@workersList');
                         $router->post('show', 'V1\DirectRecruitmentInsurancePurchaseController@show');
                         $router->post('submit', 'V1\DirectRecruitmentInsurancePurchaseController@submit');
+                        $router->post('insuranceProviderDropDown', 'V1\DirectRecruitmentInsurancePurchaseController@insuranceProviderDropDown');
                     });
                     $router->group(['prefix' => 'approval'], function () use ($router) {
                         $router->post('approvalStatusUpdate', 'V1\DirectRecruitmentCallingVisaApprovalController@approvalStatusUpdate');
@@ -330,6 +331,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('updateWorkers', 'V1\DirectRecruitmentArrivalController@updateWorkers');
                     $router->post('cancelWorkerDetail', 'V1\DirectRecruitmentArrivalController@cancelWorkerDetail');
                     $router->post('callingvisaReferenceNumberList', 'V1\DirectRecruitmentArrivalController@callingvisaReferenceNumberList');
+                    $router->post('arrivalDateDropDown', 'V1\DirectRecruitmentArrivalController@arrivalDateDropDown');
                 });
                 $router->group(['prefix' => 'postArrival'], function () use ($router) {
                     $router->post('postArrivalStatusList', 'V1\DirecRecruitmentPostArrivalController@postArrivalStatusList');
