@@ -471,9 +471,11 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         * Routes for Total Management.
         */
         $router->group(['prefix' => 'totalManagement'], function () use ($router) {
+            $router->post('applicationListing', 'V1\TotalManagementController@applicationListing');
             $router->post('addService', 'V1\TotalManagementController@addService');
             $router->post('getQuota', 'V1\TotalManagementController@getQuota');
-
+            $router->post('showProposal', 'V1\TotalManagementController@showProposal');
+            $router->post('submitProposal', 'V1\TotalManagementController@submitProposal');
         });    
     });
 });

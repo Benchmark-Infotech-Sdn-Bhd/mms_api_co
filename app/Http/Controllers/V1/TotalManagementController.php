@@ -24,6 +24,24 @@ class TotalManagementController extends Controller
     {
         $this->totalManagementServices = $totalManagementServices;
     }
+    /** Display list of prospect in total management.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function applicationListing(Request $request): JsonResponse
+    {
+        try {
+            $response = $this->totalManagementServices->applicationListing($request);
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess($response);
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Prospect']);
+        }
+    }
     /** Add a services to the prospect.
      * 
      * @param Request $request
@@ -55,6 +73,42 @@ class TotalManagementController extends Controller
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Get Quota']);
+        }
+    }
+    /** Display list of prospect for proposal.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function showProposal(Request $request): JsonResponse
+    {
+        try {
+            $response = $this->totalManagementServices->showProposal($request);
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess($response);
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Display Proposal']);
+        }
+    }
+     /** Display form to submit proposal.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function submitProposal(Request $request): JsonResponse
+    {
+        try {
+            $response = $this->totalManagementServices->submitProposal($request);
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess(['message' => 'Proposal Submitted Successfully.']);
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Submit Proposal']);
         }
     }
 }
