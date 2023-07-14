@@ -476,6 +476,14 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('getQuota', 'V1\TotalManagementController@getQuota');
             $router->post('showProposal', 'V1\TotalManagementController@showProposal');
             $router->post('submitProposal', 'V1\TotalManagementController@submitProposal');
+            $router->group(['prefix' => 'manage'], function () use ($router) {
+                $router->group(['prefix' => 'worker'], function () use ($router) {
+                    $router->post('workerListForAssignWorker', 'V1\TotalManagementWorkerController@workerListForAssignWorker');
+                    $router->post('accommodationProviderDropDown', 'V1\TotalManagementWorkerController@accommodationProviderDropDown');
+                    $router->post('accommodationUnitDropDown', 'V1\TotalManagementWorkerController@accommodationUnitDropDown');
+                    $router->post('assignWorker', 'V1\TotalManagementWorkerController@assignWorker');
+                });
+            });
         });    
     });
 });

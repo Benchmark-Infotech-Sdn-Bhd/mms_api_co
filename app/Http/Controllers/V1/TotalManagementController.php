@@ -57,7 +57,7 @@ class TotalManagementController extends Controller
             return $this->sendSuccess(['message' => 'Service Added Successfully']);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Add Service']);
+            return $this->sendError(['message' => 'Failed to Add Service'], 400);
         }
     }
     /** Get approved quota for particular prospect.
@@ -72,7 +72,7 @@ class TotalManagementController extends Controller
             return $this->sendSuccess(['approvedQuota' => $response]);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Get Quota']);
+            return $this->sendError(['message' => 'Failed to Get Quota'], 400);
         }
     }
     /** Display list of prospect for proposal.
@@ -90,7 +90,7 @@ class TotalManagementController extends Controller
             return $this->sendSuccess($response);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Display Proposal']);
+            return $this->sendError(['message' => 'Failed to Display Proposal'], 400);
         }
     }
      /** Display form to submit proposal.
@@ -108,7 +108,7 @@ class TotalManagementController extends Controller
             return $this->sendSuccess(['message' => 'Proposal Submitted Successfully.']);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Submit Proposal']);
+            return $this->sendError(['message' => 'Failed to Submit Proposal'], 400);
         }
     }
 }
