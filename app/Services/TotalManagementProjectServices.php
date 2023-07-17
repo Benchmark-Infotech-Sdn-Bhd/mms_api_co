@@ -6,83 +6,20 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use App\Models\CRMProspect;
-use App\Models\CRMProspectService;
-use App\Models\CRMProspectAttachment;
-use App\Models\Services;
-use App\Models\Sectors;
-use App\Models\TotalManagementApplications;
-use App\Models\DirectrecruitmentApplications;
-use App\Models\Levy;
 use App\Models\TotalManagementProject;
 
 class TotalManagementProjectServices
 {
     /**
-     * @var CRMProspect
-     */
-    private CRMProspect $crmProspect;
-    /**
-     * @var CRMProspectService
-     */
-    private CRMProspectService $crmProspectService;
-    /**
-     * @var CRMProspectAttachment
-     */
-    private CRMProspectAttachment $crmProspectAttachment;
-    /**
-     * @var Services
-     */
-    private Services $services;
-    /**
-     * @var Sectors
-     */
-    private Sectors $sectors;
-    /**
-     * @var TotalManagementApplications
-     */
-    private TotalManagementApplications $totalManagementApplications;
-    /**
-     * @var DirectrecruitmentApplications
-     */
-    private DirectrecruitmentApplications $directrecruitmentApplications;
-    /**
-     * @var Levy
-     */
-    private Levy $levy;
-    /**
-     * @var Storage
-     */
-    private Storage $storage;
-    /**
      * @var TotalManagementProject
      */
     private TotalManagementProject $totalManagementProject;
     /**
-     * TotalManagementServices constructor.
-     * @param CRMProspect $crmProspect
-     * @param CRMProspectService $crmProspectService
-     * @param CRMProspectAttachment $crmProspectAttachment
-     * @param Services $services
-     * @param Sectors $sectors
-     * @param TotalManagementApplications $totalManagementApplications
-     * @param DirectrecruitmentApplications $directrecruitmentApplications
-     * @param Levy $levy
-     * @param Storage $storage
+     * TotalManagementProjectServices constructor.
      * @param TotalManagementProject $totalManagementProject
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, 
-    CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors, TotalManagementApplications $totalManagementApplications, DirectrecruitmentApplications $directrecruitmentApplications, Levy $levy, Storage $storage, TotalManagementProject $totalManagementProject)
+    public function __construct(TotalManagementProject $totalManagementProject)
     {
-        $this->crmProspect = $crmProspect;
-        $this->crmProspectService = $crmProspectService;
-        $this->crmProspectAttachment = $crmProspectAttachment;
-        $this->services = $services;
-        $this->sectors = $sectors;
-        $this->totalManagementApplications = $totalManagementApplications;
-        $this->directrecruitmentApplications = $directrecruitmentApplications;
-        $this->levy = $levy;
-        $this->storage = $storage;
         $this->totalManagementProject = $totalManagementProject;
     }
     /**
