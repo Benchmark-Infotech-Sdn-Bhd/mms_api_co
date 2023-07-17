@@ -80,7 +80,7 @@ class ApplicationInterviewController extends Controller
             return $this->sendSuccess(['message' => 'Application Interview Details Created Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Create Application Interview Details']);
+            return $this->sendError(['message' => 'Failed to Create Application Interview Details'], 400);
         }
     }
     /**
@@ -104,7 +104,7 @@ class ApplicationInterviewController extends Controller
             return $this->sendSuccess(['message' => 'Application Interview Details Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Update Application Interview Details']);
+            return $this->sendError(['message' => 'Failed to Update Application Interview Details'], 400);
         }
     }
 
@@ -122,7 +122,7 @@ class ApplicationInterviewController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Delete attachments was failed']);
+            return $this->sendError(['message' => 'Delete attachments was failed'], 400);
         }        
     }
 
@@ -140,7 +140,7 @@ class ApplicationInterviewController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to List Ksm Reference Number']);
+            return $this->sendError(['message' => 'Failed to List Ksm Reference Number'], 400);
         }        
     }
 }
