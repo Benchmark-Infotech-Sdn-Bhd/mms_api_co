@@ -194,4 +194,16 @@ class TransportationServices
             "message" => "Deleted Successfully"
         ];
     }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function dropdown($request): mixed
+    {
+        return $this->transportation
+        ->where('vendor_id', '=', $request['vendor_id'])
+        ->select('id', 'driver_name')
+        ->orderBy('id','DESC')
+        ->get();
+    }
 }

@@ -161,6 +161,7 @@ class DirectRecruitmentImmigrationFeePaidServices
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'workers.id')
+            ->where('worker_visa.approval_status', 'Approved')
             ->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number'])
             ->where('worker_visa.ksm_reference_number', $request['ksm_reference_number'])
             ->where('workers.cancel_status', 0)

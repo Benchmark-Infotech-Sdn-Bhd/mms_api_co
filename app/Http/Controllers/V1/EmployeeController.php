@@ -187,4 +187,21 @@ class EmployeeController extends Controller
             return $this->sendError(['message' => $data['error']]);
         }
     }
+    /**
+     * Employees supervisor List.
+     *
+     * @return JsonResponse
+     */
+    public function supervisorList(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->employeeServices->supervisorList($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
 }
