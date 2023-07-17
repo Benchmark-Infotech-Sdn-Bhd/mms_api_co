@@ -144,6 +144,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('updateStatus', 'V1\EmployeeController@updateStatus');
             $router->post('list', 'V1\EmployeeController@list');
             $router->post('dropDown', 'V1\EmployeeController@dropdown');
+            $router->post('supervisorList', 'V1\EmployeeController@supervisorList');
         });
         /**
          * Routes for CRM.
@@ -171,6 +172,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
             $router->post('filter', 'V1\VendorController@filter');
             $router->post('insuranceVendorList', 'V1\VendorController@insuranceVendorList');
+            $router->post('transportationVendorList', 'V1\VendorController@transportationVendorList');
         });
         /**
          * Routes for FOMEMA Clinics.
@@ -228,6 +230,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('list', 'V1\TransportationController@list');
             $router->post('search', 'V1\TransportationController@search');
             $router->post('deleteAttachment', 'V1\TransportationController@deleteAttachment');
+            $router->post('dropdown', 'V1\TransportationController@dropdown');
         });
 
         /**
@@ -458,7 +461,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('replaceWorker', 'V1\WorkersController@replaceWorker');
             $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
         });
-
         /**
         * Routes for Application Summary.
         */
@@ -468,5 +470,22 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('create', 'V1\DirectRecruitmentExpensesController@create');
             $router->post('update', 'V1\DirectRecruitmentExpensesController@update');
         });
+        /**
+        * Routes for Total Management.
+        */
+        $router->group(['prefix' => 'totalManagement'], function () use ($router) {
+            $router->post('addService', 'V1\TotalManagementController@addService');
+            $router->post('getQuota', 'V1\TotalManagementController@getQuota');
+            $router->group(['prefix' => 'project'], function () use ($router) {
+                $router->post('list', 'V1\TotalManagementProjectController@list');
+                $router->post('show', 'V1\TotalManagementProjectController@show');
+                $router->post('add', 'V1\TotalManagementProjectController@add');
+                $router->post('update', 'V1\TotalManagementProjectController@update');
+            });
+            $router->group(['prefix' => 'supervisor'], function () use ($router) {
+                $router->post('list', 'V1\TotalManagementSupervisorController@list');
+                $router->post('viewAssignments', 'V1\TotalManagementSupervisorController@viewAssignments');
+            });
+        });    
     });
 });
