@@ -58,4 +58,11 @@ class TotalManagementApplications extends Model implements Auditable
     {
         return $this->hasMany(TotalManagementApplicationAttachments::class, 'file_id');
     }
+    /**
+     * @return HasMany
+     */
+    public function applicationProject(): HasMany
+    {
+        return $this->hasMany(TotalManagementProject::class, 'application_id');
+    }
 }

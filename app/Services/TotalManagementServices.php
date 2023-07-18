@@ -14,7 +14,7 @@ use App\Models\Sectors;
 use App\Models\TotalManagementApplications;
 use App\Models\TotalManagementApplicationAttachments;
 use App\Models\DirectrecruitmentApplications;
-use App\Models\Levy;
+use App\Models\DirectRecruitmentOnboardingCountry;
 
 class TotalManagementServices
 {
@@ -51,9 +51,9 @@ class TotalManagementServices
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
     /**
-     * @var Levy
+     * @var DirectRecruitmentOnboardingCountry
      */
-    private Levy $levy;
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
     /**
      * @var Storage
      */
@@ -68,11 +68,11 @@ class TotalManagementServices
      * @param TotalManagementApplications $totalManagementApplications
      * @param TotalManagementApplicationAttachments $totalManagementApplicationAttachments
      * @param DirectrecruitmentApplications $directrecruitmentApplications
-     * @param Levy $levy
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      * @param Storage $storage
      */
     public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, 
-    CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors, TotalManagementApplications $totalManagementApplications, TotalManagementApplicationAttachments $totalManagementApplicationAttachments, DirectrecruitmentApplications $directrecruitmentApplications, Levy $levy, Storage $storage)
+    CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors, TotalManagementApplications $totalManagementApplications, TotalManagementApplicationAttachments $totalManagementApplicationAttachments, DirectrecruitmentApplications $directrecruitmentApplications, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -82,7 +82,7 @@ class TotalManagementServices
         $this->totalManagementApplications = $totalManagementApplications;
         $this->totalManagementApplicationAttachments = $totalManagementApplicationAttachments;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
-        $this->levy = $levy;
+        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->storage = $storage;
     }
     /**
@@ -96,7 +96,6 @@ class TotalManagementServices
             'contact_number' => 'required',
             'email' => 'required',
             'pic_name' => 'required',
-            'sector' => 'required',
             'from_existing' => 'required',
             'client_quota' => 'regex:/^[0-9]+$/|max:3',
             'fomnext_quota' => 'regex:/^[0-9]+$/|max:3',
@@ -112,6 +111,7 @@ class TotalManagementServices
     {
         return $this->totalManagementApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'total_management_applications.service_id')
+        ->leftJoin('total_management_project', 'total_management_project.application_id', 'total_management_applications.id')
         ->where('crm_prospect_services.service_id', 3)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->where(function ($query) use ($request) {
@@ -119,8 +119,8 @@ class TotalManagementServices
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
             }
         })
-        ->select('total_management_applications.id', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'crm_prospect_services.status as service_status')
-        ->distinct('total_management_applications.id')
+        ->selectRaw('total_management_applications.id, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, count(total_management_project.id) as projects')
+        ->groupBy('total_management_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email')
         ->orderBy('total_management_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }        
@@ -136,16 +136,23 @@ class TotalManagementServices
                 'error' => $validator->errors()
             ];
         }
+        if($request['initial_quota'] < $request['service_quota']) {
+            return [
+                'quotaError' => true
+            ];
+        }
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
         $service = $this->services->findOrFail(Config::get('services.TOTAL_MANAGEMENT_SERVICE'));
-        $sector = $this->sectors->findOrFail($request['sector']);
+        if(isset($request['sector']) && !empty($request['sector'])) {
+            $sector = $this->sectors->findOrFail($request['sector']);
+        }
         $prospectService = $this->crmProspectService->create([
             'crm_prospect_id'   => $request['id'],
             'service_id'        => $service->id,
             'service_name'      => $service->service_name,
             'sector_id'         => $request['sector'] ?? 0,
-            'sector_name'       => $sector->sector_name,
+            'sector_name'       => $sector->sector_name ?? '',
             'status'            => $request['status'] ?? 0,
             'from_existing'     => $request['from_existing'] ?? 0,
             'client_quota'      => $request['client_quota'] ?? 0,
@@ -156,7 +163,7 @@ class TotalManagementServices
         $this->totalManagementApplications::create([
             'crm_prospect_id' => $request['id'],
             'service_id' => $prospectService->id,
-            'quota_applied' => 0,
+            'quota_applied' => ($request['from_existing'] == 0) ? ($prospectService->client_quota + $prospectService->fomnext_quota) : $prospectService->service_quota,
             'person_incharge' => '',
             'cost_quoted' => 0,
             'status' => 'Pending Proposal',
@@ -176,8 +183,8 @@ class TotalManagementServices
                                             ->get()
                                             ->toArray();
         $applicationIds = array_column($directrecruitmentApplicationIds, 'id');
-        $approvedQuota = $this->levy->whereIn('application_id', $applicationIds)->sum('approved_quota');
-        return $approvedQuota;
+        $initailQuota = $this->directRecruitmentOnboardingCountry->whereIn('application_id', $applicationIds)->sum('utilised_quota');
+        return $initailQuota;
     }
     /**
      *
@@ -188,6 +195,7 @@ class TotalManagementServices
     {
         return $this->totalManagementApplications
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'total_management_applications.service_id')
+        ->where('total_management_applications.id', $request['id'])
         ->with(['applicationAttachment' => function ($query) {
             $query->orderBy('created_at', 'desc');
         }])->select('total_management_applications.id', 'total_management_applications.quota_applied', 'total_management_applications.person_incharge', 'total_management_applications.cost_quoted', 'total_management_applications.remarks', 'crm_prospect_services.sector_name')->get();

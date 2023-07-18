@@ -53,6 +53,8 @@ class TotalManagementController extends Controller
             $response = $this->totalManagementServices->addService($request);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                $this->sendError(['message' => 'Quota for service should not exceed to Initail quota'], 422);
             }
             return $this->sendSuccess(['message' => 'Service Added Successfully']);
         } catch(Exception $e) {
