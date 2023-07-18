@@ -55,6 +55,8 @@ class TotalManagementSupervisorServices
     public function viewAssignments($request): mixed
     {
         return $this->totalManagementProject
+        ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+        ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
         ->leftJoin('employee', 'employee.id', '=', 'total_management_project.employee_id')
         ->leftJoin('vendors', 'vendors.id', '=', 'total_management_project.transportation_provider_id')
         ->leftJoin('transportation', 'transportation.id', '=', 'total_management_project.driver_id')
@@ -66,8 +68,12 @@ class TotalManagementSupervisorServices
                 $query->where('total_management_project.driver_id', $request['driver_id']);
                 $query->where('total_management_project.assign_as_supervisor', '=', 1);
             }
+            if(isset($request['search']) && !empty($request['search'])) {
+                $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%')
+                ->orWhere('total_management_project.name', 'like', '%'.$request['search'].'%');
+            }
         })
-        ->select('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.created_at', 'total_management_project.updated_at')
+        ->select('crm_prospects.company_name', 'total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.employee_id', 'employee.employee_name', 'employee.position', 'total_management_project.transportation_provider_id', 'vendors.name as vendor_name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.created_at')
         ->distinct('total_management_project.id')
         ->orderBy('total_management_project.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
