@@ -339,9 +339,9 @@ class WorkersServices
         $worker->gender = $request['gender'] ?? $worker->gender;
         $worker->date_of_birth = $request['date_of_birth'] ?? $worker->date_of_birth;
         $worker->passport_number = $request['passport_number'] ?? $worker->passport_number;
-        $worker->passport_valid_until = ((isset($request['passport_valid_until']) && !empty($request['passport_valid_until'])) ? $request['passport_valid_until'] : $worker->passport_valid_until);
+        $worker->passport_valid_until = $request['passport_valid_until'] ?? $worker->passport_valid_until;
 
-        $worker->fomema_valid_until = ((isset($request['fomema_valid_until']) && !empty($request['fomema_valid_until'])) ? $request['fomema_valid_until'] : $worker->fomema_valid_until);
+        $worker->fomema_valid_until = $request['fomema_valid_until'] ?? $worker->fomema_valid_until;
 
         $worker->address = $request['address'] ?? $worker->address;
         $worker->city = $request['city'] ?? $worker->city;
@@ -357,16 +357,16 @@ class WorkersServices
         # Worker Visa details
         $worker->workerVisa->ksm_reference_number = $request['ksm_reference_number'] ?? $worker->workerVisa->ksm_reference_number;
         $worker->workerVisa->calling_visa_reference_number = $request['calling_visa_reference_number'] ?? $worker->workerVisa->calling_visa_reference_number;
-        $worker->workerVisa->calling_visa_valid_until = ((isset($request['calling_visa_valid_until']) && !empty($request['calling_visa_valid_until'])) ? $request['calling_visa_valid_until'] : $worker->workerVisa->calling_visa_valid_until);
-        $worker->workerVisa->entry_visa_valid_until = ((isset($request['entry_visa_valid_until']) && !empty($request['entry_visa_valid_until'])) ? $request['entry_visa_valid_until'] : $worker->workerVisa->entry_visa_valid_until);
-        $worker->workerVisa->work_permit_valid_until = ((isset($request['work_permit_valid_until']) && !empty($request['work_permit_valid_until'])) ? $request['work_permit_valid_until'] : $worker->workerVisa->work_permit_valid_until);
+        $worker->workerVisa->calling_visa_valid_until = $request['calling_visa_valid_until'] ?? $worker->workerVisa->calling_visa_valid_until;
+        $worker->workerVisa->entry_visa_valid_until = $request['entry_visa_valid_until'] ?? $worker->workerVisa->entry_visa_valid_until;
+        $worker->workerVisa->work_permit_valid_until = $request['work_permit_valid_until'] ?? $worker->workerVisa->work_permit_valid_until;
 
         # Worker Bio Medical details
         $worker->workerBioMedical->bio_medical_reference_number = $request['bio_medical_reference_number'] ?? $worker->workerBioMedical->bio_medical_reference_number;
-        $worker->workerBioMedical->bio_medical_valid_until = ((isset($request['bio_medical_valid_until']) && !empty($request['bio_medical_valid_until'])) ? $request['bio_medical_valid_until'] : $worker->workerBioMedical->bio_medical_valid_until);
+        $worker->workerBioMedical->bio_medical_valid_until = $request['bio_medical_valid_until'] ?? $worker->workerBioMedical->bio_medical_valid_until;
 
         # Worker Fomema details
-        $worker->workerFomema->purchase_date = ((isset($request['purchase_date']) && !empty($request['purchase_date'])) ? $request['purchase_date'] : $worker->workerFomema->purchase_date);
+        $worker->workerFomema->purchase_date = $request['purchase_date'] ?? $worker->workerFomema->purchase_date;
         $worker->workerFomema->clinic_name = $request['clinic_name'] ?? $worker->workerFomema->clinic_name;
         $worker->workerFomema->doctor_code = $request['doctor_code'] ?? $worker->workerFomema->doctor_code;
         $worker->workerFomema->allocated_xray = $request['allocated_xray'] ?? $worker->workerFomema->allocated_xray;
@@ -374,9 +374,9 @@ class WorkersServices
 
         # Worker Insurance details
         $worker->workerInsuranceDetails->ig_policy_number = $request['ig_policy_number'] ?? $worker->workerInsuranceDetails->ig_policy_number;
-        $worker->workerInsuranceDetails->ig_policy_number_valid_until = ((isset($request['ig_policy_number_valid_until']) && !empty($request['ig_policy_number_valid_until'])) ? $request['ig_policy_number_valid_until'] : $worker->workerInsuranceDetails->ig_policy_number_valid_until);
+        $worker->workerInsuranceDetails->ig_policy_number_valid_until = $request['ig_policy_number_valid_until'] ?? $worker->workerInsuranceDetails->ig_policy_number_valid_until;
         $worker->workerInsuranceDetails->hospitalization_policy_number = $request['hospitalization_policy_number'] ?? $worker->workerInsuranceDetails->hospitalization_policy_number;
-        $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until = ((isset($request['hospitalization_policy_number_valid_until']) && !empty($request['hospitalization_policy_number_valid_until'])) ? $request['hospitalization_policy_number_valid_until'] : $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until);
+        $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until = $request['hospitalization_policy_number_valid_until'] ?? $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until;
 
         # Worker Bank details
         $worker->workerBankDetails->bank_name = $request['bank_name'] ?? $worker->workerBankDetails->bank_name;

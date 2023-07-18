@@ -42,7 +42,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'creation failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -64,7 +64,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'updation failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
     
@@ -86,7 +86,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
     
@@ -109,7 +109,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -131,7 +131,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -148,7 +148,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -165,7 +165,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Update failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -182,7 +182,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -199,7 +199,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -216,7 +216,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Update failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -238,7 +238,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
     
