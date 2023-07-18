@@ -147,5 +147,19 @@ class VendorController extends Controller
             return $this->sendError(['message' => 'Retrieve insurance Vendors data was failed'], 400);
         }
     }
-    
+    /**
+     * Display a listing of the Transportation vendor list.
+     * @param Request $request
+     * @return JsonResponse
+     */   
+    public function transportationVendorList(Request $request): JsonResponse
+    {   
+        try {
+            $response = $this->vendorServices->transportationVendorList($request); 
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Retrieve Transportation Vendors data was failed'], 400);
+        }
+    }
 }

@@ -224,5 +224,18 @@ class VendorServices
         ->orderBy('vendors.created_at','DESC')
         ->get();
     }
+    /**
+     * Display a listing of the Transportation Vendors.
+     *
+     * @param $request
+     * @return LengthAwarePaginator
+     */
+    public function transportationVendorList($request)
+    {
+        return $this->vendor::where('type', 'Transportation')
+        ->select('id', 'name')
+        ->orderBy('vendors.id','DESC')
+        ->get();
+    }
 
 }

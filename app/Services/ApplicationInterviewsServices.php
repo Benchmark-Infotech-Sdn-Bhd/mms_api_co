@@ -143,8 +143,8 @@ class ApplicationInterviewsServices
             'item_name' => Config::get('services.APPLICATION_INTERVIEW_ITEM_NAME'),
             'ksm_reference_number' => $request['ksm_reference_number'] ?? '',
             'schedule_date' => $request['schedule_date'] ?? '',
-            'approved_quota' => $request['approved_quota'] ?? 0,
-            'approval_date' => $request['approval_date'] ?? '',
+            'approved_quota' => !empty($request['approved_quota']) ? ($request['approved_quota'] ?? 0) : 0,
+            'approval_date' => !empty($request['approval_date']) ? ($request['approval_date'] ?? null) : null,
             'status' => $request['status'] ?? '',            
             'remarks' => $request['remarks'] ?? '',
             'created_by' =>  $request['created_by'] ?? 0,
@@ -201,8 +201,8 @@ class ApplicationInterviewsServices
         $applicationInterviewsDetails->ksm_reference_number = $request['ksm_reference_number'] ?? $applicationInterviewsDetails->ksm_reference_number;
         $applicationInterviewsDetails->item_name = $request['item_name'] ?? $applicationInterviewsDetails->item_name;
         $applicationInterviewsDetails->schedule_date = $request['schedule_date'] ?? $applicationInterviewsDetails->schedule_date;
-        $applicationInterviewsDetails->approved_quota        = $request['approved_quota'] ?? $applicationInterviewsDetails->approved_quota;
-        $applicationInterviewsDetails->approval_date = $request['approval_date'] ?? $applicationInterviewsDetails->approval_date;
+        $applicationInterviewsDetails->approved_quota        = !empty($request['approved_quota']) ? ($request['approved_quota'] ?? $applicationInterviewsDetails->approved_quota) : $applicationInterviewsDetails->approved_quota;
+        $applicationInterviewsDetails->approval_date        = !empty($request['approval_date']) ? ($request['approval_date'] ?? $applicationInterviewsDetails->approval_date) : $applicationInterviewsDetails->approval_date;
         $applicationInterviewsDetails->status               = $request['status'] ?? $applicationInterviewsDetails->status;        
         $applicationInterviewsDetails->remarks              = $request['remarks'] ?? $applicationInterviewsDetails->remarks;
         $applicationInterviewsDetails->modified_by          = $request['modified_by'] ?? $applicationInterviewsDetails->modified_by;
