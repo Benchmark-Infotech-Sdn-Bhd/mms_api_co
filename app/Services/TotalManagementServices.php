@@ -183,8 +183,8 @@ class TotalManagementServices
                                             ->get()
                                             ->toArray();
         $applicationIds = array_column($directrecruitmentApplicationIds, 'id');
-        $initailQuota = $this->directRecruitmentOnboardingCountry->whereIn('application_id', $applicationIds)->sum('utilised_quota');
-        return $initailQuota;
+        $initialQuota = $this->directRecruitmentOnboardingCountry->whereIn('application_id', $applicationIds)->sum('utilised_quota');
+        return $initialQuota;
     }
     /**
      *
