@@ -6,6 +6,8 @@ use App\Models\Workers;
 use App\Models\Vendor;
 use App\Models\Accommodation;
 use App\Models\WorkerEmployment;
+use App\Models\TotalManagementApplications;
+use App\Models\CRMProspectService;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
@@ -24,10 +26,18 @@ class TotalManagementWorkerServices
      * @var Accommodation
      */
     private Accommodation $accommodation;
-     /**
+    /**
      * @var WorkerEmployment
      */
     private WorkerEmployment $workerEmployment;
+    /**
+     * @var TotalManagementApplications
+     */
+    private TotalManagementApplications $totalManagementApplications;
+    /**
+     * @var CRMProspectService
+     */
+    private CRMProspectService $crmProspectService;
 
     /**
      * TotalManagementWorkerServices constructor.
@@ -35,13 +45,17 @@ class TotalManagementWorkerServices
      * @param Vendor $vendor
      * @param Accommodation $accommodation
      * @param WorkerEmployment $workerEmployment
+     * @param TotalManagementApplications $totalManagementApplications
+     * @param CRMProspectService $crmProspectService
      */
-    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment)
+    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService)
     {
         $this->workers = $workers;
         $this->vendor = $vendor;
         $this->accommodation = $accommodation;
         $this->workerEmployment = $workerEmployment;
+        $this->totalManagementApplications = $totalManagementApplications;
+        $this->crmProspectService = $crmProspectService;
     }
     /**
      * @return array
@@ -111,6 +125,7 @@ class TotalManagementWorkerServices
             foreach ($request['workers'] as $workerId) {
                 $this->workerEmployment->create([
                     'worker_id' => $workerId,
+                    'project_id' => $request['project_id'],
                     'department' => $request['department'],
                     'sub_department' => $request['sub_department'],
                     'accommodation_provider_id' => $request['accommodation_provider_id'],
@@ -127,5 +142,30 @@ class TotalManagementWorkerServices
                 'modified_by' => $request['created_by']
             ]);
         return true;
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function getBalancedQuota($request): array
+    {
+        $applicationDetails = $this->totalManagementApplications->findOrFail($request['application_id']);
+        $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
+        $workersCount = $this->workers->where('crm_prospect_id', $applicationDetails->crm_prospect_id)
+                            ->where('worker_status', 'Assigned')
+                            ->count('id');
+        if($serviceDetails->from_existing == 0) {
+            return [
+                'clientQuota' => $serviceDetails->client_quota,
+                'clientBalancedQuota' => $workersCount - $serviceDetails->client_quota,
+                'fomnextQuota' => $serviceDetails->fomnext_quota,
+                'fomnextBalancedQuota' => $workersCount - $serviceDetails->client_quota
+            ];
+        } else if($serviceDetails->from_existing == 1) {
+            return [
+                'serviceQuota' => $serviceDetails->service_quota,
+                'balancedServiceQuota' => $workersCount - $serviceDetails->service_quota
+            ];
+        }
     }
 }

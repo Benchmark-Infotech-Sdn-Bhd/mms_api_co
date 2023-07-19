@@ -75,7 +75,7 @@ class TotalManagementWorkerController extends Controller
             return $this->sendError(['message' => 'Failed to List Accommodation Units'], 400);
         }
     }
-     /**
+    /**
      * Dispaly form for assign workers.
      *
      * @param Request $request
@@ -90,6 +90,23 @@ class TotalManagementWorkerController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Assign Workers'], 400);
+        }
+    }
+    /**
+     * Display balanced quota for worker list.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getBalancedQuota(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->totalManagementWorkerServices->getBalancedQuota($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Show Balanced Quota'], 400);
         }
     }
 }
