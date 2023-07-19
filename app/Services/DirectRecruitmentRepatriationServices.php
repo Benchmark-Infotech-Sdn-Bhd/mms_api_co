@@ -113,7 +113,7 @@ class DirectRecruitmentRepatriationServices
                     ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%');
                 }
             })
-            ->select('workers.id', 'workers.application_id', 'workers.onboarding_country_id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'worker_fomema.fomema_status')->distinct('workers.id')
+            ->select('workers.id', 'workers.application_id', 'workers.onboarding_country_id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'worker_fomema.fomema_status', 'workers.date_of_birth', 'workers.gender', 'workers.agent_id')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
