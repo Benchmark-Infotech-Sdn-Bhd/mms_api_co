@@ -14,14 +14,12 @@ return new class extends Migration
         Schema::table('workers', function (Blueprint $table) {
             // CRM prospect id column
             $table->bigInteger('crm_prospect_id')->unsigned()->nullable();
-            // Foreign key from crm prospect table
-            $table->foreign('crm_prospect_id')->references('id')->on('crm_prospects')->onDelete('cascade');
-            // Country Id column
-            $table->unsignedBigInteger('onboarding_country_id')->nullable()->change();
-            // Direct Recruitment Agent Id column
-            $table->unsignedBigInteger('agent_id')->nullable()->change();
-            // Direct Recruitment Application Id column
-            $table->unsignedBigInteger('application_id')->nullable()->change();
+            // Drop foreign columns
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropForeign('workers_onboarding_country_id_foreign');
+                $table->dropForeign('workers_agent_id_foreign');
+                $table->dropForeign('workers_application_id_foreign');
+            }
         });
     }
 

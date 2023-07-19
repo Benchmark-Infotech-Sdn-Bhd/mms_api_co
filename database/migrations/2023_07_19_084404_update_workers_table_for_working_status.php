@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('workers', function (Blueprint $table) {
             // working_status column
-            $table->enum('working_status',['On-Bench', 'Assigned', 'Repatriated', 'e-Run'])->default('On-Bench')->index();
+            $table->enum('worker_status',['On-Bench', 'Assigned', 'Repatriated', 'e-Run'])->default('On-Bench')->index();
         });
     }
 
