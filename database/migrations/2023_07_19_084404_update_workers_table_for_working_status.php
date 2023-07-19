@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('workers', function (Blueprint $table) {
-            // Column for total management flag
-            $table->tinyInteger('total_management_flag')->default(0)->after('plks_expiry_date');
+            // working_status column
+            $table->enum('worker_status',['On-Bench', 'Assigned', 'Repatriated', 'e-Run'])->default('On-Bench')->index();
         });
     }
 

@@ -77,11 +77,12 @@ class TotalManagementWorkerServices
     public function workerListForAssignWorker($request): mixed
     {
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->leftJoin('directrecruitment_applications', 'directrecruitment_applications.id', 'workers.application_id')
-            ->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
+            ->leftJoin('crm_prospects', 'crm_prospects.id', 'workers.crm_prospect_id')
+            ->where('workers.worker_status', 'On-Bench')
             ->where(function ($query) use ($request) {
                 if (isset($request['filter']) && $request['filter']) {
-                    $query->where('crm_prospects.id', $request['filter']);
+                    $query->where('workers.crm_prospect_id', $request['filter']);
+                    $query->orWhere('workers.crm_prospect_id', 0);
                 }
             })
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'crm_prospects.id as company_id', 'crm_prospects.company_name')
@@ -136,11 +137,6 @@ class TotalManagementWorkerServices
                 ]);
             }
         }
-        $this->workers->whereIn('id', $request['workers'])
-            ->update([
-                'total_management_flag' => 1,
-                'modified_by' => $request['created_by']
-            ]);
         return true;
     }
     /**
