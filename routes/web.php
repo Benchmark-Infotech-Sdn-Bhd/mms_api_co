@@ -474,8 +474,11 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         * Routes for Total Management.
         */
         $router->group(['prefix' => 'totalManagement'], function () use ($router) {
+            $router->post('applicationListing', 'V1\TotalManagementController@applicationListing');
             $router->post('addService', 'V1\TotalManagementController@addService');
             $router->post('getQuota', 'V1\TotalManagementController@getQuota');
+            $router->post('showProposal', 'V1\TotalManagementController@showProposal');
+            $router->post('submitProposal', 'V1\TotalManagementController@submitProposal');
             $router->group(['prefix' => 'project'], function () use ($router) {
                 $router->post('list', 'V1\TotalManagementProjectController@list');
                 $router->post('show', 'V1\TotalManagementProjectController@show');
@@ -485,6 +488,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->group(['prefix' => 'supervisor'], function () use ($router) {
                 $router->post('list', 'V1\TotalManagementSupervisorController@list');
                 $router->post('viewAssignments', 'V1\TotalManagementSupervisorController@viewAssignments');
+            });
+            $router->group(['prefix' => 'manage'], function () use ($router) {
+                $router->group(['prefix' => 'worker'], function () use ($router) {
+                    $router->post('workerListForAssignWorker', 'V1\TotalManagementWorkerController@workerListForAssignWorker');
+                    $router->post('accommodationProviderDropDown', 'V1\TotalManagementWorkerController@accommodationProviderDropDown');
+                    $router->post('accommodationUnitDropDown', 'V1\TotalManagementWorkerController@accommodationUnitDropDown');
+                    $router->post('assignWorker', 'V1\TotalManagementWorkerController@assignWorker');
+                    $router->post('getBalancedQuota', 'V1\TotalManagementWorkerController@getBalancedQuota');
+                });
             });
         });    
     });

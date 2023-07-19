@@ -24,7 +24,7 @@ class Workers extends Model implements Auditable
      */
     protected $fillable = ['onboarding_country_id','agent_id','application_id','name','gender','date_of_birth','passport_number',
     'passport_valid_until','fomema_valid_until','address','status', 'cancel_status', 'remarks',
-    'city','state', 'special_pass', 'special_pass_submission_date', 'special_pass_valid_until', 'plks_status', 'plks_expiry_date', 'created_by','modified_by'];
+    'city','state', 'special_pass', 'special_pass_submission_date', 'special_pass_valid_until', 'plks_status', 'plks_expiry_date', 'total_management_flag', 'created_by','modified_by'];
    
     /**
      * The attributes that are required.
@@ -130,5 +130,13 @@ class Workers extends Model implements Auditable
     public function workerInsuranceAttachments(): HasMany
     {
         return $this->hasMany(WorkerInsuranceAttachments::class, 'file_id');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function workerEmployment(): HasMany
+    {
+        return $this->hasMany(WorkerEmployment::class, 'worker_id');
     }
 }
