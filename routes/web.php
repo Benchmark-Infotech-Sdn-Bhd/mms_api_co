@@ -490,12 +490,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('viewAssignments', 'V1\TotalManagementSupervisorController@viewAssignments');
             });
             $router->group(['prefix' => 'manage'], function () use ($router) {
-                $router->group(['prefix' => 'worker'], function () use ($router) {
+                $router->group(['prefix' => 'workerAssign'], function () use ($router) {
                     $router->post('workerListForAssignWorker', 'V1\TotalManagementWorkerController@workerListForAssignWorker');
                     $router->post('accommodationProviderDropDown', 'V1\TotalManagementWorkerController@accommodationProviderDropDown');
                     $router->post('accommodationUnitDropDown', 'V1\TotalManagementWorkerController@accommodationUnitDropDown');
                     $router->post('assignWorker', 'V1\TotalManagementWorkerController@assignWorker');
                     $router->post('getBalancedQuota', 'V1\TotalManagementWorkerController@getBalancedQuota');
+                    $router->post('getCompany', 'V1\TotalManagementWorkerController@getCompany');
+                    $router->post('ksmRefereneceNUmberDropDown', 'V1\TotalManagementWorkerController@ksmRefereneceNUmberDropDown');
+                    $router->post('getSector', 'V1\TotalManagementWorkerController@getSector');
                 });
             });
         });    

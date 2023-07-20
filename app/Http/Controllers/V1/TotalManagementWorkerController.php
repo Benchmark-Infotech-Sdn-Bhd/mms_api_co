@@ -109,4 +109,55 @@ class TotalManagementWorkerController extends Controller
             return $this->sendError(['message' => 'Failed to Show Balanced Quota'], 400);
         }
     }
+    /**
+     * Display Company name from service.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getCompany(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->totalManagementWorkerServices->getCompany($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Show Company Name'], 400);
+        }
+    }
+    /**
+     * Display List of KSM reference number for particular company.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function ksmRefereneceNUmberDropDown(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->totalManagementWorkerServices->ksmRefereneceNUmberDropDown($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List KSM Reference Number'], 400);
+        }
+    }
+    /**
+     * Display Valid Until and Sector.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getSector(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->totalManagementWorkerServices->getSector($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Show Sector'], 400);
+        }
+    }
 }
