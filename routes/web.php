@@ -479,6 +479,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('getQuota', 'V1\TotalManagementController@getQuota');
             $router->post('showProposal', 'V1\TotalManagementController@showProposal');
             $router->post('submitProposal', 'V1\TotalManagementController@submitProposal');
+            $router->post('allocateQuota', 'V1\TotalManagementController@allocateQuota');
             $router->group(['prefix' => 'project'], function () use ($router) {
                 $router->post('list', 'V1\TotalManagementProjectController@list');
                 $router->post('show', 'V1\TotalManagementProjectController@show');
