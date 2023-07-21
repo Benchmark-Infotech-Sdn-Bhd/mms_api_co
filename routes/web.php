@@ -498,6 +498,17 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('getBalancedQuota', 'V1\TotalManagementWorkerController@getBalancedQuota');
                 });
             });
-        });    
+        }); 
+        /**
+        * Routes for Manage workers.
+        */
+        $router->group(['prefix' => 'manageWorkers'], function () use ($router) {
+            $router->group(['prefix' => 'worker'], function () use ($router) {
+                $router->post('list', 'V1\ManageWorkersController@list');
+                $router->post('show', 'V1\ManageWorkersController@show');
+                $router->post('create', 'V1\ManageWorkersController@create');
+                $router->post('update', 'V1\ManageWorkersController@update');
+            });
+        });
     });
 });
