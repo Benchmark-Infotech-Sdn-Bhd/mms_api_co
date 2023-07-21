@@ -500,6 +500,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('ksmRefereneceNUmberDropDown', 'V1\TotalManagementWorkerController@ksmRefereneceNUmberDropDown');
                     $router->post('getSector', 'V1\TotalManagementWorkerController@getSector');
                 });
+                $router->group(['prefix' => 'workerEvent'], function () use ($router) {
+                    $router->post('list', 'V1\WorkerEventController@list');
+                    $router->post('create', 'V1\WorkerEventController@create');
+                    $router->post('update', 'V1\WorkerEventController@update');
+                    $router->post('show', 'V1\WorkerEventController@show');
+                    $router->post('deleteAttachment', 'V1\WorkerEventController@deleteAttachment');
+                });
             });
         });    
     });
