@@ -199,12 +199,12 @@ class DirectRecruitmentOnboardingCountryServices
     {
         $onboardingCountry = $this->directRecruitmentOnboardingCountry->findOrFail($request['country_id']);
 
-        if($request['onboarding_status'] > $onboardingCountry->onboarding_status){
+        //if($request['onboarding_status'] > $onboardingCountry->onboarding_status){
 
             $onboardingCountry->onboarding_status =  $request['onboarding_status'];
             $onboardingCountry->save();
 
-        }        
+        //}        
         return true;
     }
 }
