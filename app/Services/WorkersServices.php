@@ -578,7 +578,6 @@ class WorkersServices
         ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
         ->where('workers.application_id', $request['application_id'])
         ->where('workers.onboarding_country_id', $request['onboarding_country_id'])
-        ->where('workers.agent_id', $request['agent_id'])
         ->where(function ($query) use ($request) {
 
             if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
