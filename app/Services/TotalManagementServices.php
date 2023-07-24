@@ -88,6 +88,15 @@ class TotalManagementServices
     /**
      * @return array
      */
+    public function searchValidation(): array
+    {
+        return [
+            'search' => 'required|min:3'
+        ];
+    }
+    /**
+     * @return array
+     */
     public function addServiceValidation(): array
     {
         return [
@@ -109,6 +118,14 @@ class TotalManagementServices
      */
     public function applicationListing($request): mixed
     {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
         return $this->totalManagementApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'total_management_applications.service_id')
         ->leftJoin('total_management_project', 'total_management_project.application_id', 'total_management_applications.id')
@@ -136,10 +153,12 @@ class TotalManagementServices
                 'error' => $validator->errors()
             ];
         }
-        if($request['initial_quota'] < $request['service_quota']) {
-            return [
-                'quotaError' => true
-            ];
+        if(isset($request['initial_quota']) && !empty($request['initial_quota'])) {
+            if($request['initial_quota'] < $request['service_quota']) {
+                return [
+                    'quotaError' => true
+                ];
+            }
         }
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
@@ -178,7 +197,7 @@ class TotalManagementServices
      */
     public function getQuota($request): int
     {
-        $directrecruitmentApplicationIds = $this->directrecruitmentApplications->where('crm_prospect_id', $request['id'])
+        $directrecruitmentApplicationIds = $this->directrecruitmentApplications->where('crm_prospect_id', $request['prospect_id'])
                                             ->select('id')
                                             ->get()
                                             ->toArray();
@@ -239,6 +258,32 @@ class TotalManagementServices
                     ]);  
             }
         }
+        return true;
+    }
+    /**
+     * @param $request
+     * @return array|bool
+     */
+    public function allocateQuota($request): array|bool
+    {
+        if(isset($request['initial_quota'])) {
+            if($request['initial_quota'] < $request['service_quota']) {
+                return [
+                    'quotaError' => true
+                ];
+            }
+        }
+        $prospectService = $this->crmProspectService->findOrFail($request['prospect_service_id']);
+        $prospectService->from_existing =  $request['from_existing'] ?? 0;
+        $prospectService->client_quota = $request['client_quota'] ?? $prospectService->client_quota;
+        $prospectService->fomnext_quota = $request['fomnext_quota'] ?? $prospectService->fomnext_quota;
+        $prospectService->initial_quota = $request['initial_quota'] ?? $prospectService->initial_quota;
+        $prospectService->service_quota = $request['service_quota'] ?? $prospectService->service_quota;
+        $prospectService->save();
+
+        $applicationDetails = $this->totalManagementApplications->findOrFail($request['id']);
+        $applicationDetails->quota_applied = ($request['from_existing'] == 0) ? ($prospectService->client_quota + $prospectService->fomnext_quota) : $prospectService->service_quota;
+        $applicationDetails->save();
         return true;
     }
 }

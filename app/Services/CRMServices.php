@@ -9,6 +9,7 @@ use App\Models\LoginCredential;
 use App\Models\Sectors;
 use App\Models\SystemType;
 use App\Models\DirectrecruitmentApplications;
+use App\Models\TotalManagementApplications;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -47,6 +48,10 @@ class CRMServices
      * @var SystemType
      */
     private SystemType $systemType;
+    /**
+     * @var TotalManagementApplications
+     */
+    private TotalManagementApplications $totalManagementApplications;
 
     /**
      * RolesServices constructor.
@@ -57,9 +62,10 @@ class CRMServices
      * @param Storage $storage
      * @param Sectors $sectors
      * @param DirectrecruitmentApplications $directrecruitmentApplications;
-     * @param SystemType $systemType;
+     * @param SystemType $systemType
+     * @param TotalManagementApplications $totalManagementApplications
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -69,6 +75,7 @@ class CRMServices
         $this->sectors = $sectors;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->systemType = $systemType;
+        $this->totalManagementApplications = $totalManagementApplications;
     }
     /**
      * @return array
@@ -234,6 +241,18 @@ class CRMServices
                        'remarks' => '',
                        'created_by' => $request["created_by"] ?? 0,
                    ]);
+                }
+                if($service->service_id == 3) {
+                    $this->totalManagementApplications::create([
+                        'crm_prospect_id' => $prospect->id,
+                        'service_id' => $prospectService->id,
+                        'quota_applied' => 0,
+                        'person_incharge' => $request['pic_name'],
+                        'cost_quoted' => 0,
+                        'status' => 'Pending Proposal',
+                        'remarks' => '',
+                        'created_by' => $request["created_by"] ?? 0
+                    ]);
                 }
             }
         }
