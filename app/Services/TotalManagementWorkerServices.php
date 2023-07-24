@@ -203,6 +203,7 @@ class TotalManagementWorkerServices
         $ksmReferenceNumbers = $this->directrecruitmentApplications
         ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.application_id', 'directrecruitment_applications.id')
         ->whereIn('directrecruitment_applications.crm_prospect_id', $companyId)
+        ->where('directrecruitment_application_approval.ksm_reference_number', '!=', NULL)
         ->select('directrecruitment_applications.id as directrecruitment_application_id', 'directrecruitment_application_approval.ksm_reference_number', 'directrecruitment_application_approval.valid_until')
         ->get();
         return $ksmReferenceNumbers;
