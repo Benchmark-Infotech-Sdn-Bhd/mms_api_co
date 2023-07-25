@@ -25,6 +25,23 @@ class TotalManagementWorkerController extends Controller
         $this->totalManagementWorkerServices = $totalManagementWorkerServices;
     }
     /**
+     * Dispaly all the Workers.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function list(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->totalManagementWorkerServices->list($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Workers'], 400);
+        }
+    }
+    /**
      * Dispaly all the Workers with company name filter.
      *
      * @param Request $request

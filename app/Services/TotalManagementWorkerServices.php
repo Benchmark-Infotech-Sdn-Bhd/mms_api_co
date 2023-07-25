@@ -67,6 +67,15 @@ class TotalManagementWorkerServices
     /**
      * @return array
      */
+    public function searchValidation(): array
+    {
+        return [
+            'search' => 'required|min:3'
+        ];
+    }
+    /**
+     * @return array
+     */
     public function createValidation(): array
     {
         return [
@@ -76,6 +85,44 @@ class TotalManagementWorkerServices
             'accommodation_unit_id' => 'required|regex:/^[0-9]*$/',
             'work_start_date' => 'required|date|date_format:Y-m-d|before:tomorrow'
         ];
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function list($request): mixed
+    {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
+        return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
+            ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
+            ->leftJoin('vendors as vendor_transport', 'vendor_transport.id', 'total_management_project.transportation_provider_id')
+            ->leftJoin('vendors', 'vendors.id', 'worker_employment.accommodation_provider_id')
+            ->where('total_management_project.id', $request['project_id'])
+            ->where(function ($query) use ($request) {
+                if (isset($request['search']) && $request['search']) {
+                    $query->where('workers.name', 'like', '%' . $request['search'] . '%');
+                    $query->orWhere('worker_visa.calling_visa_reference_number', 'like', '%' . $request['search'] . '%');
+                    $query->orWhere('worker_visa.ksm_reference_number', 'like', '%' . $request['search'] . '%');
+                    $query->orWhere('worker_employment.department', 'like', '%' . $request['search'] . '%');
+                }
+            })
+            ->where(function ($query) use ($request) {
+                if(isset($request['filter']) && !empty($request['filter'])) {
+                    $query->where('workers.status', $request['filter']);
+                }
+            })
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'vendors.name as accommodation_provider', 'vendor_transport.name as transportation_provider', 'worker_employment.department', 'workers.status')
+            ->distinct()
+            ->orderBy('workers.id','DESC')
+            ->paginate(Config::get('services.paginate_row'));
     }
     /**
      * @param $request

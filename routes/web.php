@@ -490,6 +490,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('viewAssignments', 'V1\TotalManagementSupervisorController@viewAssignments');
             });
             $router->group(['prefix' => 'manage'], function () use ($router) {
+                $router->post('list', 'V1\TotalManagementWorkerController@list');
                 $router->group(['prefix' => 'workerAssign'], function () use ($router) {
                     $router->post('workerListForAssignWorker', 'V1\TotalManagementWorkerController@workerListForAssignWorker');
                     $router->post('accommodationProviderDropDown', 'V1\TotalManagementWorkerController@accommodationProviderDropDown');

@@ -88,6 +88,15 @@ class TotalManagementServices
     /**
      * @return array
      */
+    public function searchValidation(): array
+    {
+        return [
+            'search' => 'required|min:3'
+        ];
+    }
+    /**
+     * @return array
+     */
     public function addServiceValidation(): array
     {
         return [
@@ -109,9 +118,18 @@ class TotalManagementServices
      */
     public function applicationListing($request): mixed
     {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
         return $this->totalManagementApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'total_management_applications.service_id')
         ->leftJoin('total_management_project', 'total_management_project.application_id', 'total_management_applications.id')
+        ->leftJoin('workers', 'workers.crm_prospect_id', 'total_management_applications.crm_prospect_id')
         ->where('crm_prospect_services.service_id', 3)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->where(function ($query) use ($request) {
@@ -119,7 +137,7 @@ class TotalManagementServices
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
             }
         })
-        ->selectRaw('total_management_applications.id, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, count(total_management_project.id) as projects')
+        ->selectRaw('total_management_applications.id, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, count(total_management_project.id) as projects, count(workers.id) as workers')
         ->groupBy('total_management_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email')
         ->orderBy('total_management_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
