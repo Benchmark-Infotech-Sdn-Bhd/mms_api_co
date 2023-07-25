@@ -317,7 +317,7 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Admin'
+            'name' => 'Administrator'
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
 

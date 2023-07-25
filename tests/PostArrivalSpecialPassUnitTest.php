@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
@@ -140,7 +142,7 @@ class PostArrivalSpecialPassUnitTest extends TestCase
      */
     public function testForWorkersListSearchValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/specialPass/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wo'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/specialPass/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wo'], $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [

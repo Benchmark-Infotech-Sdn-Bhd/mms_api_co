@@ -395,6 +395,6 @@ class PostArrivalRepatriationUnitTest extends TestCase
      */
     public function updateData(): array
     {
-        return ['application_id' => 1, 'onboarding_country_id' => 1, 'flight_number' => 'TFDY754857', 'flight_date' => '2023-10-10', 'expenses' => 30, 'checkout_memo_reference_number' => 'ADG535674', 'workers' => 1];
+        return ['application_id' => 1, 'onboarding_country_id' => 1, 'flight_number' => 'TFDY754857', 'flight_date' => '2023-10-10', 'expenses' => 30, 'checkout_memo_reference_number' => '5435535674', 'workers' => 1];
     }
 }

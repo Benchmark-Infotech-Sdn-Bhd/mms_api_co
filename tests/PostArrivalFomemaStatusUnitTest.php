@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 

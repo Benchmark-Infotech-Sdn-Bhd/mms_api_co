@@ -281,7 +281,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateJTKSubmission', $this->jtkSubmissionData(), $this->getHeader());
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'JTK Submission Updated Successfully']
+            'data' => ['message' => 'JDK Submission Updated Successfully']
         ]);
     }
     /**
