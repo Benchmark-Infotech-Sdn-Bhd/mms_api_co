@@ -118,6 +118,7 @@ class DirectRecruitmentInsurancePurchaseServices
             ->where('worker_visa.status', '=', 'Processed');
         })
         ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'worker_visa.worker_id')
+        ->where('worker_insurance_details.insurance_status', 'Pending')
         ->where([
             ['workers.application_id', $request['application_id']],
             ['workers.onboarding_country_id', $request['onboarding_country_id']],

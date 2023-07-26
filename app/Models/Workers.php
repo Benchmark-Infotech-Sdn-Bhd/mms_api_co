@@ -106,6 +106,13 @@ class Workers extends Model implements Auditable
     {
         return $this->hasOne(WorkerFomema::class, 'worker_id');
     }
+    /**
+     * @return HasMany
+     */
+    public function workerFomemaAttachments()
+    {
+        return $this->hasMany(FOMEMAAttachment::class, 'file_id');
+    }
 
     /**
      * @return HasOne

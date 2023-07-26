@@ -188,6 +188,7 @@ class DirectRecruitmentImmigrationFeePaidServices
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_immigration', 'worker_immigration.worker_id', 'workers.id')
             ->where('worker_visa.approval_status', 'Approved')
+            ->where('worker_immigration.immigration_status', '!=', 'Paid')
             ->where([
                 'workers.application_id' => $request['application_id'],
                 'workers.onboarding_country_id' => $request['onboarding_country_id'],
