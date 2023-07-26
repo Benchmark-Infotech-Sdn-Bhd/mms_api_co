@@ -37,7 +37,7 @@ class FeeRegistration extends Model implements Auditable
      */
     private $rules = [
         'item_name' => 'required|regex:/^[a-zA-Z0-9 @&$]*$/u|max:150|unique:fee_registration,item_name,NULL,id,deleted_at,NULL',
-        'cost' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+        'cost' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/|max:9',
         'fee_type' => 'required',
     ];
 
@@ -52,7 +52,7 @@ class FeeRegistration extends Model implements Auditable
         return [
             'id' => 'required',
             'item_name' => 'required|regex:/^[a-zA-Z0-9 @&$]*$/u|max:150|unique:fee_registration,item_name,'.$id.',id,deleted_at,NULL',
-            'cost' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'cost' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/|max:9',
             'fee_type' => 'required',
         ];
     }
