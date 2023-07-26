@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Levy;
 use App\Models\DirectrecruitmentApplications;
 use App\Models\FWCMS;
+use App\Models\ApplicationInterviews;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 
@@ -27,11 +28,16 @@ class LevyServices
      */
     private ApplicationSummaryServices $applicationSummaryServices;
     /**
+     * @var ApplicationInterviews
+     */
+    private ApplicationInterviews $applicationInterviews;
+    /**
      * LevyServices Constructor
      * @param Levy $levy
      * @param DirectrecruitmentApplications $directrecruitmentApplications
      * @param FWCMS $fwcms;
      * @param ApplicationSummaryServices $applicationSummaryServices;
+     * @param ApplicationInterviews $applicationInterviews
      */
     public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices)
     {
@@ -39,6 +45,7 @@ class LevyServices
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->fwcms = $fwcms;
         $this->applicationSummaryServices = $applicationSummaryServices;
+        $this->applicationInterviews = $applicationInterviews;
     }
     /**
      * @return array
@@ -105,6 +112,12 @@ class LevyServices
                 'error' => $validator->errors()
             ];
         }
+        $approvedInterviewQuota = $this->applicationInterviews->where('ksm_reference_number', $request['ksm_reference_number'])->sum('approved_quota');
+        if($request['approved_quota'] > $approvedInterviewQuota) {
+            return [
+                'quotaError' => true
+            ];
+        }
         $this->levy->create([
             'application_id' => $request['application_id'] ?? 0,
             'item' => $request['item'] ?? 'Levy Details',
@@ -151,6 +164,12 @@ class LevyServices
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+        $approvedInterviewQuota = $this->applicationInterviews->where('ksm_reference_number', $request['ksm_reference_number'])->sum('approved_quota');
+        if($request['approved_quota'] > $approvedInterviewQuota) {
+            return [
+                'quotaError' => true
             ];
         }
         $levyDetails = $this->levy->findOrFail($request['id']);
