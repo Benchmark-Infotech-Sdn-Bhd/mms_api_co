@@ -39,7 +39,7 @@ class LevyServices
      * @param ApplicationSummaryServices $applicationSummaryServices;
      * @param ApplicationInterviews $applicationInterviews
      */
-    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices)
+    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices, ApplicationInterviews $applicationInterviews)
     {
         $this->levy = $levy;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
