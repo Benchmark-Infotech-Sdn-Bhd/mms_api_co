@@ -69,26 +69,26 @@ class DirectRecruitmentCallingVisaApprovalServices
      */
     public function approvalStatusUpdate($request): bool|array
     {
+        if(isset($request['workers']) && !empty($request['workers'])) {
+            $workerVisaProcessed = $this->workerInsuranceDetails
+                            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_insurance_details.worker_id')
+                            ->whereIn('worker_insurance_details.worker_id', $request['workers'])
+                            ->where('worker_insurance_details.insurance_status', 'Purchased')
+                            ->select('worker_visa.calling_visa_reference_number')
+                            ->groupBy('worker_visa.calling_visa_reference_number')
+                            ->get()->toArray();
+            if(count($workerVisaProcessed) != 1) {
+                return [
+                    'visaReferenceNumberCountError' => true
+                ];
+            }
+        }
         if ($request['status'] == 'Approved') {
             $validator = Validator::make($request, $this->createValidation());
             if($validator->fails()) {
                 return [
                     'error' => $validator->errors()
                 ];
-            }
-            if(isset($request['workers']) && !empty($request['workers'])) {
-                $workerVisaProcessed = $this->workerInsuranceDetails
-                                ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_insurance_details.worker_id')
-                                ->whereIn('worker_insurance_details.worker_id', $request['workers'])
-                                ->where('worker_insurance_details.insurance_status', 'Purchased')
-                                ->select('worker_visa.calling_visa_reference_number')
-                                ->groupBy('worker_visa.calling_visa_reference_number')
-                                ->get()->toArray();
-                if(count($workerVisaProcessed) != 1) {
-                    return [
-                        'visaReferenceNumberCountError' => true
-                    ];
-                }
             }
             $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['calling_visa_generated' => $request['calling_visa_generated'], 'calling_visa_valid_until' => $request['calling_visa_valid_until'], 'remarks' => $request['remarks'], 'approval_status' => $request['status'], 'modified_by' => $request['modified_by']]);
         }
