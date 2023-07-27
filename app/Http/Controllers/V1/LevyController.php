@@ -67,6 +67,8 @@ class LevyController extends Controller
             $response = $this->levyServices->create($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Interview Quota'], 422);
             }
             return $this->sendSuccess(['message' => 'Levy Details Created SUccessfully']);
         } catch (Exception $e) {
@@ -87,6 +89,8 @@ class LevyController extends Controller
             $response = $this->levyServices->update($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Interview Quota'], 422);
             }
             return $this->sendSuccess(['message' => 'Levy Details Updated SUccessfully']);
         } catch (Exception $e) {
