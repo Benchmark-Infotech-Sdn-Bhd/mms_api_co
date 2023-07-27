@@ -69,12 +69,6 @@ class DirectRecruitmentCallingVisaApprovalServices
      */
     public function approvalStatusUpdate($request): bool|array
     {
-        $validator = Validator::make($request, $this->createValidation());
-            if($validator->fails()) {
-                return [
-                    'error' => $validator->errors()
-                ];
-            }
         if(isset($request['workers']) && !empty($request['workers'])) {
             $workerVisaProcessed = $this->workerInsuranceDetails
                             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_insurance_details.worker_id')
@@ -88,8 +82,18 @@ class DirectRecruitmentCallingVisaApprovalServices
                     'visaReferenceNumberCountError' => true
                 ];
             }
+        }
+        if ($request['status'] == 'Approved') {
+            $validator = Validator::make($request, $this->createValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
             $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['calling_visa_generated' => $request['calling_visa_generated'], 'calling_visa_valid_until' => $request['calling_visa_valid_until'], 'remarks' => $request['remarks'], 'approval_status' => $request['status'], 'modified_by' => $request['modified_by']]);
         }
+        $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['approval_status' => $request['status'], 'modified_by' => $request['modified_by']]);
+        
         $this->directRecruitmentCallingVisaStatus->where([
             'application_id' => $request['application_id'],
             'onboarding_country_id' => $request['onboarding_country_id']

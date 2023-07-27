@@ -112,8 +112,8 @@ class LevyServices
                 'error' => $validator->errors()
             ];
         }
-        $applicationInterviewsQuota = $this->applicationInterviews->where('ksm_reference_number', $request['ksm_reference_number'])->sum('approved_quota');
-        if($request['approved_quota'] > $applicationInterviewsQuota) {
+        $approvedInterviewQuota = $this->applicationInterviews->where('ksm_reference_number', $request['ksm_reference_number'])->sum('approved_quota');
+        if($request['approved_quota'] > $approvedInterviewQuota) {
             return [
                 'quotaError' => true
             ];
@@ -166,8 +166,8 @@ class LevyServices
                 'error' => $validator->errors()
             ];
         }
-        $applicationInterviewsQuota = $this->applicationInterviews->where('ksm_reference_number', $request['ksm_reference_number'])->sum('approved_quota');
-        if($request['approved_quota'] > $applicationInterviewsQuota) {
+        $approvedInterviewQuota = $this->applicationInterviews->where('ksm_reference_number', $request['ksm_reference_number'])->sum('approved_quota');
+        if($request['approved_quota'] > $approvedInterviewQuota) {
             return [
                 'quotaError' => true
             ];
