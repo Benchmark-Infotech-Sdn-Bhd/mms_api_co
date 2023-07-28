@@ -137,8 +137,8 @@ class TotalManagementServices
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
             }
         })
-        ->selectRaw('total_management_applications.id, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, count(total_management_project.id) as projects, count(workers.id) as workers')
-        ->groupBy('total_management_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email')
+        ->selectRaw('total_management_applications.id, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, crm_prospect_services.sector_id, crm_prospect_services.sector_name, crm_prospect_services.from_existing, count(total_management_project.id) as projects, count(workers.id) as workers')
+        ->groupBy('total_management_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.from_existing')
         ->orderBy('total_management_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }        
@@ -286,5 +286,14 @@ class TotalManagementServices
         $applicationDetails->quota_applied = ($request['from_existing'] == 0) ? ($prospectService->client_quota + $prospectService->fomnext_quota) : $prospectService->service_quota;
         $applicationDetails->save();
         return true;
+    }
+    /**
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function showService($request) : mixed
+    {
+        return $this->crmProspectService->findOrFail($request['prospect_service_id']);
     }
 }

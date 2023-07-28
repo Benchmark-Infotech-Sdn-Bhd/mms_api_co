@@ -140,7 +140,7 @@ class TotalManagementWorkerController extends Controller
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Show Company Name'], 400);
+            return $this->sendError(['message' => 'Failed to Display Company'], 400);
         }
     }
     /**
@@ -166,15 +166,15 @@ class TotalManagementWorkerController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function getSector(Request $request): JsonResponse
+    public function getSectorAndValidUntil(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->totalManagementWorkerServices->getSector($params);
+            $data = $this->totalManagementWorkerServices->getSectorAndValidUntil($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Show Sector'], 400);
+            return $this->sendError(['message' => 'Failed to Show Sector and Valid Until'], 400);
         }
     }
 }

@@ -251,7 +251,7 @@ class TotalManagementWorkerServices
         ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.application_id', 'directrecruitment_applications.id')
         ->whereIn('directrecruitment_applications.crm_prospect_id', $companyId)
         ->where('directrecruitment_application_approval.ksm_reference_number', '!=', NULL)
-        ->select('directrecruitment_applications.id as directrecruitment_application_id', 'directrecruitment_application_approval.ksm_reference_number', 'directrecruitment_application_approval.valid_until')
+        ->select('directrecruitment_applications.id as directrecruitment_application_id', 'directrecruitment_application_approval.ksm_reference_number')
         ->get();
         return $ksmReferenceNumbers;
     }
@@ -259,12 +259,14 @@ class TotalManagementWorkerServices
      * @param $request
      * @return mixed
      */
-    public function getSector($request): mixed
+    public function getSectorAndValidUntil($request): mixed
     {
         return $this->directrecruitmentApplications
+                    ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.application_id', 'directrecruitment_applications.id')
                     ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
-                    ->where('directrecruitment_applications.id', $request['directrecruitment_application_id'])
-                    ->select('crm_prospect_services.sector_id', 'crm_prospect_services.sector_name')
+                    ->where('directrecruitment_applications.crm_prospect_id', $request['prospect_id'])
+                    ->where('directrecruitment_application_approval.ksm_reference_number', $request['ksm_reference_number'])
+                    ->select('crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'directrecruitment_application_approval.valid_until')
                     ->get();
     }
 }
