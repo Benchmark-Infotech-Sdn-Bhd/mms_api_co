@@ -94,7 +94,7 @@ class WorkerEventServices
      */
     public function create($request): array|bool
     {
-        $validator = Validator::make($request->toArray(), $this->updateValidation());
+        $validator = Validator::make($request->toArray(), $this->createValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
