@@ -130,13 +130,13 @@ class TotalManagementWorkerServices
      */
     public function workerListForAssignWorker($request): mixed
     {
+        $request['company_ids'] = array($request['prospect_id'], 0);
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->leftJoin('crm_prospects', 'crm_prospects.id', 'workers.crm_prospect_id')
             ->where('workers.worker_status', 'On-Bench')
+            ->whereIn('workers.crm_prospect_id', $request['company_ids'])
             ->where(function ($query) use ($request) {
-                if (isset($request['filter']) && $request['filter']) {
+                if ((isset($request['filter']) && !empty($request['filter'])) || $request['filter'] == 0) {
                     $query->where('workers.crm_prospect_id', $request['filter']);
-                    $query->orWhere('workers.crm_prospect_id', 0);
                 }
             })
             ->where(function ($query) use ($request) {
@@ -144,7 +144,7 @@ class TotalManagementWorkerServices
                     $query->where('worker_visa.ksm_reference_number', $request['ksm_reference_number']);
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'crm_prospects.id as company_id', 'crm_prospects.company_name')
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', )
             ->distinct()
             ->orderBy('workers.created_at','DESC')
             ->paginate(Config::get('services.paginate_row'));
