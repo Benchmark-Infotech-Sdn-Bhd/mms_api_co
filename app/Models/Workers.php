@@ -37,7 +37,7 @@ class Workers extends Model implements Auditable
         'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
         'date_of_birth' => 'required|date_format:Y-m-d',
         'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
-        'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
+        'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/|unique:workers',
         'passport_valid_until' => 'required|date_format:Y-m-d',
         'address' => 'required',
         'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
@@ -59,7 +59,7 @@ class Workers extends Model implements Auditable
             'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
             'date_of_birth' => 'required|date_format:Y-m-d',
             'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
-            'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
+            'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/|unique:workers,passport_number,'.$id,
             'passport_valid_until' => 'required|date_format:Y-m-d',
             'address' => 'required',
             'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
@@ -105,6 +105,13 @@ class Workers extends Model implements Auditable
     public function workerFomema()
     {
         return $this->hasOne(WorkerFomema::class, 'worker_id');
+    }
+    /**
+     * @return HasMany
+     */
+    public function workerFomemaAttachments()
+    {
+        return $this->hasMany(FOMEMAAttachment::class, 'file_id');
     }
 
     /**

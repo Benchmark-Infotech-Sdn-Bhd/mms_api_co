@@ -68,8 +68,7 @@ class DirectRecruitmentSpecialPassServices
     public function validityValidation(): array
     {
         return [
-            'valid_until' => 'required|date|date_format:Y-m-d|after:yesterday',
-            'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
+            'valid_until' => 'required|date|date_format:Y-m-d|after:yesterday'
         ];
     }
     /**

@@ -95,7 +95,7 @@ class Controller extends BaseController
      * @param int $status
      * @return JsonResponse
      */
-    protected function sendError($response, int $status = 200): JsonResponse
+    protected function sendError($response, int $status = 400): JsonResponse
     {
         return response()->json(
             $this->frameResponse(true, $status, $this->errorMessage[$status], $this->sendResponse($response)));

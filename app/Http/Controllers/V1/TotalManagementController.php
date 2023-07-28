@@ -32,7 +32,8 @@ class TotalManagementController extends Controller
     public function applicationListing(Request $request): JsonResponse
     {
         try {
-            $response = $this->totalManagementServices->applicationListing($request);
+            $params = $this->getRequest($request);
+            $response = $this->totalManagementServices->applicationListing($params);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -50,7 +51,8 @@ class TotalManagementController extends Controller
     public function addService(Request $request): JsonResponse
     {
         try {
-            $response = $this->totalManagementServices->addService($request);
+            $params = $this->getRequest($request);
+            $response = $this->totalManagementServices->addService($params);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             } else if(isset($response['quotaError'])) {
@@ -70,7 +72,8 @@ class TotalManagementController extends Controller
     public function getQuota(Request $request): JsonResponse
     {
         try {
-            $response = $this->totalManagementServices->getQuota($request);
+            $params = $this->getRequest($request);
+            $response = $this->totalManagementServices->getQuota($params);
             return $this->sendSuccess(['approvedQuota' => $response]);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -85,7 +88,8 @@ class TotalManagementController extends Controller
     public function showProposal(Request $request): JsonResponse
     {
         try {
-            $response = $this->totalManagementServices->showProposal($request);
+            $params = $this->getRequest($request);
+            $response = $this->totalManagementServices->showProposal($params);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -95,7 +99,7 @@ class TotalManagementController extends Controller
             return $this->sendError(['message' => 'Failed to Display Proposal'], 400);
         }
     }
-     /** Display form to submit proposal.
+    /** Display form to submit proposal.
      * 
      * @param Request $request
      * @return JsonResponse
@@ -103,7 +107,8 @@ class TotalManagementController extends Controller
     public function submitProposal(Request $request): JsonResponse
     {
         try {
-            $response = $this->totalManagementServices->submitProposal($request);
+            $params = $this->getRequest($request);
+            $response = $this->totalManagementServices->submitProposal($params);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -111,6 +116,25 @@ class TotalManagementController extends Controller
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Submit Proposal'], 400);
+        }
+    }
+    /** Display form to allocate quota.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function allocateQuota(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->totalManagementServices->allocateQuota($params);
+            if(isset($response['quotaError'])) {
+                $this->sendError(['message' => 'Quota for service should not exceed to Initail quota'], 422);
+            }
+            return $this->sendSuccess(['message' => 'Quota Allocated Successfully.']);
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Allocate Quota'], 400);
         }
     }
 }
