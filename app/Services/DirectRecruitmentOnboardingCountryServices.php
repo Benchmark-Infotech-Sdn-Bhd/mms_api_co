@@ -160,10 +160,12 @@ class DirectRecruitmentOnboardingCountryServices
             ];
         }
         $attestationDetails = $this->onboardingAttestation->where('onboarding_country_id', $request['id'])->first(['status']);
-        if($attestationDetails->status == 'Collected') {
-            return [
-                'editError' => true
-            ];
+        if(isset($attestationDetails)) {
+            if ($attestationDetails->status == 'Collected') {
+                return [
+                    'editError' => true
+                ];
+            } 
         }
         $onboardingCountry->application_id =  $request['application_id'] ?? $onboardingCountry->application_id;
         $onboardingCountry->country_id =  $request['country_id'] ?? $onboardingCountry->country_id;

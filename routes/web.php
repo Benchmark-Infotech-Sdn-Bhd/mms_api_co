@@ -480,6 +480,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('showProposal', 'V1\TotalManagementController@showProposal');
             $router->post('submitProposal', 'V1\TotalManagementController@submitProposal');
             $router->post('allocateQuota', 'V1\TotalManagementController@allocateQuota');
+            $router->post('showService', 'V1\TotalManagementController@showService');
             $router->group(['prefix' => 'project'], function () use ($router) {
                 $router->post('list', 'V1\TotalManagementProjectController@list');
                 $router->post('show', 'V1\TotalManagementProjectController@show');
@@ -491,6 +492,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('viewAssignments', 'V1\TotalManagementSupervisorController@viewAssignments');
             });
             $router->group(['prefix' => 'manage'], function () use ($router) {
+                $router->post('list', 'V1\TotalManagementWorkerController@list');
                 $router->group(['prefix' => 'workerAssign'], function () use ($router) {
                     $router->post('workerListForAssignWorker', 'V1\TotalManagementWorkerController@workerListForAssignWorker');
                     $router->post('accommodationProviderDropDown', 'V1\TotalManagementWorkerController@accommodationProviderDropDown');
@@ -499,7 +501,14 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('getBalancedQuota', 'V1\TotalManagementWorkerController@getBalancedQuota');
                     $router->post('getCompany', 'V1\TotalManagementWorkerController@getCompany');
                     $router->post('ksmRefereneceNUmberDropDown', 'V1\TotalManagementWorkerController@ksmRefereneceNUmberDropDown');
-                    $router->post('getSector', 'V1\TotalManagementWorkerController@getSector');
+                    $router->post('getSectorAndValidUntil', 'V1\TotalManagementWorkerController@getSectorAndValidUntil');
+                });
+                $router->group(['prefix' => 'workerEvent'], function () use ($router) {
+                    $router->post('list', 'V1\WorkerEventController@list');
+                    $router->post('create', 'V1\WorkerEventController@create');
+                    $router->post('update', 'V1\WorkerEventController@update');
+                    $router->post('show', 'V1\WorkerEventController@show');
+                    $router->post('deleteAttachment', 'V1\WorkerEventController@deleteAttachment');
                 });
             });
         });    

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\DirectRecruitmentPostArrivalStatus;
 use App\Models\WorkerPLKSAttachments;
 use App\Models\Workers;
+use App\Models\DirectrecruitmentApplications;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,10 @@ use Carbon\Carbon;
 
 class DirectRecruitmentPostArrivalPLKSServices
 {
+    /**
+     * @var DirectrecruitmentApplications
+     */
+    private DirectrecruitmentApplications $directrecruitmentApplications;
     /**
      * @var DirectRecruitmentPostArrivalStatus
      */
@@ -31,13 +36,15 @@ class DirectRecruitmentPostArrivalPLKSServices
 
     /**
      * DirectRecruitmentPostArrivalFomemaServices constructor.
+     * @param DirectrecruitmentApplications $directrecruitmentApplications
      * @param DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus
      * @param WorkerPLKSAttachments $workerPLKSAttachments
      * @param Workers $workers
      * @param Storage $storage
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerPLKSAttachments $workerPLKSAttachments, Workers $workers, Storage $storage)
+    public function __construct(DirectrecruitmentApplications $directrecruitmentApplications, DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerPLKSAttachments $workerPLKSAttachments, Workers $workers, Storage $storage)
     {
+        $this->directrecruitmentApplications        = $directrecruitmentApplications;
         $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
         $this->workerPLKSAttachments                = $workerPLKSAttachments;
         $this->workers                              = $workers;
@@ -147,6 +154,8 @@ class DirectRecruitmentPostArrivalPLKSServices
                 }
             }
         }
+        $this->directrecruitmentApplications->where('id', $request['application_id'])->update(['onboarding_flag' => 1]);
+
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
         return true;
     }

@@ -73,7 +73,7 @@ class UsersUnitTest extends TestCase
      */
     public function testForRegistration(): void
     {
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Admin'], $this->getHeader());
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader());
         $response = $this->json('POST', 'api/v1/user/register', $this->registrationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
@@ -141,7 +141,7 @@ class UsersUnitTest extends TestCase
      */
     public function testForValidLogin(): void
     {
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Admin'], $this->getHeader());
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader());
         $this->json('POST', 'api/v1/user/register', $this->registrationData(), $this->getHeader(false));
         $response = $this->call('POST', 'api/v1/login', ['email' => 'test@gmail.com', 'password' => 'Welcome@123']);
         $this->assertEquals(200, $response->status());
@@ -161,6 +161,6 @@ class UsersUnitTest extends TestCase
      */
     public function registrationData(): array
     {
-        return ['name' => 'test', 'email' => 'test@gmail.com', 'password' => 'Welcome@123', 'reference_id' => 1, 'user_type' => 'Admin','role_id' => 1,'status' => 1];
+        return ['name' => 'test', 'email' => 'test@gmail.com', 'password' => 'Welcome@123', 'reference_id' => 1, 'user_type' => 'Administrator','role_id' => 1,'status' => 1];
     }
 }

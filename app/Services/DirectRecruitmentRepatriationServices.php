@@ -141,20 +141,22 @@ class DirectRecruitmentRepatriationServices
                     'created_by' => $request['modified_by'],
                     'modified_by' => $request['modified_by']
                 ]);
-                foreach($request->file('attachment') as $file) {
-                    $fileName = $file->getClientOriginalName();
-                    $filePath = 'directRecruitment/workers/repatriation/' . $workerId. '/'. $fileName; 
-                    $linode = $this->storage::disk('linode');
-                    $linode->put($filePath, file_get_contents($file));
-                    $fileUrl = $this->storage::disk('linode')->url($filePath);
-                    $this->workerRepatriationAttachments->create([
-                        'file_id' => $workerId,
-                        'file_name' => $fileName,
-                        'file_type' => 'Repatriation',
-                        'file_url' => $fileUrl,
-                        'created_by' => $request['modified_by'],
-                        'modified_by' => $request['modified_by']
-                    ]);
+                if (request()->hasFile('attachment')) {
+                    foreach($request->file('attachment') as $file) {
+                        $fileName = $file->getClientOriginalName();
+                        $filePath = 'directRecruitment/workers/repatriation/' . $workerId. '/'. $fileName; 
+                        $linode = $this->storage::disk('linode');
+                        $linode->put($filePath, file_get_contents($file));
+                        $fileUrl = $this->storage::disk('linode')->url($filePath);
+                        $this->workerRepatriationAttachments->create([
+                            'file_id' => $workerId,
+                            'file_name' => $fileName,
+                            'file_type' => 'Repatriation',
+                            'file_url' => $fileUrl,
+                            'created_by' => $request['modified_by'],
+                            'modified_by' => $request['modified_by']
+                        ]);
+                    }
                 }
             }
         }
