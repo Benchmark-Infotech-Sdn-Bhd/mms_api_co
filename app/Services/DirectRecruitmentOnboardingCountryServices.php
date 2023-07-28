@@ -12,6 +12,9 @@ use App\Services\ValidationServices;
 
 class DirectRecruitmentOnboardingCountryServices
 {
+    /**
+     * @var ValidationServices
+     */
     private ValidationServices $validationServices;
     /**
      * @var DirectRecruitmentOnboardingCountry
