@@ -123,7 +123,7 @@ class WorkersServices
         }
 
         $ksmReferenceNumbersResult = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
-        
+
         $ksmReferenceNumbers = array();
         foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
             $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
@@ -344,6 +344,21 @@ class WorkersServices
             return [
                 'validate' => $this->validationServices->errors()
             ];
+        }
+
+        $ksmReferenceNumbersResult = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
+        
+        $ksmReferenceNumbers = array();
+        foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
+            $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
+        }
+
+        if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
+            if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
+                return [
+                    'ksmError' => true
+                ];    
+            }
         }
 
         $worker = $this->workers->with('workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails')->findOrFail($request['id']);
