@@ -121,6 +121,22 @@ class WorkersServices
               'validate' => $this->validationServices->errors()
             ];
         }
+
+        $ksmReferenceNumbersResult = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
+        
+        $ksmReferenceNumbers = array();
+        foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
+            $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
+        }
+
+        if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
+            if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
+                return [
+                    'ksmError' => true
+                ];    
+            }
+        }
+
         $worker = $this->workers->create([
             'onboarding_country_id' => $request['onboarding_country_id'],
             'agent_id' => $request['agent_id'],
