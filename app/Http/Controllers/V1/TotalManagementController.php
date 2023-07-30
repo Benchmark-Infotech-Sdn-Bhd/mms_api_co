@@ -107,8 +107,7 @@ class TotalManagementController extends Controller
     public function submitProposal(Request $request): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
-            $response = $this->totalManagementServices->submitProposal($params);
+            $response = $this->totalManagementServices->submitProposal($request);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -129,7 +128,7 @@ class TotalManagementController extends Controller
             $params = $this->getRequest($request);
             $response = $this->totalManagementServices->allocateQuota($params);
             if(isset($response['quotaError'])) {
-                $this->sendError(['message' => 'Quota for service should not exceed to Initail quota'], 422);
+                return $this->validationError(['message' => 'Quota for service should not exceed to Initail quota']);
             }
             return $this->sendSuccess(['message' => 'Quota Allocated Successfully.']);
         } catch(Exception $e) {

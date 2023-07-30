@@ -148,7 +148,7 @@ class TotalManagementServices
      */
     public function addService($request): bool|array
     {
-        $validator = Validator::make($request->toArray(), $this->addServiceValidation());
+        $validator = Validator::make($request, $this->addServiceValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
