@@ -138,4 +138,12 @@ class Workers extends Model implements Auditable
     {
         return $this->hasMany(WorkerEmployment::class, 'worker_id');
     }
+
+        /**
+     * @return HasMany
+     */
+    public function directrecruitmentWorkers(): HasMany
+    {
+        return $this->hasMany(DirectrecruitmentWorkers::class, 'worker_id');
+    }
 }

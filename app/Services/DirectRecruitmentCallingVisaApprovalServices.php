@@ -114,10 +114,11 @@ class DirectRecruitmentCallingVisaApprovalServices
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'workers.id')
+            ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->where('worker_visa.approval_status', '!=', 'Approved')
             ->where([
-                'workers.application_id' => $request['application_id'],
-                'workers.onboarding_country_id' => $request['onboarding_country_id'],
+                'directrecruitment_workers.application_id' => $request['application_id'],
+                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
                 'workers.cancel_status' => 0,
                 'worker_insurance_details.insurance_status' => 'Purchased'
             ])
@@ -136,10 +137,10 @@ class DirectRecruitmentCallingVisaApprovalServices
             })
             ->where(function ($query) use ($request) {
                 if(isset($request['agent_id']) && !empty($request['agent_id'])) {
-                    $query->where('workers.agent_id', $request['agent_id']);
+                    $query->where('directrecruitment_workers.agent_id', $request['agent_id']);
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approval_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')->distinct('workers.id')
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approval_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }

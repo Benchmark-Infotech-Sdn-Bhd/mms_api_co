@@ -118,9 +118,10 @@ class DirectRecruitmentInsurancePurchaseServices
             ->where('worker_visa.status', '=', 'Processed');
         })
         ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'worker_visa.worker_id')
+        ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
         ->where([
-            ['workers.application_id', $request['application_id']],
-            ['workers.onboarding_country_id', $request['onboarding_country_id']],
+            ['directrecruitment_workers.application_id', $request['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
             ['workers.cancel_status', 0]
         ])
         ->where(function ($query) use ($request) {
@@ -131,7 +132,7 @@ class DirectRecruitmentInsurancePurchaseServices
                 ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
             }
         })
-        ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date', 'worker_insurance_details.insurance_status')->distinct('workers.id')
+        ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date', 'worker_insurance_details.insurance_status')->distinct('workers.id')
         ->distinct('workers.id')
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
@@ -151,7 +152,8 @@ class DirectRecruitmentInsurancePurchaseServices
         ->where([
             ['workers.id', $request['id']]
         ])
-        ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date', 'worker_insurance_details.insurance_status')->distinct('workers.id')
+        ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
+        ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date', 'worker_insurance_details.insurance_status')->distinct('workers.id')
         ->with(['workerInsuranceAttachments' => function ($query) {
             $query->orderBy('created_at', 'desc');
         }])
