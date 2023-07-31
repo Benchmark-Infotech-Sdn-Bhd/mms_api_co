@@ -37,6 +37,8 @@ class WorkersController extends Controller
             $data = $this->workersServices->create($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['ksmError'])) {
+                return $this->sendError(['message' => 'KSM reference number does not matched.'], 422);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -59,6 +61,8 @@ class WorkersController extends Controller
             $data = $this->workersServices->update($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['ksmError'])) {
+                return $this->sendError(['message' => 'KSM reference number does not matched.'], 422);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {

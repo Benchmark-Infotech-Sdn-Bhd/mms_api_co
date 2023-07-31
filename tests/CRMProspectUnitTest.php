@@ -660,14 +660,14 @@ class CRMProspectUnitTest extends TestCase
         ];   
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
         $payload =  [
-            'name' => 'Admin'
+            'name' => 'Administrator'
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
-            'date_of_birth' => '1998-11-02', 
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'), 
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 

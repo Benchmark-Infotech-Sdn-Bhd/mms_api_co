@@ -126,6 +126,22 @@ class WorkersServices
               'validate' => $this->validationServices->errors()
             ];
         }
+
+        $ksmReferenceNumbersResult = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
+
+        $ksmReferenceNumbers = array();
+        foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
+            $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
+        }
+
+        if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
+            if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
+                return [
+                    'ksmError' => true
+                ];    
+            }
+        }
+
         $worker = $this->workers->create([
             'name' => $request['name'] ?? '',
             'gender' => $request['gender'] ?? '',
@@ -276,7 +292,7 @@ class WorkersServices
             "socso_number" =>  $request['socso_number'] ?? ''
         ]);
 
-        /*$checkCallingVisa = $this->directRecruitmentCallingVisaStatus
+        $checkCallingVisa = $this->directRecruitmentCallingVisaStatus
         ->where('application_id', $request['application_id'])
         ->where('onboarding_country_id', $request['onboarding_country_id'])
         ->where('agent_id', $request['agent_id'])->get()->toArray();
@@ -292,7 +308,7 @@ class WorkersServices
                 'created_by' => $params['created_by'] ?? 0,
                 'modified_by' => $params['created_by'] ?? 0,
             ]);
-        }*/
+        }
 
         $checkWorkerStatus = $this->workerStatus
         ->where('application_id', $request['application_id'])
@@ -339,6 +355,21 @@ class WorkersServices
             return [
                 'validate' => $this->validationServices->errors()
             ];
+        }
+
+        $ksmReferenceNumbersResult = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
+        
+        $ksmReferenceNumbers = array();
+        foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
+            $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
+        }
+
+        if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
+            if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
+                return [
+                    'ksmError' => true
+                ];    
+            }
         }
 
         $worker = $this->workers->with('directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails')->findOrFail($request['id']);
@@ -519,7 +550,7 @@ class WorkersServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->workers->with('directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails')->findOrFail($request['id']);
+        return $this->workers->with('directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails', 'workerFomemaAttachments')->findOrFail($request['id']);
     }
     
     /**
@@ -566,8 +597,8 @@ class WorkersServices
                 ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
-            
-        })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as status','workers.created_at')
+
+        })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as status', 'workers.cancel_status as cancellation_status', 'workers.created_at')
         ->distinct()
         ->orderBy('workers.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));

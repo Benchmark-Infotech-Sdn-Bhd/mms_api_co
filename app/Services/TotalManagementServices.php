@@ -88,6 +88,15 @@ class TotalManagementServices
     /**
      * @return array
      */
+    public function searchValidation(): array
+    {
+        return [
+            'search' => 'required|min:3'
+        ];
+    }
+    /**
+     * @return array
+     */
     public function addServiceValidation(): array
     {
         return [
@@ -109,9 +118,18 @@ class TotalManagementServices
      */
     public function applicationListing($request): mixed
     {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
         return $this->totalManagementApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'total_management_applications.service_id')
         ->leftJoin('total_management_project', 'total_management_project.application_id', 'total_management_applications.id')
+        ->leftJoin('workers', 'workers.crm_prospect_id', 'total_management_applications.crm_prospect_id')
         ->where('crm_prospect_services.service_id', 3)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->where(function ($query) use ($request) {
@@ -119,8 +137,8 @@ class TotalManagementServices
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
             }
         })
-        ->selectRaw('total_management_applications.id, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, count(total_management_project.id) as projects')
-        ->groupBy('total_management_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email')
+        ->selectRaw('total_management_applications.id, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, crm_prospect_services.sector_id, crm_prospect_services.sector_name, crm_prospect_services.from_existing, count(total_management_project.id) as projects, count(workers.id) as workers')
+        ->groupBy('total_management_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.from_existing')
         ->orderBy('total_management_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }        
@@ -130,16 +148,18 @@ class TotalManagementServices
      */
     public function addService($request): bool|array
     {
-        $validator = Validator::make($request->toArray(), $this->addServiceValidation());
+        $validator = Validator::make($request, $this->addServiceValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
-        if($request['initial_quota'] < $request['service_quota']) {
-            return [
-                'quotaError' => true
-            ];
+        if(isset($request['initial_quota']) && !empty($request['initial_quota'])) {
+            if($request['initial_quota'] < $request['service_quota']) {
+                return [
+                    'quotaError' => true
+                ];
+            }
         }
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
@@ -178,7 +198,7 @@ class TotalManagementServices
      */
     public function getQuota($request): int
     {
-        $directrecruitmentApplicationIds = $this->directrecruitmentApplications->where('crm_prospect_id', $request['id'])
+        $directrecruitmentApplicationIds = $this->directrecruitmentApplications->where('crm_prospect_id', $request['prospect_id'])
                                             ->select('id')
                                             ->get()
                                             ->toArray();
@@ -240,5 +260,40 @@ class TotalManagementServices
             }
         }
         return true;
+    }
+    /**
+     * @param $request
+     * @return array|bool
+     */
+    public function allocateQuota($request): array|bool
+    {
+        if(isset($request['initial_quota'])) {
+            if($request['initial_quota'] < $request['service_quota']) {
+                return [
+                    'quotaError' => true
+                ];
+            }
+        }
+        $prospectService = $this->crmProspectService->findOrFail($request['prospect_service_id']);
+        $prospectService->from_existing =  $request['from_existing'] ?? 0;
+        $prospectService->client_quota = $request['client_quota'] ?? $prospectService->client_quota;
+        $prospectService->fomnext_quota = $request['fomnext_quota'] ?? $prospectService->fomnext_quota;
+        $prospectService->initial_quota = $request['initial_quota'] ?? $prospectService->initial_quota;
+        $prospectService->service_quota = $request['service_quota'] ?? $prospectService->service_quota;
+        $prospectService->save();
+
+        $applicationDetails = $this->totalManagementApplications->findOrFail($request['id']);
+        $applicationDetails->quota_applied = ($request['from_existing'] == 0) ? ($prospectService->client_quota + $prospectService->fomnext_quota) : $prospectService->service_quota;
+        $applicationDetails->save();
+        return true;
+    }
+    /**
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function showService($request) : mixed
+    {
+        return $this->crmProspectService->findOrFail($request['prospect_service_id']);
     }
 }

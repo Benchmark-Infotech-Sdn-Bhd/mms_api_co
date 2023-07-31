@@ -220,9 +220,19 @@ class DirectRecruitmentArrivalServices
         ->where([
             ['directrecruitment_workers.application_id', $request['application_id']],
             ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
-            ['workers.cancel_status', 0],
             ['worker_arrival.arrival_id', $request['arrival_id']]
         ])
+        ->where(function ($query) use ($request) {
+            if(isset($request['calling_visa_reference_number']) && !empty($request['calling_visa_reference_number'])) {
+                $query->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number']);
+            }
+            if(isset($request['search']) && !empty($request['search'])) {
+                $query->where('workers.name', 'like', '%'.$request['search'].'%')
+                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
+                ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%')
+                ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
+            }
+        })
         ->select('workers.id', 'workers.name', 'workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_arrival.arrival_status')
         ->distinct('workers.id')
         ->orderBy('workers.id','DESC')
@@ -358,11 +368,12 @@ class DirectRecruitmentArrivalServices
                     ['arrival_status' => 'Cancelled', 
                     'updated_at' => Carbon::now(),
                     'modified_by' => $params['created_by']]);
-                $this->workers->whereIn('id', $request['workers'])
+
+                $this->workers->whereIn('id', $workers)
                     ->update([
                         'cancel_status' => 1, 
                         'remarks' => $request['remarks'] ?? '',
-                        'modified_by' => $request['modified_by']
+                        'modified_by' => $params['created_by']
                     ]);
     
                 foreach ($workers as $workerId) {
@@ -371,7 +382,7 @@ class DirectRecruitmentArrivalServices
                         $this->cancellationAttachment->updateOrCreate(
                             ['file_id' => $workerId],
                             ["file_name" => $fileName,
-                            "file_type" => 'Cancellation Letter',
+                            "file_type" => 'Arrival Cancellation Letter',
                             "file_url" =>  $fileUrl,
                             "remarks" => $request['remarks'] ?? ''
                         ]);

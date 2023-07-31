@@ -119,6 +119,7 @@ class DirectRecruitmentInsurancePurchaseServices
         })
         ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'worker_visa.worker_id')
         ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
+        ->where('worker_insurance_details.insurance_status', 'Pending')
         ->where([
             ['directrecruitment_workers.application_id', $request['application_id']],
             ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],

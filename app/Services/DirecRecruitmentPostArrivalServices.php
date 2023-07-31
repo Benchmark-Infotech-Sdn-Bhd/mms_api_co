@@ -156,9 +156,12 @@ class DirecRecruitmentPostArrivalServices
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
-                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'worker_arrival.arrival_status' => 'Not Arrived'
+                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id']
             ])
+            ->where(function ($query) use ($request) {
+                $query->where('worker_arrival.arrival_status', 'Not Arrived')
+                ->orWhere('worker_arrival.jtk_submitted_on', NULL);
+            })
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')

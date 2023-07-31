@@ -8,6 +8,7 @@ use App\Models\Accommodation;
 use App\Models\WorkerEmployment;
 use App\Models\TotalManagementApplications;
 use App\Models\CRMProspectService;
+use App\Models\DirectrecruitmentApplications;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
@@ -38,6 +39,10 @@ class TotalManagementWorkerServices
      * @var CRMProspectService
      */
     private CRMProspectService $crmProspectService;
+    /**
+     * @var DirectrecruitmentApplications
+     */
+    private DirectrecruitmentApplications $directrecruitmentApplications;
 
     /**
      * TotalManagementWorkerServices constructor.
@@ -47,8 +52,9 @@ class TotalManagementWorkerServices
      * @param WorkerEmployment $workerEmployment
      * @param TotalManagementApplications $totalManagementApplications
      * @param CRMProspectService $crmProspectService
+     * @param DirectrecruitmentApplications $directrecruitmentApplications
      */
-    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService)
+    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications)
     {
         $this->workers = $workers;
         $this->vendor = $vendor;
@@ -56,6 +62,16 @@ class TotalManagementWorkerServices
         $this->workerEmployment = $workerEmployment;
         $this->totalManagementApplications = $totalManagementApplications;
         $this->crmProspectService = $crmProspectService;
+        $this->directrecruitmentApplications = $directrecruitmentApplications;
+    }
+    /**
+     * @return array
+     */
+    public function searchValidation(): array
+    {
+        return [
+            'search' => 'required|min:3'
+        ];
     }
     /**
      * @return array
@@ -74,18 +90,61 @@ class TotalManagementWorkerServices
      * @param $request
      * @return mixed
      */
-    public function workerListForAssignWorker($request): mixed
+    public function list($request): mixed
     {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->leftJoin('crm_prospects', 'crm_prospects.id', 'workers.crm_prospect_id')
-            ->where('workers.worker_status', 'On-Bench')
+            ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
+            ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
+            ->leftJoin('vendors as vendor_transport', 'vendor_transport.id', 'total_management_project.transportation_provider_id')
+            ->leftJoin('vendors', 'vendors.id', 'worker_employment.accommodation_provider_id')
+            ->where('total_management_project.id', $request['project_id'])
             ->where(function ($query) use ($request) {
-                if (isset($request['filter']) && $request['filter']) {
-                    $query->where('workers.crm_prospect_id', $request['filter']);
-                    $query->orWhere('workers.crm_prospect_id', 0);
+                if (isset($request['search']) && $request['search']) {
+                    $query->where('workers.name', 'like', '%' . $request['search'] . '%');
+                    $query->orWhere('worker_visa.calling_visa_reference_number', 'like', '%' . $request['search'] . '%');
+                    $query->orWhere('worker_visa.ksm_reference_number', 'like', '%' . $request['search'] . '%');
+                    $query->orWhere('worker_employment.department', 'like', '%' . $request['search'] . '%');
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'crm_prospects.id as company_id', 'crm_prospects.company_name')
+            ->where(function ($query) use ($request) {
+                if(isset($request['filter']) && !empty($request['filter'])) {
+                    $query->where('workers.status', $request['filter']);
+                }
+            })
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'vendors.name as accommodation_provider', 'vendor_transport.name as transportation_provider', 'worker_employment.department', 'workers.status')
+            ->distinct()
+            ->orderBy('workers.id','DESC')
+            ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function workerListForAssignWorker($request): mixed
+    {
+        $request['company_ids'] = array($request['prospect_id'], 0);
+        return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->where('workers.worker_status', 'On-Bench')
+            ->whereIn('workers.crm_prospect_id', $request['company_ids'])
+            ->where(function ($query) use ($request) {
+                if ((isset($request['filter']) && !empty($request['filter'])) || $request['filter'] == 0) {
+                    $query->where('workers.crm_prospect_id', $request['filter']);
+                }
+            })
+            ->where(function ($query) use ($request) {
+                if(isset($request['ksm_reference_number']) && !empty($request['ksm_reference_number'])) {
+                    $query->where('worker_visa.ksm_reference_number', $request['ksm_reference_number']);
+                }
+            })
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', )
             ->distinct()
             ->orderBy('workers.created_at','DESC')
             ->paginate(Config::get('services.paginate_row'));
@@ -153,15 +212,61 @@ class TotalManagementWorkerServices
         if($serviceDetails->from_existing == 0) {
             return [
                 'clientQuota' => $serviceDetails->client_quota,
-                'clientBalancedQuota' => $workersCount - $serviceDetails->client_quota,
+                'clientBalancedQuota' => $serviceDetails->client_quota - $workersCount,
                 'fomnextQuota' => $serviceDetails->fomnext_quota,
-                'fomnextBalancedQuota' => $workersCount - $serviceDetails->client_quota
+                'fomnextBalancedQuota' => $serviceDetails->fomnext_quota - $workersCount
             ];
         } else if($serviceDetails->from_existing == 1) {
             return [
                 'serviceQuota' => $serviceDetails->service_quota,
-                'balancedServiceQuota' => $workersCount - $serviceDetails->service_quota
+                'balancedServiceQuota' => $serviceDetails->service_quota - $workersCount
             ];
         }
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function getCompany($request): mixed
+    {
+        return $this->totalManagementApplications
+                    ->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
+                    ->where('total_management_applications.id', $request['application_id'])
+                    ->select('crm_prospects.id', 'crm_prospects.company_name')
+                    ->get();
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function ksmRefereneceNUmberDropDown($request): mixed
+    {
+        $companyId = $this->totalManagementApplications
+                    ->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
+                    ->where('total_management_applications.id', $request['application_id'])
+                    ->select('crm_prospects.id')
+                    ->get()->toArray();
+        $companyId = array_column($companyId, 'id');
+        $ksmReferenceNumbers = $this->directrecruitmentApplications
+        ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.application_id', 'directrecruitment_applications.id')
+        ->whereIn('directrecruitment_applications.crm_prospect_id', $companyId)
+        ->where('directrecruitment_application_approval.ksm_reference_number', '!=', NULL)
+        ->select('directrecruitment_applications.id as directrecruitment_application_id', 'directrecruitment_application_approval.ksm_reference_number')
+        ->get();
+        return $ksmReferenceNumbers;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function getSectorAndValidUntil($request): mixed
+    {
+        return $this->directrecruitmentApplications
+                    ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.application_id', 'directrecruitment_applications.id')
+                    ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
+                    ->where('directrecruitment_applications.crm_prospect_id', $request['prospect_id'])
+                    ->where('directrecruitment_application_approval.ksm_reference_number', $request['ksm_reference_number'])
+                    ->select('crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'directrecruitment_application_approval.valid_until')
+                    ->get();
     }
 }

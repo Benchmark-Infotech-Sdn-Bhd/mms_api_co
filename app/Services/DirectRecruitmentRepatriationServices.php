@@ -68,7 +68,7 @@ class DirectRecruitmentRepatriationServices
             'flight_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'flight_date' => 'required|date|date_format:Y-m-d|after:yesterday',
             'expenses' => 'required|regex:/^[0-9]*$/',
-            'checkout_memo_reference_number' => 'required|regex:/^[0-9]*$/',
+            'checkout_memo_reference_number' => 'required|regex:/^[0-9]*$/|max:23',
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];
     }
@@ -142,20 +142,22 @@ class DirectRecruitmentRepatriationServices
                     'created_by' => $request['modified_by'],
                     'modified_by' => $request['modified_by']
                 ]);
-                foreach($request->file('attachment') as $file) {
-                    $fileName = $file->getClientOriginalName();
-                    $filePath = 'directRecruitment/workers/repatriation/' . $workerId. '/'. $fileName; 
-                    $linode = $this->storage::disk('linode');
-                    $linode->put($filePath, file_get_contents($file));
-                    $fileUrl = $this->storage::disk('linode')->url($filePath);
-                    $this->workerRepatriationAttachments->create([
-                        'file_id' => $workerId,
-                        'file_name' => $fileName,
-                        'file_type' => 'Repatriation',
-                        'file_url' => $fileUrl,
-                        'created_by' => $request['modified_by'],
-                        'modified_by' => $request['modified_by']
-                    ]);
+                if (request()->hasFile('attachment')) {
+                    foreach($request->file('attachment') as $file) {
+                        $fileName = $file->getClientOriginalName();
+                        $filePath = 'directRecruitment/workers/repatriation/' . $workerId. '/'. $fileName; 
+                        $linode = $this->storage::disk('linode');
+                        $linode->put($filePath, file_get_contents($file));
+                        $fileUrl = $this->storage::disk('linode')->url($filePath);
+                        $this->workerRepatriationAttachments->create([
+                            'file_id' => $workerId,
+                            'file_name' => $fileName,
+                            'file_type' => 'Repatriation',
+                            'file_url' => $fileUrl,
+                            'created_by' => $request['modified_by'],
+                            'modified_by' => $request['modified_by']
+                        ]);
+                    }
                 }
             }
         }

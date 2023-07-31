@@ -5,7 +5,7 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-class PostArrivalRepatriationUnitTest extends TestCase
+class TotalManagementServicesUnitTest extends TestCase
 {
     use DatabaseMigrations;
     
@@ -17,149 +17,270 @@ class PostArrivalRepatriationUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test for post arrival, Repatriation flight date mandatory field validation 
+     * Functional test for total management, add service id mandatory field validation 
      * 
      * @return void
      */
-    public function testForPostArrivalRepatriationFlightDateRequiredValidation(): void
+    public function testForTotalManagementAddServiceIdRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['flight_date' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'flight_date' => ['The flight date field is required.']
+                'id' => ['The id field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for post arrival, Repatriation flight date format validation 
+     * Functional test for total management, add service company name mandatory field validation 
      * 
      * @return void
      */
-    public function testForPostArrivalRepatriationFlightDateFormatValidation(): void
+    public function testForTotalManagementAddServiceCompanyNameRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['flight_date' => '06-06-2035']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['company_name' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'flight_date' => ['The flight date does not match the format Y-m-d.']
+                'company_name' => ['The company name field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for post arrival, Repatriation flight date future date validation 
+     * Functional test for total management, add service contact number mandatory field validation 
      * 
      * @return void
      */
-    public function testForPostArrivalRepatriationFlightFutureDateValidation(): void
+    public function testForTotalManagementAddServiceContactNumberRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['flight_date' => '2023-07-27']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['contact_number' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'flight_date' => ['The flight date must be a date after yesterday.']
+                'contact_number' => ['The contact number field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for post arrival, Repatriation flight number mandatory field validation 
+     * Functional test for total management, add service email mandatory field validation 
      * 
      * @return void
      */
-    public function testForPostArrivalRepatriationFlightNumberRequiredValidation(): void
+    public function testForTotalManagementAddServiceEmailRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['flight_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['email' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'flight_number' => ['The flight number field is required.']
+                'email' => ['The email field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for post arrival, Repatriation flight number format validation 
+     * Functional test for total management, add service pic name mandatory field validation 
      * 
      * @return void
      */
-    public function testForPostArrivalRepatriationFlightNumberFormatValidation(): void
+    public function testForTotalManagementAddServicePICNameRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['flight_number' => 'DJU87348$$$']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['pic_name' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'flight_number' => ['The flight number format is invalid.']
+                'pic_name' => ['The pic name field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for post arrival, Repatriation expenses mandatory field validation 
+     * Functional test for total management, add service from existing mandatory field validation 
      * 
      * @return void
      */
-    public function testForPostArrivalRepatriationExpensesRequiredValidation(): void
+    public function testForTotalManagementAddServiceFromExistingRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['expenses' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['from_existing' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'expenses' => ['The expenses field is required.']
+                'from_existing' => ['The from existing field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for post arrival, Repatriation expenses format validation 
+     * Functional test for total management, add service client quota format validation 
      * 
      * @return void
      */
-    public function testForPostArrivalRepatriationExpensesFormatValidation(): void
+    public function testForTotalManagementAddServiceClientQuotaFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['expenses' => '12.22']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['client_quota' => 1.1]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'expenses' => ['The expenses format is invalid.']
+                'client_quota' => ['The client quota format is invalid.']
             ]
         ]);
     }
     /**
-     * Functional test for post arrival, Repatriation checkout memo reference number mandatory field validation 
+     * Functional test for total management, add service client quota size validation 
      * 
      * @return void
      */
-    public function testForPostArrivalRepatriationCheckoutMemoReferenceNumberRequiredValidation(): void
+    public function testForTotalManagementAddServiceClientQuotaSizeValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['checkout_memo_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['client_quota' => 1111]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'checkout_memo_reference_number' => ['The checkout memo reference number field is required.']
+                'client_quota' => ['The client quota must not be greater than 3 characters.']
             ]
         ]);
     }
     /**
-     * Functional test for post arrival, Repatriation checkout memo reference number format validation 
+     * Functional test for total management, add service fomnext quota format validation 
      * 
      * @return void
      */
-    public function testForPostArrivalRepatriationCheckoutMemoReferenceNumberFormatValidation(): void
+    public function testForTotalManagementAddServiceFomnextQuotaFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', array_merge($this->updateData(), ['checkout_memo_reference_number' => '12.22$$$']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['fomnext_quota' => 1.1]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'checkout_memo_reference_number' => ['The checkout memo reference number format is invalid.']
+                'fomnext_quota' => ['The fomnext quota format is invalid.']
             ]
         ]);
     }
     /**
-     * Functional test for worker list search validation
+     * Functional test for total management, add service fomnext quota size validation 
      * 
      * @return void
      */
-    public function testForWorkersListSearchValidation(): void
+    public function testForTotalManagementAddServiceFomnextQuotaSizeValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['fomnext_quota' => 1111]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'fomnext_quota' => ['The fomnext quota must not be greater than 3 characters.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management, add service initial quota format validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementAddServiceInitialQuotaFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['initial_quota' => 1.1]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'initial_quota' => ['The initial quota format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management, add service service quota format validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementAddServiceServiceQuotaFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['service_quota' => 1.1]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'service_quota' => ['The service quota format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management, add service service quota size validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementAddServiceServiceQuotaSizeValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['service_quota' => 1111]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'service_quota' => ['The service quota must not be greater than 3 characters.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management, get initial quota 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementInitialQuota(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wo'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/getQuota', ['prospect_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'approvedQuota'
+                ]
+        ]);
+    }
+    /**
+     * Functional test for total management, allocate quota validation for from existing
+     * 
+     * @return void
+     */
+    public function testForTotalManagementAllocateQuotaValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/allocateQuota', array_merge($this->allocateQuotaData(), ['service_quota' => 99]), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'message' => 'Quota for service should not exceed to Initail quota'
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management, allocate quota for from existing
+     * 
+     * @return void
+     */
+    public function testForTotalManagementAllocateQuotaFromExisting(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/allocateQuota', array_merge($this->allocateQuotaData(), ['client_quota' => NULL, 'fomnext_quota' => NULL]), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Quota Allocated Successfully.']
+        ]);
+    }
+    /**
+     * Functional test for total management, allocate quota for not from existing
+     * 
+     * @return void
+     */
+    public function testForTotalManagementAllocateQuotaNotFromExisting(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/allocateQuota', array_merge($this->allocateQuotaData(), ['from_existing' => 0, 'initial_quota' => NULL, 'service_quota' => NULL]), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Quota Allocated Successfully.']
+        ]);
+    }
+    /**
+     * Functional test for total management pplication list search validation
+     * 
+     * @return void
+     */
+    public function testForTotalManagementApplicationListSearchValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/applicationListing', ['search' => 'A'], $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -167,15 +288,15 @@ class PostArrivalRepatriationUnitTest extends TestCase
             ]
         ]);
     }
-    /**
-     * Functional test for worker list with search
+     /**
+     * Functional test for total management, application listing with search
      * 
      * @return void
      */
-    public function testForWorkersListWithSearch(): void
+    public function testForTotalManagementApplicationListing(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wor'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/applicationListing', ['search' => 'ABC'], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -197,17 +318,33 @@ class PostArrivalRepatriationUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for post arrival, Repatriation updation
+     * Functional test to Display Proposal 
      * 
      * @return void
      */
-    public function testForRepatriationUpdate(): void
+    public function testToDisplayProposal(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/repatriation/updateRepatriation', $this->updateData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Repatriation Updated Successfully']
+        $response = $this->json('POST', 'api/v1/totalManagement/showProposal', ['id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' => [
+            ]
+        ]);
+    }
+    /**
+     * Functional test to Display Service 
+     * 
+     * @return void
+     */
+    public function testToDisplayService(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/showService', ['prospect_service_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' => [
+            ]
         ]);
     }
     /**
@@ -329,7 +466,7 @@ class PostArrivalRepatriationUnitTest extends TestCase
             'application_id' => 1, 
             'payment_date' => Carbon::now()->format('Y-m-d'), 
             'payment_amount' => 10.87, 
-            'approved_quota' => 10, 
+            'approved_quota' => 50, 
             'ksm_reference_number' => 'My/643/7684548', 
             'payment_reference_number' => 'SVZ498787', 
             'approval_number' => 'ADR4674', 
@@ -349,7 +486,7 @@ class PostArrivalRepatriationUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'country_id' => 1, 
-            'quota' => 15
+            'quota' => 20
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
         
@@ -368,7 +505,7 @@ class PostArrivalRepatriationUnitTest extends TestCase
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
             'agent_id' => 1, 
-            'quota' => 10
+            'quota' => 20
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
 
@@ -524,16 +661,36 @@ class PostArrivalRepatriationUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
+            'clinic_name' => 'XYZ Clinic', 
+            'doctor_code' => 'AGV64873', 
+            'allocated_xray' => 'FGFSG VDHVG', 
+            'xray_code' => 'DTF783848', 
+            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'), 
             'workers' => 1, 
             'file_url' => 'test'
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/fomema/fomemaUnfit', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/fomema/fomemaFit', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'onboarding_country_id' => 1, 
+            'plks_expiry_date' => Carbon::now()->addYear()->format('Y-m-d'), 
+            'workers' => 1
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false));
     }
     /**
      * @return array
      */
-    public function updateData(): array
+    public function creationData(): array
     {
-        return ['application_id' => 1, 'onboarding_country_id' => 1, 'flight_number' => 'TFDY754857', 'flight_date' => Carbon::now()->format('Y-m-d'), 'expenses' => 30, 'checkout_memo_reference_number' => '5435535674', 'workers' => 1, 'file_url' => 'test'];
+        return ['id' => 1, 'company_name' => 'ABC Firm', 'contact_number' => '768456948', 'email' => 'testcrm@gmail.com', 'pic_name' => 'PICTest', 'sector' => 1, 'from_existing' => 0, 'client_quota' => 10, 'fomnext_quota' => 10, 'initial_quota' => 1, 'service_quota' => 1];
+    }
+    /**
+     * @return array
+     */
+    public function allocateQuotaData(): array
+    {
+        return ['id' => 1, 'prospect_service_id' => 2, 'from_existing' => 1, 'client_quota' => 10, 'fomnext_quota' => 10, 'initial_quota' => 1, 'service_quota' => 1];
     }
 }
