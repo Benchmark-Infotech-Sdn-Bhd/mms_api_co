@@ -16,7 +16,6 @@ use App\Models\KinRelationship;
 use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\DirectRecruitmentOnboardingAgent;
 use App\Models\WorkerStatus;
-use App\Models\DirectrecruitmentWorkers;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
@@ -25,31 +24,29 @@ use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Validator;
 
-class WorkersServices
+class ManageWorkersServices
 {
     private Workers $workers;
     private WorkerAttachments $workerAttachments;
     private WorkerKin $workerKin;
     private WorkerVisa $workerVisa;
-    private WorkerVisaAttachments $workerVisaAttachments;
-    private WorkerBioMedical $workerBioMedical;
-    private WorkerBioMedicalAttachments $workerBioMedicalAttachments;
-    private WorkerFomema $workerFomema;
-    private WorkerInsuranceDetails $workerInsuranceDetails;
-    private WorkerBankDetails $workerBankDetails;
-    private KinRelationship $kinRelationship;
-    private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
-    private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
+    Private WorkerVisaAttachments $workerVisaAttachments;
+    Private WorkerBioMedical $workerBioMedical;
+    Private WorkerBioMedicalAttachments $workerBioMedicalAttachments;
+    Private WorkerFomema $workerFomema;
+    Private WorkerInsuranceDetails $workerInsuranceDetails;
+    Private WorkerBankDetails $workerBankDetails;
+    Private KinRelationship $kinRelationship;
+    Private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
+    Private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
     private WorkerStatus $workerStatus;
     private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
     private ValidationServices $validationServices;
     private AuthServices $authServices;
     private Storage $storage;
-    private DirectrecruitmentWorkers $directrecruitmentWorkers;
     /**
-     * WorkersServices constructor.
+     * ManageWorkersServices constructor.
      * @param Workers $workers
      * @param WorkerAttachments $workerAttachments
      * @param WorkerKin $workerKin
@@ -68,7 +65,6 @@ class WorkersServices
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
-     * @param DirectrecruitmentWorkers $directrecruitmentWorkers;
      */
     public function __construct(
             Workers                                     $workers,
@@ -88,8 +84,7 @@ class WorkersServices
             DirectRecruitmentOnboardingCountryServices  $directRecruitmentOnboardingCountryServices, 
             ValidationServices                          $validationServices,
             AuthServices                                $authServices,
-            Storage                                     $storage,
-            DirectrecruitmentWorkers                    $directrecruitmentWorkers
+            Storage                                     $storage
     )
     {
         $this->workers = $workers;
@@ -110,18 +105,40 @@ class WorkersServices
         $this->storage = $storage;
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
-        $this->directrecruitmentWorkers = $directrecruitmentWorkers;
     }
     /**
      * @return array
      */
-    public function assignWorkerValidation(): array
+    public function createValidation(): array
     {
         return
             [
-                'application_id' => 'required',
-                'onboarding_country_id' => 'required',
-                'agent_id' => 'required'
+                'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
+                'date_of_birth' => 'required|date_format:Y-m-d',
+                'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
+                'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
+                'passport_valid_until' => 'required|date_format:Y-m-d',
+                'address' => 'required',
+                'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
+                'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
+            ];
+    }
+    /**
+     * @return array
+     */
+    public function updateValidation($id): array
+    {
+        return
+            [
+                'id' => 'required|regex:/^[0-9]+$/',
+                'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
+                'date_of_birth' => 'required|date_format:Y-m-d',
+                'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
+                'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
+                'passport_valid_until' => 'required|date_format:Y-m-d',
+                'address' => 'required',
+                'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
+                'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
             ];
     }
 
@@ -134,13 +151,13 @@ class WorkersServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
-        if(!($this->validationServices->validate($request->toArray(),$this->workers->rules))){
+        if(!($this->validationServices->validate($request->toArray(),$this->createValidation()))){
             return [
               'validate' => $this->validationServices->errors()
             ];
         }
-
         $worker = $this->workers->create([
+            'crm_prospect_id' => $request['crm_prospect_id'] ?? 0,
             'name' => $request['name'] ?? '',
             'gender' => $request['gender'] ?? '',
             'date_of_birth' => $request['date_of_birth'] ?? '',
@@ -280,7 +297,6 @@ class WorkersServices
             "account_number" => $request['account_number'] ?? '',
             "socso_number" =>  $request['socso_number'] ?? ''
         ]);
-
         return $worker;
     }
 
@@ -295,14 +311,15 @@ class WorkersServices
         $user = JWTAuth::parseToken()->authenticate();
         $params['modified_by'] = $user['id'];
 
-        if(!($this->validationServices->validate($request->toArray(),$this->workers->rulesForUpdation($request['id'])))){
+        if(!($this->validationServices->validate($request->toArray(),$this->updateValidation($request['id'])))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
 
-        $worker = $this->workers->with('directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails')->findOrFail($request['id']);
+        $worker = $this->workers->with('workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails')->findOrFail($request['id']);
 
+        $worker->crm_prospect_id = $request['crm_prospect_id'] ?? $worker->crm_prospect_id;
         $worker->name = $request['name'] ?? $worker->name;
         $worker->gender = $request['gender'] ?? $worker->gender;
         $worker->date_of_birth = $request['date_of_birth'] ?? $worker->date_of_birth;
@@ -469,7 +486,7 @@ class WorkersServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->workers->with('directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails', 'workerFomemaAttachments')->findOrFail($request['id']);
+        return $this->workers->with('workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails')->findOrFail($request['id']);
     }
     
     /**
@@ -486,258 +503,26 @@ class WorkersServices
             }
         }
         return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
-        ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
+        ->leftjoin('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
         ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
-        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
-        ->where('directrecruitment_workers.application_id', $request['application_id'])
-        ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
+        ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'workers.crm_prospect_id')
         ->where(function ($query) use ($request) {
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
-                $query->where('worker_visa.status','Processed');
+            if(isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) {
+                $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
             }
-
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'arrival') {
-                $query->where('worker_arrival.arrival_status','Not Arrived');
+            if(isset($request['status']) && !empty($request['status'])) {
+                $query->where('workers.worker_status', $request['status']);
             }
-
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'post_arrival') {
-                $query->where('worker_arrival.arrival_status','Arrived');
-            }
-
-            if (isset($request['agent_id'])) {
-                $query->where('directrecruitment_workers.agent_id',$request['agent_id']);
-            }
-            if (isset($request['status'])) {
-                $query->where('worker_visa.approval_status',$request['status']);
-            }
-            
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('workers.name', 'like', "%{$request['search_param']}%")
                 ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
-
-        })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as status', 'workers.cancel_status as cancellation_status', 'workers.created_at')
+            
+        })->select('workers.id','workers.name', 'workers.passport_number', 'workers.address', 'workers.city', 'workers.state', 'workers.crm_prospect_id', 'crm_prospects.company_name', 'workers.worker_status')
         ->distinct()
-        ->orderBy('workers.created_at','DESC')
+        ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
 
-    /**
-     * @param $request
-     * @return mixed
-     */
-    public function export($request) : mixed
-    {
-        if(isset($request['search_param']) && !empty($request['search_param'])){
-            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
-                return [
-                    'validate' => $this->validationServices->errors()
-                ];
-            }
-        }
-        return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
-        ->join('worker_kin', 'workers.id', '=', 'worker_kin.worker_id')
-        ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
-        ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
-        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
-        ->where('directrecruitment_workers.application_id', $request['application_id'])
-        ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
-        ->where('directrecruitment_workers.agent_id', $request['agent_id'])
-        ->where(function ($query) use ($request) {
-
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
-                $query->where('worker_visa.status','Processed');
-            }
-
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'arrival') {
-                $query->where('worker_arrival.arrival_status','Not Arrived');
-            }
-
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'post_arrival') {
-                $query->where('worker_arrival.arrival_status','Arrived');
-            }
-            
-            if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('workers.name', 'like', "%{$request['search_param']}%")
-                ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
-                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
-            }
-            if (isset($request['status'])) {
-                $query->where('workers.status',$request['status']);
-            }
-        })->select('workers.id','workers.name','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','workers.address','workers.state','worker_kin.kin_name','worker_kin.kin_relationship_id','worker_kin.kin_contact_number','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_reference_number','worker_bio_medical.bio_medical_valid_until')
-        ->distinct()
-        ->orderBy('workers.created_at','DESC')->get();
-    }
-
-    /**
-     * @return mixed
-     */
-    public function dropdown($request) : mixed
-    {
-        return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
-        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
-        ->where('workers.status', 1)
-        ->where('directrecruitment_workers.application_id', $request['application_id'])
-        ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
-        ->where('directrecruitment_workers.agent_id', $request['agent_id'])
-        ->where('worker_visa.status', 'Pending')
-        ->select('workers.id','workers.name')
-        ->orderBy('workers.created_at','DESC')->get();
-    }
-    /**
-     * @param $request
-     * @return array
-     */
-    public function updateStatus($request) : array
-    {
-        $worker = $this->workers
-        ->where('id', $request['id'])
-        ->update(['status' => $request['status']]);
-        return  [
-            "isUpdated" => $worker,
-            "message" => "Updated Successfully"
-        ];
-    }
-
-    /**
-     * @return mixed
-     */
-    public function kinRelationship() : mixed
-    {
-        return $this->kinRelationship->where('status', 1)
-        ->select('id','name')
-        ->orderBy('id','ASC')->get();
-    }
-
-    /**
-     * @return mixed
-     */
-    public function onboardingAgent($request) : mixed
-    {
-        return $this->directRecruitmentOnboardingAgent
-        ->join('agent', 'agent.id', '=', 'directrecruitment_onboarding_agent.agent_id')
-        ->where('directrecruitment_onboarding_agent.status', 1)
-        ->where('directrecruitment_onboarding_agent.application_id', $request['application_id'])
-        ->where('directrecruitment_onboarding_agent.onboarding_country_id', $request['onboarding_country_id'])
-        ->select('agent.id','agent.agent_name')
-        ->orderBy('agent.id','ASC')->get();
-    }
-
-    /**
-     * @param $request
-     * @return array
-     */
-    public function replaceWorker($request) : array
-    {
-        $user = JWTAuth::parseToken()->authenticate();
-
-        $worker = $this->workers
-        ->where('id', $request['id'])
-        ->update([
-            'replace_worker_id' => $request['replace_worker_id'],
-            'replace_by' => $user['id'],
-            'replace_at' => Carbon::now()->format('Y-m-d H:i:s')
-        ]);
-        return  [
-            "isUpdated" => $worker,
-            "message" => "Updated Successfully"
-        ];
-    }
-
-    /**
-     * @param $request
-     * @return mixed
-     */
-    public function workerStatusList($request): mixed
-    {
-        return $this->workerStatus
-            ->select('id', 'item', 'updated_on', 'status')
-            ->where([
-                'application_id' => $request['application_id'],
-                'onboarding_country_id' => $request['onboarding_country_id']
-            ])
-            ->orderBy('id', 'desc')
-            ->paginate(Config::get('services.paginate_row'));
-    }
-    /**
-     * @param $request
-     * @return array|bool
-     */
-    public function assignWorker($request): array|bool
-    {
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
-
-        $validator = Validator::make($request->toArray(), $this->assignWorkerValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
-        }
-
-        if(isset($request['workers']) && !empty($request['workers'])) {
-            foreach ($request['workers'] as $workerId) {
-                $directrecruitmentWorkers = $this->directrecruitmentWorkers->updateOrCreate([
-                    "worker_id" => $workerId,
-                    'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
-                    'agent_id' => $request['agent_id'] ?? 0,
-                    'application_id' => $request['application_id'] ?? 0,
-                    'created_by'    => $params['created_by'] ?? 0,
-                    'modified_by'   => $params['created_by'] ?? 0   
-                ]);
-
-                $checkCallingVisa = $this->directRecruitmentCallingVisaStatus
-                ->where('application_id', $request['application_id'])
-                ->where('onboarding_country_id', $request['onboarding_country_id'])
-                ->where('agent_id', $request['agent_id'])->get()->toArray();
-
-                if(isset($checkCallingVisa) && count($checkCallingVisa) == 0 ){
-                    $callingVisaStatus = $this->directRecruitmentCallingVisaStatus->create([
-                        'application_id' => $request['application_id'] ?? 0,
-                        'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
-                        'agent_id' => $request['agent_id'] ?? 0,
-                        'item' => 'Calling Visa Status',
-                        'updated_on' => Carbon::now(),
-                        'status' => 1,
-                        'created_by' => $params['created_by'] ?? 0,
-                        'modified_by' => $params['created_by'] ?? 0,
-                    ]);
-                }
-
-                $checkWorkerStatus = $this->workerStatus
-                ->where('application_id', $request['application_id'])
-                ->where('onboarding_country_id', $request['onboarding_country_id'])
-                ->get()->toArray();
-
-                if(isset($checkWorkerStatus) && count($checkWorkerStatus) > 0 ){
-                    $this->workerStatus->where([
-                        'application_id' => $request['application_id'],
-                        'onboarding_country_id' => $request['onboarding_country_id']
-                    ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
-                } else {
-                    $workerStatus = $this->workerStatus->create([
-                        'application_id' => $request['application_id'] ?? 0,
-                        'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
-                        'item' => 'Worker Biodata',
-                        'updated_on' => Carbon::now(),
-                        'status' => 1,
-                        'created_by' => $params['created_by'] ?? 0,
-                        'modified_by' => $params['created_by'] ?? 0,
-                    ]);            
-                }
-
-                $onBoardingStatus['application_id'] = $request['application_id'];
-                $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
-                $onBoardingStatus['onboarding_status'] = 4; //Agent Added
-                $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
-            }
-            return true;
-        }else {
-            return false;
-        }
-        
-    }
 }

@@ -179,10 +179,11 @@ class DirectRecruitmentArrivalServices
             $join->on('worker_visa.worker_id', '=', 'workers.id')
             ->where('worker_visa.approval_status', '=', 'Approved');
         })
+        ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
         ->leftJoin('worker_arrival', 'worker_arrival.worker_id', 'worker_visa.worker_id')
         ->where([
-            ['workers.application_id', $request['application_id']],
-            ['workers.onboarding_country_id', $request['onboarding_country_id']],
+            ['directrecruitment_workers.application_id', $request['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
             ['workers.cancel_status', 0]
         ])
         ->whereNull('worker_arrival.arrival_id')
@@ -197,7 +198,7 @@ class DirectRecruitmentArrivalServices
                 ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
             }
         })
-        ->select('workers.id', 'workers.name', 'workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on')
+        ->select('workers.id', 'workers.name', 'workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id','directrecruitment_workers.agent_id', 'worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on')
         ->distinct('workers.id')
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
@@ -215,9 +216,10 @@ class DirectRecruitmentArrivalServices
             ->where('worker_visa.approval_status', '=', 'Approved');
         })
         ->leftJoin('worker_arrival', 'worker_arrival.worker_id', 'worker_visa.worker_id')
+        ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
         ->where([
-            ['workers.application_id', $request['application_id']],
-            ['workers.onboarding_country_id', $request['onboarding_country_id']],
+            ['directrecruitment_workers.application_id', $request['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
             ['worker_arrival.arrival_id', $request['arrival_id']]
         ])
         ->where(function ($query) use ($request) {
@@ -231,7 +233,7 @@ class DirectRecruitmentArrivalServices
                 ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
             }
         })
-        ->select('workers.id', 'workers.name', 'workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_arrival.arrival_status')
+        ->select('workers.id', 'workers.name', 'workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_arrival.arrival_status')
         ->distinct('workers.id')
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
@@ -420,9 +422,10 @@ class DirectRecruitmentArrivalServices
             $join->on('worker_visa.worker_id', '=', 'workers.id')
             ->where('worker_visa.approval_status', '=', 'Approved');
         })
+        ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
         ->where([
-            ['workers.application_id', $request['application_id']],
-            ['workers.onboarding_country_id', $request['onboarding_country_id']]
+            ['directrecruitment_workers.application_id', $request['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']]
         ])
         ->select('worker_visa.calling_visa_reference_number')
         ->distinct('worker_visa.calling_visa_reference_number')

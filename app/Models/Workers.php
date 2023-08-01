@@ -31,9 +31,6 @@ class Workers extends Model implements Auditable
      * @var array
      */
     public $rules = [
-        'onboarding_country_id' => 'required|regex:/^[0-9]+$/',
-        'agent_id' => 'required|regex:/^[0-9]+$/',
-        'application_id' => 'required|regex:/^[0-9]+$/',
         'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
         'date_of_birth' => 'required|date_format:Y-m-d',
         'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
@@ -53,9 +50,6 @@ class Workers extends Model implements Auditable
         // Unique name with deleted at
         return [
             'id' => 'required|regex:/^[0-9]+$/',
-            'onboarding_country_id' => 'required|regex:/^[0-9]+$/',
-            'agent_id' => 'required|regex:/^[0-9]+$/',
-            'application_id' => 'required|regex:/^[0-9]+$/',
             'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
             'date_of_birth' => 'required|date_format:Y-m-d',
             'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
@@ -144,5 +138,13 @@ class Workers extends Model implements Auditable
     public function workerEmployment(): HasMany
     {
         return $this->hasMany(WorkerEmployment::class, 'worker_id');
+    }
+
+        /**
+     * @return HasMany
+     */
+    public function directrecruitmentWorkers(): HasMany
+    {
+        return $this->hasMany(DirectrecruitmentWorkers::class, 'worker_id');
     }
 }

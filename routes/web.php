@@ -287,6 +287,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('uploadEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@uploadEmbassyFile');
                     $router->post('deleteEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@deleteEmbassyFile');
                 });
+                $router->group(['prefix' => 'workers'], function () use ($router) {
+                    $router->post('list', 'V1\DirectRecruitmentWorkersController@list');
+                    $router->post('create', 'V1\DirectRecruitmentWorkersController@create');
+                    $router->post('update', 'V1\DirectRecruitmentWorkersController@update');
+                    $router->post('export', 'V1\DirectRecruitmentWorkersController@export');
+                    $router->post('dropdown', 'V1\DirectRecruitmentWorkersController@dropdown');
+                });
                 $router->group(['prefix' => 'callingVisa'], function () use ($router) {
                     $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');
                     $router->post('cancelWorker', 'V1\DirectRecruitmentCallingVisaController@cancelWorker');
@@ -460,6 +467,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('onboardingAgent', 'V1\WorkersController@onboardingAgent');
             $router->post('replaceWorker', 'V1\WorkersController@replaceWorker');
             $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
+            $router->post('assignWorker', 'V1\WorkersController@assignWorker');
         });
         /**
         * Routes for Application Summary.
@@ -511,6 +519,17 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('deleteAttachment', 'V1\WorkerEventController@deleteAttachment');
                 });
             });
-        });    
+        }); 
+        /**
+        * Routes for Manage workers.
+        */
+        $router->group(['prefix' => 'manageWorkers'], function () use ($router) {
+            $router->group(['prefix' => 'worker'], function () use ($router) {
+                $router->post('list', 'V1\ManageWorkersController@list');
+                $router->post('show', 'V1\ManageWorkersController@show');
+                $router->post('create', 'V1\ManageWorkersController@create');
+                $router->post('update', 'V1\ManageWorkersController@update');
+            });
+        });
     });
 });
