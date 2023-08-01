@@ -290,6 +290,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => 'workers'], function () use ($router) {
                     $router->post('list', 'V1\DirectRecruitmentWorkersController@list');
                     $router->post('create', 'V1\DirectRecruitmentWorkersController@create');
+                    $router->post('update', 'V1\DirectRecruitmentWorkersController@update');
                     $router->post('export', 'V1\DirectRecruitmentWorkersController@export');
                     $router->post('dropdown', 'V1\DirectRecruitmentWorkersController@dropdown');
                 });

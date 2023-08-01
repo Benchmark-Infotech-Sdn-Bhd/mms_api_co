@@ -454,11 +454,6 @@ class WorkersServices
             }
         }
 
-        $this->workerStatus->where([
-            'application_id' => $request['application_id'],
-            'onboarding_country_id' => $request['onboarding_country_id']
-        ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['modified_by']]);
-
         return true;
     }
     

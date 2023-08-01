@@ -108,5 +108,29 @@ class DirectRecruitmentWorkersController extends Controller
             return $this->sendError(['message' => $data['error']], 400);
         }
     }
+
+    /**
+     * Show the form for creating a new Worker.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function update(Request $request): JsonResponse
+    {
+        try {
+            
+            $data = $this->directRecruitmentWorkersServices->update($request);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            } else if(isset($data['ksmError'])) {
+                return $this->sendError(['message' => 'KSM reference number does not matched.'], 422);
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'updation failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
     
 }
