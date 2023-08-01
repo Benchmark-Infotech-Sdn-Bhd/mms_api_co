@@ -245,5 +245,26 @@ class WorkersController extends Controller
             return $this->sendError(['message' => $data['error']], 400);
         }
     }
+    /**
+     * assign workers.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function assignWorker(Request $request): JsonResponse
+    {
+        try {
+            $response = $this->workersServices->assignWorker($request);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            } else if($response == false) {
+                return $this->sendSuccess(['message' => 'Failed to Assign Workers'], 400);
+            }
+            return $this->sendSuccess(['message' => 'Workers are Assigned Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Assign Workers'], 400);
+        }
+    }
     
 }

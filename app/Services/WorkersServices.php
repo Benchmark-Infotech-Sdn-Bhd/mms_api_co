@@ -25,6 +25,7 @@ use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 class WorkersServices
 {
@@ -110,6 +111,18 @@ class WorkersServices
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
         $this->directrecruitmentWorkers = $directrecruitmentWorkers;
+    }
+    /**
+     * @return array
+     */
+    public function assignWorkerValidation(): array
+    {
+        return
+            [
+                'application_id' => 'required',
+                'onboarding_country_id' => 'required',
+                'agent_id' => 'required'
+            ];
     }
 
     /**
@@ -741,5 +754,84 @@ class WorkersServices
             ])
             ->orderBy('id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return array|bool
+     */
+    public function assignWorker($request): array|bool
+    {
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['created_by'] = $user['id'];
+
+        $validator = Validator::make($request->toArray(), $this->assignWorkerValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        if(isset($request['workers']) && !empty($request['workers'])) {
+            foreach ($request['workers'] as $workerId) {
+                $directrecruitmentWorkers = $this->directrecruitmentWorkers->updateOrCreate([
+                    "worker_id" => $workerId,
+                    'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+                    'agent_id' => $request['agent_id'] ?? 0,
+                    'application_id' => $request['application_id'] ?? 0,
+                    'created_by'    => $params['created_by'] ?? 0,
+                    'modified_by'   => $params['created_by'] ?? 0   
+                ]);
+
+                $checkCallingVisa = $this->directRecruitmentCallingVisaStatus
+                ->where('application_id', $request['application_id'])
+                ->where('onboarding_country_id', $request['onboarding_country_id'])
+                ->where('agent_id', $request['agent_id'])->get()->toArray();
+
+                if(isset($checkCallingVisa) && count($checkCallingVisa) == 0 ){
+                    $callingVisaStatus = $this->directRecruitmentCallingVisaStatus->create([
+                        'application_id' => $request['application_id'] ?? 0,
+                        'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+                        'agent_id' => $request['agent_id'] ?? 0,
+                        'item' => 'Calling Visa Status',
+                        'updated_on' => Carbon::now(),
+                        'status' => 1,
+                        'created_by' => $params['created_by'] ?? 0,
+                        'modified_by' => $params['created_by'] ?? 0,
+                    ]);
+                }
+
+                $checkWorkerStatus = $this->workerStatus
+                ->where('application_id', $request['application_id'])
+                ->where('onboarding_country_id', $request['onboarding_country_id'])
+                ->get()->toArray();
+
+                if(isset($checkWorkerStatus) && count($checkWorkerStatus) > 0 ){
+                    $this->workerStatus->where([
+                        'application_id' => $request['application_id'],
+                        'onboarding_country_id' => $request['onboarding_country_id']
+                    ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
+                } else {
+                    $workerStatus = $this->workerStatus->create([
+                        'application_id' => $request['application_id'] ?? 0,
+                        'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+                        'item' => 'Worker Biodata',
+                        'updated_on' => Carbon::now(),
+                        'status' => 1,
+                        'created_by' => $params['created_by'] ?? 0,
+                        'modified_by' => $params['created_by'] ?? 0,
+                    ]);            
+                }
+
+                $onBoardingStatus['application_id'] = $request['application_id'];
+                $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
+                $onBoardingStatus['onboarding_status'] = 4; //Agent Added
+                $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+            }
+            return true;
+        }else {
+            return false;
+        }
+        
     }
 }

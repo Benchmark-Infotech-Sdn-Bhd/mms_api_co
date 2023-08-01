@@ -100,7 +100,8 @@ class DirectRecruitmentCallingVisaApprovalServices
             $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['calling_visa_generated' => $request['calling_visa_generated'], 'calling_visa_valid_until' => $request['calling_visa_valid_until'], 'remarks' => $request['remarks'], 'approval_status' => $request['status'], 'modified_by' => $request['modified_by']]);
 
             $utilisedQuota = $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-                            ->where('workers.onboarding_country_id', $request['onboarding_country_id'])
+                            ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
+                            ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
                             ->where('worker_visa.approval_status', 'Approved')
                             ->count('workers.id');
 
