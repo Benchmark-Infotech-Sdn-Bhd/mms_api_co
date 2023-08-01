@@ -351,7 +351,7 @@ class DirectRecruitmentWorkersServices
             $directrecruitmentWorkers->update([
                 'onboarding_country_id' => $request['onboarding_country_id'] ?? $directrecruitmentWorkers->onboarding_country_id,
                 'agent_id' => $request['agent_id'] ?? $directrecruitmentWorkers->agent_id,
-                'modified_by' =>  $request['created_by'] ?? 0,
+                'modified_by' =>  $params['modified_by'] ?? 0,
                 'updated_at' => Carbon::now()
             ]);
         }
