@@ -140,21 +140,6 @@ class WorkersServices
             ];
         }
 
-        $ksmReferenceNumbersResult = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
-
-        $ksmReferenceNumbers = array();
-        foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
-            $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
-        }
-
-        if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
-            if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
-                return [
-                    'ksmError' => true
-                ];    
-            }
-        }
-
         $worker = $this->workers->create([
             'name' => $request['name'] ?? '',
             'gender' => $request['gender'] ?? '',
@@ -168,15 +153,6 @@ class WorkersServices
             'state' => $request['state'] ?? '',
             'created_by'    => $params['created_by'] ?? 0,
             'modified_by'   => $params['created_by'] ?? 0
-        ]);
-
-        $directrecruitmentWorkers = $this->directrecruitmentWorkers::create([
-            "worker_id" => $worker['id'],
-            'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
-            'agent_id' => $request['agent_id'] ?? 0,
-            'application_id' => $request['application_id'] ?? 0,
-            'created_by'    => $params['created_by'] ?? 0,
-            'modified_by'   => $params['created_by'] ?? 0   
         ]);
 
         if (request()->hasFile('fomema_attachment')){
@@ -305,51 +281,6 @@ class WorkersServices
             "socso_number" =>  $request['socso_number'] ?? ''
         ]);
 
-        $checkCallingVisa = $this->directRecruitmentCallingVisaStatus
-        ->where('application_id', $request['application_id'])
-        ->where('onboarding_country_id', $request['onboarding_country_id'])
-        ->where('agent_id', $request['agent_id'])->get()->toArray();
-
-        if(isset($checkCallingVisa) && count($checkCallingVisa) == 0 ){
-            $callingVisaStatus = $this->directRecruitmentCallingVisaStatus->create([
-                'application_id' => $request['application_id'] ?? 0,
-                'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
-                'agent_id' => $request['agent_id'] ?? 0,
-                'item' => 'Calling Visa Status',
-                'updated_on' => Carbon::now(),
-                'status' => 1,
-                'created_by' => $params['created_by'] ?? 0,
-                'modified_by' => $params['created_by'] ?? 0,
-            ]);
-        }
-
-        $checkWorkerStatus = $this->workerStatus
-        ->where('application_id', $request['application_id'])
-        ->where('onboarding_country_id', $request['onboarding_country_id'])
-        ->get()->toArray();
-
-        if(isset($checkWorkerStatus) && count($checkWorkerStatus) > 0 ){
-            $this->workerStatus->where([
-                'application_id' => $request['application_id'],
-                'onboarding_country_id' => $request['onboarding_country_id']
-            ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
-        } else {
-            $workerStatus = $this->workerStatus->create([
-                'application_id' => $request['application_id'] ?? 0,
-                'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
-                'item' => 'Worker Biodata',
-                'updated_on' => Carbon::now(),
-                'status' => 1,
-                'created_by' => $params['created_by'] ?? 0,
-                'modified_by' => $params['created_by'] ?? 0,
-            ]);            
-        }
-
-        $onBoardingStatus['application_id'] = $request['application_id'];
-        $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
-        $onBoardingStatus['onboarding_status'] = 4; //Agent Added
-        $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
-
         return $worker;
     }
 
@@ -370,21 +301,6 @@ class WorkersServices
             ];
         }
 
-        $ksmReferenceNumbersResult = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
-        
-        $ksmReferenceNumbers = array();
-        foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
-            $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
-        }
-
-        if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
-            if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
-                return [
-                    'ksmError' => true
-                ];    
-            }
-        }
-
         $worker = $this->workers->with('directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails')->findOrFail($request['id']);
 
         $worker->name = $request['name'] ?? $worker->name;
@@ -400,11 +316,6 @@ class WorkersServices
         $worker->state = $request['state'] ?? $worker->state;
         $worker->created_by = $request['created_by'] ?? $worker->created_by;
         $worker->modified_by = $params['modified_by'];
-
-        # directrecuriment Worker
-        $worker->directrecruitmentWorkers->onboarding_country_id = $request['onboarding_country_id'] ?? $worker->directrecruitmentWorkers->onboarding_country_id;
-        $worker->directrecruitmentWorkers->agent_id = $request['agent_id'] ?? $worker->directrecruitmentWorkers->agent_id;
-        $worker->directrecruitmentWorkers->application_id = $request['application_id'] ?? $worker->directrecruitmentWorkers->application_id;
 
         # Worker Kin details
         $worker->workerKin->kin_name = $request['kin_name'] ?? $worker->workerKin->kin_name;
