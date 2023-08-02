@@ -16,6 +16,7 @@ use App\Models\KinRelationship;
 use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\DirectRecruitmentOnboardingAgent;
 use App\Models\WorkerStatus;
+use App\Models\WorkerBulkUpload;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
@@ -41,6 +42,7 @@ class ManageWorkersServices
     Private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
     Private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
     private WorkerStatus $workerStatus;
+    private WorkerBulkUpload $workerBulkUpload;
     private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
     private ValidationServices $validationServices;
     private AuthServices $authServices;
@@ -61,6 +63,7 @@ class ManageWorkersServices
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
      * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent
      * @param WorkerStatus $workerStatus
+     * @param WorkerBulkUpload $workerBulkUpload
      * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
@@ -81,6 +84,7 @@ class ManageWorkersServices
             DirectRecruitmentCallingVisaStatus          $directRecruitmentCallingVisaStatus,
             DirectRecruitmentOnboardingAgent            $directRecruitmentOnboardingAgent,
             WorkerStatus                                $workerStatus,
+            WorkerBulkUpload                            $workerBulkUpload,
             DirectRecruitmentOnboardingCountryServices  $directRecruitmentOnboardingCountryServices, 
             ValidationServices                          $validationServices,
             AuthServices                                $authServices,
@@ -99,6 +103,7 @@ class ManageWorkersServices
         $this->workerBankDetails = $workerBankDetails;
         $this->kinRelationship = $kinRelationship;
         $this->workerStatus = $workerStatus;
+        $this->workerBulkUpload = $workerBulkUpload;
         $this->validationServices = $validationServices;
         $this->directRecruitmentOnboardingCountryServices = $directRecruitmentOnboardingCountryServices;
         $this->authServices = $authServices;
@@ -140,6 +145,19 @@ class ManageWorkersServices
                 'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
                 'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
             ];
+    }
+
+    /**
+     * @return array
+     */
+    public function bulkUploadValidation(): array
+    {
+        return [
+            'onboarding_country_id' => 'required',
+            'application_id' => 'required',
+            'agent_id' => 'required',
+            'worker_file' => 'required|mimes:xlsx,xls',
+        ];
     }
 
     /**
@@ -523,6 +541,35 @@ class ManageWorkersServices
         ->distinct()
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function import($request, $file): mixed
+    {
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['created_by'] = $user['id'];
+        $params['modified_by'] = $user['id'];
+        if(!($this->validationServices->validate($request->toArray(),$this->bulkUploadValidation()))){
+            return [
+              'validate' => $this->validationServices->errors()
+            ];
+        }
+
+        $workerBulkUpload = $this->workerBulkUpload->create([
+                'onboarding_country_id' => $request['onboarding_country_id'] ?? '',
+                'agent_id' => $request['agent_id'] ?? '',
+                'application_id' => $request['application_id'] ?? '',
+                'name' => 'Worker Bulk Upload',
+                'type' => 'Worker bulk upload'
+            ]
+        );
+
+        Excel::import(new WorkerImport($params, $workerBulkUpload), $file);
+        return true;
     }
 
 }

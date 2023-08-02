@@ -112,4 +112,36 @@ class ManageWorkersController extends Controller
             return $this->sendError(['message' => $data['error']], 400);
         }
     }
+
+    /**
+     * Import the Workers from Excel.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function import(Request $request): JsonResponse
+    {
+        try {
+
+            $originalFilename = $request->file('worker_file')->getClientOriginalName();
+            $originalFilename_arr = explode('.', $originalFilename);
+            $fileExt = end($originalFilename_arr);
+            $destinationPath = storage_path('upload/worker/');
+            $fileName = 'A-' . time() . '.' . $fileExt;
+            $request->file('worker_file')->move($destinationPath, $fileName);
+            
+            $this->manageWorkersServices->import($request, $destinationPath . $fileName);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+
+            return $this->sendSuccess(['message' => "Successfully worker was imported"]);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Import failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+
+    }
+
 }

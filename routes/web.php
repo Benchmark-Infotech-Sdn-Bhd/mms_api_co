@@ -529,6 +529,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('show', 'V1\ManageWorkersController@show');
                 $router->post('create', 'V1\ManageWorkersController@create');
                 $router->post('update', 'V1\ManageWorkersController@update');
+                $router->post('create', 'V1\ManageWorkersController@import');
+                $router->post('import', 'V1\ManageWorkersController@import');
             });
         });
     });
