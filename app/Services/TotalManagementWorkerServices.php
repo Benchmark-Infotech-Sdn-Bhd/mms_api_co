@@ -130,18 +130,44 @@ class TotalManagementWorkerServices
      */
     public function workerListForAssignWorker($request): mixed
     {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
         $request['company_ids'] = array($request['prospect_id'], 0);
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->where('workers.worker_status', 'On-Bench')
-            ->whereIn('workers.crm_prospect_id', $request['company_ids'])
             ->where(function ($query) use ($request) {
-                if ((isset($request['filter']) && !empty($request['filter'])) || $request['filter'] == 0) {
-                    $query->where('workers.crm_prospect_id', $request['filter']);
+                if (isset($request['search']) && !empty($request['search'])) {
+                    $query->where('workers.name', 'like', '%'.$request['search'].'%')
+                    ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
+                    ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%')
+                    ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
+                }
+            })
+            ->where(function ($query) use ($request) {
+                if (isset($request['prospect_id']) && !empty($request['prospect_id'])) {
+                    $request['company_ids'] = array($request['prospect_id'], 0);
+                    $query->whereIn('workers.crm_prospect_id', $request['company_ids']);
+                }
+            })
+            ->where(function ($query) use ($request) {
+                if ((isset($request['company_filter']) && !empty($request['company_filter'])) || $request['company_filter'] == 0) {
+                    $query->where('workers.crm_prospect_id', $request['company_filter']);
                 }
             })
             ->where(function ($query) use ($request) {
                 if(isset($request['ksm_reference_number']) && !empty($request['ksm_reference_number'])) {
                     $query->where('worker_visa.ksm_reference_number', $request['ksm_reference_number']);
+                }
+            })
+            ->where(function ($query) use ($request) {
+                if (isset($request['status_filter']) && !empty($request['status_filter']) || $request['status_filter'] == 0) {
+                    $query->where('workers.status', $request['status_filter']);
                 }
             })
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', )
