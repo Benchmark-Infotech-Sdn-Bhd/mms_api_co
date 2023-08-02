@@ -186,14 +186,14 @@ class DirectRecruitmentOnboardingCountryServices
     public function ksmReferenceNumberList($request): mixed
     {
         return $this->directRecruitmentApplicationApproval
-                ->leftJoin('application_interviews', function($join) use ($request){
-                    $join->on('application_interviews.application_id', '=', 'directrecruitment_application_approval.application_id')
-                    ->on('application_interviews.ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
-                  })
-                ->leftJoin('directrecruitment_onboarding_countries', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_application_approval.application_id')
-                ->where('directrecruitment_application_approval.application_id', $request['application_id'])
-                ->select('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'application_interviews.approved_quota', 'directrecruitment_onboarding_countries.utilised_quota')->distinct()
-                ->get();
+        ->leftJoin('levy', function($join) use ($request){
+            $join->on('levy.application_id', '=', 'directrecruitment_application_approval.application_id')
+            ->on('levy.new_ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
+            })
+        ->leftJoin('directrecruitment_onboarding_countries', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_application_approval.application_id')
+        ->where('directrecruitment_application_approval.application_id', $request['application_id'])
+        ->select('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota', 'directrecruitment_onboarding_countries.utilised_quota')->distinct()
+        ->get();
     }
 
     /**

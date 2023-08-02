@@ -290,7 +290,7 @@ class ApplicationInterviewsServices
                 break;
 
             case 'APPROVAL':
-                return $this->levy::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_LEVY_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
+                return $this->levy::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_LEVY_KSM_REFERENCE_STATUS'))->select('id','new_ksm_reference_number')->orderBy('created_at','DESC')->get();
                 break;
 
             }
