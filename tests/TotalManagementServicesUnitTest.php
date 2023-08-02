@@ -273,7 +273,7 @@ class TotalManagementServicesUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for total management pplication list search validation
+     * Functional test for total management application list search validation
      * 
      * @return void
      */
@@ -288,7 +288,133 @@ class TotalManagementServicesUnitTest extends TestCase
             ]
         ]);
     }
-     /**
+    /**
+     * Functional test for total management proposal submit Id mandatory field validation
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProposalSubmitIDRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['id' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'id' => ['The id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management proposal submit quota requested mandatory field validation
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProposalSubmitRequestedQuotaRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['quota_requested' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'quota_requested' => ['The quota requested field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management proposal submit person in charge mandatory field validation
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProposalSubmitPersonInChargeRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['person_incharge' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'person_incharge' => ['The person incharge field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management proposal submit cost quoted mandatory field validation
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProposalSubmitCostQuotedRequiredValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['cost_quoted' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'cost_quoted' => ['The cost quoted field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management proposal submit quota requested Format validation
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProposalSubmitRequestedQuotaFormatValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['quota_requested' => 1.1]), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'quota_requested' => ['The quota requested format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management proposal submit quota requested size validation
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProposalSubmitRequestedQuotaSizeValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['quota_requested' => 100000]), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'quota_requested' => ['The quota requested must not be greater than 3 characters.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management proposal submit cost quoted format validation
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProposalSubmitCostQuotedFormatValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['cost_quoted' => 10.64644]), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'cost_quoted' => ['The cost quoted format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management proposal submit
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProposalSubmit(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', $this->submitProposalData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Proposal Submitted Successfully.']
+        ]);
+    }
+    /**
      * Functional test for total management, application listing with search
      * 
      * @return void
@@ -692,5 +818,14 @@ class TotalManagementServicesUnitTest extends TestCase
     public function allocateQuotaData(): array
     {
         return ['id' => 1, 'prospect_service_id' => 2, 'from_existing' => 1, 'client_quota' => 10, 'fomnext_quota' => 10, 'initial_quota' => 1, 'service_quota' => 1];
+    }
+    /**
+     * @return array
+     */
+    public function submitProposalData(): array
+    {
+        return [
+            "id" => 1, "quota_requested" => 10, "person_incharge" => "PICTest", "cost_quoted" => 10.5, "reamrks" => "remarks", "file_url" => "test"
+        ];
     }
 }

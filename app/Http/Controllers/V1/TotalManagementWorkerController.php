@@ -35,6 +35,9 @@ class TotalManagementWorkerController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->totalManagementWorkerServices->list($params);
+            if (isset($data['error'])) {
+                return $this->validationError($data['error']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -52,6 +55,9 @@ class TotalManagementWorkerController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->totalManagementWorkerServices->workerListForAssignWorker($params);
+            if (isset($data['error'])) {
+                return $this->validationError($data['error']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
