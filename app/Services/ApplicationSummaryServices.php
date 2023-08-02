@@ -156,7 +156,7 @@ class ApplicationSummaryServices
         ->where([
             ['fwcms.application_id', $request['application_id']],
             ['fwcms.status', 'Approved']
-        ])->select('fwcms.id', 'fwcms.ksm_reference_number', 'application_interviews.approval_date', 'levy.approved_quota', 'directrecruitment_application_approval.valid_until')
+        ])->select('fwcms.id', 'fwcms.ksm_reference_number', 'application_interviews.approval_date', 'levy.new_ksm_reference_number', 'levy.approved_quota', 'directrecruitment_application_approval.valid_until')
         ->distinct('fwcms.id','fwcms.ksm_reference_number')
         ->orderBy('fwcms.id','DESC')->get();
     }
