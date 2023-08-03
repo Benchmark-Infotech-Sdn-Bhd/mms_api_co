@@ -49,10 +49,10 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
                     'agent_id' => $this->parameters['agent_id'],
                     'application_id' => $this->parameters['application_id'],
                     'name' => $row['name'] ?? '',
-                    'date_of_birth' => $this->dateConvert($row['date_of_birth']),
+                    'date_of_birth' => '2013-07-01',//$this->dateConvert($row['date_of_birth']),
                     'gender' => $row['gender'] ?? '',                        
                     'passport_number' => isset($row['passport_number']) ? (string)$row['passport_number'] : '',
-                    'passport_valid_until' => isset($row['passport_valid_until']) ? (string)$row['passport_valid_until'] : '',
+                    'passport_valid_until' => '2013-09-01', //isset($row['passport_valid_until']) ? (string)$row['passport_valid_until'] : '',
                     'address' => $row['address'] ?? '',
                     'city' => $row['city'] ?? '',
                     'state' => $row['state'] ?? '',
@@ -68,7 +68,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
                 ];
                 
                 DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-                dispatch(new ApplicantsImport($workerParameter, $this->bulkUpload));
+                dispatch(new WorkersImport($workerParameter, $this->bulkUpload));
 
         } catch (\Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));
