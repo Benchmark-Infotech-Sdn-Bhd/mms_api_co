@@ -4,7 +4,6 @@ namespace App\Imports;
 
 use App\Jobs\WorkersImport;
 use App\Models\workers;
-use App\Models\Workers;
 use App\Models\WorkerKin;
 use App\Models\KinRelationship;
 use App\Models\WorkerStatus;
@@ -45,33 +44,32 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
         try {
                 Log::info('Row Data' . print_r($row, true));
                 
-                    $workerParameter = [
-                        'onboarding_country_id' => $this->parameters['onboarding_country_id'],
-                        'agent_id' => $this->parameters['agent_id'],
-                        'application_id' => $this->parameters['application_id'],
-                        'name' => $row['name'] ?? '',
-                        'date_of_birth' => $this->dateConvert($row['date_of_birth']),
-                        'gender' => $row['gender'] ?? '',                        
-                        'passport_number' => isset($row['passport_number']) ? (string)$row['passport_number'] : '',
-                        'passport_valid_until' => isset($row['passport_valid_until']) ? (string)$row['passport_valid_until'] : '',
-                        'address' => $row['address'] ?? '',
-                        'city' => $row['city'] ?? '',
-                        'state' => $row['state'] ?? '',
+                $workerParameter = [
+                    'onboarding_country_id' => $this->parameters['onboarding_country_id'],
+                    'agent_id' => $this->parameters['agent_id'],
+                    'application_id' => $this->parameters['application_id'],
+                    'name' => $row['name'] ?? '',
+                    'date_of_birth' => $this->dateConvert($row['date_of_birth']),
+                    'gender' => $row['gender'] ?? '',                        
+                    'passport_number' => isset($row['passport_number']) ? (string)$row['passport_number'] : '',
+                    'passport_valid_until' => isset($row['passport_valid_until']) ? (string)$row['passport_valid_until'] : '',
+                    'address' => $row['address'] ?? '',
+                    'city' => $row['city'] ?? '',
+                    'state' => $row['state'] ?? '',
 
-                        'kin_name' => $row['kin_name'] ?? '',
-                        'kin_relationship_id' => $row['kin_relationship_id'] ?? '',
-                        'kin_contact_number' => $row['kin_contact_number'] ?? '',
-                        'ksm_reference_number' => $row['ksm_reference_number'] ?? '',
-                        'bio_medical_reference_number' => $row['bio_medical_reference_number'] ?? '',
-                        'bio_medical_valid_until' => $row['bio_medical_valid_until'] ?? ''
-                        'created_by' => $row['created_by'] ?? 0,
-                        'modified_by' => $row['modified_by'] ?? 0
-                    ];
-                    
-                    DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-                    //dispatch(new ApplicantsImport($workerParameter, $this->bulkUpload));
-               
-            }
+                    'kin_name' => $row['kin_name'] ?? '',
+                    'kin_relationship_id' => $row['kin_relationship_id'] ?? '',
+                    'kin_contact_number' => $row['kin_contact_number'] ?? '',
+                    'ksm_reference_number' => $row['ksm_reference_number'] ?? '',
+                    'bio_medical_reference_number' => $row['bio_medical_reference_number'] ?? '',
+                    'bio_medical_valid_until' => $row['bio_medical_valid_until'] ?? '',
+                    'created_by' => $row['created_by'] ?? 0,
+                    'modified_by' => $row['modified_by'] ?? 0
+                ];
+                
+                DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
+                dispatch(new ApplicantsImport($workerParameter, $this->bulkUpload));
+
         } catch (\Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));
         }

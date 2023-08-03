@@ -25,6 +25,8 @@ use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\WorkerImport;
 
 class ManageWorkersServices
 {
@@ -156,7 +158,7 @@ class ManageWorkersServices
             'onboarding_country_id' => 'required',
             'application_id' => 'required',
             'agent_id' => 'required',
-            'worker_file' => 'required|mimes:xlsx,xls',
+            'worker_file' => 'required|mimes:xlsx,xls'
         ];
     }
 
@@ -553,11 +555,11 @@ class ManageWorkersServices
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
         $params['modified_by'] = $user['id'];
-        if(!($this->validationServices->validate($request->toArray(),$this->bulkUploadValidation()))){
+        /* if(!($this->validationServices->validate($request->toArray(),$this->bulkUploadValidation()))){
             return [
               'validate' => $this->validationServices->errors()
             ];
-        }
+        } */
 
         $workerBulkUpload = $this->workerBulkUpload->create([
                 'onboarding_country_id' => $request['onboarding_country_id'] ?? '',
@@ -567,6 +569,7 @@ class ManageWorkersServices
                 'type' => 'Worker bulk upload'
             ]
         );
+        //echo "<pre>"; print_r($workerBulkUpload); exit;
 
         Excel::import(new WorkerImport($params, $workerBulkUpload), $file);
         return true;
