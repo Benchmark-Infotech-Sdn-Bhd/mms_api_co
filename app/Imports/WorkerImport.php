@@ -3,7 +3,7 @@
 namespace App\Imports;
 
 use App\Jobs\WorkersImport;
-use App\Models\workers;
+use App\Models\Workers;
 use App\Models\WorkerKin;
 use App\Models\KinRelationship;
 use App\Models\WorkerStatus;
