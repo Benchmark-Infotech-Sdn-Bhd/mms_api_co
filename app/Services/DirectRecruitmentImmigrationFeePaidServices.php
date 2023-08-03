@@ -189,7 +189,7 @@ class DirectRecruitmentImmigrationFeePaidServices
             ->leftJoin('worker_immigration', 'worker_immigration.worker_id', 'workers.id')
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->where('worker_visa.approval_status', 'Approved')
-            ->where('worker_immigration.immigration_status', '!=', 'Paid')
+            ->where('worker_immigration.immigration_status', null)
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
                 'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
@@ -202,6 +202,7 @@ class DirectRecruitmentImmigrationFeePaidServices
                 }
             })
             ->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_immigration.total_fee', 'worker_immigration.immigration_reference_number', 'worker_immigration.payment_date', 'worker_immigration.immigration_status', DB::raw('COUNT(workers.id) as workers'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
+            ->selectRaw("(CASE WHEN (worker_immigration.immigration_status IS NULL) THEN 'Pending' ELSE worker_immigration.immigration_status END) as immigration_status_value")
             ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_immigration.total_fee', 'worker_immigration.immigration_reference_number', 'worker_immigration.payment_date', 'worker_immigration.immigration_status')
             ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
             ->paginate(Config::get('services.paginate_row'));
