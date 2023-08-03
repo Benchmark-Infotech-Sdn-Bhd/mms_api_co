@@ -21,10 +21,9 @@ class WorkersImport extends Job
      * @param $parameters
      * @param $bulkUpload
      */
-    public function __construct($workerParameter, $parameters, $bulkUpload)
+    public function __construct($workerParameter, $bulkUpload)
     {
         $this->workerParameter = $workerParameter;
-        $this->parameters = $parameters;
         $this->bulkUpload = $bulkUpload;
     }
 
