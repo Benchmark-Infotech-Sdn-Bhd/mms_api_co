@@ -2,12 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Models\DirectrecruitmentWorkers;
 use App\Models\Workers;
 use App\Models\WorkerKin;
 use App\Models\WorkerVisa;
 use App\Models\WorkerBioMedical;
 use App\Models\BulkUploadRecords;
-use App\Services\Muse App\Models\WorkerKin;anageWorkersServices;
+use App\Services\ManageWorkersServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -55,14 +56,29 @@ class WorkersImport extends Job
             'city' => $this->workerParameter['city'] ?? '',
             'state' => $this->workerParameter['state'] ?? '',
             'created_by'    => $this->workerParameter['created_by'] ?? 0,
-            'modified_by'   => $this->workerParameter['created_by'] ?? 0
+            'modified_by'   => $this->workerParameter['created_by'] ?? 0,
+            'created_at'    => null,
+            'updated_at'    => null
+        ]);
+
+        DirectrecruitmentWorkers::create([
+            "worker_id" => $worker['id'],
+            'onboarding_country_id' => $this->workerParameter['onboarding_country_id'] ?? 0,
+            'agent_id' => $this->workerParameter['agent_id'] ?? 0,
+            'application_id' => $this->workerParameter['application_id'] ?? 0,
+            'created_by'    => $this->workerParameter['created_by'] ?? 0,
+            'modified_by'   => $this->workerParameter['created_by'] ?? 0 ,
+            'created_at'    => null,
+            'updated_at'    => null         
         ]);
 
         WorkerKin::create([
             "worker_id" => $worker['id'],
             "kin_name" => $this->workerParameter['kin_name'] ?? '',
             "kin_relationship_id" => $this->workerParameter['kin_relationship_id'] ?? '',
-            "kin_contact_number" =>  $this->workerParameter['kin_contact_number'] ?? ''         
+            "kin_contact_number" =>  $this->workerParameter['kin_contact_number'] ?? '',
+            'created_at'    => null,
+            'updated_at'    => null         
         ]);
 
         WorkerVisa::create([
