@@ -115,7 +115,7 @@ class TotalManagementWorkerServices
                 }
             })
             ->where(function ($query) use ($request) {
-                if(isset($request['filter']) && !empty($request['filter'])) {
+                if((isset($request['filter']) && !empty($request['filter'])) || $request['filter'] == 0) {
                     $query->where('workers.status', $request['filter']);
                 }
             })
@@ -163,11 +163,6 @@ class TotalManagementWorkerServices
             ->where(function ($query) use ($request) {
                 if(isset($request['ksm_reference_number']) && !empty($request['ksm_reference_number'])) {
                     $query->where('worker_visa.ksm_reference_number', $request['ksm_reference_number']);
-                }
-            })
-            ->where(function ($query) use ($request) {
-                if (isset($request['status_filter']) && !empty($request['status_filter']) || $request['status_filter'] == 0) {
-                    $query->where('workers.status', $request['status_filter']);
                 }
             })
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', )
