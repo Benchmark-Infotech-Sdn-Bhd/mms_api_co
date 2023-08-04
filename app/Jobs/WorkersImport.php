@@ -12,6 +12,7 @@ use App\Services\ManageWorkersServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+
 class WorkersImport extends Job
 {
     private $parameters;
@@ -46,7 +47,9 @@ class WorkersImport extends Job
 
         if( !empty($this->workerParameter['name']) ){
 
-            $workerRelationship = DB::table('kin_relationship')->where('name', $this->workerParameter['kin_relationship_id'])->get();
+            $workerRelationship = DB::table('kin_relationship')->where('name', $this->workerParameter['kin_relationship'])->first('id');
+
+            Log::info('Row Data - realtionship - ' . print_r($workerRelationship->id, true));
 
             $worker = Workers::create([            
                 'name' => $this->workerParameter['name'] ?? '',
@@ -79,7 +82,7 @@ class WorkersImport extends Job
             WorkerKin::create([
                 "worker_id" => $worker['id'],
                 "kin_name" => $this->workerParameter['kin_name'] ?? '',
-                "kin_relationship_id" => $this->workerParameter['kin_relationship_id'] ?? '',
+                "kin_relationship_id" => $workerRelationship->id ?? 0,
                 "kin_contact_number" =>  $this->workerParameter['kin_contact_number'] ?? '',
                 'created_at'    => null,
                 'updated_at'    => null         
