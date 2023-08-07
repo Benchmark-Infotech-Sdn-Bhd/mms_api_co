@@ -106,15 +106,15 @@ class WorkerEventServices
             'worker_id' => $request['worker_id'] ?? 0,
             'event_date' => $request['event_date'] ?? '',
             'event_type' => $request['event_type'] ?? '',
-            'flight_number' => $request['flight_number'] ?? '',
-            'departure_date' => $request['departure_date'] ?? '',
+            'flight_number' => (isset($request['flight_number']) && !empty($request['flight_number'])) ? $request['flight_number'] : NULL,
+            'departure_date' => (isset($request['departure_date']) && !empty($request['departure_date'])) ? $request['departure_date'] : NULL,
             'remarks' => $request['remarks'] ?? '',
             'created_by' => $request['created_by'],
             'modified_by' => $request['created_by']
         ]);
         $this->workers->where('id', $request['worker_id'])
             ->update([
-                'worker_status' => $request['event_type'], 
+                'total_management_status' => $request['event_type'], 
                 'modified_by' => $request['created_by']
             ]);
         if(request()->hasFile('attachment')) {
@@ -152,17 +152,17 @@ class WorkerEventServices
         $request['modified_by'] = $user['id'];
         $workerEvent = $this->workerEvent->findOrFail($request['id']);
         $workerEvent->worker_id = $request['worker_id'] ?? $workerEvent->worker_id;
-        $workerEvent->event_date = $request['event_date'] ?? $workerEvent->event_date;
+        $workerEvent->event_date = (isset($request['event_date']) && !empty($request['event_date'])) ? $request['event_date'] : $workerEvent->event_date;
         $workerEvent->event_type = $request['event_type'] ?? $workerEvent->event_type;
-        $workerEvent->flight_number = $request['flight_number'] ?? '';
-        $workerEvent->departure_date = $request['departure_date'] ?? '';
+        $workerEvent->flight_number = (isset($request['flight_number']) && !empty($request['flight_number'])) ? $request['flight_number'] : $workerEvent->flight_number;
+        $workerEvent->departure_date = (isset($request['departure_date']) && !empty($request['departure_date'])) ? $request['departure_date'] : $workerEvent->departure_date;
         $workerEvent->remarks = $request['remarks'] ?? '';
         $workerEvent->modified_by = $request['modified_by'];
         $workerEvent->save();
 
         $this->workers->where('id', $request['worker_id'])
             ->update([
-                'worker_status' => $request['event_type'], 
+                'total_management_status' => $request['event_type'], 
                 'modified_by' => $request['modified_by']
             ]);
 

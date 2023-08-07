@@ -511,7 +511,7 @@ class ManageWorkersServices
                 $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
             }
             if(isset($request['status']) && !empty($request['status'])) {
-                $query->where('workers.worker_status', $request['status']);
+                $query->where('workers.total_management_status', $request['status']);
             }
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('workers.name', 'like', "%{$request['search_param']}%")
@@ -519,7 +519,7 @@ class ManageWorkersServices
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
             
-        })->select('workers.id','workers.name', 'workers.passport_number', 'workers.address', 'workers.city', 'workers.state', 'workers.crm_prospect_id', 'crm_prospects.company_name', 'workers.worker_status')
+        })->select('workers.id','workers.name', 'workers.passport_number', 'workers.address', 'workers.city', 'workers.state', 'workers.crm_prospect_id', 'crm_prospects.company_name', 'workers.total_management_status')
         ->distinct()
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));

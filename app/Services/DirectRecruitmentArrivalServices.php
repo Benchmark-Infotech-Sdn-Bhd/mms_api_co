@@ -291,6 +291,8 @@ class DirectRecruitmentArrivalServices
                 'modified_by' => $request['created_by']
             ]);
 
+            $this->workers->whereIn('id', $request['workers'])->update(['directrecruitment_status' => 'Not Arrived', 'modified_by' => $request['created_by']]);
+
             $onBoardingStatus['application_id'] = $request['application_id'];
             $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
             $onBoardingStatus['onboarding_status'] = 6; //Agent Added
@@ -371,6 +373,7 @@ class DirectRecruitmentArrivalServices
 
                 $this->workers->whereIn('id', $workers)
                     ->update([
+                        'directrecruitment_status' => 'Cancelled',
                         'cancel_status' => 1, 
                         'remarks' => $request['remarks'] ?? '',
                         'modified_by' => $params['created_by']

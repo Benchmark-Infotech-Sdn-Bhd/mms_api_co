@@ -191,6 +191,7 @@ class DirectRecruitmentCallingVisaServices
             $request['workers'] = explode(',', $request['workers']);
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
+                    'directrecruitment_status' => 'Cancelled',
                     'cancel_status' => 1, 
                     'remarks' => $request['remarks'] ?? '',
                     'modified_by' => $request['modified_by']

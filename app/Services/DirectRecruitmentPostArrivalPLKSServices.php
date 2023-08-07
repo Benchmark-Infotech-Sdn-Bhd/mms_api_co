@@ -131,6 +131,7 @@ class DirectRecruitmentPostArrivalPLKSServices
             $request['workers'] = explode(',', $request['workers']);
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
+                    'directrecruitment_status' => 'Processed',
                     'plks_status' => 'Approved', 
                     'plks_expiry_date' => $request['plks_expiry_date'], 
                     'modified_by' => $request['modified_by']
