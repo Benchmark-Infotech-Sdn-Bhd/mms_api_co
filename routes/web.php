@@ -519,6 +519,24 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('deleteAttachment', 'V1\WorkerEventController@deleteAttachment');
                 });
             });
+            $router->group(['prefix' => 'payroll'], function () use ($router) {
+                $router->post('projectDetails', 'V1\TotalManagementPayrollController@projectDetails');
+                $router->post('list', 'V1\TotalManagementPayrollController@list');
+                $router->post('export', 'V1\TotalManagementPayrollController@export');
+                $router->post('import', 'V1\TotalManagementPayrollController@import');
+                $router->post('show', 'V1\TotalManagementPayrollController@show');
+                $router->post('update', 'V1\TotalManagementPayrollController@update');
+                $router->post('add', 'V1\TotalManagementPayrollController@add');
+                $router->post('listTimesheet', 'V1\TotalManagementPayrollController@listTimesheet');
+                $router->post('uploadTimesheet', 'V1\TotalManagementPayrollController@uploadTimesheet');
+                $router->post('viewTimesheet', 'V1\TotalManagementPayrollController@viewTimesheet');
+            });
+            $router->group(['prefix' => 'transfer'], function () use ($router) {
+                $router->post('workerEmploymentDetail', 'V1\TotalManagementTransferController@workerEmploymentDetail');
+                $router->post('companyList', 'V1\TotalManagementTransferController@companyList');
+                $router->post('projectList', 'V1\TotalManagementTransferController@projectList');
+                $router->post('submit', 'V1\TotalManagementTransferController@submit');
+            });
         }); 
         /**
         * Routes for Manage workers.

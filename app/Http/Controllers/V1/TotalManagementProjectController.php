@@ -56,7 +56,7 @@ class TotalManagementProjectController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Faild to Display Total Management Project'], 400);
+            return $this->sendError(['message' => 'Failed to Display Total Management Project'], 400);
         }
     }
     /**
@@ -78,7 +78,7 @@ class TotalManagementProjectController extends Controller
             return $this->sendSuccess(['message' => 'Total Manangement Project Added Successfully']);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Faild to Add Total Management Project'], 400);
+            return $this->sendError(['message' => 'Failed to Add Total Management Project'], 400);
         }
     }
     /**
@@ -100,7 +100,7 @@ class TotalManagementProjectController extends Controller
             return $this->sendSuccess(['message' => 'Total Management Project Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Faild to Update Total Management Project'], 400);
+            return $this->sendError(['message' => 'Failed to Update Total Management Project'], 400);
         }
     }
 }
