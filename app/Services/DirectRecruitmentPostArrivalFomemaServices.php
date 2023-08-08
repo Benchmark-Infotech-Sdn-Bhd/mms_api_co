@@ -189,6 +189,7 @@ class DirectRecruitmentPostArrivalFomemaServices
                 ]);
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
+                    'directrecruitment_status' => 'FOMEMA Fit',
                     'fomema_valid_until' => $request['fomema_valid_until'], 
                     'modified_by' => $request['modified_by']
                 ]);

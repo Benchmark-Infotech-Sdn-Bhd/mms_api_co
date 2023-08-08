@@ -106,9 +106,26 @@ class DirectRecruitmentCallingVisaApprovalServices
                             ->count('workers.id');
 
             $this->directRecruitmentOnboardingCountry->where('id', $request['onboarding_country_id'])->update(['utilised_quota' => $utilisedQuota]);
+
+            $this->workers->whereIn('id', $request['workers'])
+                ->update([
+                    'directrecruitment_status' => 'Accepted', 
+                    'modified_by' => $request['modified_by']
+                ]);
+        } else {
+            $this->workerVisa->whereIn('worker_id', $request['workers'])
+            ->update([
+                'approval_status' => $request['status'], 
+                'modified_by' => $request['modified_by']
+            ]);
+
+            $this->workers->whereIn('id', $request['workers'])
+            ->update([
+                'directrecruitment_status' => $request['status'], 
+                'modified_by' => $request['modified_by']
+            ]);
         }
-        $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['approval_status' => $request['status'], 'modified_by' => $request['modified_by']]);
-        
+
         $this->directRecruitmentCallingVisaStatus->where([
             'application_id' => $request['application_id'],
             'onboarding_country_id' => $request['onboarding_country_id']

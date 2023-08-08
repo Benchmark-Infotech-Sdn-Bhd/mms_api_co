@@ -160,6 +160,12 @@ class DirectRecruitmentRepatriationServices
                     }
                 }
             }
+            $this->workers->whereIn('id', $request['workers'])
+                ->update([
+                    'directrecruitment_status' => 'Repatriated',
+                    'fomema_valid_until' => $request['fomema_valid_until'], 
+                    'modified_by' => $request['modified_by']
+                ]);
         }
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
         return true;

@@ -140,7 +140,7 @@ class TotalManagementWorkerServices
         }
         $request['company_ids'] = array($request['prospect_id'], 0);
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->where('workers.worker_status', 'On-Bench')
+            ->where('workers.total_management_status', 'On-Bench')
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
@@ -216,6 +216,11 @@ class TotalManagementWorkerServices
                     'modified_by' => $request['created_by']
                 ]);
             }
+            $this->workers->whereIn('id', $request['workers'])
+                ->update([
+                    'total_management_status' => 'Assigned',
+                    'modified_by' => $request['created_by']
+                ]);
         }
         return true;
     }
@@ -228,7 +233,7 @@ class TotalManagementWorkerServices
         $applicationDetails = $this->totalManagementApplications->findOrFail($request['application_id']);
         $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
         $workersCount = $this->workers->where('crm_prospect_id', $applicationDetails->crm_prospect_id)
-                            ->where('worker_status', 'Assigned')
+                            ->where('total_management_status', 'Assigned')
                             ->count('id');
         if($serviceDetails->from_existing == 0) {
             return [
