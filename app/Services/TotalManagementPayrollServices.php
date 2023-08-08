@@ -84,9 +84,11 @@ class TotalManagementPayrollServices
     {
         return $this->workers
             ->leftJoin('worker_employment', 'worker_employment.worker_id','=','workers.id')
+            ->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
             ->where('worker_employment.project_id', $request['project_id']) 
-            ->select(DB::raw('COUNT(workers.id) as workers'), 'worker_employment.project_id')
-            ->groupBy('worker_employment.project_id')
+            ->select(DB::raw('COUNT(workers.id) as workers'), 'worker_employment.project_id', 'total_management_project.name')
+            ->groupBy('worker_employment.project_id', 'total_management_project.name')
+            ->distinct('workers.id')
             ->get();
     }
     /**
