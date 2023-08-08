@@ -87,6 +87,7 @@ class TotalManagementPayrollServices
             ->where('worker_employment.project_id', $request['project_id']) 
             ->select(DB::raw('COUNT(workers.id) as workers'), 'worker_employment.project_id')
             ->groupBy('worker_employment.project_id')
+            ->distinct('workers.id')
             ->get();
     }
     /**
