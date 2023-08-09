@@ -519,6 +519,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('deleteAttachment', 'V1\WorkerEventController@deleteAttachment');
                 });
             });
+            
             $router->group(['prefix' => 'payroll'], function () use ($router) {
                 $router->post('projectDetails', 'V1\TotalManagementPayrollController@projectDetails');
                 $router->post('list', 'V1\TotalManagementPayrollController@list');
@@ -537,7 +538,18 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('projectList', 'V1\TotalManagementTransferController@projectList');
                 $router->post('submit', 'V1\TotalManagementTransferController@submit');
             });
+
+            /**
+            * Routes for Total Management Expenses.
+            */
+            $router->group(['prefix' => 'expenses'], function () use ($router) {
+                $router->post('list', 'V1\TotalManagementExpensesController@list');
+                $router->post('show', 'V1\TotalManagementExpensesController@show');
+                $router->post('create', 'V1\TotalManagementExpensesController@create');
+                $router->post('update', 'V1\TotalManagementExpensesController@update');
+            });
         }); 
+
         /**
         * Routes for Manage workers.
         */
