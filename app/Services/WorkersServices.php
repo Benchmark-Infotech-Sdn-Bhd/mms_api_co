@@ -141,6 +141,7 @@ class WorkersServices
         }
 
         $worker = $this->workers->create([
+            'crm_prospect_id' => $request['crm_prospect_id'] ?? 0,
             'name' => $request['name'] ?? '',
             'gender' => $request['gender'] ?? '',
             'date_of_birth' => $request['date_of_birth'] ?? '',
@@ -303,6 +304,7 @@ class WorkersServices
 
         $worker = $this->workers->with('directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails')->findOrFail($request['id']);
 
+        $worker->crm_prospect_id = $request['crm_prospect_id'] ?? $worker->crm_prospect_id;
         $worker->name = $request['name'] ?? $worker->name;
         $worker->gender = $request['gender'] ?? $worker->gender;
         $worker->date_of_birth = $request['date_of_birth'] ?? $worker->date_of_birth;
@@ -486,40 +488,25 @@ class WorkersServices
             }
         }
         return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
-        ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
+        ->leftjoin('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
         ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
-        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
-        ->where('directrecruitment_workers.application_id', $request['application_id'])
-        ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
+        ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'workers.crm_prospect_id')
         ->where(function ($query) use ($request) {
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
-                $query->where('worker_visa.status','Processed');
+            if(isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) {
+                $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
             }
-
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'arrival') {
-                $query->where('worker_arrival.arrival_status','Not Arrived');
+            if(isset($request['status']) && !empty($request['status'])) {
+                $query->where('workers.total_management_status', $request['status']);
             }
-
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'post_arrival') {
-                $query->where('worker_arrival.arrival_status','Arrived');
-            }
-
-            if (isset($request['agent_id'])) {
-                $query->where('directrecruitment_workers.agent_id',$request['agent_id']);
-            }
-            if (isset($request['status'])) {
-                $query->where('worker_visa.approval_status',$request['status']);
-            }
-            
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('workers.name', 'like', "%{$request['search_param']}%")
                 ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
-
-        })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as status', 'workers.cancel_status as cancellation_status', 'workers.created_at')
+            
+        })->select('workers.id','workers.name', 'workers.passport_number', 'workers.address', 'workers.city', 'workers.state', 'workers.crm_prospect_id', 'crm_prospects.company_name', 'workers.total_management_status')
         ->distinct()
-        ->orderBy('workers.created_at','DESC')
+        ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
 

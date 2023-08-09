@@ -6,6 +6,9 @@ use App\Models\Workers;
 use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\WorkerStatus;
 use App\Models\DirectrecruitmentWorkers;
+use App\Models\KinRelationship;
+use App\Models\DirectRecruitmentOnboardingAgent;
+use App\Models\WorkerBulkUpload;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
@@ -16,12 +19,17 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use App\Services\WorkersServices;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\WorkerImport;
 
 class DirectRecruitmentWorkersServices
 {
     private Workers $workers;
     private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
     private WorkerStatus $workerStatus;
+    private KinRelationship $kinRelationship;
+    private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
+    private WorkerBulkUpload $workerBulkUpload;
     private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
     private ValidationServices $validationServices;
     private AuthServices $authServices;
@@ -33,6 +41,9 @@ class DirectRecruitmentWorkersServices
      * @param Workers $workers
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
      * @param WorkerStatus $workerStatus
+     * @param KinRelationship $kinRelationship
+     * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent
+     * @param WorkerBulkUpload $workerBulkUpload
      * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
@@ -44,6 +55,9 @@ class DirectRecruitmentWorkersServices
             Workers                                     $workers,
             DirectRecruitmentCallingVisaStatus          $directRecruitmentCallingVisaStatus,
             WorkerStatus                                $workerStatus,
+            KinRelationship                             $kinRelationship,
+            DirectRecruitmentOnboardingAgent            $directRecruitmentOnboardingAgent,
+            WorkerBulkUpload                            $workerBulkUpload,
             DirectRecruitmentOnboardingCountryServices  $directRecruitmentOnboardingCountryServices, 
             ValidationServices                          $validationServices,
             AuthServices                                $authServices,
@@ -54,6 +68,9 @@ class DirectRecruitmentWorkersServices
     {
         $this->workers = $workers;
         $this->workerStatus = $workerStatus;
+        $this->kinRelationship = $kinRelationship;
+        $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
+        $this->workerBulkUpload = $workerBulkUpload;
         $this->validationServices = $validationServices;
         $this->directRecruitmentOnboardingCountryServices = $directRecruitmentOnboardingCountryServices;
         $this->authServices = $authServices;
@@ -362,6 +379,119 @@ class DirectRecruitmentWorkersServices
         ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['modified_by']]);
 
         return true;
+    }
+    /**
+     * @return mixed
+     */
+    public function kinRelationship() : mixed
+    {
+        return $this->kinRelationship->where('status', 1)
+        ->select('id','name')
+        ->orderBy('id','ASC')->get();
+    }
+    /**
+     * @return mixed
+     */
+    public function onboardingAgent($request) : mixed
+    {
+        return $this->directRecruitmentOnboardingAgent
+        ->join('agent', 'agent.id', '=', 'directrecruitment_onboarding_agent.agent_id')
+        ->where('directrecruitment_onboarding_agent.status', 1)
+        ->where('directrecruitment_onboarding_agent.application_id', $request['application_id'])
+        ->where('directrecruitment_onboarding_agent.onboarding_country_id', $request['onboarding_country_id'])
+        ->select('agent.id','agent.agent_name')
+        ->orderBy('agent.id','ASC')->get();
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function replaceWorker($request) : array
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+
+        $worker = $this->workers
+        ->where('id', $request['id'])
+        ->update([
+            'replace_worker_id' => $request['replace_worker_id'],
+            'replace_by' => $user['id'],
+            'replace_at' => Carbon::now()->format('Y-m-d H:i:s')
+        ]);
+        return  [
+            "isUpdated" => $worker,
+            "message" => "Updated Successfully"
+        ];
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function show($request) : mixed
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        return $this->workers->with('directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails', 'workerFomemaAttachments')->findOrFail($request['id']);
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function import($request, $file): mixed
+    {
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['created_by'] = $user['id'];
+        $params['modified_by'] = $user['id'];
+        /* if(!($this->validationServices->validate($request->toArray(),$this->bulkUploadValidation()))){
+            return [
+              'validate' => $this->validationServices->errors()
+            ];
+        } */
+
+        $workerBulkUpload = $this->workerBulkUpload->create([
+                'onboarding_country_id' => $request['onboarding_country_id'] ?? '',
+                'agent_id' => $request['agent_id'] ?? '',
+                'application_id' => $request['application_id'] ?? '',
+                'name' => 'Worker Bulk Upload',
+                'type' => 'Worker bulk upload'
+            ]
+        );
+        //echo "<pre>"; print_r($workerBulkUpload); exit;
+
+        Excel::import(new WorkerImport($params, $workerBulkUpload), $file);
+        return true;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function workerStatusList($request): mixed
+    {
+        return $this->workerStatus
+            ->select('id', 'item', 'updated_on', 'status')
+            ->where([
+                'application_id' => $request['application_id'],
+                'onboarding_country_id' => $request['onboarding_country_id']
+            ])
+            ->orderBy('id', 'desc')
+            ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatus($request) : array
+    {
+        $worker = $this->workers
+        ->where('id', $request['id'])
+        ->update(['status' => $request['status']]);
+        return  [
+            "isUpdated" => $worker,
+            "message" => "Updated Successfully"
+        ];
     }
 
 }
