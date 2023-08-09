@@ -214,6 +214,11 @@ class DirecRecruitmentPostArrivalServices
                     'entry_visa_valid_until' => $request['entry_visa_valid_until'], 
                     'modified_by' => $request['modified_by']
                 ]);
+            $this->workers->whereIn('id', $request['workers'])
+            ->update([
+                'directrecruitment_status' => 'Arrived', 
+                'modified_by' => $request['modified_by']
+            ]);
         }
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
 
@@ -270,6 +275,11 @@ class DirecRecruitmentPostArrivalServices
                 ->update([
                     'cancel_status' => 1, 
                     'remarks' => $request['remarks'] ?? '',
+                    'modified_by' => $request['modified_by']
+                ]);
+            $this->workers->whereIn('id', $request['workers'])
+                ->update([
+                    'directrecruitment_status' => 'Cancelled', 
                     'modified_by' => $request['modified_by']
                 ]);
         }        
@@ -331,6 +341,7 @@ class DirecRecruitmentPostArrivalServices
                     'modified_by' => $request['modified_by']
                 ]);
             }
+            $this->workers->whereIn('id', $request['workers'])->update(['directrecruitment_status' => 'Not Arrived', 'modified_by' => $request['modified_by']]);
         }
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
         return true;
