@@ -318,6 +318,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentImmigrationFeePaidController@listBasedOnCallingVisa');
                         $router->post('update', 'V1\DirectRecruitmentImmigrationFeePaidController@update');
                         $router->post('workersList', 'V1\DirectRecruitmentImmigrationFeePaidController@workersList');
+                        $router->post('show', 'V1\DirectRecruitmentImmigrationFeePaidController@show');
                     });
                     $router->group(['prefix' => 'generation'], function () use ($router) {
                         $router->post('generatedStatusUpdate', 'V1\DirectRecruitmentCallingVisaGenerateController@generatedStatusUpdate');
