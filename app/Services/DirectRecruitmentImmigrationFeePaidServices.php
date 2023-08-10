@@ -226,26 +226,24 @@ class DirectRecruitmentImmigrationFeePaidServices
      */
     public function show($request): mixed
     {
-        $processCallingVisa =  $this->workerVisa
+        $processCallingVisa = $this->workerVisa
                             ->where('calling_visa_reference_number', $request['calling_visa_reference_number'])
-                            ->select( 'calling_visa_reference_number', 'submitted_on')
-                            ->groupBy('calling_visa_reference_number', 'submitted_on')
-                            ->get();
+                            ->first(['calling_visa_reference_number', 'submitted_on']);
 
         $insurancePurchase = $this->workerInsuranceDetails
-                        ->leftJoin('vendor', 'vendor.id', 'worker_insurance_details.insurance_provider_id')
-                        ->where('worker_insurance_details.calling_visa_reference_number', $request['calling_visa_reference_number'])
-                        ->select('worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date')
-                        ->with(['workerInsuranceAttachments' => function ($query) {
-                            $query->orderBy('created_at', 'desc');
-                        }])
-                        ->groupBy('worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date')
-                        ->get();
-
+                        ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_insurance_details.worker_id')
+                        ->leftJoin('vendors', 'vendors.id', 'worker_insurance_details.insurance_provider_id')
+                        ->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number'])
+                        ->first(['worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date']);
+                        
         $callingVisaApproval = $this->workerVisa
                         ->where('calling_visa_reference_number', $request['calling_visa_reference_number'])
-                        ->select('calling_visa_reference_number', 'calling_visa_generated', 'calling_visa_valid_until')
-                        ->groupBy('calling_visa_reference_number', 'calling_visa_generated', 'calling_visa_valid_until')
-                        ->get();
+                        ->first(['calling_visa_generated', 'calling_visa_valid_until']);
+                        
+        return [
+            'process' => $processCallingVisa,
+            'insurance' => $insurancePurchase,
+            'approval' => $callingVisaApproval
+        ];
     }
 }

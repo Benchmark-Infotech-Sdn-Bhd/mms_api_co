@@ -81,4 +81,21 @@ class DirectRecruitmentCallingVisaGenerateController extends Controller
             return $this->sendError(['message' => 'Failed to List Calling Visa'], 400);
         }
     }
+    /**
+     * Display previous details based on calling visa.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function show(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentCallingVisaGenerateServices->show($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Show Details'], 400);
+        }
+    }
 }

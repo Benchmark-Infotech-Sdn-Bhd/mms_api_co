@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\Workers;
 use App\Models\WorkerVisa;
+use App\Models\WorkerInsuranceDetails;
+use App\Models\WorkerImmigration;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
@@ -29,6 +31,14 @@ class DirectRecruitmentCallingVisaDispatchServices
      * @var DirectRecruitmentCallingVisaStatus
      */
     private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
+    /**
+     * @var WorkerInsuranceDetails
+     */
+    private WorkerInsuranceDetails $workerInsuranceDetails;
+    /**
+     * @var WorkerImmigration
+     */
+    private WorkerImmigration $workerImmigration;
 
     /**
      * DirectRecruitmentCallingVisaDispatchServices constructor.
@@ -36,13 +46,17 @@ class DirectRecruitmentCallingVisaDispatchServices
      * @param WorkerVisa $workerVisa
      * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
+     * @param WorkerInsuranceDetails $workerInsuranceDetails
+     * @param WorkerImmigration $workerImmigration
      */
-    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, WorkerInsuranceDetails $workerInsuranceDetails, WorkerImmigration $workerImmigration)
     {
         $this->workers                                      = $workers;
         $this->workerVisa                                   = $workerVisa;
         $this->directRecruitmentOnboardingCountryServices   = $directRecruitmentOnboardingCountryServices;
         $this->directRecruitmentCallingVisaStatus           = $directRecruitmentCallingVisaStatus;
+        $this->workerInsuranceDetails                       = $workerInsuranceDetails;
+        $this->workerImmigration                            = $workerImmigration;
     }
     /**
      * @return array
@@ -155,5 +169,42 @@ class DirectRecruitmentCallingVisaDispatchServices
             ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'worker_visa.dispatch_method', 'worker_visa.dispatch_consignment_number', 'worker_visa.dispatch_acknowledgement_number', 'worker_visa.dispatch_submitted_on',  'worker_visa.dispatch_status')
             ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
             ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function show($request): mixed
+    {
+        $processCallingVisa = $this->workerVisa
+                            ->where('calling_visa_reference_number', $request['calling_visa_reference_number'])
+                            ->first(['calling_visa_reference_number', 'submitted_on']);
+
+        $insurancePurchase = $this->workerInsuranceDetails
+                        ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_insurance_details.worker_id')
+                        ->leftJoin('vendors', 'vendors.id', 'worker_insurance_details.insurance_provider_id')
+                        ->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number'])
+                        ->first(['worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date']);
+                        
+        $callingVisaApproval = $this->workerVisa
+                        ->where('calling_visa_reference_number', $request['calling_visa_reference_number'])
+                        ->first(['calling_visa_generated', 'calling_visa_valid_until']);
+
+        $callingVisaImmigration = $this->workerImmigration
+                            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_immigration.worker_id')
+                            ->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number'])
+                            ->first(['worker_immigration.total_fee', 'worker_immigration.immigration_reference_number', 'worker_immigration.payment_date']);
+
+        $callingVisaDispatch = $this->workerVisa
+                            ->where('calling_visa_reference_number', $request['calling_visa_reference_number'])
+                            ->first(['calling_visa_valid_until']);
+                        
+        return [
+            'process' => $processCallingVisa,
+            'insurance' => $insurancePurchase,
+            'approval' => $callingVisaApproval,
+            'immigration' => $callingVisaImmigration,
+            'dispatch' => $callingVisaDispatch
+        ];
     }
 }

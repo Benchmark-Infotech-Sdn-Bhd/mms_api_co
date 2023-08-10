@@ -324,11 +324,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('generatedStatusUpdate', 'V1\DirectRecruitmentCallingVisaGenerateController@generatedStatusUpdate');
                         $router->post('workersList', 'V1\DirectRecruitmentCallingVisaGenerateController@workersList');
                         $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentCallingVisaGenerateController@listBasedOnCallingVisa');
+                        $router->post('show', 'V1\DirectRecruitmentCallingVisaGenerateController@show');
                     });
                     $router->group(['prefix' => 'dispatch'], function () use ($router) {
                         $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentCallingVisaDispatchController@listBasedOnCallingVisa');
                         $router->post('update', 'V1\DirectRecruitmentCallingVisaDispatchController@update');
                         $router->post('workersList', 'V1\DirectRecruitmentCallingVisaDispatchController@workersList');
+                        $router->post('show', 'V1\DirectRecruitmentCallingVisaDispatchController@show');
 					});
                 });
                 $router->group(['prefix' => 'arrival'], function () use ($router) {
