@@ -149,4 +149,24 @@ class DirecRecruitmentPostArrivalController extends Controller
             return $this->sendError(['message' => 'Failed to Update Postponed Status'], 400);
         }
     }
+     /**
+     * Dispaly list of workers for post arrival export.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function workersListExport(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->direcRecruitmentPostArrivalServices->workersListExport($params);
+            if(isset($response['error']) && !empty($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Workers'], 400);
+        }
+    }
 }

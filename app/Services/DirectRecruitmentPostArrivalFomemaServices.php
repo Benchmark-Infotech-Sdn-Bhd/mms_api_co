@@ -274,4 +274,40 @@ class DirectRecruitmentPostArrivalFomemaServices
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
         return true;
     }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function workersListExport($request): mixed
+    {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
+        return $this->workers
+            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->leftJoin('worker_arrival', 'worker_arrival.worker_id', 'workers.id')
+            ->leftJoin('worker_fomema', 'worker_fomema.worker_id', 'workers.id')
+            ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
+            ->where([
+                'directrecruitment_workers.application_id' => $request['application_id'],
+                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
+                'worker_arrival.arrival_status' => 'Arrived',
+                'worker_fomema.fomema_status' => 'Pending'
+            ])
+            ->where(function ($query) use ($request) {
+                if(isset($request['search']) && !empty($request['search'])) {
+                    $query->where('workers.name', 'like', '%'.$request['search'].'%')
+                    ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
+                    ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%');
+                }
+            })
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'workers.special_pass_valid_until', 'worker_fomema.purchase_date', 'worker_fomema.fomema_status')->distinct('workers.id')
+            ->orderBy('workers.id', 'desc')
+            ->get();
+    }
 }

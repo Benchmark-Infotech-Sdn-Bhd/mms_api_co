@@ -361,6 +361,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('updateJTKSubmission', 'V1\DirecRecruitmentPostArrivalController@updateJTKSubmission');
                         $router->post('updateCancellation', 'V1\DirecRecruitmentPostArrivalController@updateCancellation');
                         $router->post('updatePostponed', 'V1\DirecRecruitmentPostArrivalController@updatePostponed');
+                        $router->post('workersListExport', 'V1\DirecRecruitmentPostArrivalController@workersListExport');
                     });
                     $router->group(['prefix' => 'fomema'], function () use ($router) {
                         $router->post('workersList', 'V1\DirectRecruitmentPostArrivalFomemaController@workersList');
@@ -368,20 +369,24 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('fomemaFit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaFit');
                         $router->post('fomemaUnfit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaUnfit');
                         $router->post('updateSpecialPass', 'V1\DirectRecruitmentPostArrivalFomemaController@updateSpecialPass');
+                        $router->post('workersListExport', 'V1\DirectRecruitmentPostArrivalFomemaController@workersListExport');
                     });
                     $router->group(['prefix' => 'plks'], function () use ($router) {
                         $router->post('workersList', 'V1\DirectRecruitmentPostArrivalPLKSController@workersList');
                         $router->post('updatePLKS', 'V1\DirectRecruitmentPostArrivalPLKSController@updatePLKS');
                         $router->post('updateSpecialPass', 'V1\DirectRecruitmentPostArrivalFomemaController@updateSpecialPass');
+                        $router->post('workersListExport', 'V1\DirectRecruitmentPostArrivalPLKSController@workersListExport');
                     });
                     $router->group(['prefix' => 'repatriation'], function () use ($router) {
                         $router->post('workersList', 'V1\DirectRecruitmentRepatriationController@workersList');
                         $router->post('updateRepatriation', 'V1\DirectRecruitmentRepatriationController@updateRepatriation');
+                        $router->post('workersListExport', 'V1\DirectRecruitmentRepatriationController@workersListExport');
                     });
                     $router->group(['prefix' => 'specialPass'], function () use ($router) {
                         $router->post('workersList', 'V1\DirectRecruitmentSpecialPassController@workersList');
                         $router->post('updateSubmission', 'V1\DirectRecruitmentSpecialPassController@updateSubmission');
                         $router->post('updateValidity', 'V1\DirectRecruitmentSpecialPassController@updateValidity');
+                        $router->post('workersListExport', 'V1\DirectRecruitmentSpecialPassController@workersListExport');
                     });
                 });
             });
