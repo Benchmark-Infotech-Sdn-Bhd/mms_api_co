@@ -26,7 +26,7 @@ class DirectRecruitmentRepatriationController extends Controller
         $this->directRecruitmentRepatriationServices = $directRecruitmentRepatriationServices;
     }
     /**
-     * Dispaly list of workers for PLKS.
+     * Dispaly list of workers for Repatriation.
      *
      * @param Request $request
      * @return JsonResponse
@@ -64,6 +64,26 @@ class DirectRecruitmentRepatriationController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Update Repatriation'], 400);
+        }
+    }
+    /**
+     * Dispaly list of workers for Repatriation export.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function workersListExport(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentRepatriationServices->workersListExport($params);
+            if(isset($response['error']) && !empty($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Workers'], 400);
         }
     }
 }

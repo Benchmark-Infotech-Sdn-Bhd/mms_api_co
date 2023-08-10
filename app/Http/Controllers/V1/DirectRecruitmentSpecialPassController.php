@@ -26,7 +26,7 @@ class DirectRecruitmentSpecialPassController extends Controller
         $this->directRecruitmentSpecialPassServices = $directRecruitmentSpecialPassServices;
     }
     /**
-     * Dispaly list of workers for FOMEMA.
+     * Dispaly list of workers for Special Pass.
      *
      * @param Request $request
      * @return JsonResponse
@@ -87,6 +87,26 @@ class DirectRecruitmentSpecialPassController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Update Validity'], 400);
+        }
+    }
+    /**
+     * Dispaly list of workers for Special Pass export.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function workersListExport(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentSpecialPassServices->workersListExport($params);
+            if(isset($response['error']) && !empty($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Workers'], 400);
         }
     }
 }
