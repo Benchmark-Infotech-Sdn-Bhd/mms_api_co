@@ -54,11 +54,12 @@ class TotalManagementTransferServices
     public function submitValidation(): array
     {
         return [
-            'worker_employment_id' => 'required',
             'worker_id' => 'required',
-            'project_id' => 'required',
+            'current_project_id' => 'required',
+            'new_project_id' => 'required',
             'accommodation_provider_id' => 'required|regex:/^[0-9]*$/',
             'accommodation_unit_id' => 'required|regex:/^[0-9]*$/',
+            'start_date' => 'required|date|date_format:Y-m-d',
             'to_date' => 'required|date|date_format:Y-m-d',
             'transfer_date' => 'required|date|date_format:Y-m-d'
         ];
@@ -89,6 +90,7 @@ class TotalManagementTransferServices
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
         ->leftJoin('sectors', 'sectors.id', 'crm_prospect_services.sector_id')
         ->where('crm_prospects.status', 1)
+        ->where('crm_prospect_services.service_id', '!=', 1)
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
@@ -140,7 +142,7 @@ class TotalManagementTransferServices
         // CHECK WORKER EMPLOYMENT DATA - SAME PROJECT ID
         $workerEmployment = $this->workerEmployment->where([
             ['worker_id', $request['worker_id']],
-            ['project_id', $request['project_id']]
+            ['project_id', $request['new_project_id']]
         ])
         ->whereNull('work_end_date')
         ->count();
@@ -162,10 +164,12 @@ class TotalManagementTransferServices
 
         // UPDATE WORKER EMPLOYMENT TABLE
         $this->workerEmployment->where([
-            'id' => $request['worker_employment_id'],
+            'project_id' => $request['current_project_id'],
             'worker_id' => $request['worker_id']
         ])->update([
-            'work_end_date' => $request['to_date'], 
+            'work_end_date' => $request['to_date'],
+            'transfer_start_date' => $request['start_date'],
+            'transfer_end_date' => $request['to_date'],
             'updated_at' => Carbon::now(), 
             'modified_by' => $request['modified_by']
         ]);
@@ -173,9 +177,7 @@ class TotalManagementTransferServices
         // CREATE A RECORD WORKER EMPLOYMENT TABLE
         $this->workerEmployment->create([
             'worker_id' => $request['worker_id'],
-            'project_id' => $request['project_id'],
-            'department' => $request['department'] ?? null,
-            'sub_department' => $request['sub_department'] ?? null,
+            'project_id' => $request['new_project_id'],
             'accommodation_provider_id' => $request['accommodation_provider_id'],
             'accommodation_unit_id' => $request['accommodation_unit_id'],
             'work_start_date' => $request['transfer_date'],
