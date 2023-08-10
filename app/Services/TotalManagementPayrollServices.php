@@ -100,8 +100,7 @@ class TotalManagementPayrollServices
         return $this->workers
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_employment', function($query) {
-                $query->on('worker_employment.worker_id','=','workers.id')
-                    ->whereRaw('worker_employment.id IN (select MAX(WORKER_EMP.id) from worker_employment as WORKER_EMP JOIN workers as WORKER ON WORKER.id = WORKER_EMP.worker_id group by WORKER.id)');
+                $query->on('worker_employment.worker_id','=','workers.id');
             })
             ->leftJoin('worker_bank_details', function($query) {
                 $query->on('worker_bank_details.worker_id','=','workers.id')
@@ -137,8 +136,7 @@ class TotalManagementPayrollServices
         return $this->workers
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_employment', function($query) {
-                $query->on('worker_employment.worker_id','=','workers.id')
-                    ->whereRaw('worker_employment.id IN (select MAX(WORKER_EMP.id) from worker_employment as WORKER_EMP JOIN workers as WORKER ON WORKER.id = WORKER_EMP.worker_id group by WORKER.id)');
+                $query->on('worker_employment.worker_id','=','workers.id');
             })
             ->leftJoin('worker_bank_details', function($query) {
                 $query->on('worker_bank_details.worker_id','=','workers.id')
@@ -173,8 +171,7 @@ class TotalManagementPayrollServices
         return $this->workers
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_employment', function($query) {
-                $query->on('worker_employment.worker_id','=','workers.id')
-                    ->whereRaw('worker_employment.id IN (select MAX(WORKER_EMP.id) from worker_employment as WORKER_EMP JOIN workers as WORKER ON WORKER.id = WORKER_EMP.worker_id group by WORKER.id)');
+                $query->on('worker_employment.worker_id','=','workers.id');
             })
             ->leftJoin('worker_bank_details', function($query) {
                 $query->on('worker_bank_details.worker_id','=','workers.id')
