@@ -86,6 +86,20 @@ class TotalManagementWorkerServices
             'work_start_date' => 'required|date|date_format:Y-m-d|before:tomorrow'
         ];
     }
+
+    /**
+     * @return array
+     */
+    public function removeValidation(): array
+    {
+        return [
+            'project_id' => 'required',
+            'worker_id' => 'required',
+            'remarks' => 'required',
+            'remove_date' => 'required'
+        ];
+    }
+
     /**
      * @param $request
      * @return mixed
@@ -295,4 +309,42 @@ class TotalManagementWorkerServices
                     ->select('crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'directrecruitment_application_approval.valid_until')
                     ->get();
     }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function getAssignedWorker($request): mixed
+    {
+        return $this->workerEmployment
+        ->leftjoin('workers', 'workers.id', 'worker_employment.worker_id')->where("project_id", $request['project_id'])->select('worker_employment.id','worker_employment.worker_id','workers.name','workers.passport_number')->get();
+    }   
+
+    /**
+     * @param $request
+     * @return array|bool
+     */
+    public function removeWorker($request): array|bool
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['modified_by'] = $user['id'];
+
+        $validator = Validator::make($request, $this->removeValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        $workerDetails = $this->workerEmployment->where("worker_id", $request['worker_id'])->where("project_id", $request['project_id'])->get();
+
+        $this->workerEmployment->where("worker_id", $request['worker_id'])->where("project_id", $request['project_id'])
+        ->update([
+            'status' => 0,
+            'remove_date' => $request['remove_date'],
+            'remarks' => $request['remarks']
+        ]);
+
+        return true;
+    }
+
 }

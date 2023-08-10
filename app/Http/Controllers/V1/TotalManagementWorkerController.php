@@ -183,4 +183,39 @@ class TotalManagementWorkerController extends Controller
             return $this->sendError(['message' => 'Failed to Show Sector and Valid Until'], 400);
         }
     }
+
+    /**
+     * Display Assigned Worker List.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getAssignedWorker(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->totalManagementWorkerServices->getAssignedWorker($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Retrive assigned Worker(s)'], 400);
+        }
+    }
+    /**
+     * Dispaly form for remove workers.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function removeWorker(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->totalManagementWorkerServices->removeWorker($params);
+            return $this->sendSuccess(['message' => 'Worker Removed Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Remove Worker'], 400);
+        }
+    }
 }

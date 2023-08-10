@@ -517,6 +517,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('getCompany', 'V1\TotalManagementWorkerController@getCompany');
                     $router->post('ksmRefereneceNUmberDropDown', 'V1\TotalManagementWorkerController@ksmRefereneceNUmberDropDown');
                     $router->post('getSectorAndValidUntil', 'V1\TotalManagementWorkerController@getSectorAndValidUntil');
+
+                    $router->post('getAssignedWorker', 'V1\TotalManagementWorkerController@getAssignedWorker');
+                    $router->post('removeWorker', 'V1\TotalManagementWorkerController@removeWorker');
                 });
                 $router->group(['prefix' => 'workerEvent'], function () use ($router) {
                     $router->post('list', 'V1\WorkerEventController@list');
@@ -526,7 +529,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('deleteAttachment', 'V1\WorkerEventController@deleteAttachment');
                 });
             });
-            
+
             $router->group(['prefix' => 'payroll'], function () use ($router) {
                 $router->post('projectDetails', 'V1\TotalManagementPayrollController@projectDetails');
                 $router->post('list', 'V1\TotalManagementPayrollController@list');
