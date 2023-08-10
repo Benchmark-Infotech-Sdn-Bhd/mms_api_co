@@ -79,6 +79,22 @@ class DirectRecruitmentCallingVisaGenerationUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test show previous step
+     * 
+     * @return void
+     */
+    public function testForShow(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/generation/show', ['calling_visa_reference_number' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+    /**
      * @return void
      */
     public function creationSeeder(): void
