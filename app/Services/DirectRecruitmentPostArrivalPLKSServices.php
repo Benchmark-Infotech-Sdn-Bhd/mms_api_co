@@ -101,8 +101,7 @@ class DirectRecruitmentPostArrivalPLKSServices
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
                 'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'worker_fomema.fomema_status' => 'Fit',
-                'workers.plks_status' => 'Pending'
+                'worker_fomema.fomema_status' => 'Fit'
             ])
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
