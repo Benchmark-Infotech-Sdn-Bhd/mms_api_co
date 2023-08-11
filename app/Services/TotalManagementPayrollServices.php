@@ -11,6 +11,9 @@ use Carbon\Carbon;
 use App\Models\Workers;
 use App\Models\TotalManagementPayroll;
 use App\Models\TotalManagementPayrollAttachments;
+use App\Models\PayrollBulkUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\PayrollImport;
 
 class TotalManagementPayrollServices
 {
@@ -27,6 +30,10 @@ class TotalManagementPayrollServices
      */
     private TotalManagementPayrollAttachments $totalManagementPayrollAttachments;
     /**
+     * @var PayrollBulkUpload
+     */
+    private PayrollBulkUpload $payrollBulkUpload;
+    /**
      * @var Storage
      */
     private Storage $storage;
@@ -35,14 +42,16 @@ class TotalManagementPayrollServices
      * @param TotalManagementProject $totalManagementProject
      * @param TotalManagementPayroll $totalManagementPayroll
      * @param TotalManagementPayrollAttachments $totalManagementPayrollAttachments
+     * @param PayrollBulkUpload $payrollBulkUpload
      * @param Storage $storage;
      */
-    public function __construct(Workers $workers, TotalManagementPayroll $totalManagementPayroll, TotalManagementPayrollAttachments $totalManagementPayrollAttachments, Storage $storage)
+    public function __construct(Workers $workers, TotalManagementPayroll $totalManagementPayroll, TotalManagementPayrollAttachments $totalManagementPayrollAttachments, Storage $storage, PayrollBulkUpload $payrollBulkUpload)
     {
         $this->workers = $workers;
         $this->totalManagementPayroll = $totalManagementPayroll;
         $this->totalManagementPayrollAttachments = $totalManagementPayrollAttachments;
         $this->storage = $storage;
+        $this->payrollBulkUpload = $payrollBulkUpload;
     }
     /**
      * @return array
@@ -74,6 +83,15 @@ class TotalManagementPayrollServices
             'project_id' => 'required',
             'month' => 'required',
             'year' => 'required'
+        ];
+    }
+        /**
+     * @return array
+     */
+    public function importValidation(): array
+    {
+        return [
+            'project_id' => 'required'
         ];
     }
     /**
@@ -187,8 +205,28 @@ class TotalManagementPayrollServices
      * @param $request
      * @return bool|array
      */   
-    public function import($request): bool|array
+    public function import($request, $file): mixed
     {
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['created_by'] = $user['id'];
+        $params['modified_by'] = $user['id'];
+
+        $validator = Validator::make($request->toArray(), $this->importValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        
+        $payrollBulkUpload = $this->payrollBulkUpload->create([
+                'project_id' => $request['project_id'] ?? '',
+                'name' => 'Payroll Bulk Upload',
+                'type' => 'Payroll bulk upload'
+            ]
+        );
+
+        Excel::import(new PayrollImport($params, $payrollBulkUpload), $file);
         return true;
     } 
     /**

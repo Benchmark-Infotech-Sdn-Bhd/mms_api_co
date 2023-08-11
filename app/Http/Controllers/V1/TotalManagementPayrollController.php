@@ -102,17 +102,21 @@ class TotalManagementPayrollController extends Controller
     public function import(Request $request): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
-            $user = JWTAuth::parseToken()->authenticate();
-            $params['created_by'] = $user['id'];
-            $response = $this->totalManagementPayrollServices->import($params);
-            if(isset($response['error'])) {
-                return $this->validationError($response['error']);
+            $originalFilename = $request->file('payroll_file')->getClientOriginalName();
+            $originalFilename_arr = explode('.', $originalFilename);
+            $fileExt = end($originalFilename_arr);
+            $destinationPath = storage_path('upload/payroll/');
+            $fileName = 'A-' . time() . '.' . $fileExt;
+            $request->file('payroll_file')->move($destinationPath, $fileName);
+            $data = $this->totalManagementPayrollServices->import($request, $destinationPath . $fileName);
+            if(isset($data['error'])){
+                return $this->validationError($data['error']); 
             }
-            return $this->sendSuccess(['message' => 'Total Manangement Payroll Imported Successfully']);
+            return $this->sendSuccess(['message' => "Successfully payroll was imported"]);
         } catch (Exception $e) {
-            Log::error('Error = ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Import Total Management Payroll'], 400);
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Import failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
     /**
