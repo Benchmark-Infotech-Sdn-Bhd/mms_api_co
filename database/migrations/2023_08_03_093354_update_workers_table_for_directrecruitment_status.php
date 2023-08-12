@@ -18,6 +18,9 @@ return new class extends Migration
                 // total management worker status column
                 \DB::statement("ALTER TABLE `workers` CHANGE `worker_status` `total_management_status` ENUM('On-Bench','Assigned','Counselling', 'Repatriated', 'e-Run', 'Deceased') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'On-Bench';");
             }
+            if(DB::getDriverName() == 'sqlite') {
+                $table->renameColumn('worker_status', 'total_management_status');
+            }
         });
     }
 
