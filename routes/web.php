@@ -560,6 +560,18 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('delete', 'V1\TotalManagementExpensesController@delete');
                 $router->post('deleteAttachment', 'V1\TotalManagementExpensesController@deleteAttachment');
             });
+
+            /**
+            * Routes for Total Management Cost Management.
+            */
+            $router->group(['prefix' => 'costManagement'], function () use ($router) {
+                $router->post('list', 'V1\TotalManagementCostManagementController@list');
+                $router->post('show', 'V1\TotalManagementCostManagementController@show');
+                $router->post('create', 'V1\TotalManagementCostManagementController@create');
+                $router->post('update', 'V1\TotalManagementCostManagementController@update');
+                $router->post('delete', 'V1\TotalManagementCostManagementController@delete');
+                $router->post('deleteAttachment', 'V1\TotalManagementCostManagementController@deleteAttachment');
+            });
         }); 
 
         /**
