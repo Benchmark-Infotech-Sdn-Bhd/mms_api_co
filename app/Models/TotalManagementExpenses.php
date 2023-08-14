@@ -22,7 +22,7 @@ class TotalManagementExpenses extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['application_id','title','payment_reference_number','quantity','amount','payment_date','remarks','created_by','modified_by'];
+    protected $fillable = ['worker_id','title','payment_reference_number','quantity','amount','payment_date','remarks','created_by','modified_by','type','deduction'];
    
     /**
      * The attributes that are required.
@@ -30,11 +30,11 @@ class TotalManagementExpenses extends Model implements Auditable
      * @var array
      */
     public $rules = [
-        'application_id' => 'required|regex:/^[0-9]+$/',
+        'worker_id' => 'required|regex:/^[0-9]+$/',
         'title' => 'required|max:255',
-        'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
         'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
-        'amount' => 'required|regex:/^(\d+(,\d{1,2})?)?$/'
+        'amount' => 'required|regex:/^(\d+(,\d{1,2})?)?$/',
+        'type' => 'required'
     ];
     /**
      * The function returns array that are required for updation.
@@ -46,11 +46,11 @@ class TotalManagementExpenses extends Model implements Auditable
         // Unique name with deleted at
         return [
             'id' => 'required|regex:/^[0-9]+$/',
-            'application_id' => 'required|regex:/^[0-9]+$/',
+            'worker_id' => 'required|regex:/^[0-9]+$/',
             'title' => 'required|max:255',
-            'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
-            'amount' => 'required|regex:/^(\d+(,\d{1,2})?)?$/'
+            'amount' => 'required|regex:/^(\d+(,\d{1,2})?)?$/',
+            'type' => 'required'
         ];
     }
 
