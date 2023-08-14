@@ -316,7 +316,7 @@ class TotalManagementWorkerServices
     public function getAssignedWorker($request): mixed
     {
         return $this->workerEmployment
-        ->leftjoin('workers', 'workers.id', 'worker_employment.worker_id')->where("project_id", $request['project_id'])->where("status", 1)->select('worker_employment.id','worker_employment.worker_id','workers.name','workers.passport_number')->get();
+        ->leftjoin('workers', 'workers.id', 'worker_employment.worker_id')->where("worker_employment.project_id", $request['project_id'])->where("worker_employment.status", 1)->select('worker_employment.id','worker_employment.worker_id','workers.name','workers.passport_number')->get();
     }   
 
     /**
