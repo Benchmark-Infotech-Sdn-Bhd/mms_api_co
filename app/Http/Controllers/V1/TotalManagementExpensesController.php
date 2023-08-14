@@ -112,5 +112,40 @@ class TotalManagementExpensesController extends Controller
             $data['error'] = 'Retrieve failed. Please retry.';
             return $this->sendError(['message' => $data['error']]);
         }
-    }    
+    }   
+
+    /**
+     * delete the specified Vendors data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function delete(Request $request): JsonResponse
+    {  
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->totalManagementExpensesServices->delete($params); 
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Delete Expenses was failed']);
+        }  
+    }
+
+    /**
+     * delete the specified Attachment data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteAttachment(Request $request): JsonResponse
+    {   
+        try {
+            $response = $this->totalManagementExpensesServices->deleteAttachment($request);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => $e->getMessage()]);
+        }        
+    } 
 }
