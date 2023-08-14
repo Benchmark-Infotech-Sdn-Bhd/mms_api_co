@@ -5,7 +5,7 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-class TotalManagementServicesUnitTest extends TestCase
+class TotalManagementAssignWorkerUnitTest extends TestCase
 {
     use DatabaseMigrations;
     
@@ -17,270 +17,242 @@ class TotalManagementServicesUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test for total management, add service id mandatory field validation 
+     * Functional test for assign worker accommodation provider dropdown
      * 
      * @return void
      */
-    public function testForTotalManagementAddServiceIdRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['id' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'id' => ['The id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service company name mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServiceCompanyNameRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['company_name' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'company_name' => ['The company name field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service contact number mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServiceContactNumberRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['contact_number' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'contact_number' => ['The contact number field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service email mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServiceEmailRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['email' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'email' => ['The email field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service pic name mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServicePICNameRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['pic_name' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'pic_name' => ['The pic name field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service from existing mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServiceFromExistingRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['from_existing' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'from_existing' => ['The from existing field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service client quota format validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServiceClientQuotaFormatValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['client_quota' => 1.1]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'client_quota' => ['The client quota format is invalid.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service client quota size validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServiceClientQuotaSizeValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['client_quota' => 1111]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'client_quota' => ['The client quota must not be greater than 3 characters.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service fomnext quota format validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServiceFomnextQuotaFormatValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['fomnext_quota' => 1.1]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'fomnext_quota' => ['The fomnext quota format is invalid.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service fomnext quota size validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServiceFomnextQuotaSizeValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['fomnext_quota' => 1111]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'fomnext_quota' => ['The fomnext quota must not be greater than 3 characters.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service initial quota format validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServiceInitialQuotaFormatValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['initial_quota' => 1.1]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'initial_quota' => ['The initial quota format is invalid.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service service quota format validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServiceServiceQuotaFormatValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['service_quota' => 1.1]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'service_quota' => ['The service quota format is invalid.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, add service service quota size validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementAddServiceServiceQuotaSizeValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', array_merge($this->creationData(), ['service_quota' => 1111]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'service_quota' => ['The service quota must not be greater than 3 characters.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management, get initial quota 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementInitialQuota(): void
+    public function testForAccommodationProviderDropDown(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/getQuota', ['prospect_id' => 1], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/accommodationProviderDropDown', [], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'approvedQuota'
+                    
                 ]
         ]);
     }
     /**
-     * Functional test for total management, allocate quota validation for from existing
+     * Functional test for assign worker accommodation units dropdown
      * 
      * @return void
      */
-    public function testForTotalManagementAllocateQuotaValidation(): void
+    public function testForAccommodationUnitDropDown(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/allocateQuota', array_merge($this->allocateQuotaData(), ['service_quota' => 99]), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/accommodationUnitDropDown', ["id" => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    
+                ]
+        ]);
+    }
+    /**
+     * Functional test for aassign worker company details 
+     * 
+     * @return void
+     */
+    public function testForGetCompanyDetails(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/getCompany', ["application_id" => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    
+                ]
+        ]);
+    }
+    /**
+     * Functional test for assign worker ksm reference number dropdown
+     * 
+     * @return void
+     */
+    public function testForKSMReferenceNumberDropDown(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/ksmRefereneceNUmberDropDown', ["application_id" => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    
+                ]
+        ]);
+    }
+    /**
+     * Functional test for get sector and valid until details
+     * 
+     * @return void
+     */
+    public function testForSectorAndValidUntilDate(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/getSectorAndValidUntil', ["prospect_id" => 1, "ksm_reference_number" => "My/992/095648000"], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    [
+                    'sector_id', 
+                    'sector_name', 
+                    'valid_until'
+                    ]
+                ]
+        ]);
+    }
+    /**
+     * Functional test for get balanced quota
+     * 
+     * @return void
+     */
+    public function testForBalancedQuota(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/getBalancedQuota', ["application_id" => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'clientQuota',
+                    'clientBalancedQuota',
+                    'fomnextQuota',
+                    'fomnextBalancedQuota'
+                ]
+        ]);
+    }
+    /**
+     * Functional test for assign worker, accommodation provider id field validation 
+     * 
+     * @return void
+     */
+    public function testForAssignWorkerAccommodationProviderIdRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/assignWorker', array_merge($this->creationData(), ['accommodation_provider_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'message' => 'Quota for service should not exceed to Initail quota'
+                'accommodation_provider_id' => ['The accommodation provider id field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for total management, allocate quota for from existing
+     * Functional test for assign worker, accommodation unit id field validation 
      * 
      * @return void
      */
-    public function testForTotalManagementAllocateQuotaFromExisting(): void
+    public function testForAssignWorkerAccommodationUnitIdRequiredValidation(): void
     {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/allocateQuota', array_merge($this->allocateQuotaData(), ['client_quota' => NULL, 'fomnext_quota' => NULL]), $this->getHeader(false));
-        $response->seeStatusCode(200);
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/assignWorker', array_merge($this->creationData(), ['accommodation_unit_id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
         $response->seeJson([
-            'data' => ['message' => 'Quota Allocated Successfully.']
+            'data' => [
+                'accommodation_unit_id' => ['The accommodation unit id field is required.']
+            ]
         ]);
     }
     /**
-     * Functional test for total management, allocate quota for not from existing
+     * Functional test for assign worker, work start date mandatory field validation 
      * 
      * @return void
      */
-    public function testForTotalManagementAllocateQuotaNotFromExisting(): void
+    public function testForAssignWorkerWorkStartDateRequiredValidation(): void
     {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/allocateQuota', array_merge($this->allocateQuotaData(), ['from_existing' => 0, 'initial_quota' => NULL, 'service_quota' => NULL]), $this->getHeader(false));
-        $response->seeStatusCode(200);
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/assignWorker', array_merge($this->creationData(), ['work_start_date' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
         $response->seeJson([
-            'data' => ['message' => 'Quota Allocated Successfully.']
+            'data' => [
+                'work_start_date' => ['The work start date field is required.']
+            ]
         ]);
     }
     /**
-     * Functional test for total management application list search validation
+     * Functional test for assign worker, work start date format validation 
      * 
      * @return void
      */
-    public function testForTotalManagementApplicationListSearchValidation(): void
+    public function testForAssignWorkerWorkStartDateFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/assignWorker', array_merge($this->creationData(), ['work_start_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'work_start_date' => ['The work start date does not match the format Y-m-d.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for assign worker, work start date past validation 
+     * 
+     * @return void
+     */
+    public function testForAssignWorkerWorkStartDatePastValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/assignWorker', array_merge($this->creationData(), ['work_start_date' => Carbon::now()->addYear()->format('Y-m-d')]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'work_start_date' => ['The work start date must be a date before tomorrow.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for assign worker, department format validation 
+     * 
+     * @return void
+     */
+    public function testForAssignWorkerDepartmentFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/assignWorker', array_merge($this->creationData(), ['department' => 'department$$$']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'department' => ['The department format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for assign worker, sub department format validation 
+     * 
+     * @return void
+     */
+    public function testForAssignWorkerSubDepartmentFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/assignWorker', array_merge($this->creationData(), ['sub_department' => 'SubDepartment$$$']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'sub_department' => ['The sub department format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for assign worker
+     * 
+     * @return void
+     */
+    public function testForAssignWorker(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/applicationListing', ['search' => 'A'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/assignWorker', $this->creationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Workers are Assigned Successfully']
+        ]);
+    }
+    /**
+     * Functional test for worker list for assign worker search validation
+     * 
+     * @return void
+     */
+    public function testForCancellationWorkersListSearchValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/workerListForAssignWorker', ['search' => 'te'], $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -289,140 +261,14 @@ class TotalManagementServicesUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for total management proposal submit Id mandatory field validation
+     * Functional test for total management, assign worker list with search
      * 
      * @return void
      */
-    public function testForTotalManagementProposalSubmitIDRequiredValidation(): void
+    public function testForTotalManagementWorkerListing(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['id' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'id' => ['The id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management proposal submit quota requested mandatory field validation
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProposalSubmitRequestedQuotaRequiredValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['quota_requested' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'quota_requested' => ['The quota requested field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management proposal submit person in charge mandatory field validation
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProposalSubmitPersonInChargeRequiredValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['person_incharge' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'person_incharge' => ['The person incharge field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management proposal submit cost quoted mandatory field validation
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProposalSubmitCostQuotedRequiredValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['cost_quoted' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'cost_quoted' => ['The cost quoted field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management proposal submit quota requested Format validation
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProposalSubmitRequestedQuotaFormatValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['quota_requested' => 1.1]), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'quota_requested' => ['The quota requested format is invalid.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management proposal submit quota requested size validation
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProposalSubmitRequestedQuotaSizeValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['quota_requested' => 100000]), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'quota_requested' => ['The quota requested must not be greater than 3 characters.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management proposal submit cost quoted format validation
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProposalSubmitCostQuotedFormatValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', array_merge($this->submitProposalData(), ['cost_quoted' => 10.64644]), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'cost_quoted' => ['The cost quoted format is invalid.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management proposal submit
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProposalSubmit(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', $this->submitProposalData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Proposal Submitted Successfully.']
-        ]);
-    }
-    /**
-     * Functional test for total management, application listing with search
-     * 
-     * @return void
-     */
-    public function testForTotalManagementApplicationListing(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/applicationListing', ['search' => 'ABC'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/workerListForAssignWorker', ['prospect_id' => 1, 'search' => 'tes', 'company_filter' => '', 'ksm_reference_number' => ''], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -441,36 +287,6 @@ class TotalManagementServicesUnitTest extends TestCase
                     'to',
                     'total'
                 ]
-        ]);
-    }
-    /**
-     * Functional test to Display Proposal 
-     * 
-     * @return void
-     */
-    public function testToDisplayProposal(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/showProposal', ['id' => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' => [
-            ]
-        ]);
-    }
-    /**
-     * Functional test to Display Service 
-     * 
-     * @return void
-     */
-    public function testToDisplayService(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/showService', ['prospect_service_id' => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' => [
-            ]
         ]);
     }
     /**
@@ -522,6 +338,82 @@ class TotalManagementServicesUnitTest extends TestCase
         ];  
         $this->json('POST', 'api/v1/sector/create', $payload, $this->getHeader(false));
 
+        $payload =  [
+            'name' => 'VendorOne',
+            'type' => 'Accommodation',
+            'email_address' => 'vendorone@gmail.com',
+            'contact_number' => 1234567890,
+            'person_in_charge' => 'test',
+            'pic_contact_number' => 1232134234,
+            'address' => 'test',
+            'state' => 'test',
+            'city' => 'test',
+            'postcode' => 45353,
+            'remarks' => 'test'
+        ];  
+        $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
+
+        $payload =  [
+            'name' => 'VendorTwo',
+            'type' => 'Transportation',
+            'email_address' => 'vendortwo@gmail.com',
+            'contact_number' => 1234567890,
+            'person_in_charge' => 'test',
+            'pic_contact_number' => 1232134234,
+            'address' => 'test',
+            'state' => 'test',
+            'city' => 'test',
+            'postcode' => 45353,
+            'remarks' => 'test'
+        ];  
+        $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
+
+        $payload =  [
+            'name' => 'VendorThree',
+            'type' => 'Insurance',
+            'email_address' => 'vendorthree@gmail.com',
+            'contact_number' => 1234567890,
+            'person_in_charge' => 'test',
+            'pic_contact_number' => 1232134234,
+            'address' => 'test',
+            'state' => 'test',
+            'city' => 'test',
+            'postcode' => 45353,
+            'remarks' => 'test'
+        ];  
+        $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
+
+        $payload =  [
+            'name' => 'AccOne',
+            'location' => 'test',
+            'maximum_pax_per_unit' => 3,
+            'deposit' => 4,
+            'rent_per_month' => 2,
+            'vendor_id' => 1,
+            'tnb_bill_account_Number' => '123',
+            'water_bill_account_Number' => '123'
+        ];  
+        $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader(false));
+
+        $payload =  [
+            'driver_name' => 'TransOne',
+            'driver_contact_number' => 1234567899,
+            'vehicle_type' => 'test',
+            'number_plate' => '1234',
+            'vehicle_capacity' => 4,
+            'vendor_id' => 2,
+            'file_url' => 'test'
+        ];  
+        $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
+
+        $payload =  [
+            'no_of_worker_from' => 1,
+            'no_of_worker_to' => 2,
+            'fee_per_pax' => 2,
+            'vendor_id' => 3
+        ];  
+        $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
+
         $payload = [
             'company_name' => 'ABC Firm', 
             'contract_type' => 'Zero Cost', 
@@ -556,7 +448,7 @@ class TotalManagementServicesUnitTest extends TestCase
             'remarks' => 'test'
         ];
         $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
-
+        
         $payload = [
             'id' => 1, 
             'application_id' => 1, 
@@ -603,7 +495,7 @@ class TotalManagementServicesUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'ksm_reference_number' => 'My/643/7684548', 
+            'ksm_reference_number' => 'My/992/095648000', 
             'received_date' => Carbon::now()->format('Y-m-d'), 
             'valid_until' => Carbon::now()->addYear()->format('Y-m-d')
         ];
@@ -648,7 +540,7 @@ class TotalManagementServicesUnitTest extends TestCase
             'application_id' => 1,
             'onboarding_country_id' => 1,
             'agent_id' => 1,
-            'name' => 'TestWorker',
+            'name' => 'DRWorker',
             'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'),
             'gender' => 'Female',
             'passport_number' => 123456789154,
@@ -660,7 +552,7 @@ class TotalManagementServicesUnitTest extends TestCase
             'kin_name' => 'Kin name',
             'kin_relationship_id' => 1,
             'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/643/7684548',
+            'ksm_reference_number' => 'My/992/095648000',
             'calling_visa_reference_number' => '',
             'calling_visa_valid_until' => '',
             'entry_visa_valid_until' => '',
@@ -679,6 +571,42 @@ class TotalManagementServicesUnitTest extends TestCase
             'bank_name' => 'Bank Name',
             'account_number' => 1234556678,
             'socso_number' => 12345678
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'name' => 'TestWorker',
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'),
+            'gender' => 'Female',
+            'passport_number' => 12345678954,
+            'passport_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'address' => 'address',
+            'city' => 'city',
+            'state' => 'state',
+            'kin_name' => 'Kin name',
+            'kin_relationship_id' => 1,
+            'kin_contact_number' => 12345678900,
+            'ksm_reference_number' => '',
+            'calling_visa_reference_number' => '',
+            'calling_visa_valid_until' => '',
+            'entry_visa_valid_until' => '',
+            'work_permit_valid_until' => '',
+            'bio_medical_reference_number' => 'BIO1234567',
+            'bio_medical_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'purchase_date' => Carbon::now()->format('Y-m-d'),
+            'clinic_name' => 'Test Clinic',
+            'doctor_code' => 'Doc123',
+            'allocated_xray' => 'Tst1234',
+            'xray_code' => 'Xray1234',
+            'ig_policy_number' => '',
+            'ig_policy_number_valid_until' => '',
+            'hospitalization_policy_number' => '',
+            'hospitalization_policy_number_valid_until' => '',
+            'bank_name' => 'Bank Name',
+            'account_number' => 1234556678,
+            'socso_number' => 12345678,
+            'crm_prospect_id' => 1
         ];
         $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
 
@@ -804,28 +732,38 @@ class TotalManagementServicesUnitTest extends TestCase
             'workers' => 1
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false));
+
+        $payload = [
+            "id" => 1, 
+            "quota_requested" => 10, 
+            "person_incharge" => "PICTest", 
+            "cost_quoted" => 10.5, 
+            "reamrks" => "remarks", 
+            "file_url" => "test"
+        ];
+        $this->json('POST', 'api/v1/totalManagement/submitProposal', $payload, $this->getHeader(false));
+
+        $payload = [
+            "application_id" => 1,
+            "name" => "test name",
+            "state" => "state test",
+            "city" => "city test",
+            "address" => "test address",
+            "employee_id" => 1,
+            "transportation_provider_id" => 2,
+            "driver_id" => 1,
+            "assign_as_supervisor" => 0,
+            "annual_leave" => 10,
+            "medical_leave" => 10,
+            "hospitalization_leave" => 10
+        ];
+        $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
     }
     /**
      * @return array
      */
     public function creationData(): array
     {
-        return ['id' => 1, 'company_name' => 'ABC Firm', 'contact_number' => '768456948', 'email' => 'testcrm@gmail.com', 'pic_name' => 'PICTest', 'sector' => 1, 'from_existing' => 0, 'client_quota' => 10, 'fomnext_quota' => 10, 'initial_quota' => 1, 'service_quota' => 1];
-    }
-    /**
-     * @return array
-     */
-    public function allocateQuotaData(): array
-    {
-        return ['id' => 1, 'prospect_service_id' => 2, 'from_existing' => 1, 'client_quota' => 10, 'fomnext_quota' => 10, 'initial_quota' => 1, 'service_quota' => 1];
-    }
-    /**
-     * @return array
-     */
-    public function submitProposalData(): array
-    {
-        return [
-            "id" => 1, "quota_requested" => 10, "person_incharge" => "PICTest", "cost_quoted" => 10.5, "reamrks" => "remarks", "file_url" => "test"
-        ];
+        return ['project_id' => 1, 'department' => 'department', 'sub_department' => 'sub department', 'accommodation_provider_id' => 1, 'accommodation_unit_id' => 1, 'work_start_date' => Carbon::now()->format('Y-m-d'), 'workers' => [1]];
     }
 }

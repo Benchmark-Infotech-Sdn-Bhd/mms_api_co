@@ -109,6 +109,9 @@ class TotalManagementWorkerController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->totalManagementWorkerServices->assignWorker($params);
+            if(isset($data['error'])) {
+                return $this->validationError($data['error']);
+            }
             return $this->sendSuccess(['message' => 'Workers are Assigned Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

@@ -152,6 +152,7 @@ class WorkersServices
             'address' => $request['address'] ?? '',
             'city' => $request['city'] ?? '',
             'state' => $request['state'] ?? '',
+            'crm_prospect_id' => $request['crm_prospect_id'] ?? NULL,
             'created_by'    => $params['created_by'] ?? 0,
             'modified_by'   => $params['created_by'] ?? 0
         ]);

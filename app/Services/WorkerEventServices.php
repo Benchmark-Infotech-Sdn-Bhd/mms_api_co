@@ -64,7 +64,7 @@ class WorkerEventServices
     {
         return [
             'id' => 'required',
-            'event_date' => 'date|date_format:Y-m-d|before:tomorrow',
+            'event_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
             'event_type' => 'required',
             'flight_number' => 'regex:/^[a-zA-Z0-9]*$/',
             'departure_date' => 'date|date_format:Y-m-d|after:yesterday',

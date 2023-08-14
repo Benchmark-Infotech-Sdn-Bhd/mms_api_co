@@ -483,6 +483,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('replaceWorker', 'V1\WorkersController@replaceWorker');
             $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
             $router->post('assignWorker', 'V1\WorkersController@assignWorker');
+            $router->group(['prefix' => 'workerEvent'], function () use ($router) {
+                $router->post('list', 'V1\WorkerEventController@list');
+                $router->post('create', 'V1\WorkerEventController@create');
+                $router->post('update', 'V1\WorkerEventController@update');
+                $router->post('show', 'V1\WorkerEventController@show');
+                $router->post('deleteAttachment', 'V1\WorkerEventController@deleteAttachment');
+            });
         });
         /**
         * Routes for Application Summary.
@@ -530,11 +537,11 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('removeWorker', 'V1\TotalManagementWorkerController@removeWorker');
                 });
                 $router->group(['prefix' => 'workerEvent'], function () use ($router) {
-                    $router->post('list', 'V1\WorkerEventController@list');
-                    $router->post('create', 'V1\WorkerEventController@create');
-                    $router->post('update', 'V1\WorkerEventController@update');
-                    $router->post('show', 'V1\WorkerEventController@show');
-                    $router->post('deleteAttachment', 'V1\WorkerEventController@deleteAttachment');
+                    $router->post('list', 'V1\TotalManagementWorkerEventController@list');
+                    $router->post('create', 'V1\TotalManagementWorkerEventController@create');
+                    $router->post('update', 'V1\TotalManagementWorkerEventController@update');
+                    $router->post('show', 'V1\TotalManagementWorkerEventController@show');
+                    $router->post('deleteAttachment', 'V1\TotalManagementWorkerEventController@deleteAttachment');
                 });
             });
 

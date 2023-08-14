@@ -121,6 +121,22 @@ class PostArrivalPLKSUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for worker list for export
+     * 
+     * @return void
+     */
+    public function testForWorkersListForExport(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/workersListExport', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => ''], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+    /**
      * @return void
      */
     public function creationSeeder(): void
