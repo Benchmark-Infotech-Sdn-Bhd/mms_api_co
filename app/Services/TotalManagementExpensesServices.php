@@ -57,21 +57,23 @@ class TotalManagementExpensesServices
             ];
         }
         $expenses = $this->totalManagementExpenses->create([
-            'application_id' => $request['application_id'],
+            'worker_id' => $request['worker_id'],
             'title' => $request['title'] ?? '',
             'payment_reference_number' => $request['payment_reference_number'] ?? '',
             'payment_date' => ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : null),
-            'quantity' => $request['quantity'] ?? '',
+            'quantity' => $request['quantity'] ?? 0,
             'amount' => $request['amount'] ?? '',
             'remarks' => $request['remarks'] ?? '',
             'created_by'    => $params['created_by'] ?? 0,
-            'modified_by'   => $params['created_by'] ?? 0
+            'modified_by'   => $params['created_by'] ?? 0,
+            'type' => $request['type'],
+            'deduction' => $request['deduction'] ?? 0
         ]);
 
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/drexpenses/'.$expenses['id']. $fileName; 
+                $filePath = '/tmexpenses/'.$expenses['id']. $fileName; 
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
@@ -105,7 +107,7 @@ class TotalManagementExpensesServices
         }
 
         $expenses = $this->totalManagementExpenses->findOrFail($request['id']);
-        $expenses->application_id = $request['application_id'] ?? $expenses->application_id;
+        $expenses->worker_id = $request['worker_id'] ?? $expenses->worker_id;
         $expenses->title = $request['title'] ?? $expenses->title;
         $expenses->payment_reference_number = $request['payment_reference_number'] ?? $expenses->payment_reference_number;
         $expenses->payment_date = ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : $expenses->payment_date);
@@ -114,6 +116,9 @@ class TotalManagementExpensesServices
         $expenses->remarks = $request['remarks'] ?? $expenses->remarks;
         $expenses->created_by = $request['created_by'] ?? $expenses->created_by;
         $expenses->modified_by = $params['modified_by'];
+        $expenses->type = $request['type'] ?? $expenses->type;
+        $expenses->deduction = $request['deduction'] ?? $expenses->deduction;
+
         $expenses->save();
 
         if (request()->hasFile('attachment')){
@@ -122,7 +127,7 @@ class TotalManagementExpensesServices
 
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/drexpenses/'.$request['id']. $fileName; 
+                $filePath = '/tmexpenses/'.$request['id']. $fileName; 
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
@@ -167,15 +172,18 @@ class TotalManagementExpensesServices
             }
         }
         return $this->totalManagementExpenses
-        ->leftJoin('total_management_expenses_attachments', 'total_management_expenses.id', '=', 'total_management_expenses_attachments.file_id')
-        ->where('total_management_expenses.application_id', $request['application_id'])
+        ->leftJoin('total_management_expenses_attachments', function($join) use ($request){
+            $join->on('total_management_expenses.id', '=', 'total_management_expenses_attachments.file_id')
+            ->whereNull('total_management_expenses_attachments.deleted_at');
+          })
+        ->where('total_management_expenses.worker_id', $request['worker_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('total_management_expenses.title', 'like', "%{$request['search_param']}%")
                 ->orWhere('total_management_expenses.payment_reference_number', 'like', '%'.$request['search_param'].'%');
             }
             
-        })->select('total_management_expenses.id','total_management_expenses.application_id','total_management_expenses.title','total_management_expenses.payment_reference_number','total_management_expenses.payment_date','total_management_expenses.quantity','total_management_expenses.amount','total_management_expenses.remarks','total_management_expenses_attachments.file_name','total_management_expenses_attachments.file_url','total_management_expenses.created_at')
+        })->select('total_management_expenses.id','total_management_expenses.worker_id','total_management_expenses.title','total_management_expenses.payment_reference_number','total_management_expenses.payment_date','total_management_expenses.quantity','total_management_expenses.amount','total_management_expenses.remarks','total_management_expenses_attachments.file_name','total_management_expenses_attachments.file_url','total_management_expenses.created_at','total_management_expenses.type','total_management_expenses.deduction')
         ->distinct()
         ->orderBy('total_management_expenses.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
