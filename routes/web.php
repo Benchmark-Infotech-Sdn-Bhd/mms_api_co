@@ -557,6 +557,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('show', 'V1\TotalManagementExpensesController@show');
                 $router->post('create', 'V1\TotalManagementExpensesController@create');
                 $router->post('update', 'V1\TotalManagementExpensesController@update');
+                $router->post('delete', 'V1\TotalManagementExpensesController@delete');
+                $router->post('deleteAttachment', 'V1\TotalManagementExpensesController@deleteAttachment');
             });
         }); 
 

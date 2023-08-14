@@ -181,4 +181,48 @@ class TotalManagementExpensesServices
         ->paginate(Config::get('services.paginate_row'));
     }
 
+    /**
+     * delete the specified Vendors data.
+     *
+     * @param $request
+     * @return mixed
+     */    
+    public function delete($request): mixed
+    {   
+        $totalManagementExpenses = $this->totalManagementExpenses::find($request['id']);
+
+        if(is_null($totalManagementExpenses)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        $totalManagementExpenses->totalManagementExpensesAttachments()->delete();
+        $totalManagementExpenses->delete();
+        return [
+            "isDeleted" => true,
+            "message" => "Deleted Successfully"
+        ];
+    }
+
+    /**
+     *
+     * @param $request
+     * @return mixed
+     */    
+    public function deleteAttachment($request): mixed
+    {   
+        $data = $this->totalManagementExpensesAttachments::find($request['id']); 
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        return [
+            "isDeleted" => $data->delete(),
+            "message" => "Deleted Successfully"
+        ];
+    }
+
 }
