@@ -583,6 +583,17 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         }); 
 
         /**
+        * Routes for Total Management.
+        */
+        $router->group(['prefix' => 'eContract'], function () use ($router) {
+            $router->post('addService', 'V1\EContractController@addService');
+            $router->post('applicationListing', 'V1\EContractController@applicationListing');
+            $router->post('proposalSubmit', 'V1\EContractController@proposalSubmit');
+            $router->post('showProposal', 'V1\EContractController@showProposal');
+            $router->post('getQuota', 'V1\EContractController@getQuota');
+        });
+
+        /**
         * Routes for Manage workers.
         */
         $router->group(['prefix' => 'manageWorkers'], function () use ($router) {

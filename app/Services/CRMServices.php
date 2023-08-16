@@ -10,6 +10,7 @@ use App\Models\Sectors;
 use App\Models\SystemType;
 use App\Models\DirectrecruitmentApplications;
 use App\Models\TotalManagementApplications;
+use App\Models\EContractApplications;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -52,6 +53,10 @@ class CRMServices
      * @var TotalManagementApplications
      */
     private TotalManagementApplications $totalManagementApplications;
+    /**
+     * @var EContractApplications
+     */
+    private EContractApplications $eContractApplications;
 
     /**
      * RolesServices constructor.
@@ -64,8 +69,9 @@ class CRMServices
      * @param DirectrecruitmentApplications $directrecruitmentApplications;
      * @param SystemType $systemType
      * @param TotalManagementApplications $totalManagementApplications
+     * @param EContractApplications $eContractApplications
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -76,6 +82,7 @@ class CRMServices
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->systemType = $systemType;
         $this->totalManagementApplications = $totalManagementApplications;
+        $this->eContractApplications = $eContractApplications;
     }
     /**
      * @return array
@@ -247,6 +254,18 @@ class CRMServices
                         'crm_prospect_id' => $prospect->id,
                         'service_id' => $prospectService->id,
                         'quota_applied' => 0,
+                        'person_incharge' => $request['pic_name'],
+                        'cost_quoted' => 0,
+                        'status' => 'Pending Proposal',
+                        'remarks' => '',
+                        'created_by' => $request["created_by"] ?? 0
+                    ]);
+                }
+                if($service->service_id == 2) {
+                    $this->eContractApplications::create([
+                        'crm_prospect_id' => $prospect->id,
+                        'service_id' => $prospectService->id,
+                        'quota_requested' => 0,
                         'person_incharge' => $request['pic_name'],
                         'cost_quoted' => 0,
                         'status' => 'Pending Proposal',
