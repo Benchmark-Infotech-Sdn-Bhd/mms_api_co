@@ -270,6 +270,7 @@ class DirectRecruitmentWorkersServices
         }
         return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->join('worker_kin', 'workers.id', '=', 'worker_kin.worker_id')
+        ->join('kin_relationship', 'kin_relationship.id', '=', 'worker_kin.kin_relationship_id')
         ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
         ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
@@ -297,7 +298,7 @@ class DirectRecruitmentWorkersServices
             if (isset($request['status'])) {
                 $query->where('workers.status',$request['status']);
             }
-        })->select('workers.id','workers.name','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','workers.address','workers.state','worker_kin.kin_name','worker_kin.kin_relationship_id','worker_kin.kin_contact_number','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_reference_number','worker_bio_medical.bio_medical_valid_until')
+        })->select('workers.id','workers.name','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','workers.address','workers.state','worker_kin.kin_name','worker_kin.kin_relationship_id','kin_relationship.name','worker_kin.kin_contact_number','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_reference_number','worker_bio_medical.bio_medical_valid_until')
         ->distinct()
         ->orderBy('workers.created_at','DESC')->get();
     }
