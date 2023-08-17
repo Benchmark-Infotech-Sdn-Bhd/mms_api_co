@@ -190,7 +190,7 @@ class EContractServices
             }
         }
         $this->eContractApplications::create([
-            'crm_prospect_id' => $request['id'],
+            'crm_prospect_id' => $request['prospect_id'],
             'service_id' => $prospectService->id,
             'quota_requested' => 0,
             'person_incharge' => '',
