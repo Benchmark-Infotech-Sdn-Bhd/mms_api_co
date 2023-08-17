@@ -59,8 +59,8 @@ class TotalManagementTransferServices
             'new_project_id' => 'required',
             'accommodation_provider_id' => 'required|regex:/^[0-9]*$/',
             'accommodation_unit_id' => 'required|regex:/^[0-9]*$/',
-            'start_date' => 'required|date|date_format:Y-m-d',
-            'to_date' => 'required|date|date_format:Y-m-d',
+            'start_date' => 'required|date|date_format:Y-m',
+            'to_date' => 'required|date|date_format:Y-m',
             'transfer_date' => 'required|date|date_format:Y-m-d'
         ];
     }
@@ -144,7 +144,8 @@ class TotalManagementTransferServices
             ['worker_id', $request['worker_id']],
             ['project_id', $request['new_project_id']]
         ])
-        ->whereNull('work_end_date')
+        ->whereNull('transfer_end_date')
+        ->whereNull('remove_date')
         ->count();
 
         if($workerEmployment > 0) {
@@ -167,7 +168,6 @@ class TotalManagementTransferServices
             'project_id' => $request['current_project_id'],
             'worker_id' => $request['worker_id']
         ])->update([
-            'work_end_date' => $request['to_date'],
             'transfer_start_date' => $request['start_date'],
             'transfer_end_date' => $request['to_date'],
             'updated_at' => Carbon::now(), 

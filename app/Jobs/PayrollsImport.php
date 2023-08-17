@@ -85,6 +85,8 @@ class PayrollsImport extends Job
                             'ot_2_0_hrs_amount' => $this->payrollParameter['ot_2_0_hrs_amount'] ?? 0,
                             'public_holiday_ot_3_0' => $this->payrollParameter['public_holiday_ot_3_0'] ?? 0,
                             'deduction_hostel' => $this->payrollParameter['deduction_hostel'] ?? 0,
+                            'sosco_deduction' => $this->payrollParameter['sosco_deduction'] ?? 0,
+                            'sosco_contribution' => $this->payrollParameter['sosco_contribution'] ?? 0,
                             'created_by' => $this->payrollParameter['created_by'] ?? 0,
                             'modified_by' => $this->payrollParameter['created_by'] ?? 0
                         ]
