@@ -68,4 +68,6 @@ return [
     'TOTAL_MANAGEMENT_SERVICE' => env('TOTAL_MANAGEMENT_SERVICE', 3),
 
     'EMPLOYEE_ROLE_TYPE_SUPERVISOR' => 'Supervisor',
+
+    'TOTAL_MANAGEMENT_WORKER_STATUS' => ['Assigned', 'Counselling'],
 ];

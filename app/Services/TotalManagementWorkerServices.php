@@ -120,6 +120,7 @@ class TotalManagementWorkerServices
             ->leftJoin('vendors as vendor_transport', 'vendor_transport.id', 'total_management_project.transportation_provider_id')
             ->leftJoin('vendors', 'vendors.id', 'worker_employment.accommodation_provider_id')
             ->where('total_management_project.id', $request['project_id'])
+            ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && $request['search']) {
                     $query->where('workers.name', 'like', '%' . $request['search'] . '%');
