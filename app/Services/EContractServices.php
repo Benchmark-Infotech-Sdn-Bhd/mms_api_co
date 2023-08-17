@@ -100,7 +100,7 @@ class EContractServices
     public function addServiceValidation(): array
     {
         return [
-            'id' => 'required',
+            'prospect_id' => 'required',
             'company_name' => 'required',
             'sector_id' => 'required',
             'sector_name' => 'required',
@@ -164,7 +164,7 @@ class EContractServices
         $request['created_by'] = $user['id'];
         $service = $this->services->findOrFail($request['service_id']);
         $prospectService = $this->crmProspectService->create([
-            'crm_prospect_id'    => $request['id'],
+            'crm_prospect_id'    => $request['prospect_id'],
             'service_id'         => $service->id,
             'service_name'       => $service->service_name,
             'sector_id'          => $request['sector'] ?? 0,
@@ -181,7 +181,7 @@ class EContractServices
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
                 $this->crmProspectAttachment->create([
-                    "file_id" => $request['id'],
+                    "file_id" => $request['prospect_id'],
                     "prospect_service_id" => $prospectService->id,
                     "file_name" => $fileName,
                     "file_type" => 'prospect service',
@@ -190,7 +190,7 @@ class EContractServices
             }
         }
         $this->eContractApplications::create([
-            'crm_prospect_id' => $request['id'],
+            'crm_prospect_id' => $request['prospect_id'],
             'service_id' => $prospectService->id,
             'quota_requested' => 0,
             'person_incharge' => '',
