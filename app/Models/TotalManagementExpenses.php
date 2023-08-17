@@ -33,7 +33,7 @@ class TotalManagementExpenses extends Model implements Auditable
         'worker_id' => 'required|regex:/^[0-9]+$/',
         'title' => 'required|max:255',
         'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
-        'amount' => 'required|regex:/^(\d+(,\d{1,2})?)?$/',
+        'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/',
         'type' => 'required'
     ];
     /**
@@ -49,7 +49,7 @@ class TotalManagementExpenses extends Model implements Auditable
             'worker_id' => 'required|regex:/^[0-9]+$/',
             'title' => 'required|max:255',
             'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
-            'amount' => 'required|regex:/^(\d+(,\d{1,2})?)?$/',
+            'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/',
             'type' => 'required'
         ];
     }
