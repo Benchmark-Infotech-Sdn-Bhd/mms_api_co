@@ -92,7 +92,7 @@ class EContractController extends Controller
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
-            return $this->sendSuccess(['message' => 'Quota Updated Successfully.']);
+            return $this->sendSuccess($response);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Display Proposal'], 400);
@@ -111,7 +111,7 @@ class EContractController extends Controller
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
-            return $this->sendSuccess($response);
+            return $this->sendSuccess(['message' => 'Quota Updated Successfully.']);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Get Quota'], 400);

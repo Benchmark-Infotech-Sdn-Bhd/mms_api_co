@@ -167,7 +167,7 @@ class EContractServices
             'crm_prospect_id'    => $request['prospect_id'],
             'service_id'         => $service->id,
             'service_name'       => $service->service_name,
-            'sector_id'          => $request['sector'] ?? 0,
+            'sector_id'          => $request['sector_id'] ?? 0,
             'sector_name'        => $request['sector_name'] ?? '',
             'status'             => $request['status'] ?? 0,
             'fomnext_quota'      => $request['fomnext_quota'] ?? 0,
@@ -265,18 +265,15 @@ class EContractServices
      */
     public function getQuota($request): bool|array
     {
-        $validator = Validator::make($request->toArray(), $this->getQuotaValidation());
+        $validator = Validator::make($request, $this->getQuotaValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['modified_by'] = $user['id'];
         $serviceDetails = $this->crmProspectService->findOrFail($request['prospect_service_id']);
         $serviceDetails->fomnext_quota = $request['fomnext_quota'] ?? $serviceDetails->fomnext_quota;
         $serviceDetails->air_ticket_deposit = $request['air_ticket_deposit'] ?? $serviceDetails->air_ticket_deposit;
-        $serviceDetails->modified_by = $request['modified_by'];
         $serviceDetails->save();
         return true;
     }
