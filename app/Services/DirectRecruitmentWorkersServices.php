@@ -298,7 +298,7 @@ class DirectRecruitmentWorkersServices
             if (isset($request['status'])) {
                 $query->where('workers.status',$request['status']);
             }
-        })->select('workers.id','workers.name','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','workers.address','workers.state','worker_kin.kin_name','worker_kin.kin_relationship_id','kin_relationship.name','worker_kin.kin_contact_number','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_reference_number','worker_bio_medical.bio_medical_valid_until')
+        })->select('workers.id','workers.name','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','workers.address','workers.state','worker_kin.kin_name','worker_kin.kin_relationship_id','kin_relationship.name as kin_relationship_name','worker_kin.kin_contact_number','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_reference_number','worker_bio_medical.bio_medical_valid_until')
         ->distinct()
         ->orderBy('workers.created_at','DESC')->get();
     }
