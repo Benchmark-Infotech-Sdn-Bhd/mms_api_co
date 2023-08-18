@@ -201,11 +201,12 @@ class ApplicationInterviewsServices
         $applicationInterviewsDetails->ksm_reference_number = $request['ksm_reference_number'] ?? $applicationInterviewsDetails->ksm_reference_number;
         $applicationInterviewsDetails->item_name = $request['item_name'] ?? $applicationInterviewsDetails->item_name;
         $applicationInterviewsDetails->schedule_date = $request['schedule_date'] ?? $applicationInterviewsDetails->schedule_date;
-        $applicationInterviewsDetails->approved_quota        = !empty($request['approved_quota']) ? ($request['approved_quota'] ?? $applicationInterviewsDetails->approved_quota) : $applicationInterviewsDetails->approved_quota;
-        $applicationInterviewsDetails->approval_date        = !empty($request['approval_date']) ? ($request['approval_date'] ?? $applicationInterviewsDetails->approval_date) : $applicationInterviewsDetails->approval_date;
-        $applicationInterviewsDetails->status               = $request['status'] ?? $applicationInterviewsDetails->status;        
-        $applicationInterviewsDetails->remarks              = $request['remarks'] ?? $applicationInterviewsDetails->remarks;
-        $applicationInterviewsDetails->modified_by          = $request['modified_by'] ?? $applicationInterviewsDetails->modified_by;
+        $applicationInterviewsDetails->approved_quota = !empty($request['approved_quota']) ? ($request['approved_quota'] ?? $applicationInterviewsDetails->approved_quota) : $applicationInterviewsDetails->approved_quota;
+        $applicationInterviewsDetails->approval_date = (isset($request['approval_date']) && !empty($request['approval_date'])) ? ($request['approval_date'] ?? $applicationInterviewsDetails->approval_date) : $applicationInterviewsDetails->approval_date; 
+
+        $applicationInterviewsDetails->status = $request['status'] ?? $applicationInterviewsDetails->status;        
+        $applicationInterviewsDetails->remarks = $request['remarks'] ?? $applicationInterviewsDetails->remarks;
+        $applicationInterviewsDetails->modified_by = $request['modified_by'] ?? $applicationInterviewsDetails->modified_by;
         $applicationInterviewsDetails->save();
 
         $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? $applicationInterviewsDetails->ksm_reference_number;
