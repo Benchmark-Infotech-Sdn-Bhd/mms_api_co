@@ -91,7 +91,7 @@ class DirectRecruitmentCallingVisaDispatchServices
                 ];
             }
         if(isset($request['workers']) && !empty($request['workers'])) {
-            $request['workers'] = explode(',', $request['workers']);
+            //$request['workers'] = explode(',', $request['workers']);
             $this->workerVisa->whereIn('worker_id', $request['workers'])
             ->update(
                 ['dispatch_method' => $request['dispatch_method'], 
