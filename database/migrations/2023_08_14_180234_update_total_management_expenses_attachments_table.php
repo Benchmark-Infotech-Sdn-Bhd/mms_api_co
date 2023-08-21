@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('total_management_expenses_attachments', function (Blueprint $table) {
+            if (DB::getDriverName() !== 'sqlite') {
             $table->dropForeign('total_management_expenses_attachments_file_id_foreign');
             $table->foreign('file_id')->references('id')->on('total_management_expenses')->onDelete('cascade');
+            }
         });
     }
 
