@@ -245,7 +245,9 @@ class DirectRecruitmentServices
         $input = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $input['modified_by'] = $user['id']; 
-        $input['status'] = Config::get('services.PROPOSAL_SUBMITTED');
+        if($data->status != Config::get('services.APPROVAL_COMPLETED')){
+            $input['status'] = Config::get('services.PROPOSAL_SUBMITTED');
+        }
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
@@ -319,7 +321,9 @@ class DirectRecruitmentServices
                 "message"=> "Data not found"
             ];
         }
-        $directrecruitmentApplications->status = $request['status'];
+        if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
+            $directrecruitmentApplications->status = $request['status'];
+        }
         return [
             "isUpdated" => $directrecruitmentApplications->save() == 1,
             "message" => "Updated Successfully"
