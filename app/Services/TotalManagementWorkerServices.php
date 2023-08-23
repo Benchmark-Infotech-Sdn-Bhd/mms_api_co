@@ -121,6 +121,8 @@ class TotalManagementWorkerServices
             ->leftJoin('vendors', 'vendors.id', 'worker_employment.accommodation_provider_id')
             ->where('total_management_project.id', $request['project_id'])
             ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
+            ->whereNull('worker_employment.transfer_end_date')
+            ->whereNull('worker_employment.remove_date')
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && $request['search']) {
                     $query->where('workers.name', 'like', '%' . $request['search'] . '%');

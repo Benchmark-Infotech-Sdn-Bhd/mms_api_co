@@ -177,7 +177,7 @@ class EContractProjectServices
         $eContractProject->annual_leave =  $request['annual_leave'] ?? $eContractProject->annual_leave;
         $eContractProject->medical_leave =  $request['medical_leave'] ?? $eContractProject->medical_leave;
         $eContractProject->hospitalization_leave =  $request['hospitalization_leave'] ?? $eContractProject->hospitalization_leave;
-        $eContractProject->modified_by =  $request['modified_by'] ?? $eContractProject->modified_by;
+        $eContractProject->modified_by =  $params['modified_by'] ?? $eContractProject->modified_by;
         $eContractProject->save();
 
         if (request()->hasFile('attachment') && !empty($request['id']) && !empty($request['valid_until'])) {
