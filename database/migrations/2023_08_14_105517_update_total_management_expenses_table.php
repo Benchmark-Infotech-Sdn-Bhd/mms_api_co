@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('total_management_expenses', function (Blueprint $table) {
-            $table->dropForeign('total_management_expenses_application_id_foreign');
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropForeign('total_management_expenses_application_id_foreign');
+            }
             $table->dropColumn('application_id');
             $table->string('payment_reference_number')->nullable()->change();
             $table->integer('quantity')->nullable()->change();

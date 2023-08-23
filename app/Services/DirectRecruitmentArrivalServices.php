@@ -177,7 +177,7 @@ class DirectRecruitmentArrivalServices
         return $this->workers
         ->join('worker_visa', function ($join) {
             $join->on('worker_visa.worker_id', '=', 'workers.id')
-            ->where('worker_visa.approval_status', '=', 'Approved');
+            ->where('worker_visa.dispatch_status', '=', 'Processed');
         })
         ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
         ->leftJoin('worker_arrival', 'worker_arrival.worker_id', 'worker_visa.worker_id')
@@ -213,7 +213,7 @@ class DirectRecruitmentArrivalServices
         return $this->workers
         ->join('worker_visa', function ($join) {
             $join->on('worker_visa.worker_id', '=', 'workers.id')
-            ->where('worker_visa.approval_status', '=', 'Approved');
+            ->where('worker_visa.dispatch_status', '=', 'Processed');
         })
         ->leftJoin('worker_arrival', 'worker_arrival.worker_id', 'worker_visa.worker_id')
         ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
