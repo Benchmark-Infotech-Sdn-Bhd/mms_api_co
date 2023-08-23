@@ -199,67 +199,6 @@ class EContractWorkersUnitTest extends TestCase
         ];  
         $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
 
-        $payload =  [
-            'name' => 'VendorTwo',
-            'type' => 'Transportation',
-            'email_address' => 'vendortwo@gmail.com',
-            'contact_number' => 1234567890,
-            'person_in_charge' => 'test',
-            'pic_contact_number' => 1232134234,
-            'address' => 'test',
-            'state' => 'test',
-            'city' => 'test',
-            'postcode' => 45353,
-            'remarks' => 'test'
-        ];  
-        $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
-
-        $payload =  [
-            'name' => 'VendorThree',
-            'type' => 'Insurance',
-            'email_address' => 'vendorthree@gmail.com',
-            'contact_number' => 1234567890,
-            'person_in_charge' => 'test',
-            'pic_contact_number' => 1232134234,
-            'address' => 'test',
-            'state' => 'test',
-            'city' => 'test',
-            'postcode' => 45353,
-            'remarks' => 'test'
-        ];  
-        $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
-
-        $payload =  [
-            'name' => 'AccOne',
-            'location' => 'test',
-            'maximum_pax_per_unit' => 3,
-            'deposit' => 4,
-            'rent_per_month' => 2,
-            'vendor_id' => 1,
-            'tnb_bill_account_Number' => '123',
-            'water_bill_account_Number' => '123'
-        ];  
-        $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader(false));
-
-        $payload =  [
-            'driver_name' => 'TransOne',
-            'driver_contact_number' => 1234567899,
-            'vehicle_type' => 'test',
-            'number_plate' => '1234',
-            'vehicle_capacity' => 4,
-            'vendor_id' => 2,
-            'file_url' => 'test'
-        ];  
-        $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
-
-        $payload =  [
-            'no_of_worker_from' => 1,
-            'no_of_worker_to' => 2,
-            'fee_per_pax' => 2,
-            'vendor_id' => 3
-        ];  
-        $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
-
         $payload = [
             'company_name' => 'ABC Firm', 
             'contract_type' => 'Zero Cost', 
@@ -328,7 +267,7 @@ class EContractWorkersUnitTest extends TestCase
             'bank_name' => 'Bank Name',
             'account_number' => 1234556678,
             'socso_number' => 12345678,
-            'crm_prospect_id' => 1
+            'crm_prospect_id' => 0
         ];
         $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
 
