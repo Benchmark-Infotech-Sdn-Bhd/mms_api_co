@@ -32,6 +32,110 @@ class EContractWorkersUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for assign worker, work start date format validation 
+     * 
+     * @return void
+     */
+    public function testForAssignWorkerWorkStartDateFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerAssign/assignWorker', array_merge($this->creationData(), ['work_start_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'work_start_date' => ['The work start date does not match the format Y-m-d.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for assign worker, department format validation 
+     * 
+     * @return void
+     */
+    public function testForAssignWorkerDepartmentFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerAssign/assignWorker', array_merge($this->creationData(), ['department' => 'department$$$']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'department' => ['The department format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for assign worker, sub department format validation 
+     * 
+     * @return void
+     */
+    public function testForAssignWorkerSubDepartmentFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerAssign/assignWorker', array_merge($this->creationData(), ['sub_department' => 'SubDepartment$$$']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'sub_department' => ['The sub department format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for assign worker
+     * 
+     * @return void
+     */
+    public function testForAssignWorker(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerAssign/assignWorker', $this->creationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Workers are Assigned Successfully']
+        ]);
+    }
+    /**
+     * Functional test for worker list for assign worker search validation
+     * 
+     * @return void
+     */
+    public function testForCancellationWorkersListSearchValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerAssign/workerListForAssignWorker', ['search' => 'te'], $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'search' => ['The search must be at least 3 characters.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management, assign worker list with search
+     * 
+     * @return void
+     */
+    public function testForTotalManagementWorkerListing(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerAssign/workerListForAssignWorker', ['search' => 'tes'], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
+        ]);
+    }
+    /**
      * @return void
      */
     public function creationSeeder(): void
@@ -180,75 +284,6 @@ class EContractWorkersUnitTest extends TestCase
             "bond" => 25
         ];
         $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
-
-        $payload = [
-            'id' => 1, 
-            'crm_prospect_id' => 1, 
-            'quota_applied' => 100, 
-            'person_incharge' => 'test', 
-            'cost_quoted' => 10.22, 
-            'remarks' => 'test'
-        ];
-        $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
-        
-        $payload = [
-            'id' => 1, 
-            'application_id' => 1, 
-            'item_name' => 'Document Checklist', 
-            'application_checklist_status' => 'Completed', 
-            'remarks' => 'test', 
-            'file_url' => 'test'
-        ];
-        $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/update', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'submission_date' => Carbon::now()->format('Y-m-d'), 
-            'applied_quota' => 50, 
-            'status' => 'Approved', 
-            'ksm_reference_number' => 'My/643/7684548', 
-            'remarks' => 'test'
-        ];
-        $this->json('POST', 'api/v1/fwcms/create', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'ksm_reference_number' => 'My/643/7684548', 
-            'schedule_date' => Carbon::now()->format('Y-m-d'), 
-            'approved_quota' => 50, 
-            'approval_date' => Carbon::now()->format('Y-m-d'),
-            'status' => 'Approved',
-            'remarks' => 'test'
-        ];
-        $this->json('POST', 'api/v1/applicationInterview/create', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'payment_date' => Carbon::now()->format('Y-m-d'), 
-            'payment_amount' => 10.87, 
-            'approved_quota' => 50, 
-            'ksm_reference_number' => 'My/643/7684548', 
-            'payment_reference_number' => 'SVZ498787', 
-            'approval_number' => 'ADR4674', 
-            'new_ksm_reference_number' => 'My/992/095648000', 
-            'remarks' => 'test create'
-        ];
-        $this->json('POST', 'api/v1/levy/create', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'ksm_reference_number' => 'My/992/095648000', 
-            'received_date' => Carbon::now()->format('Y-m-d'), 
-            'valid_until' => Carbon::now()->addYear()->format('Y-m-d')
-        ];
-        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'country_id' => 1, 
-            'quota' => 20
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
         
         $payload = [
             'agent_name' => 'ABC', 
@@ -260,61 +295,6 @@ class EContractWorkersUnitTest extends TestCase
             'company_address' => 'Test'
         ];
         $this->json('POST', 'api/v1/agent/create', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'onboarding_country_id' => 1, 
-            'agent_id' => 1, 
-            'quota' => 20
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
-
-        $payload = [
-            "id" => 1,
-            "submission_date" => Carbon::now()->format('Y-m-d'),
-            "collection_date" => Carbon::now()->format('Y-m-d'),
-            "file_url" => "google.com",
-            "remarks" => "remarks testing"
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/update', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'agent_id' => 1,
-            'name' => 'DRWorker',
-            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'),
-            'gender' => 'Female',
-            'passport_number' => 123456789154,
-            'passport_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
-            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
-            'address' => 'address',
-            'city' => 'city',
-            'state' => 'state',
-            'kin_name' => 'Kin name',
-            'kin_relationship_id' => 1,
-            'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/992/095648000',
-            'calling_visa_reference_number' => '',
-            'calling_visa_valid_until' => '',
-            'entry_visa_valid_until' => '',
-            'work_permit_valid_until' => '',
-            'bio_medical_reference_number' => 'BIO1234567',
-            'bio_medical_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
-            'purchase_date' => Carbon::now()->format('Y-m-d'),
-            'clinic_name' => 'Test Clinic',
-            'doctor_code' => 'Doc123',
-            'allocated_xray' => 'Tst1234',
-            'xray_code' => 'Xray1234',
-            'ig_policy_number' => '',
-            'ig_policy_number_valid_until' => '',
-            'hospitalization_policy_number' => '',
-            'hospitalization_policy_number_valid_until' => '',
-            'bank_name' => 'Bank Name',
-            'account_number' => 1234556678,
-            'socso_number' => 12345678
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $payload, $this->getHeader(false));
 
         $payload = [
             'name' => 'TestWorker',
@@ -353,14 +333,30 @@ class EContractWorkersUnitTest extends TestCase
         $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
 
         $payload = [
-            'application_id' => 1, 
-            'onboarding_country_id' => 1, 
-            'agent_id' => 1, 
-            'calling_visa_reference_number' => 'AGTF/7637', 
-            'submitted_on' => Carbon::now()->format('Y-m-d'), 
-            'workers' => [1]
+            'prospect_id' => 1, 
+            'company_name' => 'ABC Firm', 
+            'contact_number' => '768456948', 
+            'email' => 'testcrm@gmail.com', 
+            'pic_name' => 'PICTest', 
+            'sector_id' => 1, 
+            'sector_name' => 'Agriculture', 
+            'fomnext_quota' => 10, 
+            'air_ticket_deposit' => 1.11, 
+            'service_id' => 2, 
+            'file_url' => 'test'
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/eContract/addService', $payload, $this->getHeader(false));
+
+        $payload = [
+            'id' => 1, 
+            'crm_prospect_id' => 1, 
+            'quota_requested' => 10, 
+            'person_incharge' => 'PICTest', 
+            'cost_quoted' => 20, 
+            'remarks' => 'testRemark', 
+            'file_url' => 'test'
+        ];
+        $this->json('POST', 'api/v1/eContract/proposalSubmit', $payload, $this->getHeader(false));
 
         $payload = [
             "application_id" => 1,
@@ -368,15 +364,13 @@ class EContractWorkersUnitTest extends TestCase
             "state" => "state test",
             "city" => "city test",
             "address" => "test address",
-            "employee_id" => 1,
-            "transportation_provider_id" => 2,
-            "driver_id" => 1,
-            "assign_as_supervisor" => 0,
             "annual_leave" => 10,
             "medical_leave" => 10,
-            "hospitalization_leave" => 10
+            "hospitalization_leave" => 10,
+            "attachment" => "test.png",
+            "valid_until" => Carbon::now()->format('Y-m-d')
         ];
-        $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/eContract/project/add', $payload, $this->getHeader(false));
     }
     /**
      * @return array
