@@ -597,13 +597,29 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('applicationListing', 'V1\EContractController@applicationListing');
             $router->post('proposalSubmit', 'V1\EContractController@proposalSubmit');
             $router->post('showProposal', 'V1\EContractController@showProposal');
-            $router->post('getQuota', 'V1\EContractController@getQuota');
+            $router->post('allocateQuota', 'V1\EContractController@allocateQuota');
+            $router->post('showService', 'V1\EContractController@showService');
             $router->group(['prefix' => 'project'], function () use ($router) {
                 $router->post('list', 'V1\EContractProjectController@list');
                 $router->post('show', 'V1\EContractProjectController@show');
                 $router->post('add', 'V1\EContractProjectController@add');
                 $router->post('update', 'V1\EContractProjectController@update');
                 $router->post('deleteAttachment', 'V1\EContractProjectController@deleteAttachment');
+            });
+            $router->group(['prefix' => 'manage'], function () use ($router) {
+                $router->post('list', 'V1\EContractWorkerController@list');
+                $router->group(['prefix' => 'workerAssign'], function () use ($router) {
+                    $router->post('workerListForAssignWorker', 'V1\EContractWorkerController@workerListForAssignWorker');
+                    $router->post('assignWorker', 'V1\EContractWorkerController@assignWorker');
+                    $router->post('removeWorker', 'V1\EContractWorkerController@removeWorker');
+                });
+                $router->group(['prefix' => 'workerEvent'], function () use ($router) {
+                    $router->post('list', 'V1\TotalManagementWorkerEventController@list');
+                    $router->post('create', 'V1\TotalManagementWorkerEventController@create');
+                    $router->post('update', 'V1\TotalManagementWorkerEventController@update');
+                    $router->post('show', 'V1\TotalManagementWorkerEventController@show');
+                    $router->post('deleteAttachment', 'V1\TotalManagementWorkerEventController@deleteAttachment');
+                });
             });
         });
 

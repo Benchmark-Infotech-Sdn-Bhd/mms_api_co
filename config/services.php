@@ -70,4 +70,5 @@ return [
     'EMPLOYEE_ROLE_TYPE_SUPERVISOR' => 'Supervisor',
 
     'TOTAL_MANAGEMENT_WORKER_STATUS' => ['Assigned', 'Counselling'],
+    'ECONTRACT_WORKER_STATUS' => ['Assigned', 'Counselling'],
 ];

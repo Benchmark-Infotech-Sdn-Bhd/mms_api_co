@@ -136,7 +136,7 @@ class TotalManagementController extends Controller
             return $this->sendError(['message' => 'Failed to Allocate Quota'], 400);
         }
     }
-    /** Display list of prospect service.
+    /** Display prospect service.
      * 
      * @param Request $request
      * @return JsonResponse
