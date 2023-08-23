@@ -79,7 +79,7 @@ class EContractController extends Controller
             return $this->sendError(['message' => 'Failed to Submit Proposal'], 400);
         }
     }
-    /** Display list of prospect for proposal.
+    /** Display proposal Details.
      * 
      * @param Request $request
      * @return JsonResponse
@@ -98,16 +98,16 @@ class EContractController extends Controller
             return $this->sendError(['message' => 'Failed to Display Proposal'], 400);
         }
     }
-    /** Display form to get quota.
+    /** Display form to allocate quota.
      * 
      * @param Request $request
      * @return JsonResponse
      */
-    public function getQuota(Request $request): JsonResponse
+    public function allocateQuota(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $response = $this->eContractServices->getQuota($params);
+            $response = $this->eContractServices->allocateQuota($params);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -115,6 +115,25 @@ class EContractController extends Controller
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Get Quota'], 400);
+        }
+    }
+    /** Display Service Details.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function showService(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->eContractServices->showService($params);
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess($response);
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Display Service'], 400);
         }
     }
 }
