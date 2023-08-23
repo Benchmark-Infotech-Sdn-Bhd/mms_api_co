@@ -273,7 +273,8 @@ class WorkersServices
             "ig_policy_number" => $request['ig_policy_number'] ?? '',
             "ig_policy_number_valid_until" => ((isset($request['ig_policy_number_valid_until']) && !empty($request['ig_policy_number_valid_until'])) ? $request['ig_policy_number_valid_until'] : null),
             "hospitalization_policy_number" =>  $request['hospitalization_policy_number'] ?? '',         
-            "hospitalization_policy_number_valid_until" =>  ((isset($request['hospitalization_policy_number_valid_until']) && !empty($request['hospitalization_policy_number_valid_until'])) ? $request['hospitalization_policy_number_valid_until'] : null)
+            "hospitalization_policy_number_valid_until" =>  ((isset($request['hospitalization_policy_number_valid_until']) && !empty($request['hospitalization_policy_number_valid_until'])) ? $request['hospitalization_policy_number_valid_until'] : null),
+            "insurance_expiry_date" => ((isset($request['insurance_expiry_date']) && !empty($request['insurance_expiry_date'])) ? $request['insurance_expiry_date'] : null)
         ]);
 
         $workerBankDetails = $this->workerBankDetails::create([
@@ -348,6 +349,7 @@ class WorkersServices
         $worker->workerInsuranceDetails->ig_policy_number_valid_until = $request['ig_policy_number_valid_until'] ?? $worker->workerInsuranceDetails->ig_policy_number_valid_until;
         $worker->workerInsuranceDetails->hospitalization_policy_number = $request['hospitalization_policy_number'] ?? $worker->workerInsuranceDetails->hospitalization_policy_number;
         $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until = $request['hospitalization_policy_number_valid_until'] ?? $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until;
+        $worker->workerInsuranceDetails->insurance_expiry_date = $request['insurance_expiry_date'] ?? $worker->workerInsuranceDetails->insurance_expiry_date;
 
         # Worker Bank details
         $worker->workerBankDetails->bank_name = $request['bank_name'] ?? $worker->workerBankDetails->bank_name;
@@ -490,8 +492,15 @@ class WorkersServices
         }
         return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->leftjoin('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
-        ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
         ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'workers.crm_prospect_id')
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.worker_id','=','workers.id')
+                ->whereRaw('worker_employment.id IN (select MAX(WORKER_EMP.id) from worker_employment as WORKER_EMP JOIN workers as WORKER ON WORKER.id = WORKER_EMP.worker_id group by WORKER.id)');
+        })
+        ->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
+        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
+        ->leftjoin('directrecruitment_applications', 'directrecruitment_applications.id', '=', 'directrecruitment_workers.application_id')
+        ->leftJoin('crm_prospects as directrecruitment_crm', 'directrecruitment_crm.id', '=', 'directrecruitment_applications.crm_prospect_id')
         ->where(function ($query) use ($request) {
             if(isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) {
                 $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
@@ -505,8 +514,8 @@ class WorkersServices
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
             
-        })->select('workers.id','workers.name', 'workers.passport_number', 'workers.address', 'workers.city', 'workers.state', 'workers.crm_prospect_id', 'crm_prospects.company_name', 'workers.total_management_status')
-        ->distinct()
+        })->select('workers.id','workers.name', 'workers.passport_number', 'workers.total_management_status', 'workers.crm_prospect_id as total_management_company_id', 'crm_prospects.company_name as total_management_company_name', 'worker_employment.id as total_management_employment_id', 'total_management_project.id as total_management_project_id', 'total_management_project.city as total_management_project_city', 'directrecruitment_workers.application_id as directrecruitment_application_id', 'directrecruitment_applications.crm_prospect_id as directrecruitment_company_id', 'directrecruitment_crm.company_name as directrecruitment_company_name')
+        ->distinct('workers.id','workers.name', 'workers.passport_number', 'workers.total_management_status')
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
