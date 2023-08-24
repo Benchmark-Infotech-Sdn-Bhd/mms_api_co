@@ -143,6 +143,12 @@ class DirectRecruitmentWorkersServices
                 'validate' => $data['validate']
             ];
         }else if(isset($data['id'])){
+
+            $this->workers->where('id', $data['id'])
+                ->update([
+                    'module_type' => Config::get('services.WORKER_MODULE_TYPE')[0]
+                ]);
+
             $directrecruitmentWorkers = $this->directrecruitmentWorkers::create([
                 "worker_id" => $data['id'],
                 'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,

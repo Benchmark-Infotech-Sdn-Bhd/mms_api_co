@@ -23,7 +23,7 @@ class Workers extends Model implements Auditable
      * @var array
      */
     protected $fillable = ['onboarding_country_id','agent_id','application_id','name','gender', 'date_of_birth', 'passport_number', 'passport_valid_until', 'fomema_valid_until','address', 'status', 'cancel_status', 'remarks',
-    'city','state', 'special_pass', 'special_pass_submission_date', 'special_pass_valid_until', 'plks_status', 'plks_expiry_date', 'directrecruitment_status', 'created_by','modified_by', 'crm_prospect_id', 'total_management_status'];
+    'city','state', 'special_pass', 'special_pass_submission_date', 'special_pass_valid_until', 'plks_status', 'plks_expiry_date', 'directrecruitment_status', 'created_by','modified_by', 'crm_prospect_id', 'total_management_status', 'module_type'];
    
     /**
      * The attributes that are required.
