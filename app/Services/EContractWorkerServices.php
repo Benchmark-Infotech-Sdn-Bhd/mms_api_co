@@ -76,6 +76,18 @@ class EContractWorkerServices
     /**
      * @return array
      */
+    public function removeValidation(): array
+    {
+        return [
+            'project_id' => 'required',
+            'worker_id' => 'required',
+            'remarks' => 'required',
+            'remove_date' => 'required'
+        ];
+    }
+    /**
+     * @return array
+     */
     public function createValidation(): array
     {
         return [
@@ -110,11 +122,6 @@ class EContractWorkerServices
                     $query->orWhere('worker_visa.calling_visa_reference_number', 'like', '%' . $request['search'] . '%');
                     $query->orWhere('worker_visa.ksm_reference_number', 'like', '%' . $request['search'] . '%');
                     $query->orWhere('worker_employment.department', 'like', '%' . $request['search'] . '%');
-                }
-            })
-            ->where(function ($query) use ($request) {
-                if((isset($request['filter']) && !empty($request['filter'])) || $request['filter'] == 0) {
-                    $query->where('workers.status', $request['filter']);
                 }
             })
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'worker_employment.department', 'workers.status', 'workers.econtract_status', 'worker_employment.status as worker_assign_status', 'worker_employment.remove_date', 'worker_employment.remarks')
