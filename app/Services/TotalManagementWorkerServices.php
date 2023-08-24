@@ -237,6 +237,7 @@ class TotalManagementWorkerServices
             }
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
+                    'module_type' => Config::get('services.WORKER_MODULE_TYPE')[1],
                     'total_management_status' => 'Assigned',
                     'modified_by' => $request['created_by']
                 ]);

@@ -205,6 +205,22 @@ class WorkersServices
             }
         }
 
+        if (request()->hasFile('worker_attachment')){
+            foreach($request->file('worker_attachment') as $file){
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/workerAttachment/'.$worker['id'].'/attachment/' . $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $this->workerAttachments::create([
+                        "file_id" => $worker['id'],
+                        "file_name" => $fileName,
+                        "file_type" => 'WORKER ATTACHMENT',
+                        "file_url" =>  $fileUrl         
+                    ]);  
+            }
+        }
+
         $this->workerKin::create([
             "worker_id" => $worker['id'],
             "kin_name" => $request['kin_name'] ?? '',
@@ -349,7 +365,7 @@ class WorkersServices
         $worker->workerInsuranceDetails->ig_policy_number_valid_until = $request['ig_policy_number_valid_until'] ?? $worker->workerInsuranceDetails->ig_policy_number_valid_until;
         $worker->workerInsuranceDetails->hospitalization_policy_number = $request['hospitalization_policy_number'] ?? $worker->workerInsuranceDetails->hospitalization_policy_number;
         $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until = $request['hospitalization_policy_number_valid_until'] ?? $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until;
-        $worker->workerInsuranceDetails->insurance_expiry_date = $request['insurance_expiry_date'] ?? $worker->workerInsuranceDetails->insurance_expiry_date;
+        $worker->workerInsuranceDetails->insurance_expiry_date = (isset($request['insurance_expiry_date']) && !empty($request['insurance_expiry_date'])) ? $request['insurance_expiry_date'] : $worker->workerInsuranceDetails->insurance_expiry_date;
 
         # Worker Bank details
         $worker->workerBankDetails->bank_name = $request['bank_name'] ?? $worker->workerBankDetails->bank_name;
@@ -418,6 +434,25 @@ class WorkersServices
                     "file_type" => 'PROFILE',
                     "file_url" =>  $fileUrl         
                 ]);  
+            }
+        }
+
+        if (request()->hasFile('worker_attachment')){
+
+            $this->workerAttachments->where('file_id', $request['id'])->where('file_type', 'WORKER ATTACHMENT')->delete();
+
+            foreach($request->file('worker_attachment') as $file){
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/workerAttachment/'.$worker['id'].'/attachment/' . $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $this->workerAttachments::create([
+                        "file_id" => $request['id'],
+                        "file_name" => $fileName,
+                        "file_type" => 'WORKER ATTACHMENT',
+                        "file_url" =>  $fileUrl         
+                    ]);  
             }
         }
 
@@ -514,8 +549,8 @@ class WorkersServices
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
             
-        })->select('workers.id','workers.name', 'workers.passport_number', 'workers.total_management_status', 'workers.crm_prospect_id as total_management_company_id', 'crm_prospects.company_name as total_management_company_name', 'worker_employment.id as total_management_employment_id', 'total_management_project.id as total_management_project_id', 'total_management_project.city as total_management_project_city', 'directrecruitment_workers.application_id as directrecruitment_application_id', 'directrecruitment_applications.crm_prospect_id as directrecruitment_company_id', 'directrecruitment_crm.company_name as directrecruitment_company_name')
-        ->distinct('workers.id','workers.name', 'workers.passport_number', 'workers.total_management_status')
+        })->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'workers.total_management_status', 'workers.crm_prospect_id as total_management_company_id', 'crm_prospects.company_name as total_management_company_name', 'worker_employment.id as total_management_employment_id', 'total_management_project.id as total_management_project_id', 'total_management_project.city as total_management_project_city', 'directrecruitment_workers.application_id as directrecruitment_application_id', 'directrecruitment_applications.crm_prospect_id as directrecruitment_company_id', 'directrecruitment_crm.company_name as directrecruitment_company_name')
+        ->distinct('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'workers.total_management_status')
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
