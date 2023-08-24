@@ -111,7 +111,7 @@ class EContractServices
     /**
      * @return array
      */
-    public function getQuotaValidation(): array
+    public function allocateQuotaValidation(): array
     {
         return [
             'prospect_service_id' => 'required',
@@ -263,9 +263,9 @@ class EContractServices
      * @param $request
      * @return bool|array
      */
-    public function getQuota($request): bool|array
+    public function allocateQuota($request): bool|array
     {
-        $validator = Validator::make($request, $this->getQuotaValidation());
+        $validator = Validator::make($request, $this->allocateQuotaValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
@@ -276,5 +276,14 @@ class EContractServices
         $serviceDetails->air_ticket_deposit = $request['air_ticket_deposit'] ?? $serviceDetails->air_ticket_deposit;
         $serviceDetails->save();
         return true;
+    }
+    /**
+     *
+     * @param $request
+     * @return mixed
+     */
+    public function showService($request) : mixed
+    {
+        return $this->crmProspectService->findOrFail($request['prospect_service_id']);
     }
 }

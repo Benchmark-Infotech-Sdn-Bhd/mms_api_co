@@ -191,6 +191,10 @@ class DirectRecruitmentApplicationApprovalServices
             $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
             $serviceDetails->status = 0;
             $serviceDetails->save();
+        } else { 
+            $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+            $applicationDetails->approval_flag = 1;
+            $applicationDetails->save();
         }
 
         return true;
@@ -266,6 +270,10 @@ class DirectRecruitmentApplicationApprovalServices
             $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
             $serviceDetails->status = 0;
             $serviceDetails->save();
+        } else { 
+            $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+            $applicationDetails->approval_flag = 1;
+            $applicationDetails->save();
         }
 
         return true;

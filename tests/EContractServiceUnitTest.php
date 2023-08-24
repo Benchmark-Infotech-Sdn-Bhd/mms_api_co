@@ -172,7 +172,7 @@ class EContractServiceUnitTest extends TestCase
      */
     public function testForEContractGetQuotaProspectServiceIDRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/eContract/getQuota', array_merge($this->getQuotaData(), ['prospect_service_id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/eContract/allocateQuota', array_merge($this->getQuotaData(), ['prospect_service_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -187,7 +187,7 @@ class EContractServiceUnitTest extends TestCase
      */
     public function testForEContractGetQuotaFomnextQuotaRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/eContract/getQuota', array_merge($this->getQuotaData(), ['fomnext_quota' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/eContract/allocateQuota', array_merge($this->getQuotaData(), ['fomnext_quota' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -202,7 +202,7 @@ class EContractServiceUnitTest extends TestCase
      */
     public function testForEContractGetQuotaAirTicketDepositRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/eContract/getQuota', array_merge($this->getQuotaData(), ['air_ticket_deposit' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/eContract/allocateQuota', array_merge($this->getQuotaData(), ['air_ticket_deposit' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -217,7 +217,7 @@ class EContractServiceUnitTest extends TestCase
      */
     public function testForEContractGetQuotaAirTicketDepositFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/eContract/getQuota', array_merge($this->getQuotaData(), ['air_ticket_deposit' => 1.1111]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/eContract/allocateQuota', array_merge($this->getQuotaData(), ['air_ticket_deposit' => 1.1111]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -232,7 +232,7 @@ class EContractServiceUnitTest extends TestCase
      */
     public function testForEContractGetQuotaFomnextQuotaFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/eContract/getQuota', array_merge($this->getQuotaData(), ['fomnext_quota' => 1.1]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/eContract/allocateQuota', array_merge($this->getQuotaData(), ['fomnext_quota' => 1.1]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -247,7 +247,7 @@ class EContractServiceUnitTest extends TestCase
      */
     public function testForEContractGetQuotaFomnextQuotaSizeValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/eContract/getQuota', array_merge($this->getQuotaData(), ['fomnext_quota' => 1111]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/eContract/allocateQuota', array_merge($this->getQuotaData(), ['fomnext_quota' => 1111]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -263,7 +263,7 @@ class EContractServiceUnitTest extends TestCase
     public function testForEContractGetQuota(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/eContract/getQuota', $this->getQuotaData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/allocateQuota', $this->getQuotaData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Quota Updated Successfully.']
@@ -449,6 +449,21 @@ class EContractServiceUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test to Display Service 
+     * 
+     * @return void
+     */
+    public function testToDisplayService(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/eContract/showService', ['prospect_service_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' => [
+            ]
+        ]);
+    }
+    /**
      * @return void
      */
     public function creationSeeder(): void
@@ -511,7 +526,7 @@ class EContractServiceUnitTest extends TestCase
             'sector_type' => 1, 
             'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])
         ];
-        $res = $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
 
         $payload = [
             "country_name" => "India",

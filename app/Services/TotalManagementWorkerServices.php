@@ -120,6 +120,7 @@ class TotalManagementWorkerServices
             ->leftJoin('vendors as vendor_transport', 'vendor_transport.id', 'total_management_project.transportation_provider_id')
             ->leftJoin('vendors', 'vendors.id', 'worker_employment.accommodation_provider_id')
             ->where('total_management_project.id', $request['project_id'])
+            ->where('worker_employment.service_type', 'Total Management')
             ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
             ->whereNull('worker_employment.transfer_end_date')
             ->whereNull('worker_employment.remove_date')
@@ -229,6 +230,7 @@ class TotalManagementWorkerServices
                     'accommodation_provider_id' => $request['accommodation_provider_id'],
                     'accommodation_unit_id' => $request['accommodation_unit_id'],
                     'work_start_date' => $request['work_start_date'],
+                    'service_type' => 'Total Management',
                     'created_by' => $request['created_by'],
                     'modified_by' => $request['created_by']
                 ]);
@@ -320,7 +322,12 @@ class TotalManagementWorkerServices
     public function getAssignedWorker($request): mixed
     {
         return $this->workerEmployment
-        ->leftjoin('workers', 'workers.id', 'worker_employment.worker_id')->where("worker_employment.project_id", $request['project_id'])->where("worker_employment.status", 1)->select('worker_employment.id','worker_employment.worker_id','workers.name','workers.passport_number')->get();
+        ->leftjoin('workers', 'workers.id', 'worker_employment.worker_id')
+        ->where('worker_employment.project_id', $request['project_id'])
+        ->where('worker_employment.status', 1)
+        ->where('service_type', 'Total Management')
+        ->select('worker_employment.id','worker_employment.worker_id','workers.name','workers.passport_number')
+        ->get();
     }   
 
     /**
@@ -339,9 +346,14 @@ class TotalManagementWorkerServices
             ];
         }
 
-        $workerDetails = $this->workerEmployment->where("worker_id", $request['worker_id'])->where("project_id", $request['project_id'])->get();
+        $workerDetails = $this->workerEmployment->where("worker_id", $request['worker_id'])
+                        ->where("project_id", $request['project_id'])
+                        ->where("service_type", "Total Management")
+                        ->get();
 
-        $this->workerEmployment->where("worker_id", $request['worker_id'])->where("project_id", $request['project_id'])
+        $this->workerEmployment->where("worker_id", $request['worker_id'])
+        ->where("project_id", $request['project_id'])
+        ->where("service_type", "Total Management")
         ->update([
             'status' => 0,
             'remove_date' => $request['remove_date'],

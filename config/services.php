@@ -73,5 +73,7 @@ return [
 
     'EMPLOYEE_ROLE_TYPE_SUPERVISOR' => 'Supervisor',
 
+    'ECONTRACT_WORKER_STATUS' => ['Assigned', 'Counselling'],
+
     'WORKER_MODULE_TYPE' => ['Direct Recruitment', 'Total Management', 'E-Contract'],
 ];

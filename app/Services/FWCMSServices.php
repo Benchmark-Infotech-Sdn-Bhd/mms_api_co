@@ -145,8 +145,10 @@ class FWCMSServices
             'created_by' =>  $request['created_by'] ?? 0,
             'modified_by' =>  $request['created_by'] ?? 0
         ]);
-        $applicationDetails->status = Config::get('services.CHECKLIST_COMPLETED');
-        $applicationDetails->save();
+        if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
+            $applicationDetails->status = Config::get('services.CHECKLIST_COMPLETED');
+            $applicationDetails->save();
+        }        
 
         $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? '';
         $request['status'] = $request['status'] ?? '';
@@ -234,7 +236,9 @@ class FWCMSServices
             $applicationDetails->save();
         }
         if($fwcmsCount == $fwcmsApprovedCount) {
-            $applicationDetails->status = Config::get('services.FWCMS_COMPLETED');
+            if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
+                $applicationDetails->status = Config::get('services.FWCMS_COMPLETED');
+            }
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];

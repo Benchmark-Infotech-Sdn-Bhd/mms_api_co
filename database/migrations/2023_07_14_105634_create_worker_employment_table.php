@@ -20,8 +20,10 @@ return new class extends Migration
             $table->foreign('worker_id')->references('id')->on('workers')->onDelete('cascade');
             // column for project id
             $table->bigInteger('project_id')->unsigned()->nullable();
-            // Foreign key from project table
-            $table->foreign('project_id')->references('id')->on('total_management_project')->onDelete('cascade');
+            if (DB::getDriverName() !== 'sqlite') {
+                // Foreign key from project table
+                $table->foreign('project_id')->references('id')->on('total_management_project')->onDelete('cascade');
+            }
             // Column for department
             $table->string('department')->nullable();
             // Column for sub department
