@@ -18,6 +18,6 @@ class EContractProjectAttachments extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'file_id', 'file_name', 'file_type', 'file_url', 'valid_until', 'created_by', 'modified_by'
+        'file_id', 'file_name', 'file_type', 'file_url', 'created_by', 'modified_by'
     ];
 }

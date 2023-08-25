@@ -84,7 +84,7 @@ class EContractProjectServices
                 ->orWhere('e-contract_project.city', 'like', '%'.$request['search'].'%');
             }
         })
-        ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_at', 'e-contract_project.updated_at')
+        ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at')
         ->distinct('e-contract_project.id')
         ->orderBy('e-contract_project.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
@@ -122,6 +122,7 @@ class EContractProjectServices
             'annual_leave' => $request['annual_leave'] ?? 0,
             'medical_leave' => $request['medical_leave'] ?? 0,
             'hospitalization_leave' => $request['hospitalization_leave'] ?? 0,
+            "valid_until" =>  $request['valid_until'] ?? null,
             'created_by' => $params['created_by'] ?? 0,
             'modified_by' => $params['created_by'] ?? 0
         ]);
@@ -142,7 +143,6 @@ class EContractProjectServices
                     "file_name" => $fileName,
                     "file_type" => 'Service Agreement',
                     "file_url" =>  $fileUrl,
-                    "valid_until" =>  $request['valid_until'],
                     'created_by' => $params['created_by'] ?? 0,
                     'modified_by' => $params['created_by'] ?? 0
                 ]);
@@ -177,6 +177,7 @@ class EContractProjectServices
         $eContractProject->annual_leave =  $request['annual_leave'] ?? $eContractProject->annual_leave;
         $eContractProject->medical_leave =  $request['medical_leave'] ?? $eContractProject->medical_leave;
         $eContractProject->hospitalization_leave =  $request['hospitalization_leave'] ?? $eContractProject->hospitalization_leave;
+        $eContractProject->valid_until =  $request['valid_until'] ?? $eContractProject->valid_until;
         $eContractProject->modified_by =  $params['modified_by'] ?? $eContractProject->modified_by;
         $eContractProject->save();
 
@@ -196,19 +197,9 @@ class EContractProjectServices
                     "file_name" => $fileName,
                     "file_type" => 'Service Agreement',
                     "file_url" =>  $fileUrl,
-                    "valid_until" =>  $request['valid_until'],
                     'modified_by' => $params['modified_by'] ?? 0
                 ]);
             }
-        }else if(!empty($request['id']) && !empty($request['valid_until'])){
-            $this->eContractProjectAttachments->updateOrCreate(
-                [
-                    "file_id" => $request['id']
-                ],
-                [
-                "valid_until" =>  $request['valid_until'],
-                'modified_by' => $params['modified_by'] ?? 0
-            ]);
         }
         return true;
     }

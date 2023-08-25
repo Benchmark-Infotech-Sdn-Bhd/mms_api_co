@@ -17,7 +17,7 @@ class EContractProject extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'application_id', 'name', 'state', 'city', 'address', 'annual_leave', 'medical_leave', 'hospitalization_leave', 'created_by', 'modified_by'
+        'application_id', 'name', 'state', 'city', 'address', 'annual_leave', 'medical_leave', 'hospitalization_leave', 'created_by', 'modified_by', 'valid_until'
     ];
 
     /**
