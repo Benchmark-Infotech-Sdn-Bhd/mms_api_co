@@ -266,5 +266,115 @@ class WorkersController extends Controller
             return $this->sendError(['message' => 'Failed to Assign Workers'], 400);
         }
     }
+
+    /**
+     * Show the form for creating a new Worker.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function createBankDetails(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->workersServices->createBankDetails($request);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            } else if(isset($data['ksmError'])) {
+                return $this->sendError(['message' => 'KSM reference number does not matched.'], 422);
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'creation failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+
+    /**
+     * Show the form for creating a new Worker.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateBankDetails(Request $request): JsonResponse
+    {
+        try {
+            
+            $data = $this->workersServices->updateBankDetails($request);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            } else if(isset($data['ksmError'])) {
+                return $this->sendError(['message' => 'KSM reference number does not matched.'], 422);
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'updation failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+    
+    /**
+     * Retrieve the specified Worker.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function showBankDetails(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->workersServices->showBankDetails($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+    
+    
+    /**
+     * Search & Retrieve all the Workers.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function listBankDetails(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->workersServices->listBankDetails($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+
+    /**
+     * delete the specified Vendors data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteBankDetails(Request $request): JsonResponse
+    {  
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->workersServices->deleteBankDetails($params); 
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Delete Bank detail was failed']);
+        }  
+    }
     
 }
