@@ -620,6 +620,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('show', 'V1\TotalManagementWorkerEventController@show');
                     $router->post('deleteAttachment', 'V1\TotalManagementWorkerEventController@deleteAttachment');
                 });
+                $router->group(['prefix' => 'transfer'], function () use ($router) {
+                    $router->post('workerEmploymentDetail', 'V1\EContractTransferController@workerEmploymentDetail');
+                    $router->post('companyList', 'V1\EContractTransferController@companyList');
+                    $router->post('projectList', 'V1\EContractTransferController@projectList');
+                    $router->post('submit', 'V1\EContractTransferController@submit');
+                });
             });
         });
 
