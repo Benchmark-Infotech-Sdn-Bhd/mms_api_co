@@ -5,7 +5,7 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-class EContractExpensesUnitTest extends TestCase
+class EContractCostManagementUnitTest extends TestCase
 {
     use DatabaseMigrations;
     
@@ -17,13 +17,13 @@ class EContractExpensesUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test for EContract Expenses create  mandatory field validation 
+     * Functional test for EContract cost management create  mandatory field validation 
      * 
      * @return void
      */
-    public function testForEContractExpensesCreateProjectIdValidation(): void
+    public function testForEContractCostManagementCreateProjectIdValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/eContract/expenses/create', array_merge($this->creationData(), ['project_id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/eContract/costManagement/create', array_merge($this->creationData(), ['project_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -32,27 +32,27 @@ class EContractExpensesUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for EContract Expenses create 
+     * Functional test for EContract cost management create 
      * 
      * @return void
      */
-    public function testForEContractExpensesCreate(): void
+    public function testForEContractCostManagementCreate(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/eContract/expenses/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/costManagement/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'E-Contract Expenses Created Successfully']
+            'data' => ['message' => 'E-Contract Cost Management Created Successfully']
         ]);
     }
     /**
-     * Functional test for EContract Expenses update  mandatory field validation 
+     * Functional test for EContract cost management update  mandatory field validation 
      * 
      * @return void
      */
-    public function testForEContractExpensesUpdateValidation(): void
+    public function testForEContractCostManagementUpdateValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/eContract/expenses/update', array_merge($this->UpdationData(), ['id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/eContract/costManagement/update', array_merge($this->UpdationData(), ['id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -61,30 +61,30 @@ class EContractExpensesUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for EContract Expenses update
+     * Functional test for EContract cost management update
      * 
      * @return void
      */
-    public function testForEContractExpensesUpdate(): void
+    public function testForEContractCostManagementUpdate(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/eContract/expenses/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/eContract/expenses/update', $this->UpdationData(), $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/eContract/costManagement/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/costManagement/update', $this->UpdationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'E-Contract Expenses Updated Successfully']
+            'data' => ['message' => 'E-Contract Cost Management Updated Successfully']
         ]);
     }
     /**
-     * Functional test for EContractExpenses show
+     * Functional test for EContract Cost management show
      * 
      * @return void
      */
-    public function testForEContractExpensesShow(): void
+    public function testForEContractCostManagementShow(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/eContract/expenses/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/eContract/expenses/show', ['id' => 1], $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/eContract/costManagement/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/costManagement/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -92,14 +92,14 @@ class EContractExpensesUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for EContract Expenses listing
+     * Functional test for EContract cost manangement listing
      * 
      * @return void
      */
-    public function testForEContractExpensesListing(): void
+    public function testForEContractCostManagementListing(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/eContract/expenses/list', ['project_id' => 1, 'search_param' => ''], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/costManagement/list', ['project_id' => 1, 'search_param' => ''], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -230,7 +230,7 @@ class EContractExpensesUnitTest extends TestCase
     {
         return [
             "project_id" => 1,
-            "title" => "expenses testing",
+            "title" => "cost management testing",
             "payment_reference_number" => "EXP001",
             "payment_date" => Carbon::now()->format('Y-m-d'),
             "amount" => 100,
@@ -246,7 +246,7 @@ class EContractExpensesUnitTest extends TestCase
     {
         return [
             "id" => 1,
-            "title" => "expenses testing",
+            "title" => "cost management testing",
             "payment_reference_number" => "EXP001",
             "payment_date" => Carbon::now()->format('Y-m-d'),
             "amount" => 100,

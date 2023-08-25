@@ -622,13 +622,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 });
             });
             
-            $router->group(['prefix' => 'expenses'], function () use ($router) {
-                $router->post('list', 'V1\EContractExpensesController@list');
-                $router->post('show', 'V1\EContractExpensesController@show');
-                $router->post('create', 'V1\EContractExpensesController@create');
-                $router->post('update', 'V1\EContractExpensesController@update');
-                $router->post('delete', 'V1\EContractExpensesController@delete');
-                $router->post('deleteAttachment', 'V1\EContractExpensesController@deleteAttachment');
+            $router->group(['prefix' => 'costManagement'], function () use ($router) {
+                $router->post('list', 'V1\EContractCostManagementController@list');
+                $router->post('show', 'V1\EContractCostManagementController@show');
+                $router->post('create', 'V1\EContractCostManagementController@create');
+                $router->post('update', 'V1\EContractCostManagementController@update');
+                $router->post('delete', 'V1\EContractCostManagementController@delete');
+                $router->post('deleteAttachment', 'V1\EContractCostManagementController@deleteAttachment');
             });
         });
 
