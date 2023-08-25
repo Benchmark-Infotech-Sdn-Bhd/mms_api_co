@@ -6,27 +6,27 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Services\EContractExpensesServices;
+use App\Services\EContractCostManagementServices;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
-class EContractExpensesController extends Controller
+class EContractCostManagementController extends Controller
 {
     /**
-     * @var EContractExpensesServices
+     * @var EContractCostManagementServices
      */
-    private EContractExpensesServices $eContractExpensesServices;
+    private EContractCostManagementServices $eContractCostManagementServices;
 
     /**
-     * EContractExpensesServices constructor.
-     * @param EContractExpensesServices $eContractExpensesServices
+     * EContractCostManagementServices constructor.
+     * @param EContractCostManagementServices $eContractCostManagementServices
      */
-    public function __construct(EContractExpensesServices $eContractExpensesServices)
+    public function __construct(EContractCostManagementServices $eContractCostManagementServices)
     {
-        $this->eContractExpensesServices = $eContractExpensesServices;
+        $this->eContractCostManagementServices = $eContractCostManagementServices;
     }
     /**
-     * create a Expenses
+     * create a cost management
      *
      * @param Request $request
      * @return JsonResponse
@@ -34,11 +34,11 @@ class EContractExpensesController extends Controller
     public function create(Request $request): JsonResponse
     {
         try {
-            $data = $this->eContractExpensesServices->create($request);
+            $data = $this->eContractCostManagementServices->create($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
-            return $this->sendSuccess(['message' => 'E-Contract Expenses Created Successfully']);
+            return $this->sendSuccess(['message' => 'E-Contract Cost Management Created Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'creation failed. Please retry.';
@@ -47,7 +47,7 @@ class EContractExpensesController extends Controller
     }
 
     /**
-     * update the expense.
+     * update the cost management.
      *
      * @param Request $request
      * @return JsonResponse
@@ -55,11 +55,11 @@ class EContractExpensesController extends Controller
     public function update(Request $request): JsonResponse
     {
         try {
-            $data = $this->eContractExpensesServices->update($request);
+            $data = $this->eContractCostManagementServices->update($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
-            return $this->sendSuccess(['message' => 'E-Contract Expenses Updated Successfully']);
+            return $this->sendSuccess(['message' => 'E-Contract Cost Management Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'updation failed. Please retry.';
@@ -68,7 +68,7 @@ class EContractExpensesController extends Controller
     }
     
     /**
-     * show the Expense
+     * show the cost management
      *
      * @param Request $request
      * @return JsonResponse
@@ -77,7 +77,7 @@ class EContractExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->eContractExpensesServices->show($params);
+            $data = $this->eContractCostManagementServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -91,7 +91,7 @@ class EContractExpensesController extends Controller
     
     
     /**
-     * list the Expense.
+     * list the cost management.
      *
      * @param Request $request
      * @return JsonResponse
@@ -100,7 +100,7 @@ class EContractExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->eContractExpensesServices->list($params);
+            $data = $this->eContractCostManagementServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -113,7 +113,7 @@ class EContractExpensesController extends Controller
     }   
 
     /**
-     * delete the Expense.
+     * delete the cost management.
      *
      * @param Request $request
      * @return JsonResponse
@@ -122,11 +122,11 @@ class EContractExpensesController extends Controller
     {  
         try {
             $params = $this->getRequest($request);
-            $response = $this->eContractExpensesServices->delete($params); 
+            $response = $this->eContractCostManagementServices->delete($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Delete Expense was failed']);
+            return $this->sendError(['message' => 'Delete Cost Management was failed']);
         }  
     }
 
@@ -139,7 +139,7 @@ class EContractExpensesController extends Controller
     public function deleteAttachment(Request $request): JsonResponse
     {   
         try {
-            $response = $this->eContractExpensesServices->deleteAttachment($request);
+            $response = $this->eContractCostManagementServices->deleteAttachment($request);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\EContractExpenses;
-use App\Models\EContractExpensesAttachments;
+use App\Models\EContractCostManagement;
+use App\Models\EContractCostManagementAttachments;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -12,31 +12,31 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 
-class EContractExpensesServices
+class EContractCostManagementServices
 {
-    private EContractExpenses $eContractExpenses;
-    private EContractExpensesAttachments $eContractExpensesAttachments;
+    private EContractCostManagement $eContractCostManagement;
+    private EContractCostManagementAttachments $eContractCostManagementAttachments;
     private ValidationServices $validationServices;
     private AuthServices $authServices;
     private Storage $storage;
     /**
-     * EContractExpensesServices constructor.
-     * @param EContractExpenses $eContractExpenses
-     * @param EContractExpensesAttachments $eContractExpensesAttachments
+     * EContractCostManagementServices constructor.
+     * @param EContractCostManagement $eContractCostManagement
+     * @param EContractCostManagementAttachments $eContractCostManagementsAttachments
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
      */
     public function __construct(
-            EContractExpenses                 $eContractExpenses,
-            EContractExpensesAttachments      $eContractExpensesAttachments,
-            ValidationServices                $validationServices,
-            AuthServices                      $authServices,
-            Storage                           $storage
+            EContractCostManagement                 $eContractCostManagement,
+            EContractCostManagementAttachments     $eContractCostManagementAttachments,
+            ValidationServices                      $validationServices,
+            AuthServices                            $authServices,
+            Storage                                 $storage
     )
     {
-        $this->eContractExpenses = $eContractExpenses;
-        $this->eContractExpensesAttachments = $eContractExpensesAttachments;
+        $this->eContractCostManagement = $eContractCostManagement;
+        $this->eContractCostManagementAttachments = $eContractCostManagementAttachments;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
@@ -82,7 +82,7 @@ class EContractExpensesServices
               'validate' => $this->validationServices->errors()
             ];
         }
-        $expense = $this->eContractExpenses->create([
+        $eContractCostManagement = $this->eContractCostManagement->create([
             'project_id' => $request['project_id'],
             'title' => $request['title'] ?? '',
             'payment_reference_number' => $request['payment_reference_number'] ?? '',
@@ -97,14 +97,14 @@ class EContractExpensesServices
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/eContract/expense/'.$expense['id']. $fileName; 
+                $filePath = '/eContract/costManagement/'.$eContractCostManagement['id']. $fileName; 
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->eContractExpensesAttachments::create([
-                        "file_id" => $expense['id'],
+                $this->eContractCostManagementAttachments::create([
+                        "file_id" => $eContractCostManagement['id'],
                         "file_name" => $fileName,
-                        "file_type" => 'EXPENSE',
+                        "file_type" => 'COST MANAGEMENT',
                         "file_url" =>  $fileUrl
                     ]);  
             }
@@ -130,31 +130,31 @@ class EContractExpensesServices
             ];
         }
 
-        $expense = $this->eContractExpenses->findOrFail($request['id']);
-        $expense->title = $request['title'] ?? $expense->title;
-        $expense->payment_reference_number = $request['payment_reference_number'] ?? $expense->payment_reference_number;
-        $expense->payment_date = ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : $costManagement->payment_date);
-        $expense->amount = $request['amount'] ?? $expense->amount;
-        $expense->quantity = $request['quantity'] ?? $expense->quantity;
-        $expense->remarks = $request['remarks'] ?? $expense->remarks;
-        $expense->created_by = $request['created_by'] ?? $expense->created_by;
-        $expense->modified_by = $params['modified_by'];
-        $expense->save();
+        $eContractCostManagement = $this->eContractCostManagement->findOrFail($request['id']);
+        $eContractCostManagement->title = $request['title'] ?? $eContractCostManagement->title;
+        $eContractCostManagement->payment_reference_number = $request['payment_reference_number'] ?? $eContractCostManagement->payment_reference_number;
+        $eContractCostManagement->payment_date = ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : $eContractCostManagement->payment_date);
+        $eContractCostManagement->amount = $request['amount'] ?? $eContractCostManagement->amount;
+        $eContractCostManagement->quantity = $request['quantity'] ?? $eContractCostManagement->quantity;
+        $eContractCostManagement->remarks = $request['remarks'] ?? $eContractCostManagement->remarks;
+        $eContractCostManagement->created_by = $request['created_by'] ?? $eContractCostManagement->created_by;
+        $eContractCostManagement->modified_by = $params['modified_by'];
+        $eContractCostManagement->save();
 
         if (request()->hasFile('attachment')){
 
-            $this->eContractExpensesAttachments->where('file_id', $request['id'])->where('file_type', 'EXPENSE')->delete();
+            $this->eContractCostManagementAttachments->where('file_id', $request['id'])->where('file_type', 'COST MANAGEMENT')->delete();
 
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/eContract/expense/'.$request['id']. $fileName; 
+                $filePath = '/eContract/costManagement/'.$request['id']. $fileName; 
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->eContractExpensesAttachments::create([
+                $this->eContractCostManagementAttachments::create([
                     "file_id" => $request['id'],
                     "file_name" => $fileName,
-                    "file_type" => 'EXPENSE',
+                    "file_type" => 'COST MANAGEMENT',
                     "file_url" =>  $fileUrl         
                 ]);  
             }
@@ -175,7 +175,7 @@ class EContractExpensesServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->eContractExpenses->with('eContractExpensesAttachments')->findOrFail($request['id']);
+        return $this->eContractCostManagement->with('eContractCostManagementAttachments')->findOrFail($request['id']);
     }
     
     /**
@@ -191,20 +191,20 @@ class EContractExpensesServices
                 ];
             }
         }
-        return $this->eContractExpenses
-        ->leftJoin('e-contract_expenses_attachments', function($join) use ($request){
-            $join->on('e-contract_expenses.id', '=', 'e-contract_expenses_attachments.file_id')
-            ->whereNull('e-contract_expenses_attachments.deleted_at');
+        return $this->eContractCostManagement
+        ->leftJoin('e-contract_cost_management_attachments', function($join) use ($request){
+            $join->on('e-contract_cost_management.id', '=', 'e-contract_cost_management_attachments.file_id')
+            ->whereNull('e-contract_cost_management_attachments.deleted_at');
           })
-        ->where('e-contract_expenses.project_id', $request['project_id'])
+        ->where('e-contract_cost_management.project_id', $request['project_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('e-contract_expenses.title', 'like', "%{$request['search_param']}%")
-                ->orWhere('e-contract_expenses.payment_reference_number', 'like', '%'.$request['search_param'].'%');
+                $query->where('e-contract_cost_management.title', 'like', "%{$request['search_param']}%")
+                ->orWhere('e-contract_cost_management.payment_reference_number', 'like', '%'.$request['search_param'].'%');
             }            
-        })->select('e-contract_expenses.id','e-contract_expenses.project_id','e-contract_expenses.title','e-contract_expenses.payment_reference_number','e-contract_expenses.payment_date','e-contract_expenses.quantity','e-contract_expenses.amount','e-contract_expenses.remarks', 'e-contract_expenses.invoice_status', 'e-contract_expenses_attachments.file_name','e-contract_expenses_attachments.file_url','e-contract_expenses.created_at')
+        })->select('e-contract_cost_management.id','e-contract_cost_management.project_id','e-contract_cost_management.title','e-contract_cost_management.payment_reference_number','e-contract_cost_management.payment_date','e-contract_cost_management.quantity','e-contract_cost_management.amount','e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management_attachments.file_name','e-contract_cost_management_attachments.file_url','e-contract_cost_management.created_at')
         ->distinct()
-        ->orderBy('e-contract_expenses.id','DESC')
+        ->orderBy('e-contract_cost_management.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
 
@@ -216,16 +216,16 @@ class EContractExpensesServices
      */    
     public function delete($request): mixed
     {   
-        $eContractExpenses = $this->eContractExpenses::find($request['id']);
+        $eContractCostManagement = $this->eContractCostManagement::find($request['id']);
 
-        if(is_null($eContractExpenses)){
+        if(is_null($eContractCostManagement)){
             return [
                 "isDeleted" => false,
                 "message" => "Data not found"
             ];
         }
-        $eContractExpenses->eContractExpensesAttachments()->delete();
-        $eContractExpenses->delete();
+        $eContractCostManagement->eContractExpensesAttachments()->delete();
+        $eContractCostManagement->delete();
         return [
             "isDeleted" => true,
             "message" => "Deleted Successfully"
@@ -239,7 +239,7 @@ class EContractExpensesServices
      */    
     public function deleteAttachment($request): mixed
     {   
-        $data = $this->eContractExpensesAttachments::find($request['id']); 
+        $data = $this->eContractCostManagementAttachments::find($request['id']); 
         if(is_null($data)){
             return [
                 "isDeleted" => false,
