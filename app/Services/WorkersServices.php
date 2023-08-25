@@ -773,4 +773,111 @@ class WorkersServices
         }
         
     }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function createBankDetails($request) : mixed
+    {
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['created_by'] = $user['id'];
+        
+        $workerBankDetail = $this->workerBankDetails->create([
+            'worker_id' => $request['worker_id'],
+            "bank_name" => $request['bank_name'] ?? '',
+            "account_number" => $request['account_number'] ?? '',
+            "socso_number" =>  $request['socso_number'] ?? ''
+        ]);
+
+        return $workerBankDetail;
+    }
+
+    /**
+     * @param $request
+     * @return bool|array
+     */
+    public function updateBankDetails($request): bool|array
+    {
+
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['modified_by'] = $user['id'];
+
+        $workerBankDetail = $this->workerBankDetails::findOrFail($request['id']);
+        $workerBankDetail->worker_id = $request['worker_id'] ?? $workerBankDetail->worker_id;
+        $workerBankDetail->bank_name = $request['bank_name'] ?? $workerBankDetail->bank_name;
+        $workerBankDetail->account_number = $request['account_number'] ?? $workerBankDetail->account_number;
+        $workerBankDetail->socso_number = $request['socso_number'] ?? $workerBankDetail->socso_number;
+
+        $workerBankDetail->save();
+
+        return true;
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function showBankDetails($request) : mixed
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        return $this->workerBankDetails->findOrFail($request['id']);
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function listBankDetails($request) : mixed
+    {
+        if(isset($request['search_param']) && !empty($request['search_param'])){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+                return [
+                    'validate' => $this->validationServices->errors()
+                ];
+            }
+        }
+        return $this->workerBankDetails
+        
+        ->where('worker_bank_details.worker_id', $request['worker_id'])
+        ->where(function ($query) use ($request) {
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('worker_bank_details.bank_name', 'like', "%{$request['search_param']}%")
+                ->orWhere('worker_bank_details.account_number', 'like', '%'.$request['search_param'].'%');
+            }
+            
+        })->select('worker_bank_details.id','worker_bank_details.worker_id','worker_bank_details.bank_name','worker_bank_details.account_number','worker_bank_details.socso_number')
+        ->distinct()
+        ->orderBy('worker_bank_details.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
+    }
+
+    /**
+     * delete the specified Bank Detail of the Worker.
+     *
+     * @param $request
+     * @return mixed
+     */    
+    public function deleteBankDetails($request): mixed
+    {   
+        $workerBankDetail = $this->workerBankDetails::find($request['id']);
+
+        if(is_null($workerBankDetail)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        $workerBankDetail->delete();
+        return [
+            "isDeleted" => true,
+            "message" => "Deleted Successfully"
+        ];
+    }
 }

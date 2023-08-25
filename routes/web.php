@@ -490,6 +490,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('show', 'V1\WorkerEventController@show');
                 $router->post('deleteAttachment', 'V1\WorkerEventController@deleteAttachment');
             });
+            $router->group(['prefix' => 'bankdetails'], function () use ($router) {
+                $router->post('list', 'V1\WorkersController@listBankDetails');
+                $router->post('create', 'V1\WorkersController@createBankDetails');
+                $router->post('update', 'V1\WorkersController@updateBankDetails');
+                $router->post('show', 'V1\WorkersController@showBankDetails');
+                $router->post('delete', 'V1\WorkersController@deleteBankDetails');
+            });
         });
         /**
         * Routes for Application Summary.
