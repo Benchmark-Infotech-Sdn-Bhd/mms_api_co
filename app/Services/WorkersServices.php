@@ -550,7 +550,7 @@ class WorkersServices
             }
             
         })->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'workers.total_management_status', 'workers.crm_prospect_id as total_management_company_id', 'crm_prospects.company_name as total_management_company_name', 'worker_employment.id as total_management_employment_id', 'total_management_project.id as total_management_project_id', 'total_management_project.city as total_management_project_city', 'directrecruitment_workers.application_id as directrecruitment_application_id', 'directrecruitment_applications.crm_prospect_id as directrecruitment_company_id', 'directrecruitment_crm.company_name as directrecruitment_company_name')
-        ->distinct('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'workers.total_management_status')
+        ->distinct('workers.id')
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }

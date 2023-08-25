@@ -224,7 +224,7 @@ class EContractCostManagementServices
                 "message" => "Data not found"
             ];
         }
-        $eContractCostManagement->eContractExpensesAttachments()->delete();
+        $eContractCostManagement->eContractCostManagementAttachments()->delete();
         $eContractCostManagement->delete();
         return [
             "isDeleted" => true,
