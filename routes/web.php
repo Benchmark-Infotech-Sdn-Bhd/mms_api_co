@@ -637,6 +637,18 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('delete', 'V1\EContractCostManagementController@delete');
                 $router->post('deleteAttachment', 'V1\EContractCostManagementController@deleteAttachment');
             });
+            $router->group(['prefix' => 'payroll'], function () use ($router) {
+                $router->post('projectDetails', 'V1\EContractPayrollController@projectDetails');
+                $router->post('list', 'V1\EContractPayrollController@list');
+                $router->post('export', 'V1\EContractPayrollController@export');
+                $router->post('import', 'V1\EContractPayrollController@import');
+                $router->post('show', 'V1\EContractPayrollController@show');
+                $router->post('update', 'V1\EContractPayrollController@update');
+                $router->post('add', 'V1\EContractPayrollController@add');
+                $router->post('listTimesheet', 'V1\EContractPayrollController@listTimesheet');
+                $router->post('uploadTimesheet', 'V1\EContractPayrollController@uploadTimesheet');
+                $router->post('viewTimesheet', 'V1\EContractPayrollController@viewTimesheet');
+            });
         });
 
         /**
