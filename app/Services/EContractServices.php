@@ -135,16 +135,19 @@ class EContractServices
         }
         return $this->eContractApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'e-contract_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'e-contract_applications.service_id')
-        // ->leftJoin('total_management_project', 'total_management_project.application_id', 'e-contract_applications.id')
-        // ->leftJoin('workers', 'workers.crm_prospect_id', 'e-contract_applications.crm_prospect_id')
+        ->leftJoin('e-contract_project', 'e-contract_project.application_id', 'e-contract_applications.id')
+        ->leftJoin('worker_employment', 'worker_employment.project_id', 'e-contract_project.id')
         ->where('crm_prospect_services.service_id', 2)
         ->where('crm_prospect_services.deleted_at', NULL)
+        ->where('worker_employment.transfer_flag', 0)
+        ->where('worker_employment.service_type', 'e-Contract')
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
             }
         })
-        ->select('e-contract_applications.id', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name')
+        ->selectRaw('`e-contract_applications`.`id`, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, crm_prospect_services.sector_id, crm_prospect_services.sector_name, count(`e-contract_project`.`id`) as projects, count(`worker_employment`.`worker_id`) as workers')
+        ->groupBy('e-contract_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name')
         ->orderBy('e-contract_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }

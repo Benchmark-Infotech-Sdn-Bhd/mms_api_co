@@ -5,13 +5,13 @@ namespace App\Services;
 use App\Models\Workers;
 use App\Models\WorkerEmployment;
 use App\Models\CRMProspect;
-use App\Models\TotalManagementProject;
+use App\Models\EContractProject;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
-class TotalManagementTransferServices
+class EContractTransferServices
 {
     /**
      * @var Workers
@@ -22,31 +22,27 @@ class TotalManagementTransferServices
      */
     private WorkerEmployment $workerEmployment;
     /**
-     * @var TotalManagementApplications
-     */
-    private TotalManagementApplications $totalManagementApplications;
-    /**
      * @var CRMProspect
      */
     private CRMProspect $crmProspect;
     /**
-     * @var TotalManagementProject
+     * @var EContractProject
      */
-    private TotalManagementProject $totalManagementProject;
+    private EContractProject $eContractProject;
 
     /**
      * TotalManagementWorkerServices constructor.
      * @param Workers $workers
      * @param WorkerEmployment $workerEmployment
      * @param CRMProspect $crmProspect
-     * @param TotalManagementProject $totalManagementProject
+     * @param EContractProject $eContractProject
      */
-    public function __construct(Workers $workers, WorkerEmployment $workerEmployment, CRMProspect $crmProspect, TotalManagementProject $totalManagementProject)
+    public function __construct(Workers $workers, WorkerEmployment $workerEmployment, CRMProspect $crmProspect, EContractProject $eContractProject)
     {
         $this->workers = $workers;
         $this->workerEmployment = $workerEmployment;
         $this->crmProspect = $crmProspect;
-        $this->totalManagementProject = $totalManagementProject;
+        $this->eContractProject = $eContractProject;
     }
     /**
      * @return array
@@ -57,26 +53,13 @@ class TotalManagementTransferServices
             'worker_id' => 'required',
             'current_project_id' => 'required',
             'new_project_id' => 'required',
+            'new_prospect_id' => 'required',
             'accommodation_provider_id' => 'required|regex:/^[0-9]*$/',
             'accommodation_unit_id' => 'required|regex:/^[0-9]*$/',
             'last_working_day' => 'required|date|date_format:Y-m',
             'new_joining_date' => 'required|date|date_format:Y-m',
             'service_type' => 'required'
         ];
-    }
-    /**
-     * @param $request
-     * @return mixed
-     */
-    public function workerEmploymentDetail($request): mixed
-    {
-        return $this->workers
-                    ->leftJoin('crm_prospects', 'crm_prospects.id', 'workers.crm_prospect_id')
-                    ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
-                    ->where('workers.id', $request['worker_id'])
-                    ->where('worker_employment.transfer_flag', 0)
-                    ->select('workers.id', 'crm_prospects.id as company_id', 'crm_prospects.company_name', 'worker_employment.id as worker_employment_id', 'worker_employment.project_id', 'worker_employment.department', 'worker_employment.sub_department', 'worker_employment.work_start_date', 'worker_employment.work_end_date','worker_employment.service_type', 'worker_employment.transfer_flag')
-                    ->get();
     }
     /**
      * @param $request
@@ -112,14 +95,28 @@ class TotalManagementTransferServices
      */
     public function projectList($request): mixed
     {
-        return $this->totalManagementProject
-        ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-        ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
+        return $this->eContractProject
+        ->leftJoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
+        ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'e-contract_applications.crm_prospect_id')
         ->where('crm_prospects.id',$request['crm_prospect_id'])
-        ->select('total_management_project.id', 'total_management_project.name')
-        ->distinct('total_management_project.id')
-        ->orderBy('total_management_project.id', 'desc')
+        ->select('e-contract_project.id', 'e-contract_project.name')
+        ->distinct('e-contract_project.id')
+        ->orderBy('e-contract_project.id', 'desc')
         ->get();
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function workerEmploymentDetail($request): mixed
+    {
+        return $this->workers
+                ->leftJoin('crm_prospects', 'crm_prospects.id', 'workers.crm_prospect_id')
+                ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
+                ->where('workers.id', $request['worker_id'])
+                ->where('worker_employment.transfer_flag', 0)
+                ->select('workers.id', 'workers.crm_prospect_id as company_id', 'crm_prospects.company_name', 'worker_employment.id as worker_employment_id', 'worker_employment.project_id', 'worker_employment.department', 'worker_employment.sub_department', 'worker_employment.work_start_date', 'worker_employment.work_end_date', 'worker_employment.service_type', 'worker_employment.transfer_flag')
+                ->get();
     }
     /**
      * @param $request
