@@ -56,6 +56,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $this->getRequest($request);
+        unset($credentials['domain_name']);
         $validator = Validator::make($credentials, $this->authServices->loginValidation());
         if ($validator->fails()) {
             return $this->validationError($validator->errors());
