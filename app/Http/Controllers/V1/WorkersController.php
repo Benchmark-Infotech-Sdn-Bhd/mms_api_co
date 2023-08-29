@@ -388,7 +388,7 @@ class WorkersController extends Controller
             $data = $this->workersServices->addAttachment($request);
             if(isset($data['error'])){
                 return $this->validationError($data['error']); 
-            }else if($data['workerError']){
+            }else if(isset($data['workerError'])){
                 return $this->sendError(['message' => 'Worker Not Found'], 422);
             }else if($data == false){
                 return $this->sendError(['message' => 'Failed to Upload Attachment'], 422);
@@ -396,8 +396,7 @@ class WorkersController extends Controller
             return $this->sendSuccess(['message' => 'Attachment Uploaded Sucessfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'Failed to Upload Attachment.';
-            return $this->sendError(['message' => $data['error']], 400);
+            return $this->sendError(['message' => 'Failed to Upload Attachment'], 400);
         }
     }
     /**
