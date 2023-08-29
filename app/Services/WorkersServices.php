@@ -26,6 +26,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class WorkersServices
 {
@@ -215,7 +216,7 @@ class WorkersServices
                 $this->workerAttachments::create([
                         "file_id" => $worker['id'],
                         "file_name" => $fileName,
-                        "file_type" => 'WORKER ATTACHMENT',
+                        "file_type" => 'WORKERATTACHMENT',
                         "file_url" =>  $fileUrl         
                     ]);  
             }
@@ -439,8 +440,6 @@ class WorkersServices
 
         if (request()->hasFile('worker_attachment')){
 
-            $this->workerAttachments->where('file_id', $request['id'])->where('file_type', 'WORKER ATTACHMENT')->delete();
-
             foreach($request->file('worker_attachment') as $file){
                 $fileName = $file->getClientOriginalName();
                 $filePath = '/workerAttachment/'.$worker['id'].'/attachment/' . $fileName; 
@@ -450,7 +449,7 @@ class WorkersServices
                 $this->workerAttachments::create([
                         "file_id" => $request['id'],
                         "file_name" => $fileName,
-                        "file_type" => 'WORKER ATTACHMENT',
+                        "file_type" => 'WORKERATTACHMENT',
                         "file_url" =>  $fileUrl         
                     ]);  
             }
@@ -913,5 +912,34 @@ class WorkersServices
             "isDeleted" => true,
             "message" => "Deleted Successfully"
         ];
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function listAttachment($request) : mixed
+    {
+        return $this->workers
+        ->select('workers.id')
+        ->where('workers.id', $request['worker_id'])
+        ->with(['workerOtherAttachments' => function ($query) { 
+            $query->select(['id', 'file_id', 'file_name', 'file_type', 'file_url', DB::raw('1 as edit_flag')]);
+        }])
+        ->with('SpecialPassAttachments', 'WorkerRepatriationAttachments', 'WorkerPLKSAttachments', 'workerFomemaAttachments', 'CancellationAttachment', 'WorkerImmigrationAttachments', 'WorkerInsuranceAttachments')
+        ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     *
+     * @param $request
+     * @return bool
+     */    
+    public function deleteAttachment($request): bool
+    {   
+        $data = $this->workerAttachments->find($request['attachment_id']);
+        if(is_null($data)) {
+            return false;
+        }
+        $data->delete();
+        return true;
     }
 }
