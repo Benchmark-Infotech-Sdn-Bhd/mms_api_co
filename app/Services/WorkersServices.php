@@ -125,6 +125,15 @@ class WorkersServices
                 'agent_id' => 'required'
             ];
     }
+    /**
+     * @return array
+     */
+    public function addAttachmentValidation(): array
+    {
+        return [
+            'worker_id' => 'required',
+        ];
+    }
 
     /**
      * @param $request
@@ -912,6 +921,46 @@ class WorkersServices
             "isDeleted" => true,
             "message" => "Deleted Successfully"
         ];
+    }
+    /**
+     * add attachment
+     * @param $request
+     * @return bool|array
+     */
+    public function addAttachment($request): bool|array
+    {
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['created_by'] = $user['id'];
+
+        $validator = Validator::make($request->toArray(), $this->addAttachmentValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        $workerExists = $this->workers->find($request['worker_id']);
+        if(is_null($workerExists)) {
+            return ['workerError' => true];
+        }
+        if (request()->hasFile('attachment')){
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/workerAttachment/'.$request['worker_id'].'/attachment/' . $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $this->workerAttachments::create([
+                        "file_id" => $request['worker_id'],
+                        "file_name" => $fileName,
+                        "file_type" => 'WORKERATTACHMENT',
+                        "file_url" =>  $fileUrl         
+                    ]);  
+            }
+            return true;
+        }else{
+            return false;
+        }
     }
     /**
      * @param $request

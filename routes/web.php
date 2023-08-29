@@ -482,6 +482,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('onboardingAgent', 'V1\WorkersController@onboardingAgent');
             $router->post('replaceWorker', 'V1\WorkersController@replaceWorker');
             $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
+            $router->post('addAttachment', 'V1\WorkersController@addAttachment');
             $router->post('assignWorker', 'V1\WorkersController@assignWorker');
             $router->post('listAttachment', 'V1\WorkersController@listAttachment');
             $router->post('deleteAttachment', 'V1\WorkersController@deleteAttachment');
