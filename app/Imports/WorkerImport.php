@@ -82,7 +82,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
      */
     public function dateConvert($date)
     {
-        return date('Y-m-d',strtotime($date));
+        return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject(intval($date))->format('Y-m-d');
     }
 
     /**
