@@ -780,9 +780,19 @@ class WorkersServices
      */
     public function createBankDetails($request) : mixed
     {
+
+        $workerBankDetail = $this->workerBankDetails::where('worker_id', $request['worker_id'])->count();
+        if(isset($workerBankDetail) && $workerBankDetail > 3){
+            return [
+                'workerCountError' => true 
+            ];
+        }
+
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
+
+        //$workerBankDetail = $this->workerBankDetails::findOrFail($request['id']);
         
         $workerBankDetail = $this->workerBankDetails->create([
             'worker_id' => $request['worker_id'],
@@ -800,6 +810,14 @@ class WorkersServices
      */
     public function updateBankDetails($request): bool|array
     {
+
+        $workerBankDetail = $this->workerBankDetails::where('worker_id', $request['worker_id'])->count();
+        
+        if(isset($workerBankDetail) && $workerBankDetail > 3){
+            return [
+                'workerCountError' => true 
+            ];
+        }
 
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();

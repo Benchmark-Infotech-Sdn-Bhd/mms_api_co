@@ -95,6 +95,9 @@ class EContractWorkerController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->eContractWorkerServices->removeWorker($params);
+            if(isset($data['error'])) {
+                return $this->validationError($data['error']);
+            }
             return $this->sendSuccess(['message' => 'Worker Removed Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
