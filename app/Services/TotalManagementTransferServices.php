@@ -59,8 +59,8 @@ class TotalManagementTransferServices
             'new_project_id' => 'required',
             'accommodation_provider_id' => 'required|regex:/^[0-9]*$/',
             'accommodation_unit_id' => 'required|regex:/^[0-9]*$/',
-            'last_working_day' => 'required|date|date_format:Y-m',
-            'new_joining_date' => 'required|date|date_format:Y-m',
+            'last_working_day' => 'required|date|date_format:Y-m-d',
+            'new_joining_date' => 'required|date|date_format:Y-m-d',
             'service_type' => 'required'
         ];
     }

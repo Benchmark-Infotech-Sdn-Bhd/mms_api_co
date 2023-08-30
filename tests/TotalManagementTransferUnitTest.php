@@ -566,15 +566,17 @@ class TotalManagementTransferUnitTest extends TestCase
     public function transferData(): array
     {
         return [
-            "worker_id"=>  1,
-            "start_date" => Carbon::now()->format('Y-m-d'),
-            "to_date"=>  Carbon::now()->format('Y-m-d'),
-            "crm_prospect_id"=>  1,
-            "current_project_id"=>  1,
-            "new_project_id"=>  2,
-            "accommodation_provider_id"=>  0,
-            "accommodation_unit_id"=>  0,
-            "transfer_date"=>  Carbon::now()->format('Y-m-d')
+            "worker_id" => 1,
+            "current_project_id" => 1,
+            "new_prospect_id" => 1,
+            "new_project_id" => 2,
+            "service_type" => "Total Management",
+            "last_working_day" => Carbon::now()->format('Y-m-d'),
+            "new_joining_date"=>  Carbon::now()->format('Y-m-d'),
+            "accommodation_provider_id"=>  1,
+            "accommodation_unit_id"=>  1,
+            "department" => "department",
+            "sub_department" => "sub_department"
         ];
     }
 }
