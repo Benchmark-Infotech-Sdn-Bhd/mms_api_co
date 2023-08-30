@@ -255,7 +255,7 @@ class EContractTransferUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'last_working_day' => ['The last working day does not match the format Y-m.']
+                'last_working_day' => ['The last working day does not match the format Y-m-d.']
             ]
         ]);
     }
@@ -270,7 +270,7 @@ class EContractTransferUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'new_joining_date' => ['The new joining date does not match the format Y-m.']
+                'new_joining_date' => ['The new joining date does not match the format Y-m-d.']
             ]
         ]);
     }
@@ -485,8 +485,8 @@ class EContractTransferUnitTest extends TestCase
             "new_prospect_id" => 1,
             "new_project_id" => 2,
             "service_type" => "e-Contract",
-            "last_working_day" => Carbon::now()->format('Y-m'),
-            "new_joining_date"=>  Carbon::now()->format('Y-m'),
+            "last_working_day" => Carbon::now()->format('Y-m-d'),
+            "new_joining_date"=>  Carbon::now()->format('Y-m-d'),
             "accommodation_provider_id"=>  1,
             "accommodation_unit_id"=>  1,
             "department" => "department",

@@ -116,6 +116,7 @@ class EContractWorkerServices
             ->where('e-contract_project.id', $request['project_id'])
             ->where('worker_employment.service_type', 'e-Contract')
             ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
+            ->where('worker_employment.transfer_flag', 0)
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && $request['search']) {
                     $query->where('workers.name', 'like', '%' . $request['search'] . '%');
