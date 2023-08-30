@@ -303,12 +303,15 @@ class WorkersServices
             "insurance_expiry_date" => ((isset($request['insurance_expiry_date']) && !empty($request['insurance_expiry_date'])) ? $request['insurance_expiry_date'] : null)
         ]);
 
-        $workerBankDetails = $this->workerBankDetails::create([
-            "worker_id" => $worker['id'],
-            "bank_name" => $request['bank_name'] ?? '',
-            "account_number" => $request['account_number'] ?? '',
-            "socso_number" =>  $request['socso_number'] ?? ''
-        ]);
+        if(isset($request['bank_name']) && !empty($request['bank_name'])){
+            $workerBankDetails = $this->workerBankDetails::create([
+                "worker_id" => $worker['id'],
+                "bank_name" => $request['bank_name'] ?? '',
+                "account_number" => $request['account_number'] ?? '',
+                "socso_number" =>  $request['socso_number'] ?? ''
+            ]);
+        }
+        
 
         return $worker;
     }
