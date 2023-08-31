@@ -636,6 +636,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('projectList', 'V1\EContractTransferController@projectList');
                     $router->post('submit', 'V1\EContractTransferController@submit');
                 });
+                $router->group(['prefix' => 'expense'], function () use ($router) {
+                    $router->post('list', 'V1\EContractExpensesController@list');
+                    $router->post('show', 'V1\EContractExpensesController@show');
+                    $router->post('create', 'V1\EContractExpensesController@create');
+                    $router->post('update', 'V1\EContractExpensesController@update');
+                    $router->post('delete', 'V1\EContractExpensesController@delete');
+                    $router->post('deleteAttachment', 'V1\EContractExpensesController@deleteAttachment');
+                    $router->post('payBack', 'V1\EContractExpensesController@payBack');
+                });
             });
             
             $router->group(['prefix' => 'costManagement'], function () use ($router) {

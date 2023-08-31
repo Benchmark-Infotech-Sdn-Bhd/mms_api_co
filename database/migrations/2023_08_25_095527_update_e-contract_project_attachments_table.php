@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('e-contract_project_attachments', function (Blueprint $table) {
-            $table->dropColumn('valid_until');
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropColumn('valid_until');
+            }
         });
     }
 

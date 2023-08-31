@@ -24,7 +24,6 @@ class EContractTransferUnitTest extends TestCase
     public function testForEContractTransferCompanyListing(): void
     {
         $this->creationSeeder();
-        // $this->json('POST', 'api/v1/eContract/manage/transfer/submit', $this->transferData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/eContract/manage/transfer/companyList', ['search' => '', 'filter' => ''], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
