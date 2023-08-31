@@ -95,7 +95,6 @@ class TotalManagementWorkerServices
         return [
             'project_id' => 'required',
             'worker_id' => 'required',
-            'remarks' => 'required',
             'remove_date' => 'required'
         ];
     }
