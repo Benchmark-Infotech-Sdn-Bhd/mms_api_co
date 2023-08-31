@@ -20,10 +20,10 @@ class DBSelectionMiddleware
     public function handle($request, Closure $next)
     {
         if (DB::getDriverName() !== 'sqlite') {
-            Config::set('cache.prefix', $request->identifier);
+            Config::set('cache.prefix', $request->domain_name);
             $dbDetails = DB::connection('tenant')->table('domains')
                 ->where('active_flag', 1)
-                //->where('identifier', $request->identifier)
+                ->where('identifier', $request->domain_name)
                 ->first(['db_name', 'db_host', 'db_username', 'db_password']);
             if (!isset($dbDetails->db_name)) {
                 return response()->json($this->frameResponse($this->sendResponse(['message' => 'Please enter a valid company url. Contact your manager if you have not received login credentials.'])), 400);
