@@ -338,46 +338,111 @@ class WorkersServices
         $worker->modified_by = $params['modified_by'];
 
         # Worker Kin details
-        $worker->workerKin->kin_name = $request['kin_name'] ?? $worker->workerKin->kin_name;
-        $worker->workerKin->kin_relationship_id = $request['kin_relationship_id'] ?? $worker->workerKin->kin_relationship_id;
-        $worker->workerKin->kin_contact_number = $request['kin_contact_number'] ?? $worker->workerKin->kin_contact_number;
+        if( isset($worker->workerKin) && !empty($worker->workerKin) ){
+            $worker->workerKin->kin_name = $request['kin_name'] ?? $worker->workerKin->kin_name;
+            $worker->workerKin->kin_relationship_id = $request['kin_relationship_id'] ?? $worker->workerKin->kin_relationship_id;
+            $worker->workerKin->kin_contact_number = $request['kin_contact_number'] ?? $worker->workerKin->kin_contact_number;
+
+            $worker->workerKin->save();
+        } else {
+            $this->workerKin::create([
+                "worker_id" => $worker->id,
+                "kin_name" => $request['kin_name'] ?? '',
+                "kin_relationship_id" => $request['kin_relationship_id'] ?? '',
+                "kin_contact_number" =>  $request['kin_contact_number'] ?? ''         
+            ]);
+        }
 
         # Worker Visa details
-        $worker->workerVisa->ksm_reference_number = $request['ksm_reference_number'] ?? $worker->workerVisa->ksm_reference_number;
-        $worker->workerVisa->calling_visa_reference_number = $request['calling_visa_reference_number'] ?? $worker->workerVisa->calling_visa_reference_number;
-        $worker->workerVisa->calling_visa_valid_until = $request['calling_visa_valid_until'] ?? $worker->workerVisa->calling_visa_valid_until;
-        $worker->workerVisa->entry_visa_valid_until = $request['entry_visa_valid_until'] ?? $worker->workerVisa->entry_visa_valid_until;
-        $worker->workerVisa->work_permit_valid_until = $request['work_permit_valid_until'] ?? $worker->workerVisa->work_permit_valid_until;
+        if( isset($worker->workerVisa) && !empty($worker->workerVisa) ){
+            $worker->workerVisa->ksm_reference_number = $request['ksm_reference_number'] ?? $worker->workerVisa->ksm_reference_number;
+            $worker->workerVisa->calling_visa_reference_number = $request['calling_visa_reference_number'] ?? $worker->workerVisa->calling_visa_reference_number;
+            $worker->workerVisa->calling_visa_valid_until = $request['calling_visa_valid_until'] ?? $worker->workerVisa->calling_visa_valid_until;
+            $worker->workerVisa->entry_visa_valid_until = $request['entry_visa_valid_until'] ?? $worker->workerVisa->entry_visa_valid_until;
+            $worker->workerVisa->work_permit_valid_until = $request['work_permit_valid_until'] ?? $worker->workerVisa->work_permit_valid_until;
+
+            $worker->workerVisa->save();
+        } else { 
+            $workerVisa = $this->workerVisa::create([
+                "worker_id" => $worker->id,
+                "ksm_reference_number" => $request['ksm_reference_number'],
+                "calling_visa_reference_number" => $request['calling_visa_reference_number'] ?? '',
+                "calling_visa_valid_until" =>  ((isset($request['calling_visa_valid_until']) && !empty($request['calling_visa_valid_until'])) ? $request['calling_visa_valid_until'] : null),         
+                "entry_visa_valid_until" =>  ((isset($request['entry_visa_valid_until']) && !empty($request['entry_visa_valid_until'])) ? $request['entry_visa_valid_until'] : null),
+                "work_permit_valid_until" =>  ((isset($request['work_permit_valid_until']) && !empty($request['work_permit_valid_until'])) ? $request['work_permit_valid_until'] : null)
+            ]);
+        }
 
         # Worker Bio Medical details
-        $worker->workerBioMedical->bio_medical_reference_number = $request['bio_medical_reference_number'] ?? $worker->workerBioMedical->bio_medical_reference_number;
-        $worker->workerBioMedical->bio_medical_valid_until = $request['bio_medical_valid_until'] ?? $worker->workerBioMedical->bio_medical_valid_until;
+        if( isset($worker->workerBioMedical) && !empty($worker->workerBioMedical) ){
+            $worker->workerBioMedical->bio_medical_reference_number = $request['bio_medical_reference_number'] ?? $worker->workerBioMedical->bio_medical_reference_number;
+            $worker->workerBioMedical->bio_medical_valid_until = $request['bio_medical_valid_until'] ?? $worker->workerBioMedical->bio_medical_valid_until;
+
+            $worker->workerBioMedical->save();
+        } else {
+            $workerBioMedical = $this->workerBioMedical::create([
+                "worker_id" => $worker->id,
+                "bio_medical_reference_number" => $request['bio_medical_reference_number'],
+                "bio_medical_valid_until" => $request['bio_medical_valid_until'],
+            ]);
+        }
 
         # Worker Fomema details
-        $worker->workerFomema->purchase_date = $request['purchase_date'] ?? $worker->workerFomema->purchase_date;
-        $worker->workerFomema->clinic_name = $request['clinic_name'] ?? $worker->workerFomema->clinic_name;
-        $worker->workerFomema->doctor_code = $request['doctor_code'] ?? $worker->workerFomema->doctor_code;
-        $worker->workerFomema->allocated_xray = $request['allocated_xray'] ?? $worker->workerFomema->allocated_xray;
-        $worker->workerFomema->xray_code = $request['xray_code'] ?? $worker->workerFomema->xray_code;
+        if( isset($worker->workerFomema) && !empty($worker->workerFomema) ){
+            $worker->workerFomema->purchase_date = $request['purchase_date'] ?? $worker->workerFomema->purchase_date;
+            $worker->workerFomema->clinic_name = $request['clinic_name'] ?? $worker->workerFomema->clinic_name;
+            $worker->workerFomema->doctor_code = $request['doctor_code'] ?? $worker->workerFomema->doctor_code;
+            $worker->workerFomema->allocated_xray = $request['allocated_xray'] ?? $worker->workerFomema->allocated_xray;
+            $worker->workerFomema->xray_code = $request['xray_code'] ?? $worker->workerFomema->xray_code;
+
+            $worker->workerFomema->save();
+        } else {
+            $workerFomema = $this->workerFomema::create([
+                "worker_id" => $worker->id,
+                "purchase_date" => ((isset($request['purchase_date']) && !empty($request['purchase_date'])) ? $request['purchase_date'] : null),
+                "clinic_name" => $request['clinic_name'] ?? '',
+                "doctor_code" =>  $request['doctor_code'] ?? '',         
+                "allocated_xray" =>  $request['allocated_xray'] ?? '',
+                "xray_code" =>  $request['xray_code'] ?? ''
+            ]);
+        }
 
         # Worker Insurance details
-        $worker->workerInsuranceDetails->ig_policy_number = $request['ig_policy_number'] ?? $worker->workerInsuranceDetails->ig_policy_number;
-        $worker->workerInsuranceDetails->ig_policy_number_valid_until = $request['ig_policy_number_valid_until'] ?? $worker->workerInsuranceDetails->ig_policy_number_valid_until;
-        $worker->workerInsuranceDetails->hospitalization_policy_number = $request['hospitalization_policy_number'] ?? $worker->workerInsuranceDetails->hospitalization_policy_number;
-        $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until = $request['hospitalization_policy_number_valid_until'] ?? $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until;
-        $worker->workerInsuranceDetails->insurance_expiry_date = (isset($request['insurance_expiry_date']) && !empty($request['insurance_expiry_date'])) ? $request['insurance_expiry_date'] : $worker->workerInsuranceDetails->insurance_expiry_date;
+        if( isset($worker->workerInsuranceDetails) && !empty($worker->workerInsuranceDetails) ){
+            $worker->workerInsuranceDetails->ig_policy_number = $request['ig_policy_number'] ?? $worker->workerInsuranceDetails->ig_policy_number;
+            $worker->workerInsuranceDetails->ig_policy_number_valid_until = $request['ig_policy_number_valid_until'] ?? $worker->workerInsuranceDetails->ig_policy_number_valid_until;
+            $worker->workerInsuranceDetails->hospitalization_policy_number = $request['hospitalization_policy_number'] ?? $worker->workerInsuranceDetails->hospitalization_policy_number;
+            $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until = $request['hospitalization_policy_number_valid_until'] ?? $worker->workerInsuranceDetails->hospitalization_policy_number_valid_until;
+            $worker->workerInsuranceDetails->insurance_expiry_date = (isset($request['insurance_expiry_date']) && !empty($request['insurance_expiry_date'])) ? $request['insurance_expiry_date'] : $worker->workerInsuranceDetails->insurance_expiry_date;
+
+            $worker->workerInsuranceDetails->save();
+        } else {
+            $workerInsuranceDetails = $this->workerInsuranceDetails::create([
+                "worker_id" => $worker['id'],
+                "ig_policy_number" => $request['ig_policy_number'] ?? '',
+                "ig_policy_number_valid_until" => ((isset($request['ig_policy_number_valid_until']) && !empty($request['ig_policy_number_valid_until'])) ? $request['ig_policy_number_valid_until'] : null),
+                "hospitalization_policy_number" =>  $request['hospitalization_policy_number'] ?? '',         
+                "hospitalization_policy_number_valid_until" =>  ((isset($request['hospitalization_policy_number_valid_until']) && !empty($request['hospitalization_policy_number_valid_until'])) ? $request['hospitalization_policy_number_valid_until'] : null),
+                "insurance_expiry_date" => ((isset($request['insurance_expiry_date']) && !empty($request['insurance_expiry_date'])) ? $request['insurance_expiry_date'] : null)
+            ]);            
+        }
 
         # Worker Bank details
-        $worker->workerBankDetails->bank_name = $request['bank_name'] ?? $worker->workerBankDetails->bank_name;
-        $worker->workerBankDetails->account_number = $request['account_number'] ?? $worker->workerBankDetails->account_number;
-        $worker->workerBankDetails->socso_number = $request['socso_number'] ?? $worker->workerBankDetails->socso_number;
+        if( isset($worker->workerBankDetails) && !empty($worker->workerBankDetails) ){
+            $worker->workerBankDetails->bank_name = $request['bank_name'] ?? $worker->workerBankDetails->bank_name;
+            $worker->workerBankDetails->account_number = $request['account_number'] ?? $worker->workerBankDetails->account_number;
+            $worker->workerBankDetails->socso_number = $request['socso_number'] ?? $worker->workerBankDetails->socso_number;
+
+            $worker->workerBankDetails->save();
+        } else {
+            $workerBankDetails = $this->workerBankDetails::create([
+                "worker_id" => $worker['id'],
+                "bank_name" => $request['bank_name'] ?? '',
+                "account_number" => $request['account_number'] ?? '',
+                "socso_number" =>  $request['socso_number'] ?? ''
+            ]);
+        }
         
-        $worker->workerKin->save();
-        $worker->workerVisa->save();
-        $worker->workerBioMedical->save();
-        $worker->workerFomema->save();
-        $worker->workerInsuranceDetails->save();
-        $worker->workerBankDetails->save();
         $worker->save();
 
         if (request()->hasFile('fomema_attachment')){
