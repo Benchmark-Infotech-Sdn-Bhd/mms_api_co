@@ -262,9 +262,10 @@ class EContractExpensesServices
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
         $expense = $this->eContractExpenses->findOrFail($request['id']);
-        $totalPayBack = $expense->amount_paid + $request['amount_paid'];
+        $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;
-        $expense->amount_paid = $totalPayBack;
+        $expense->amount_paid = $request['amount_paid'];
+        $expense->deduction = $totalPayBack;
         $expense->payment_date = $request['payment_date'] ?? $expense->payment_date;
         $expense->remaining_amount = $remainingAmount;
         $expense->modified_by = $request['modified_by'] ?? $expense->modified_by;
