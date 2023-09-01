@@ -672,5 +672,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('import', 'V1\ManageWorkersController@import');
             });
         });
+        $router->group(['prefix' => 'dispatchManagement'], function () use ($router) {
+                $router->post('list', 'V1\DispatchManagementController@list');
+                $router->post('show', 'V1\DispatchManagementController@show');
+                $router->post('create', 'V1\DispatchManagementController@create');
+                $router->post('update', 'V1\DispatchManagementController@update');
+                $router->post('deleteAttachment', 'V1\DispatchManagementController@deleteAttachment');
+        });
     });
 });
