@@ -156,38 +156,38 @@ class Workers extends Model implements Auditable
         return $this->hasMany(WorkerAttachments::class, 'file_id')->where('file_type', '=', 'WORKERATTACHMENT');
     }
     /**
-     * @return hasOne
+     * @return hasMany
      */
     public function SpecialPassAttachments()
     {
-        return $this->hasOne(SpecialPassAttachments::class, 'file_id');
+        return $this->hasMany(SpecialPassAttachments::class, 'file_id');
     }
     /**
-     * @return hasOne
+     * @return hasMany
      */
     public function WorkerRepatriationAttachments()
     {
-        return $this->hasOne(WorkerRepatriationAttachments::class, 'file_id');
+        return $this->hasMany(WorkerRepatriationAttachments::class, 'file_id');
     }
     /**
-     * @return hasOne
+     * @return hasMany
      */
     public function WorkerPLKSAttachments()
     {
-        return $this->hasOne(WorkerPLKSAttachments::class, 'file_id');
+        return $this->hasMany(WorkerPLKSAttachments::class, 'file_id');
     }
     /**
-     * @return hasOne
+     * @return hasMany
      */
     public function CancellationAttachment()
     {
-        return $this->hasOne(CancellationAttachment::class, 'file_id');
+        return $this->hasMany(CancellationAttachment::class, 'file_id');
     }
     /**
-     * @return hasOne
+     * @return hasMany
      */
     public function WorkerImmigrationAttachments()
     {
-        return $this->hasOne(WorkerImmigrationAttachments::class, 'file_id');
+        return $this->hasMany(WorkerImmigrationAttachments::class, 'file_id');
     }
 }
