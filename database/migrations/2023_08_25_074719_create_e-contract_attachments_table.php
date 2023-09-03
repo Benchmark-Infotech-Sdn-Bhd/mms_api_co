@@ -43,8 +43,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::create('e-contract_payroll_attachments', function (Blueprint $table) {
-            
-        });
+        //
     }
 };

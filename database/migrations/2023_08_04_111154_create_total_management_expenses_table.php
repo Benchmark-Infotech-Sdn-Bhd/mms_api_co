@@ -23,7 +23,7 @@ return new class extends Migration
             // Payment reference number column
             $table->string('payment_reference_number', 255);
             // Quantity column
-            $table->integer('quantity');
+            $table->integer('quantity')->nullable();
             // Amount column
             $table->decimal('amount', 8, 2)->default(0);
             // Payment Date column
