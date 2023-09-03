@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\EContractExpensesServices;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 use Exception;
 
 class EContractExpensesController extends Controller

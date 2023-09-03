@@ -4,170 +4,104 @@ namespace App\Services;
 
 use App\Models\TotalManagementExpenses;
 use App\Models\TotalManagementExpensesAttachments;
-use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Carbon;
 
 class TotalManagementExpensesServices
 {
     private TotalManagementExpenses $totalManagementExpenses;
     private TotalManagementExpensesAttachments $totalManagementExpensesAttachments;
-    private ValidationServices $validationServices;
     private AuthServices $authServices;
     private Storage $storage;
     /**
      * WorkersServices constructor.
      * @param TotalManagementExpenses $totalManagementExpenses
      * @param TotalManagementExpensesAttachments $totalManagementExpensesAttachments
-     * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
      */
     public function __construct(
             TotalManagementExpenses                 $totalManagementExpenses,
             TotalManagementExpensesAttachments      $totalManagementExpensesAttachments,
-            ValidationServices                      $validationServices,
             AuthServices                            $authServices,
             Storage                                 $storage
     )
     {
         $this->totalManagementExpenses = $totalManagementExpenses;
         $this->totalManagementExpensesAttachments = $totalManagementExpensesAttachments;
-        $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * @return array
      */
-    public function create($request) : mixed
+    public function searchValidation(): array
     {
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
-        if(!($this->validationServices->validate($request->toArray(),$this->totalManagementExpenses->rules))){
-            return [
-              'validate' => $this->validationServices->errors()
-            ];
-        }
-        $expenses = $this->totalManagementExpenses->create([
-            'worker_id' => $request['worker_id'],
-            'title' => $request['title'] ?? '',
-            'payment_reference_number' => $request['payment_reference_number'] ?? '',
-            'payment_date' => ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : null),
-            'quantity' => $request['quantity'] ?? 0,
-            'amount' => $request['amount'] ?? '',
-            'remarks' => $request['remarks'] ?? '',
-            'created_by'    => $params['created_by'] ?? 0,
-            'modified_by'   => $params['created_by'] ?? 0,
-            'type' => $request['type'],
-            'deduction' => $request['deduction'] ?? 0
-        ]);
-
-        if (request()->hasFile('attachment')){
-            foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/tmexpenses/'.$expenses['id']. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->totalManagementExpensesAttachments::create([
-                        "file_id" => $expenses['id'],
-                        "file_name" => $fileName,
-                        "file_type" => 'EXPENSES',
-                        "file_url" =>  $fileUrl
-                    ]);  
-            }
-        }
-
-        return $expenses;
+        return [
+            'search' => 'required|min:3'
+        ];
     }
-
     /**
-     * @param $request
-     * @return bool|array
+     * @return array
      */
-    public function update($request): bool|array
+    public function createValidation(): array
     {
-
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['modified_by'] = $user['id'];
-
-        if(!($this->validationServices->validate($request->toArray(),$this->totalManagementExpenses->rulesForUpdation($request['id'])))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
-        }
-
-        $expenses = $this->totalManagementExpenses->findOrFail($request['id']);
-        $expenses->worker_id = $request['worker_id'] ?? $expenses->worker_id;
-        $expenses->title = $request['title'] ?? $expenses->title;
-        $expenses->payment_reference_number = $request['payment_reference_number'] ?? $expenses->payment_reference_number;
-        $expenses->payment_date = ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : $expenses->payment_date);
-        $expenses->amount = $request['amount'] ?? $expenses->amount;
-        $expenses->quantity = $request['quantity'] ?? $expenses->quantity;
-        $expenses->remarks = $request['remarks'] ?? $expenses->remarks;
-        $expenses->created_by = $request['created_by'] ?? $expenses->created_by;
-        $expenses->modified_by = $params['modified_by'];
-        $expenses->type = $request['type'] ?? $expenses->type;
-        $expenses->deduction = $request['deduction'] ?? $expenses->deduction;
-
-        $expenses->save();
-
-        if (request()->hasFile('attachment')){
-
-            $this->totalManagementExpensesAttachments->where('file_id', $request['id'])->where('file_type', 'EXPENSES')->delete();
-
-            foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/tmexpenses/'.$request['id']. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->totalManagementExpensesAttachments::create([
-                    "file_id" => $request['id'],
-                    "file_name" => $fileName,
-                    "file_type" => 'EXPENSES',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
-
-        return true;
+        return [
+            'application_id' => 'required',
+            'project_id' => 'required',
+            'worker_id' => 'required',
+            'title' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
+            'type' => 'required',
+            'payment_reference_number' => 'regex:/^[a-zA-Z0-9-]*$/',
+            'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
+            'amount' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
+        ];
     }
-    
-    
     /**
-     * @param $request
-     * @return mixed
+     * @return array
      */
-    public function show($request) : mixed
+    public function updateValidation(): array
     {
-        if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
-        }
-        return $this->totalManagementExpenses->with('totalManagementExpensesAttachments')->findOrFail($request['id']);
+        return [
+            'id' => 'required',
+            'application_id' => 'required',
+            'project_id' => 'required',
+            'worker_id' => 'required',
+            'title' => 'required|regex:/^[a-zA-Z0-9 ]*$/',
+            'type' => 'required',
+            'payment_reference_number' => 'regex:/^[a-zA-Z0-9-]*$/',
+            'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
+            'amount' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
+        ];
     }
-    
+    /**
+     * @return array
+     */
+    public function payBackValidation(): array
+    {
+        return [
+            'id' => 'required',
+            'amount_paid' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'payment_date' => 'required|date_format:Y-m-d|before:tomorrow'
+        ];
+    }
     /**
      * @param $request
      * @return mixed
      */
     public function list($request) : mixed
     {
-        if(isset($request['search_param']) && !empty($request['search_param'])){
-            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
                 return [
-                    'validate' => $this->validationServices->errors()
+                    'error' => $validator->errors()
                 ];
             }
         }
@@ -178,59 +112,165 @@ class TotalManagementExpensesServices
           })
         ->where('total_management_expenses.worker_id', $request['worker_id'])
         ->where(function ($query) use ($request) {
-            if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('total_management_expenses.title', 'like', "%{$request['search_param']}%")
-                ->orWhere('total_management_expenses.payment_reference_number', 'like', '%'.$request['search_param'].'%');
+            if (isset($request['search']) && !empty($request['search'])) {
+                $query->where('total_management_expenses.title', 'like', '%'. $request['search']. '%');
             }
-            
-        })->select('total_management_expenses.id','total_management_expenses.worker_id','total_management_expenses.title','total_management_expenses.payment_reference_number','total_management_expenses.payment_date','total_management_expenses.quantity','total_management_expenses.amount','total_management_expenses.remarks','total_management_expenses_attachments.file_name','total_management_expenses_attachments.file_url','total_management_expenses.created_at','total_management_expenses.type','total_management_expenses.deduction')
+        })
+        ->select('total_management_expenses.id', 'total_management_expenses.worker_id', 'total_management_expenses.title','total_management_expenses.type', 'total_management_expenses.amount', 'total_management_expenses.deduction','total_management_expenses.payment_reference_number', 'total_management_expenses.payment_date', 'total_management_expenses.amount_paid', 'total_management_expenses.remaining_amount', 'total_management_expenses.remarks', 'total_management_expenses_attachments.file_name','total_management_expenses_attachments.file_url')
         ->distinct()
         ->orderBy('total_management_expenses.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
-
     /**
-     * delete the specified Vendors data.
-     *
      * @param $request
      * @return mixed
-     */    
-    public function delete($request): mixed
-    {   
-        $totalManagementExpenses = $this->totalManagementExpenses::find($request['id']);
-
-        if(is_null($totalManagementExpenses)){
+     */
+    public function show($request) : mixed
+    {
+        return $this->totalManagementExpenses::with(['totalManagementExpensesAttachments' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+        }])->findOrFail($request['id']);
+    }
+    /**
+     * @param $request
+     * @return bool|array
+     */
+    public function create($request): bool|array
+    {
+        $validator = Validator::make($request->toArray(), $this->createValidation());
+        if($validator->fails()) {
             return [
-                "isDeleted" => false,
-                "message" => "Data not found"
+                'error' => $validator->errors()
             ];
         }
-        $totalManagementExpenses->totalManagementExpensesAttachments()->delete();
-        $totalManagementExpenses->delete();
-        return [
-            "isDeleted" => true,
-            "message" => "Deleted Successfully"
-        ];
-    }
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['created_by'] = $user['id'];
+        $expenses = $this->totalManagementExpenses->create([
+            'worker_id' => $params['worker_id'] ?? 0,
+            'application_id' => $params['application_id'] ?? 0,
+            'project_id' => $params['project_id'] ?? 0,
+            'title' => $params['title'] ?? '',
+            'type' => $params['type'] ?? '',
+            'payment_reference_number' => $params['payment_reference_number'] ?? '',
+            'payment_date' => ((isset($params['payment_date']) && !empty($params['payment_date'])) ? $params['payment_date'] : null),
+            'amount' => $params['amount'] ?? 0,
+            'remarks' => $params['remarks'] ?? '',
+            'created_by'    => $params['created_by'] ?? 0,
+            'modified_by'   => $params['created_by'] ?? 0,
+        ]);
 
+        if (request()->hasFile('attachment')) {
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/TotalManagementExpenses/'.$expenses['id']. $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $this->totalManagementExpensesAttachments::create([
+                        'file_id' => $expenses->id,
+                        'file_name' => $fileName,
+                        'file_type' => 'Total Management Expenses',
+                        'file_url' =>  $fileUrl,
+                        'created_by' => $params['created_by'] ?? 0,
+                        'modified_by' => $params['created_by'] ?? 0,
+                    ]);  
+            }
+        }
+        return true;
+    }
+    /**
+     * @param $request
+     * @return bool|array
+     */
+    public function update($request) : bool|array
+    {
+        $validator = Validator::make($request->toArray(), $this->updateValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['modified_by'] = $user['id'];
+        $expense = $this->totalManagementExpenses->findOrFail($request['id']);
+        $expense->worker_id = $params['worker_id'] ?? $expense->worker_id;
+        $expense->application_id = $params['application_id'] ?? $expense->application_id;
+        $expense->project_id = $params['project_id'] ?? $expense->project_id;
+        $expense->title = $params['title'] ?? $expense->title;
+        $expense->type = $params['type'] ?? $expense->type;
+        $expense->payment_reference_number = $params['payment_reference_number'] ?? $expense->payment_reference_number;
+        $expense->payment_date = $params['payment_date'] ?? $expense->payment_date;
+        $expense->amount = $params['amount'] ?? $expense->amount;
+        $expense->remarks = $params['remarks'] ?? $expense->remarks;
+        $expense->modified_by = $params['modified_by'] ?? $expense->modified_by;
+        $expense->save();
+
+        if (request()->hasFile('attachment')) {
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/eContractExpenses/'.$expense['id']. $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $this->totalManagementExpensesAttachments::create([
+                        'file_id' => $expense->id,
+                        'file_name' => $fileName,
+                        'file_type' => 'Total Management Expenses',
+                        'file_url' =>  $fileUrl,
+                        'created_by' => $params['modified_by'] ?? 0,
+                        'modified_by' => $params['modified_by'] ?? 0,
+                    ]);  
+            }
+        }
+        return true;
+    }
+    /**
+     * @param $request
+     * @return bool
+     */
+    public function delete($request) : bool
+    {
+        $expense = $this->totalManagementExpenses->findOrFail($request['id']);
+        $expense->delete();
+        return true;
+    }
     /**
      *
      * @param $request
-     * @return mixed
+     * @return bool
      */    
-    public function deleteAttachment($request): mixed
+    public function deleteAttachment($request): bool
     {   
         $data = $this->totalManagementExpensesAttachments::find($request['id']); 
-        if(is_null($data)){
+        $data->delete();
+        return true;
+    }
+    /**
+     * @param $request
+     * @return bool|array
+     */
+    public function payBack($request) : bool|array
+    {
+        $validator = Validator::make($request, $this->payBackValidation());
+        if($validator->fails()) {
             return [
-                "isDeleted" => false,
-                "message" => "Data not found"
+                'error' => $validator->errors()
             ];
         }
-        return [
-            "isDeleted" => $data->delete(),
-            "message" => "Deleted Successfully"
-        ];
-    }
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['modified_by'] = $user['id'];
+        $expense = $this->totalManagementExpenses->findOrFail($request['id']);
+        $totalPayBack = $expense->deduction + $request['amount_paid'];
+        $remainingAmount = $expense->amount - $totalPayBack;
+        $expense->amount_paid = $request['amount_paid'];
+        $expense->deduction = $totalPayBack;
+        $expense->payment_date = $request['payment_date'] ?? $expense->payment_date;
+        $expense->remaining_amount = $remainingAmount;
+        $expense->modified_by = $request['modified_by'] ?? $expense->modified_by;
+        $expense->save();
 
+        return true;
+    }
 }

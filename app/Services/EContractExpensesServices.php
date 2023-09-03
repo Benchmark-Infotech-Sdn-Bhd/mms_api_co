@@ -210,7 +210,7 @@ class EContractExpensesServices
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/eContractExpenses/'.$expenses['id']. $fileName; 
+                $filePath = '/eContractExpenses/'.$expense['id']. $fileName; 
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
