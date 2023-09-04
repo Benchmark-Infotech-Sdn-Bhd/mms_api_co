@@ -241,9 +241,14 @@ class FWCMSServices
             $applicationDetails->save();
         }
         //if($fwcmsCount == $fwcmsApprovedCount) {
-            if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
+            /* if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
                 $applicationDetails->status = Config::get('services.FWCMS_COMPLETED');
             }
+            $applicationDetails->save(); */
+
+            if($applicationDetails->status <= Config::get('services.FWCMS_COMPLETED')){
+                $applicationDetails->status = Config::get('services.FWCMS_COMPLETED');
+            } 
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
