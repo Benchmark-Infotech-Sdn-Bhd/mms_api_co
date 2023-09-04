@@ -264,6 +264,11 @@ class EContractExpensesServices
         $expense = $this->eContractExpenses->findOrFail($request['id']);
         $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;
+        if($totalPayBack > $expense->amount) {
+            return [
+                'payBackError' => true
+            ];
+        }
         $expense->amount_paid = $request['amount_paid'];
         $expense->deduction = $totalPayBack;
         $expense->payment_date = $request['payment_date'] ?? $expense->payment_date;
