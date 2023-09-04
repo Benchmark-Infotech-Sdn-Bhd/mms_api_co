@@ -145,7 +145,12 @@ class FWCMSServices
             'created_by' =>  $request['created_by'] ?? 0,
             'modified_by' =>  $request['created_by'] ?? 0
         ]);
-        if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
+        /* if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
+            $applicationDetails->status = Config::get('services.CHECKLIST_COMPLETED');
+            $applicationDetails->save();
+        } */
+
+        if($applicationDetails->status <= Config::get('services.CHECKLIST_COMPLETED')){
             $applicationDetails->status = Config::get('services.CHECKLIST_COMPLETED');
             $applicationDetails->save();
         }        
@@ -217,7 +222,7 @@ class FWCMSServices
         $fwcmsApprovedCount = $this->fwcms->where('application_id', $request['application_id'])
                         ->where('status', 'Approved')
                         ->count();
-        /*if($request['status'] == 'Rejected') {
+        if($request['status'] == 'Rejected') {
             $approvalCount = $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])->count('id');
             if($approvalCount > 0) {
                 if($fwcmsCount == ($fwcmsApprovedCount + $fwcmsRejectedCount)) {
@@ -225,7 +230,7 @@ class FWCMSServices
                     $applicationDetails->save();
                 }
             }
-        }*/
+        }
         $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? $fwcmsDetails->ksm_reference_number;
         $request['status'] = $request['status'] ?? $fwcmsDetails->status;
         $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
