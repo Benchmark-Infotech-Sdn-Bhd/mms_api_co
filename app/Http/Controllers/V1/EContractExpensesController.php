@@ -146,6 +146,8 @@ class EContractExpensesController extends Controller
             $data = $this->eContractExpensesServices->payBack($params);
             if(isset($data['error'])){
                 return $this->validationError($data['error']); 
+            } else if(isset($data['payBackError'])) {
+                return $this->validationError(['message' => 'Paybcak Amount Should not Exceed to Actual Amount'], 422); 
             }
             return $this->sendSuccess(['message' => 'PayBack Added Successfully']);
         } catch (Exception $e) {
