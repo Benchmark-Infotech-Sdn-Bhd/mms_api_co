@@ -22,38 +22,8 @@ class TotalManagementExpenses extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['worker_id','title','payment_reference_number','quantity','amount','payment_date','remarks','created_by','modified_by','type','deduction'];
+    protected $fillable = ['worker_id', 'application_id', 'project_id', 'title','type', 'payment_reference_number', 'payment_date', 'amount', 'amount_paid', 'deduction', 'remaining_amount', 'remarks', 'created_by', 'modified_by'];
    
-    /**
-     * The attributes that are required.
-     *
-     * @var array
-     */
-    public $rules = [
-        'worker_id' => 'required|regex:/^[0-9]+$/',
-        'title' => 'required|max:255',
-        'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
-        'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/',
-        'type' => 'required'
-    ];
-    /**
-     * The function returns array that are required for updation.
-     * @param $params
-     * @return array
-     */
-    public function rulesForUpdation($id): array
-    {
-        // Unique name with deleted at
-        return [
-            'id' => 'required|regex:/^[0-9]+$/',
-            'worker_id' => 'required|regex:/^[0-9]+$/',
-            'title' => 'required|max:255',
-            'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
-            'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/',
-            'type' => 'required'
-        ];
-    }
-
     /**
      * @return HasMany
      */

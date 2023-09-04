@@ -553,6 +553,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('show', 'V1\TotalManagementWorkerEventController@show');
                     $router->post('deleteAttachment', 'V1\TotalManagementWorkerEventController@deleteAttachment');
                 });
+                $router->group(['prefix' => 'expense'], function () use ($router) {
+                    $router->post('list', 'V1\TotalManagementExpensesController@list');
+                    $router->post('show', 'V1\TotalManagementExpensesController@show');
+                    $router->post('create', 'V1\TotalManagementExpensesController@create');
+                    $router->post('update', 'V1\TotalManagementExpensesController@update');
+                    $router->post('delete', 'V1\TotalManagementExpensesController@delete');
+                    $router->post('deleteAttachment', 'V1\TotalManagementExpensesController@deleteAttachment');
+                    $router->post('payBack', 'V1\TotalManagementExpensesController@payBack');
+                });
             });
 
             $router->group(['prefix' => 'payroll'], function () use ($router) {
@@ -572,18 +581,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('companyList', 'V1\TotalManagementTransferController@companyList');
                 $router->post('projectList', 'V1\TotalManagementTransferController@projectList');
                 $router->post('submit', 'V1\TotalManagementTransferController@submit');
-            });
-
-            /**
-            * Routes for Total Management Expenses.
-            */
-            $router->group(['prefix' => 'expenses'], function () use ($router) {
-                $router->post('list', 'V1\TotalManagementExpensesController@list');
-                $router->post('show', 'V1\TotalManagementExpensesController@show');
-                $router->post('create', 'V1\TotalManagementExpensesController@create');
-                $router->post('update', 'V1\TotalManagementExpensesController@update');
-                $router->post('delete', 'V1\TotalManagementExpensesController@delete');
-                $router->post('deleteAttachment', 'V1\TotalManagementExpensesController@deleteAttachment');
             });
 
             /**

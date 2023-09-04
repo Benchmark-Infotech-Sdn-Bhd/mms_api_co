@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
-use Exception;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Services\WorkersServices;
+use Illuminate\Http\JsonResponse;
 use App\Services\TotalManagementExpensesServices;
 use Illuminate\Support\Facades\Log;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use Exception;
 
 class TotalManagementExpensesController extends Controller
 {
@@ -26,6 +24,43 @@ class TotalManagementExpensesController extends Controller
     {
         $this->totalManagementExpensesServices = $totalManagementExpensesServices;
     }
+     /**
+     * Expense list
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function list(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->totalManagementExpensesServices->list($params);
+            if(isset($data['error'])) {
+                return $this->validationError($data['error']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Expense'], 400);
+        }
+    }
+    /**
+     * Retrieve the Expense
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function show(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->totalManagementExpensesServices->show($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Display Expense'], 400);
+        }
+    }
     /**
      * Show the form for creating a new Expenses.
      *
@@ -36,19 +71,17 @@ class TotalManagementExpensesController extends Controller
     {
         try {
             $data = $this->totalManagementExpensesServices->create($request);
-            if(isset($data['validate'])){
-                return $this->validationError($data['validate']); 
+            if(isset($data['error'])) {
+                return $this->validationError($data['error']);
             }
-            return $this->sendSuccess($data);
+            return $this->sendSuccess(['message' => 'Expense Added Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'creation failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => 'Failed to Create Expense']);
         }
     }
-
     /**
-     * Show the form for creating a new Expenses.
+     * Show the form for update Expense.
      *
      * @param Request $request
      * @return JsonResponse
@@ -56,96 +89,68 @@ class TotalManagementExpensesController extends Controller
     public function update(Request $request): JsonResponse
     {
         try {
-            
             $data = $this->totalManagementExpensesServices->update($request);
-            if(isset($data['validate'])){
-                return $this->validationError($data['validate']); 
+            if(isset($data['error'])){
+                return $this->validationError($data['error']); 
             }
-            return $this->sendSuccess($data);
+            return $this->sendSuccess(['message' => 'Expense Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'updation failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => 'Failed to Update Expense']);
         }
     }
-    
     /**
-     * Retrieve the specified Expenses.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function show(Request $request): JsonResponse
-    {
-        try {
-            $params = $this->getRequest($request);
-            $data = $this->totalManagementExpensesServices->show($params);
-            if(isset($data['validate'])){
-                return $this->validationError($data['validate']); 
-            }
-            return $this->sendSuccess($data);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
-        }
-    }
-    
-    
-    /**
-     * Search & Retrieve all the Expenses.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function list(Request $request): JsonResponse
-    {
-        try {
-            $params = $this->getRequest($request);
-            $data = $this->totalManagementExpensesServices->list($params);
-            if(isset($data['validate'])){
-                return $this->validationError($data['validate']); 
-            }
-            return $this->sendSuccess($data);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
-        }
-    }   
-
-    /**
-     * delete the specified Vendors data.
+     * Delete Expense.
      *
      * @param Request $request
      * @return JsonResponse
      */
     public function delete(Request $request): JsonResponse
-    {  
+    {
         try {
             $params = $this->getRequest($request);
-            $response = $this->totalManagementExpensesServices->delete($params); 
-            return $this->sendSuccess($response);
+            $this->totalManagementExpensesServices->delete($params);
+            return $this->sendSuccess(['message' => 'Expense Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Delete Expenses was failed']);
-        }  
+            return $this->sendError(['message' => 'Failed to Delete Expense']);
+        }
     }
-
     /**
-     * delete the specified Attachment data.
+     * Delete Expense Attachment.
      *
      * @param Request $request
      * @return JsonResponse
      */
     public function deleteAttachment(Request $request): JsonResponse
-    {   
+    {
         try {
-            $response = $this->totalManagementExpensesServices->deleteAttachment($request);
-            return $this->sendSuccess($response);
+            $params = $this->getRequest($request);
+            $this->totalManagementExpensesServices->deleteAttachment($params);
+            return $this->sendSuccess(['message' => 'Attachment Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => $e->getMessage()]);
-        }        
-    } 
+            return $this->sendError(['message' => 'Failed to Delete Attachment']);
+        }
+    }
+    /**
+     * Show the form for payback.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function payBack(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->totalManagementExpensesServices->payBack($params);
+            if(isset($data['error'])){
+                return $this->validationError($data['error']); 
+            }
+            return $this->sendSuccess(['message' => 'PayBack Added Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Add PayBack']);
+        }
+    }
 }
