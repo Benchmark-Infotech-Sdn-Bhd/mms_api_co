@@ -240,7 +240,7 @@ class FWCMSServices
             $applicationDetails->status = Config::get('services.FWCMS_REJECTED');
             $applicationDetails->save();
         }
-        if($fwcmsCount == $fwcmsApprovedCount) {
+        //if($fwcmsCount == $fwcmsApprovedCount) {
             if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
                 $applicationDetails->status = Config::get('services.FWCMS_COMPLETED');
             }
@@ -249,7 +249,7 @@ class FWCMSServices
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
             $request['status'] = 'Completed';
             $this->applicationSummaryServices->updateStatus($request);
-        }
+        //}
         return true;
     }
 }
