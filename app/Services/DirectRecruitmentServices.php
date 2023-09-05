@@ -321,7 +321,7 @@ class DirectRecruitmentServices
                 "message"=> "Data not found"
             ];
         }
-        if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
+        if($directrecruitmentApplications->status != Config::get('services.APPROVAL_COMPLETED')){
             $directrecruitmentApplications->status = $request['status'];
         }
         return [
