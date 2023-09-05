@@ -350,6 +350,42 @@ class CRMServices
                         ]);  
                     } 
                 }
+                if($service->service_id == 1) {
+                    $this->directrecruitmentApplications::create([
+                       'crm_prospect_id' => $prospect->id,
+                       'service_id' => $prospectService->id,
+                       'quota_applied' => 0,
+                       'person_incharge' => '',
+                       'cost_quoted' => 0,
+                       'status' => Config::get('services.PENDING_PROPOSAL'),
+                       'remarks' => '',
+                       'created_by' => $request["created_by"] ?? 0,
+                   ]);
+                }
+                if($service->service_id == 3) {
+                    $this->totalManagementApplications::create([
+                        'crm_prospect_id' => $prospect->id,
+                        'service_id' => $prospectService->id,
+                        'quota_applied' => 0,
+                        'person_incharge' => $request['pic_name'],
+                        'cost_quoted' => 0,
+                        'status' => 'Pending Proposal',
+                        'remarks' => '',
+                        'created_by' => $request["created_by"] ?? 0
+                    ]);
+                }
+                if($service->service_id == 2) {
+                    $this->eContractApplications::create([
+                        'crm_prospect_id' => $prospect->id,
+                        'service_id' => $prospectService->id,
+                        'quota_requested' => 0,
+                        'person_incharge' => $request['pic_name'],
+                        'cost_quoted' => 0,
+                        'status' => 'Pending Proposal',
+                        'remarks' => '',
+                        'created_by' => $request["created_by"] ?? 0
+                    ]);
+                }
             }
         }
 
