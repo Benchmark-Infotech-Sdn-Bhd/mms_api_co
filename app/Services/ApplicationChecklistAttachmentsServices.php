@@ -66,7 +66,7 @@ class ApplicationChecklistAttachmentsServices
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/directRecruitment/application/checklist/' . $fileName; 
+                $filePath = '/directRecruitment/application/checklist/'.$params['application_id'].'/'. $fileName; 
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
