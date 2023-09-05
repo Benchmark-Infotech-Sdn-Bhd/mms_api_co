@@ -146,8 +146,8 @@ class EContractServices
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
             }
         })
-        ->selectRaw('`e-contract_applications`.`id`, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, crm_prospect_services.sector_id, crm_prospect_services.sector_name, count(`e-contract_project`.`id`) as projects, count(`worker_employment`.`worker_id`) as workers')
-        ->groupBy('e-contract_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name')
+        ->selectRaw('`e-contract_applications`.`id`, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, crm_prospect_services.sector_id, crm_prospect_services.sector_name, e-contract_applications.status, count(`e-contract_project`.`id`) as projects, count(`worker_employment`.`worker_id`) as workers')
+        ->groupBy('e-contract_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'e-contract_applications.status')
         ->orderBy('e-contract_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }

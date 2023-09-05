@@ -9,6 +9,8 @@ use App\Models\DirectrecruitmentWorkers;
 use App\Models\KinRelationship;
 use App\Models\DirectRecruitmentOnboardingAgent;
 use App\Models\WorkerBulkUpload;
+use App\Models\DirectrecruitmentApplications;
+use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
@@ -37,6 +39,14 @@ class DirectRecruitmentWorkersServices
     private DirectrecruitmentWorkers $directrecruitmentWorkers;
     private WorkersServices $workersServices;
     /**
+     * @var DirectrecruitmentApplications
+     */
+    private DirectrecruitmentApplications $directrecruitmentApplications;
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+    /**
      * DirectRecruitmentWorkersServices constructor.
      * @param Workers $workers
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
@@ -50,6 +60,8 @@ class DirectRecruitmentWorkersServices
      * @param Storage $storage
      * @param DirectrecruitmentWorkers $directrecruitmentWorkers;
      * @param WorkersServices $workersServices;
+     * @param DirectrecruitmentApplications $directrecruitmentApplications;
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
      */
     public function __construct(
             Workers                                     $workers,
@@ -63,7 +75,9 @@ class DirectRecruitmentWorkersServices
             AuthServices                                $authServices,
             Storage                                     $storage,
             DirectrecruitmentWorkers                    $directrecruitmentWorkers,
-            WorkersServices                             $workersServices
+            WorkersServices                             $workersServices,
+            DirectrecruitmentApplications               $directrecruitmentApplications,
+            DirectRecruitmentOnboardingCountry          $directRecruitmentOnboardingCountry
     )
     {
         $this->workers = $workers;
@@ -78,6 +92,8 @@ class DirectRecruitmentWorkersServices
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->directrecruitmentWorkers = $directrecruitmentWorkers;
         $this->workersServices = $workersServices;
+        $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -135,7 +151,18 @@ class DirectRecruitmentWorkersServices
                 ];    
             }
         }
-        
+
+        $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
+        $workerCount = $this->directrecruitmentWorkers->where('application_id', $request['application_id'])
+        ->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->count('worker_id');
+        if($workerCount >= $onboardingCountryDetails->quota) {
+            return [
+                'workerCountError' => true
+            ]; 
+        }
+        $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+        $request['crm_prospect_id'] = $applicationDetails->crm_prospect_id;
         $data = $this->workersServices->create($request);
 
         if(isset($data['validate'])){

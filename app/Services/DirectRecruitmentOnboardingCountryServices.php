@@ -153,9 +153,14 @@ class DirectRecruitmentOnboardingCountryServices
         }
         $onboardingCountry = $this->directRecruitmentOnboardingCountry->findOrFail($request['id']);
         $interviewApproved = $this->applicationInterviews->where('application_id', $onboardingCountry->application_id)
-                        ->where('status', 'Approved')->sum('approved_quota');
-        $countriesQuota = $this->directRecruitmentOnboardingCountry->where('application_id', $onboardingCountry->application_id)
-                            ->sum('quota');
+                        ->where('status', 'Approved')
+                        ->sum('approved_quota');
+        $countriesQuota = $this->directRecruitmentOnboardingCountry
+                            ->where('application_id', $onboardingCountry->application_id)
+                            ->whereNot(function ($query) use ($request){
+                                $query->where('id', $request['id']);
+                            })
+                            ->sum('quota'); 
         $countriesQuota += $request['quota'];
         if($countriesQuota > $interviewApproved) {
             return [
