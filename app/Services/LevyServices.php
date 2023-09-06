@@ -87,9 +87,11 @@ class LevyServices
      */
     public function list($request): mixed
     {
-        return $this->levy->where('application_id', $request['application_id'])
-        ->select('id', 'application_id', 'item', 'payment_date', 'payment_amount', 'approved_quota', 'status')
-        ->orderBy('id', 'desc')
+        return $this->levy
+        ->leftJoin('directrecruitment_applications', 'directrecruitment_applications.id', 'levy.application_id')
+        ->where('levy.application_id', $request['application_id'])
+        ->select('levy.id', 'levy.application_id', 'levy.item', 'levy.payment_date', 'levy.payment_amount', 'levy.approved_quota', 'levy.status', 'directrecruitment_applications.approval_flag')
+        ->orderBy('levy.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**

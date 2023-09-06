@@ -99,9 +99,11 @@ class DirectRecruitmentApplicationApprovalServices
      */
     public function list($request): mixed
     {
-        return $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])
-        ->select('id', 'application_id', 'item_name', 'ksm_reference_number',  'received_date',  'valid_until', 'updated_at')
-        ->orderBy('id', 'desc')
+        return $this->directRecruitmentApplicationApproval
+        ->leftJoin('directrecruitment_applications', 'directrecruitment_applications.id', 'directrecruitment_application_approval.application_id')
+        ->where('directrecruitment_application_approval.application_id', $request['application_id'])
+        ->select('directrecruitment_application_approval.id', 'directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.item_name', 'directrecruitment_application_approval.ksm_reference_number',  'directrecruitment_application_approval.received_date',  'directrecruitment_application_approval.valid_until', 'directrecruitment_application_approval.updated_at', 'directrecruitment_applications.approval_flag')
+        ->orderBy('directrecruitment_application_approval.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**

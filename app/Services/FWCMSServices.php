@@ -91,9 +91,11 @@ class FWCMSServices
      */
     public function list($request): mixed
     {
-        return $this->fwcms->where('application_id', $request['application_id'])
-        ->select('id', 'application_id', 'submission_date', 'applied_quota', 'status', 'ksm_reference_number', 'updated_at')
-        ->orderBy('id', 'desc')
+        return $this->fwcms
+        ->leftJoin('directrecruitment_applications', 'directrecruitment_applications.id', 'fwcms.application_id')
+        ->where('fwcms.application_id', $request['application_id'])
+        ->select('fwcms.id', 'fwcms.application_id', 'fwcms.submission_date', 'fwcms.applied_quota', 'fwcms.status', 'fwcms.ksm_reference_number', 'fwcms.updated_at', 'directrecruitment_applications.approval_flag')
+        ->orderBy('fwcms.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
