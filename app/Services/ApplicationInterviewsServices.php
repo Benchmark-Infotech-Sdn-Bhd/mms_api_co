@@ -102,11 +102,9 @@ class ApplicationInterviewsServices
      */
     public function list($request): mixed
     {
-        return $this->applicationInterviews
-        ->leftJoin('directrecruitment_applications', 'directrecruitment_applications.id', 'application_interviews.application_id')
-        ->where('application_interviews.application_id', $request['application_id'])
-        ->select('application_interviews.id', 'application_interviews.ksm_reference_number', 'application_interviews.item_name', 'application_interviews.schedule_date', 'application_interviews.approved_quota', 'application_interviews.approval_date', 'application_interviews.status', 'application_interviews.remarks', 'application_interviews.updated_at', 'directrecruitment_applications.approval_flag')
-        ->orderBy('application_interviews.id', 'desc')
+        return $this->applicationInterviews->where('application_id', $request['application_id'])
+        ->select('id', 'ksm_reference_number', 'item_name', 'schedule_date', 'approved_quota', 'approval_date', 'status', 'remarks', 'updated_at')
+        ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
 
@@ -116,8 +114,13 @@ class ApplicationInterviewsServices
      */
     public function show($request): mixed
     {
-        return $this->applicationInterviews->where('id', $request['id'])->with('applicationInterviewAttachments')
-                ->first(['id', 'ksm_reference_number', 'item_name', 'schedule_date', 'approved_quota', 'approval_date', 'status', 'remarks']);
+        return $this->applicationInterviews
+        ->leftJoin('directrecruitment_application_approval', function($join) use ($request){
+            $join->on('directrecruitment_application_approval.application_id', '=', 'application_interviews.application_id')
+            ->on('directrecruitment_application_approval.ksm_reference_number', '=', 'application_interviews.ksm_reference_number');
+          })
+        ->where('application_interviews.id', $request['id'])->with('applicationInterviewAttachments')
+                ->first(['application_interviews.id', 'application_interviews.application_id', 'application_interviews.ksm_reference_number', 'application_interviews.item_name', 'application_interviews.schedule_date', 'application_interviews.approved_quota', 'application_interviews.approval_date', 'application_interviews.status', 'application_interviews.remarks', \DB::raw('(CASE WHEN directrecruitment_application_approval.ksm_reference_number IS NOT NULL THEN "1" ELSE "0"  END) AS edit_application')]);
     }
 
     /**

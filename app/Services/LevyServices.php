@@ -87,11 +87,9 @@ class LevyServices
      */
     public function list($request): mixed
     {
-        return $this->levy
-        ->leftJoin('directrecruitment_applications', 'directrecruitment_applications.id', 'levy.application_id')
-        ->where('levy.application_id', $request['application_id'])
-        ->select('levy.id', 'levy.application_id', 'levy.item', 'levy.payment_date', 'levy.payment_amount', 'levy.approved_quota', 'levy.status', 'directrecruitment_applications.approval_flag')
-        ->orderBy('levy.id', 'desc')
+        return $this->levy->where('application_id', $request['application_id'])
+        ->select('id', 'application_id', 'item', 'payment_date', 'payment_amount', 'approved_quota', 'status')
+        ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
@@ -100,7 +98,13 @@ class LevyServices
      */
     public function show($request): mixed
     {
-        return $this->levy->find($request['id']);
+        return $this->levy
+        ->leftJoin('directrecruitment_application_approval', function($join) use ($request){
+            $join->on('directrecruitment_application_approval.application_id', '=', 'levy.application_id')
+            ->on('directrecruitment_application_approval.ksm_reference_number', '=', 'levy.ksm_reference_number');
+          })
+        ->select('*', , \DB::raw('(CASE WHEN directrecruitment_application_approval.ksm_reference_number IS NOT NULL THEN "1" ELSE "0"  END) AS edit_application'))
+        ->find($request['id']);
     }
     /**
      * @param $request
