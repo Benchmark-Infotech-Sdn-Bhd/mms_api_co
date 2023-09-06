@@ -151,8 +151,8 @@ class DirecRecruitmentPostArrivalServices
         }
         return $this->workers
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->leftJoin('worker_arrival', 'worker_arrival.worker_id', 'workers.id')
-            ->leftJoin('directrecruitment_arrival', 'directrecruitment_arrival.id', 'worker_arrival.arrival_id')
+            ->join('worker_arrival', 'worker_arrival.worker_id', 'workers.id')
+            ->join('directrecruitment_arrival', 'directrecruitment_arrival.id', 'worker_arrival.arrival_id')
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
