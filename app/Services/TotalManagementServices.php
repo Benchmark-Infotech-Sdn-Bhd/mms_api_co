@@ -232,10 +232,19 @@ class TotalManagementServices
                 'error' => $validator->errors()
             ];
         }
+        $applicationDetails = $this->totalManagementApplications->findOrFail($request['id']);
+        $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
+        if($serviceDetails->from_existing == 0) {
+            $totalQuota = $serviceDetails->client_quota + $serviceDetails->fomnext_quota;
+            if($totalQuota < $request['quota_requested']) {
+                return [
+                    'quotaError' => true
+                ];
+            }
+        }
         $user = JWTAuth::parseToken()->authenticate();
         $params = $request->all();
         $params['modified_by'] = $user['id'];
-        $applicationDetails = $this->totalManagementApplications->findOrFail($params['id']);
         $applicationDetails->quota_applied = $params['quota_requested'] ?? $applicationDetails->quota_applied;
         $applicationDetails->person_incharge = $params['person_incharge'] ?? $applicationDetails->person_incharge;
         $applicationDetails->cost_quoted = $params['cost_quoted'] ?? $applicationDetails->cost_quoted;

@@ -111,7 +111,7 @@ class DirectRecruitmentSpecialPassServices
                     ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%');
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'workers.special_pass_submission_date', 'workers.special_pass_valid_until')->distinct('workers.id')
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'workers.special_pass_submission_date')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
@@ -182,6 +182,7 @@ class DirectRecruitmentSpecialPassServices
             }
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
+                    'special_pass' => 2,
                     'special_pass_valid_until' => $request['valid_until'],
                     'modified_by' => $request['modified_by']
                 ]);
