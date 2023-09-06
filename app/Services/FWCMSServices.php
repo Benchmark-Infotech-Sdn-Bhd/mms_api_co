@@ -91,11 +91,9 @@ class FWCMSServices
      */
     public function list($request): mixed
     {
-        return $this->fwcms
-        ->leftJoin('directrecruitment_applications', 'directrecruitment_applications.id', 'fwcms.application_id')
-        ->where('fwcms.application_id', $request['application_id'])
-        ->select('fwcms.id', 'fwcms.application_id', 'fwcms.submission_date', 'fwcms.applied_quota', 'fwcms.status', 'fwcms.ksm_reference_number', 'fwcms.updated_at', 'directrecruitment_applications.approval_flag')
-        ->orderBy('fwcms.id', 'desc')
+        return $this->fwcms->where('application_id', $request['application_id'])
+        ->select('id', 'application_id', 'submission_date', 'applied_quota', 'status', 'ksm_reference_number', 'updated_at')
+        ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
@@ -104,8 +102,13 @@ class FWCMSServices
      */
     public function show($request): mixed
     {
-        return $this->fwcms->where('id', $request['id'])
-                ->first(['id', 'application_id', 'submission_date', 'applied_quota', 'status', 'ksm_reference_number', 'remarks']);
+        return $this->fwcms
+        ->leftJoin('directrecruitment_application_approval', function($join) use ($request){
+            $join->on('directrecruitment_application_approval.application_id', '=', 'fwcms.application_id')
+            ->on('directrecruitment_application_approval.ksm_reference_number', '=', 'fwcms.ksm_reference_number');
+          })
+        ->where('fwcms.id', $request['id'])
+                ->first(['fwcms.id', 'fwcms.application_id', 'fwcms.submission_date', 'fwcms.applied_quota', 'fwcms.status', 'fwcms.ksm_reference_number', 'fwcms.remarks', \DB::raw('(CASE WHEN directrecruitment_application_approval.ksm_reference_number IS NOT NULL THEN "1" ELSE "0"  END) AS edit_application')]);
     }
     /**
      * @param $request
