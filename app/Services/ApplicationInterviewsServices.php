@@ -115,12 +115,12 @@ class ApplicationInterviewsServices
     public function show($request): mixed
     {
         return $this->applicationInterviews
-        ->leftJoin('directrecruitment_application_approval', function($join) use ($request){
-            $join->on('directrecruitment_application_approval.application_id', '=', 'application_interviews.application_id')
-            ->on('directrecruitment_application_approval.ksm_reference_number', '=', 'application_interviews.ksm_reference_number');
+        ->leftJoin('levy', function($join) use ($request){
+            $join->on('levy.application_id', '=', 'application_interviews.application_id')
+            ->on('levy.ksm_reference_number', '=', 'application_interviews.ksm_reference_number');
           })
         ->where('application_interviews.id', $request['id'])->with('applicationInterviewAttachments')
-                ->first(['application_interviews.id', 'application_interviews.application_id', 'application_interviews.ksm_reference_number', 'application_interviews.item_name', 'application_interviews.schedule_date', 'application_interviews.approved_quota', 'application_interviews.approval_date', 'application_interviews.status', 'application_interviews.remarks', \DB::raw('(CASE WHEN directrecruitment_application_approval.ksm_reference_number IS NOT NULL THEN "1" ELSE "0"  END) AS edit_application')]);
+                ->first(['application_interviews.id', 'application_interviews.application_id', 'application_interviews.ksm_reference_number', 'application_interviews.item_name', 'application_interviews.schedule_date', 'application_interviews.approved_quota', 'application_interviews.approval_date', 'application_interviews.status', 'application_interviews.remarks', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application')]);
     }
 
     /**
