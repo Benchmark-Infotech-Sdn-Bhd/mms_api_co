@@ -76,7 +76,9 @@ class DirectRecruitmentOnboardingAgentController extends Controller
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }else if(isset($response['quotaError'])) {
-                return $this->sendError(['message' => 'The number of quota cannot exceed the Country Quota'], 422);
+                return $this->sendError(['message' => 'The Agent alredy added for this Country']);
+            } else if(isset($response['agentError'])) {
+                return $this->validationError(['message' => ''], 422);
             }
             return $this->sendSuccess(['message' => 'Agent Added Successfully']);
         } catch (Exception $e) {
