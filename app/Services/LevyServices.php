@@ -99,11 +99,7 @@ class LevyServices
     public function show($request): mixed
     {
         return $this->levy
-        ->leftJoin('directrecruitment_application_approval', function($join) use ($request){
-            $join->on('directrecruitment_application_approval.application_id', '=', 'levy.application_id')
-            ->on('directrecruitment_application_approval.ksm_reference_number', '=', 'levy.ksm_reference_number');
-          })
-        ->select('*', , \DB::raw('(CASE WHEN directrecruitment_application_approval.ksm_reference_number IS NOT NULL THEN "1" ELSE "0"  END) AS edit_application'))
+        ->select('*', \DB::raw('(CASE WHEN status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
         ->find($request['id']);
     }
     /**
