@@ -95,7 +95,7 @@ class DispatchManagementServices
                 }
             }
         })
-        ->select('onboarding_dispatch.id', 'employee.employee_name', 'onboarding_dispatch.date', 'onboarding_dispatch.calltime')
+        ->select('onboarding_dispatch.id', 'employee.employee_name', 'onboarding_dispatch.date', 'onboarding_dispatch.calltime', 'onboarding_dispatch.reference_number')
         ->selectRaw("(CASE WHEN (onboarding_dispatch.dispatch_status = 'Completed') THEN onboarding_dispatch.dispatch_status
         WHEN (onboarding_dispatch.dispatch_status = 'Assigned' AND STR_TO_DATE(onboarding_dispatch.calltime,'%d/%m/%Y') > '".Carbon::now()."') THEN onboarding_dispatch.dispatch_status 
         ELSE 'Pending' END) as status")

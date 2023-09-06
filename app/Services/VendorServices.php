@@ -107,7 +107,8 @@ class VendorServices
                 $query->where('name', 'like', '%' . $request['search_param'] . '%')
                 ->orWhere('type', 'like', '%' . $request['search_param'] . '%')
                 ->orWhere('state', 'like', '%' . $request['search_param'] . '%')
-                ->orWhere('city', 'like', '%' . $request['search_param'] . '%');
+                ->orWhere('city', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('person_in_charge', 'like', '%' . $request['search_param'] . '%');
             }
             if (isset($request['filter']) && !empty($request['filter'])) {
                 $query->where('type', '=', $request->filter);
