@@ -122,7 +122,7 @@ class DirectRecruitmentPostArrivalFomemaServices
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_arrival', 'worker_arrival.worker_id', 'workers.id')
             ->leftJoin('worker_fomema', 'worker_fomema.worker_id', 'workers.id')
-            ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
+            ->leftJoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
                 'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],

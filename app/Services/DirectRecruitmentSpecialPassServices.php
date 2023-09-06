@@ -182,6 +182,7 @@ class DirectRecruitmentSpecialPassServices
             }
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
+                    'special_pass' => 2,
                     'special_pass_valid_until' => $request['valid_until'],
                     'modified_by' => $request['modified_by']
                 ]);
