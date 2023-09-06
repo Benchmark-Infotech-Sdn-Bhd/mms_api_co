@@ -50,6 +50,7 @@ class EContractPayrollsImport extends Job
                     ['service_type', 'e-Contract']
                 ])
                 ->whereNull('work_end_date')
+                ->whereNull('remove_date')
                 ->count();
 
                 Log::info('worker Employment count - ' . print_r($workerEmployment, true));

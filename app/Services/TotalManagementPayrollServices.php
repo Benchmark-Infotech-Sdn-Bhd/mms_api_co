@@ -104,6 +104,7 @@ class TotalManagementPayrollServices
             ->leftJoin('worker_employment', 'worker_employment.worker_id','=','workers.id')
             ->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
             ->where('worker_employment.project_id', $request['project_id']) 
+            ->where('worker_employment.service_type', 'Total Management')   
             ->select(DB::raw('COUNT(DISTINCT workers.id) as workers'), 'worker_employment.project_id', 'total_management_project.name')
             ->groupBy('worker_employment.project_id', 'total_management_project.name')
             ->distinct('workers.id')
@@ -124,9 +125,15 @@ class TotalManagementPayrollServices
                 $query->on('worker_bank_details.worker_id','=','workers.id')
                     ->whereRaw('worker_bank_details.id IN (select MIN(WORKER_BANK.id) from worker_bank_details as WORKER_BANK JOIN workers as WORKER ON WORKER.id = WORKER_BANK.worker_id group by WORKER.id)');
             })
-            ->leftJoin('total_management_payroll', 'total_management_payroll.worker_id', 'worker_employment.worker_id')
+            ->leftJoin('total_management_payroll', function($query) use ($request) {
+                $query->on('total_management_payroll.worker_id','=','worker_employment.worker_id');
+                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                $query->whereRaw('total_management_payroll.id IN (select MAX(TMPAY.id) from total_management_payroll as TMPAY JOIN workers as WORKER ON WORKER.id = TMPAY.worker_id group by WORKER.id)');
+                }
+            })
             ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
-            ->where('worker_employment.project_id', $request['project_id'])       
+            ->where('worker_employment.project_id', $request['project_id']) 
+            ->where('worker_employment.service_type', 'Total Management')      
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', "%{$request['search']}%")
@@ -138,6 +145,10 @@ class TotalManagementPayrollServices
                 }
                 if (isset($request['year']) && !empty($request['year'])) {
                     $query->where('total_management_payroll.year', $request['year']);
+                }
+                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                    $query->whereNull('worker_employment.work_end_date');
+                    $query->whereNull('worker_employment.remove_date');
                 }
             })
             ->select('workers.id', 'workers.name', 'workers.passport_number', 'worker_bank_details.bank_name', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'worker_employment.department', 'total_management_payroll.id as payroll_id', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
@@ -160,9 +171,15 @@ class TotalManagementPayrollServices
                 $query->on('worker_bank_details.worker_id','=','workers.id')
                     ->whereRaw('worker_bank_details.id IN (select MIN(WORKER_BANK.id) from worker_bank_details as WORKER_BANK JOIN workers as WORKER ON WORKER.id = WORKER_BANK.worker_id group by WORKER.id)');
             })
-            ->leftJoin('total_management_payroll', 'total_management_payroll.worker_id', 'worker_employment.worker_id')
+            ->leftJoin('total_management_payroll', function($query) use ($request) {
+                $query->on('total_management_payroll.worker_id','=','worker_employment.worker_id');
+                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                $query->whereRaw('total_management_payroll.id IN (select MAX(TMPAY.id) from total_management_payroll as TMPAY JOIN workers as WORKER ON WORKER.id = TMPAY.worker_id group by WORKER.id)');
+                }
+            })
             ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
-            ->where('worker_employment.project_id', $request['project_id'])       
+            ->where('worker_employment.project_id', $request['project_id']) 
+            ->where('worker_employment.service_type', 'Total Management')       
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', "%{$request['search']}%")
@@ -174,6 +191,10 @@ class TotalManagementPayrollServices
                 }
                 if (isset($request['year']) && !empty($request['year'])) {
                     $query->where('total_management_payroll.year', $request['year']);
+                }
+                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                    $query->whereNull('worker_employment.work_end_date');
+                    $query->whereNull('worker_employment.remove_date');
                 }
             })
             ->select('workers.id', 'workers.name', 'worker_bank_details.bank_name', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'workers.passport_number', 'worker_employment.department', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')

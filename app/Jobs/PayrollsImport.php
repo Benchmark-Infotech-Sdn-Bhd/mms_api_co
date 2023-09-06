@@ -46,9 +46,11 @@ class PayrollsImport extends Job
                 // CHECK WORKER EMPLOYMENT DATA
                 $workerEmployment = WorkerEmployment::where([
                     ['worker_id', $worker->id],
-                    ['project_id', $this->payrollParameter['project_id']]
+                    ['project_id', $this->payrollParameter['project_id']],
+                    ['service_type', 'Total Management']
                 ])
                 ->whereNull('work_end_date')
+                ->whereNull('remove_date')
                 ->count();
 
                 Log::info('worker Employment count - ' . print_r($workerEmployment, true));
