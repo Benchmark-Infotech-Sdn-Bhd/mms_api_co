@@ -51,61 +51,69 @@ class WorkersImport extends Job
 
             Log::info('Row Data - realtionship - ' . print_r($workerRelationship->id, true));
 
-            $worker = Workers::create([            
-                'name' => $this->workerParameter['name'] ?? '',
-                'gender' => $this->workerParameter['gender'] ?? '',
-                'date_of_birth' => $this->workerParameter['date_of_birth'] ?? '',
-                'passport_number' => $this->workerParameter['passport_number'] ?? '',
-                'passport_valid_until' => $this->workerParameter['passport_valid_until'] ?? '',
-                'fomema_valid_until' => null,
-                'status' => 1,
-                'address' => $this->workerParameter['address'] ?? '',
-                'city' => $this->workerParameter['city'] ?? '',
-                'state' => $this->workerParameter['state'] ?? '',
-                'created_by'    => $this->workerParameter['created_by'] ?? 0,
-                'modified_by'   => $this->workerParameter['created_by'] ?? 0,
-                'created_at'    => null,
-                'updated_at'    => null
-            ]);
+            $workerCount = DB::table('workers')->where('passport_number', $this->workerParameter['passport_number'])->count();
 
-            DirectrecruitmentWorkers::create([
-                "worker_id" => $worker['id'],
-                'onboarding_country_id' => $this->workerParameter['onboarding_country_id'] ?? 0,
-                'agent_id' => $this->workerParameter['agent_id'] ?? 0,
-                'application_id' => $this->workerParameter['application_id'] ?? 0,
-                'created_by'    => $this->workerParameter['created_by'] ?? 0,
-                'modified_by'   => $this->workerParameter['created_by'] ?? 0 ,
-                'created_at'    => null,
-                'updated_at'    => null         
-            ]);
+            if($workerCount == 0){
 
-            WorkerKin::create([
-                "worker_id" => $worker['id'],
-                "kin_name" => $this->workerParameter['kin_name'] ?? '',
-                "kin_relationship_id" => $workerRelationship->id ?? 0,
-                "kin_contact_number" =>  $this->workerParameter['kin_contact_number'] ?? '',
-                'created_at'    => null,
-                'updated_at'    => null         
-            ]);
+                $worker = Workers::create([            
+                    'name' => $this->workerParameter['name'] ?? '',
+                    'gender' => $this->workerParameter['gender'] ?? '',
+                    'date_of_birth' => $this->workerParameter['date_of_birth'] ?? '',
+                    'passport_number' => $this->workerParameter['passport_number'] ?? '',
+                    'passport_valid_until' => $this->workerParameter['passport_valid_until'] ?? '',
+                    'fomema_valid_until' => null,
+                    'status' => 1,
+                    'address' => $this->workerParameter['address'] ?? '',
+                    'city' => $this->workerParameter['city'] ?? '',
+                    'state' => $this->workerParameter['state'] ?? '',
+                    'created_by'    => $this->workerParameter['created_by'] ?? 0,
+                    'modified_by'   => $this->workerParameter['created_by'] ?? 0,
+                    'created_at'    => null,
+                    'updated_at'    => null
+                ]);
+    
+                DirectrecruitmentWorkers::create([
+                    "worker_id" => $worker['id'],
+                    'onboarding_country_id' => $this->workerParameter['onboarding_country_id'] ?? 0,
+                    'agent_id' => $this->workerParameter['agent_id'] ?? 0,
+                    'application_id' => $this->workerParameter['application_id'] ?? 0,
+                    'created_by'    => $this->workerParameter['created_by'] ?? 0,
+                    'modified_by'   => $this->workerParameter['created_by'] ?? 0 ,
+                    'created_at'    => null,
+                    'updated_at'    => null         
+                ]);
+    
+                WorkerKin::create([
+                    "worker_id" => $worker['id'],
+                    "kin_name" => $this->workerParameter['kin_name'] ?? '',
+                    "kin_relationship_id" => $workerRelationship->id ?? 0,
+                    "kin_contact_number" =>  $this->workerParameter['kin_contact_number'] ?? '',
+                    'created_at'    => null,
+                    'updated_at'    => null         
+                ]);
+    
+                WorkerVisa::create([
+                    "worker_id" => $worker['id'],
+                    "ksm_reference_number" => $this->workerParameter['ksm_reference_number'],
+                    "calling_visa_reference_number" =>  null, 
+                    "calling_visa_valid_until" =>  null,         
+                    "entry_visa_valid_until" =>  null,
+                    "work_permit_valid_until" =>  null
+                ]);
+    
+                WorkerBioMedical::create([
+                    "worker_id" => $worker['id'],
+                    "bio_medical_reference_number" => $this->workerParameter['bio_medical_reference_number'],
+                    "bio_medical_valid_until" => $this->workerParameter['bio_medical_valid_until'],
+                ]);
+    
+                Log::info('Worker instertd -  '.$worker['id']);
+    
+                $this->insertRecord();
 
-            WorkerVisa::create([
-                "worker_id" => $worker['id'],
-                "ksm_reference_number" => $this->workerParameter['ksm_reference_number'],
-                "calling_visa_reference_number" =>  null, 
-                "calling_visa_valid_until" =>  null,         
-                "entry_visa_valid_until" =>  null,
-                "work_permit_valid_until" =>  null
-            ]);
-
-            WorkerBioMedical::create([
-                "worker_id" => $worker['id'],
-                "bio_medical_reference_number" => $this->workerParameter['bio_medical_reference_number'],
-                "bio_medical_valid_until" => $this->workerParameter['bio_medical_valid_until'],
-            ]);
-
-            Log::info('Worker instertd -  '.$worker['id']);
-
-            $this->insertRecord();
+            }else{
+                Log::info('worker - passport already exist '.$this->workerParameter['passport_number']);
+            }
         }
     }
 
