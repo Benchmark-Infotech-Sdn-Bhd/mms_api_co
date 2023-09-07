@@ -160,7 +160,7 @@ class FWCMSServices
             $applicationDetails->save();
         } */
 
-        if($applicationDetails->status <= Config::get('services.CHECKLIST_COMPLETED')){
+        if(($applicationDetails->status <= Config::get('services.CHECKLIST_COMPLETED')) || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')) {
             $applicationDetails->status = Config::get('services.CHECKLIST_COMPLETED');
             $applicationDetails->save();
         }        
@@ -256,7 +256,7 @@ class FWCMSServices
             }
             $applicationDetails->save(); */
 
-            if($applicationDetails->status <= Config::get('services.FWCMS_COMPLETED')){
+            if(($applicationDetails->status <= Config::get('services.FWCMS_COMPLETED'))  || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')) {
                 $applicationDetails->status = Config::get('services.FWCMS_COMPLETED');
             } 
             $applicationDetails->save();

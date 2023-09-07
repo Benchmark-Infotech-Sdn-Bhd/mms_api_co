@@ -237,7 +237,7 @@ class ApplicationInterviewsServices
                 $applicationDetails->status = Config::get('services.INTERVIEW_COMPLETED');
             }*/
 
-            if($applicationDetails->status <= Config::get('services.INTERVIEW_COMPLETED')){
+            if(($applicationDetails->status <= Config::get('services.INTERVIEW_COMPLETED')) || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')){
                 $applicationDetails->status = Config::get('services.INTERVIEW_COMPLETED');
             }   
 
