@@ -151,7 +151,7 @@ class LevyServices
                 $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
             } */
 
-            if($applicationDetails->status <= Config::get('services.LEVY_COMPLETED')){
+            if(($applicationDetails->status <= Config::get('services.LEVY_COMPLETED')) || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')){
                 $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
             } 
             $applicationDetails->save();
