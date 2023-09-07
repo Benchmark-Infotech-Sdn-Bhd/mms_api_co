@@ -111,6 +111,20 @@ class DirectRecruitmentServices
         ];
     }
     /**
+     * @return array
+     */
+    public function proposalSubmissionValidation(): array
+    {
+        return [
+            'id' => 'required',
+            'quota_applied' => 'required|regex:/^[0-9]+$/|max:3',
+            'cost_quoted' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'person_incharge' => 'required',
+            'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
+
+        ];
+    }
+    /**
      * @param $request
      * @return bool|array
      */
@@ -232,6 +246,12 @@ class DirectRecruitmentServices
      */
     public function submitProposal($request): array
     {   
+        $validator = Validator::make($request->toArray(), $this->proposalSubmissionValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
         $data = $this->directrecruitmentApplications::findorfail($request['id']);
         $activeServiceCount = $this->crmProspectService->where('crm_prospect_id', $data->crm_prospect_id)
                             ->where('status', 1)
