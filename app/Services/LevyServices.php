@@ -88,7 +88,7 @@ class LevyServices
     public function list($request): mixed
     {
         return $this->levy->where('application_id', $request['application_id'])
-        ->select('id', 'application_id', 'item', 'payment_date', 'payment_amount', 'approved_quota', 'status')
+        ->select('id', 'application_id', 'item', 'payment_date', 'payment_amount', 'approved_quota', 'status', \DB::raw('(CASE WHEN status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
         ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
