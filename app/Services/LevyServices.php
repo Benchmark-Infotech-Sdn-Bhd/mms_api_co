@@ -199,9 +199,12 @@ class LevyServices
         $levyPaidCount = $this->levy->where('application_id', $request['application_id'])
                         ->where('status', 'Paid')
                         ->count();
-        if($ksmCount == $levyPaidCount) {
+        //if($ksmCount == $levyPaidCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-            if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
+            /*if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
+                $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
+            }*/
+            if(($applicationDetails->status <= Config::get('services.LEVY_COMPLETED')) || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')){
                 $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
             }
             $applicationDetails->save();
@@ -209,7 +212,7 @@ class LevyServices
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[5];
             $request['status'] = 'Completed';
             $this->applicationSummaryServices->updateStatus($request);
-        }
+        //}
         return true;
     }
 }
