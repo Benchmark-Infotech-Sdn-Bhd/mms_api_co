@@ -102,9 +102,14 @@ class ApplicationInterviewsServices
      */
     public function list($request): mixed
     {
-        return $this->applicationInterviews->where('application_id', $request['application_id'])
-        ->select('id', 'ksm_reference_number', 'item_name', 'schedule_date', 'approved_quota', 'approval_date', 'status', 'remarks', 'updated_at')
-        ->orderBy('id', 'desc')
+        return $this->applicationInterviews
+        ->leftJoin('levy', function($join) use ($request){
+            $join->on('levy.application_id', '=', 'application_interviews.application_id')
+            ->on('levy.ksm_reference_number', '=', 'application_interviews.ksm_reference_number');
+          })
+        ->where('application_interviews.application_id', $request['application_id'])
+        ->select('application_interviews.id', 'application_interviews.ksm_reference_number', 'application_interviews.item_name', 'application_interviews.schedule_date', 'application_interviews.approved_quota', 'application_interviews.approval_date', 'application_interviews.status', 'application_interviews.remarks', 'application_interviews.updated_at', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
+        ->orderBy('application_interviews.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
 
