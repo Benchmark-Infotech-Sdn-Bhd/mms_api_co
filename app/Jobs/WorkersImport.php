@@ -112,7 +112,7 @@ class WorkersImport extends Job
                 $this->insertRecord();
 
             }else{
-                Log::info('worker already exist');
+                Log::info('worker - passport already exist '.$this->workerParameter['passport_number']);
             }
         }
     }
