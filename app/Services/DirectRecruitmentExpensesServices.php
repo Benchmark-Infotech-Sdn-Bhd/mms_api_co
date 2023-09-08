@@ -179,4 +179,26 @@ class DirectrecruitmentExpensesServices
         ->paginate(Config::get('services.paginate_row'));
     }
 
+     /**
+     * @param $request
+     * @return bool|array
+     */
+    public function addOtherExpenses($request): bool|array
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['modified_by'] = $user['id'];
+
+        $expenses = $this->directRecruitmentExpenses->create([
+            'application_id' => $request['expenses_application_id'],
+            'title' => $request['expenses_title'] ?? '',
+            'payment_reference_number' => $request['expenses_payment_reference_number'] ?? '',
+            'payment_date' => ((isset($request['expenses_payment_date']) && !empty($request['expenses_payment_date'])) ? $request['expenses_payment_date'] : null),
+            'amount' => $request['expenses_amount'] ?? '',
+            'remarks' => $request['expenses_remarks'] ?? '',
+            'created_by'    => $params['created_by'] ?? 0,
+            'modified_by'   => $params['created_by'] ?? 0
+        ]);
+        return true;
+    }
+
 }

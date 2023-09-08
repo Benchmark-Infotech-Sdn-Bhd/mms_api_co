@@ -11,6 +11,7 @@ use App\Models\EmbassyAttestationFileCosting;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Carbon\Carbon;
 
 class DirectRecruitmentOnboardingAttestationServices
 {
@@ -43,6 +44,10 @@ class DirectRecruitmentOnboardingAttestationServices
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var DirectrecruitmentExpensesServices
+     */
+    private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
 
     /**
      * DirectRecruitmentOnboardingAttestationServices constructor.
@@ -52,8 +57,9 @@ class DirectRecruitmentOnboardingAttestationServices
      * @param EmbassyAttestationFileCosting $embassyAttestationFileCosting;
      * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param Storage $storage;
+     * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
      */
-    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, Storage $storage)
+    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, Storage $storage, DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
     {
         $this->onboardingAttestation = $onboardingAttestation;
         $this->onboardingDispatch = $onboardingDispatch;
@@ -61,6 +67,7 @@ class DirectRecruitmentOnboardingAttestationServices
         $this->embassyAttestationFileCosting = $embassyAttestationFileCosting;
         $this->directRecruitmentOnboardingCountryServices = $directRecruitmentOnboardingCountryServices;
         $this->storage = $storage;
+        $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -337,6 +344,12 @@ class DirectRecruitmentOnboardingAttestationServices
             ];
         }
 
+        $onboardingAttestation = $this->onboardingAttestation->where([
+            ['id', $request['onboarding_attestation_id']]
+        ])->first(['application_id']);
+
+        $request['application_id'] = isset($onboardingAttestation['application_id']) ? $onboardingAttestation['application_id'] : 0;
+
         $onboardingEmbassy = $this->onboardingEmbassy->where([
             ['onboarding_attestation_id', $request['onboarding_attestation_id']],
             ['embassy_attestation_id', $request['embassy_attestation_id']],
@@ -370,6 +383,14 @@ class DirectRecruitmentOnboardingAttestationServices
                         "modified_by" =>  $params['created_by'] ?? 0
                     ]); 
                 }
+                // ADD OTHER EXPENSES - Onboarding - Attestation Costing
+                $request['expenses_application_id'] = $request['application_id'] ?? 0;
+                $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[2];
+                $request['expenses_payment_reference_number'] = '';
+                $request['expenses_payment_date'] = Carbon::now();
+                $request['expenses_amount'] = $request['amount'] ?? 0;
+                $request['expenses_remarks'] = '';
+                $this->directrecruitmentExpensesServices->addOtherExpenses($request);
 
             }
         }elseif( isset($request['amount'])){
@@ -387,6 +408,14 @@ class DirectRecruitmentOnboardingAttestationServices
                     "modified_by" =>  $params['created_by'] ?? 0
                 ]); 
             }
+            // ADD OTHER EXPENSES - Onboarding - Attestation Costing
+            $request['expenses_application_id'] = $request['application_id'] ?? 0;
+            $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[2];
+            $request['expenses_payment_reference_number'] = '';
+            $request['expenses_payment_date'] = Carbon::now();
+            $request['expenses_amount'] = $request['amount'] ?? 0;
+            $request['expenses_remarks'] = '';
+            $this->directrecruitmentExpensesServices->addOtherExpenses($request);
         }else{
             return false;
         }

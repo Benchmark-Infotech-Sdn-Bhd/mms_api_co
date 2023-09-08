@@ -33,6 +33,10 @@ class DirectRecruitmentRepatriationServices
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var DirectrecruitmentExpensesServices
+     */
+    private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
 
     /**
      * DirectRecruitmentRepatriationServices constructor.
@@ -41,14 +45,16 @@ class DirectRecruitmentRepatriationServices
      * @param WorkerRepatriationAttachments $workerRepatriationAttachments
      * @param Workers $workers
      * @param Storage $storage
+     * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerRepatriation $workerRepatriation, WorkerRepatriationAttachments $workerRepatriationAttachments, Workers $workers, Storage $storage)
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerRepatriation $workerRepatriation, WorkerRepatriationAttachments $workerRepatriationAttachments, Workers $workers, Storage $storage, DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
     {
         $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
         $this->workerRepatriation                   = $workerRepatriation;
         $this->workerRepatriationAttachments        = $workerRepatriationAttachments;
         $this->workers                              = $workers;
         $this->storage                              = $storage;
+        $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -168,6 +174,16 @@ class DirectRecruitmentRepatriationServices
                 ]);
         }
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
+        
+        // ADD OTHER EXPENSES - Onboarding - Repatriation Expenses (RM)
+        $request['expenses_application_id'] = $request['application_id'] ?? 0;
+        $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[7];
+        $request['expenses_payment_reference_number'] = $request['checkout_memo_reference_number'] ?? '';
+        $request['expenses_payment_date'] = Carbon::now();
+        $request['expenses_amount'] = $request['expenses'] ?? 0;
+        $request['expenses_remarks'] = $request['remarks'] ?? '';
+        $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+        
         return true;
     }
     /**

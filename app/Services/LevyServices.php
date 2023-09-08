@@ -32,20 +32,26 @@ class LevyServices
      */
     private ApplicationInterviews $applicationInterviews;
     /**
+     * @var DirectrecruitmentExpensesServices
+     */
+    private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
+    /**
      * LevyServices Constructor
      * @param Levy $levy
      * @param DirectrecruitmentApplications $directrecruitmentApplications
      * @param FWCMS $fwcms;
-     * @param ApplicationSummaryServices $applicationSummaryServices;
+     * @param ApplicationSummaryServices $applicationSummaryServices
      * @param ApplicationInterviews $applicationInterviews
+     * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
      */
-    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices, ApplicationInterviews $applicationInterviews)
+    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices, ApplicationInterviews $applicationInterviews,DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
     {
         $this->levy = $levy;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->fwcms = $fwcms;
         $this->applicationSummaryServices = $applicationSummaryServices;
         $this->applicationInterviews = $applicationInterviews;
+        $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -160,6 +166,15 @@ class LevyServices
             $request['status'] = 'Completed';
             $this->applicationSummaryServices->updateStatus($request);
         //} 
+        // ADD OTHER EXPENSES
+        $request['expenses_application_id'] = $request['application_id'] ?? 0;
+        $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[1];
+        $request['expenses_payment_reference_number'] = $request['payment_reference_number'] ?? '';
+        $request['expenses_payment_date'] = $request['payment_date'] ?? '';
+        $request['expenses_amount'] = $request['payment_amount'] ?? 0;
+        $request['expenses_remarks'] = $request['remarks'] ?? '';
+        $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+        
         return true;
     }
     /**
