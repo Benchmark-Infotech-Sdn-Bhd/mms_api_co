@@ -117,7 +117,11 @@ class DirectRecruitmentOnboardingAgentServices
                 'quotaError' => true
             ];
         }
-        $checkAgent = $this->directRecruitmentOnboardingAgent->where('agent_id', $request['agent_id'])->get();
+        $checkAgent = $this->directRecruitmentOnboardingAgent
+        ->where('agent_id', $request['agent_id'])
+        ->where('application_id', $request['application_id'])
+        ->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->get();
         if(count($checkAgent) > 0) {
             return [
                 'agentError' => true

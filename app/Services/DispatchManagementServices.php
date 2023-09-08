@@ -81,7 +81,8 @@ class DispatchManagementServices
         ->leftJoin('employee', 'employee.id', 'onboarding_dispatch.employee_id')
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
-                $query->where('employee.employee_name', 'like', '%'.$request['search'].'%');
+                $query->where('employee.employee_name', 'like', '%'.$request['search'].'%')
+                ->orWhere('onboarding_dispatch.reference_number', 'like', '%'.$request['search'].'%');
             }
             if(isset($request['status_filter']) && !empty($request['status_filter'])) {
                 if($request['status_filter'] == 'Completed'){
