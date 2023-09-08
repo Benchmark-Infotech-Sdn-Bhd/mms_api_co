@@ -298,11 +298,11 @@ class ApplicationInterviewsServices
             switch ($request['application_type']) {
             case 'FWCMS':
             case 'INTERVIEW':
-                return $this->fwcms::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
+                return $this->fwcms::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number', 'applied_quota as approved_quota')->orderBy('created_at','DESC')->get();
                 break;
 
             case 'LEVY':
-                return $this->applicationInterviews::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
+                return $this->applicationInterviews::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number', 'approved_quota')->orderBy('created_at','DESC')->get();
                 break;
 
             case 'APPROVAL':

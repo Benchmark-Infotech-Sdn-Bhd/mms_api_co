@@ -99,14 +99,6 @@ class DirectRecruitmentCallingVisaApprovalServices
             }
             $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['calling_visa_generated' => $request['calling_visa_generated'], 'calling_visa_valid_until' => $request['calling_visa_valid_until'], 'remarks' => $request['remarks'], 'approval_status' => $request['status'], 'modified_by' => $request['modified_by']]);
 
-            $utilisedQuota = $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-                            ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
-                            ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
-                            ->where('worker_visa.approval_status', 'Approved')
-                            ->count('workers.id');
-
-            $this->directRecruitmentOnboardingCountry->where('id', $request['onboarding_country_id'])->update(['utilised_quota' => $utilisedQuota]);
-
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
                     'directrecruitment_status' => 'Accepted', 
@@ -178,7 +170,7 @@ class DirectRecruitmentCallingVisaApprovalServices
             })
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approval_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
-            ->paginate(Config::get('services.paginate_row'));
+            ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
      * @param $request
