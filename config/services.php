@@ -80,4 +80,7 @@ return [
     'FOMNEXTS_DETAILS' => ['company_name' => 'FOMNEXTS', 'roc_number' => '123456789', 'location' => 'A-10-12 & A-10-07, Menara A, Kompleks Atria, Damansara Jaya 47400, Petaling Jaya', 'sector' => 'Manufacturing'],
 
     'OTHER_EXPENSES_TITLE' => ([1 => 'Application - Levy Payment Amount', 2 => 'Onboarding - Attestation Costing', 3 => 'Onboarding - Calling Visa - I.G Insurance', 4 => 'Onboarding - Calling Visa - Immigration Fee Paid', 5 => 'Onboarding - Calling Visa - Hospitalisation', 6 => 'Onboarding - FOMEMA Total Charge + Convenient Fee (RM)', 7 => 'Onboarding - Repatriation Expenses (RM)']),
+    
+    'paginate_worker_row' => env('PAGINATE_WORKER_ROW', 30),
+    
 ];

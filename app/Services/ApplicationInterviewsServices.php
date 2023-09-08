@@ -231,22 +231,20 @@ class ApplicationInterviewsServices
         $applicationInterviewApprovedCount = $this->applicationInterviews->where('application_id', $request['application_id'])
                         ->where('status', 'Approved')
                         ->count();
-        // if($ksmCount == $applicationInterviewApprovedCount) {
+
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-            /*if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
-                $applicationDetails->status = Config::get('services.INTERVIEW_COMPLETED');
-            }*/
 
-            if(($applicationDetails->status <= Config::get('services.INTERVIEW_COMPLETED')) || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')){
-                $applicationDetails->status = Config::get('services.INTERVIEW_COMPLETED');
-            }   
-
-            $applicationDetails->save();
+            if($request['status'] == 'Approved') {
+                if(($applicationDetails->status <= Config::get('services.INTERVIEW_COMPLETED')) || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')){
+                    $applicationDetails->status = Config::get('services.INTERVIEW_COMPLETED');
+                }
+                $applicationDetails->save();
+            }
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[4];
             $request['status'] = 'Completed';
             $this->applicationSummaryServices->updateStatus($request);
-        // }
+
 
         if (request()->hasFile('attachment')){
 
@@ -300,11 +298,11 @@ class ApplicationInterviewsServices
             switch ($request['application_type']) {
             case 'FWCMS':
             case 'INTERVIEW':
-                return $this->fwcms::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
+                return $this->fwcms::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number', 'applied_quota as approved_quota')->orderBy('created_at','DESC')->get();
                 break;
 
             case 'LEVY':
-                return $this->applicationInterviews::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
+                return $this->applicationInterviews::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number', 'approved_quota')->orderBy('created_at','DESC')->get();
                 break;
 
             case 'APPROVAL':

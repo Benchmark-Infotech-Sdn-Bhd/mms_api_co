@@ -8,6 +8,7 @@ use App\Models\OnboardingAttestation;
 use App\Models\OnboardingDispatch;
 use App\Models\OnboardingEmbassy;
 use App\Models\EmbassyAttestationFileCosting;
+use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -50,16 +51,23 @@ class DirectRecruitmentOnboardingAttestationServices
     private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
 
     /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+
+    /**
      * DirectRecruitmentOnboardingAttestationServices constructor.
      * @param OnboardingAttestation $onboardingAttestation;
      * @param OnboardingDispatch $onboardingDispatch;
      * @param OnboardingEmbassy $onboardingEmbassy;
      * @param EmbassyAttestationFileCosting $embassyAttestationFileCosting;
      * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
      * @param Storage $storage;
      * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
      */
-    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, Storage $storage, DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
+
+    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage, DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
     {
         $this->onboardingAttestation = $onboardingAttestation;
         $this->onboardingDispatch = $onboardingDispatch;
@@ -68,6 +76,7 @@ class DirectRecruitmentOnboardingAttestationServices
         $this->directRecruitmentOnboardingCountryServices = $directRecruitmentOnboardingCountryServices;
         $this->storage = $storage;
         $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
+        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -184,13 +193,16 @@ class DirectRecruitmentOnboardingAttestationServices
                 'error' => $validator->errors()
             ];
         }
+        $onboardingAttestation = $this->onboardingAttestation->findOrFail($request['id']);
         if (isset($request['submission_date']) && !empty($request['submission_date'])) {
             $request['status'] = 'Submitted';
         }
         if (isset($request['collection_date']) && !empty($request['collection_date'])) {
             $request['status'] = 'Collected';
+            $onboardingCountry = $this->directRecruitmentOnboardingCountry->findOrFail($onboardingAttestation->onboarding_country_id);
+            $onboardingCountry->utilised_quota = $onboardingCountry->quota;
+            $onboardingCountry->save();
         }
-        $onboardingAttestation = $this->onboardingAttestation->findOrFail($request['id']);
         if(isset($request['submission_date']) && !empty($request['submission_date'])){
             $onboardingAttestation->submission_date =  $request['submission_date'];
         }
