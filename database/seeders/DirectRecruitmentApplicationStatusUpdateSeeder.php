@@ -13,6 +13,6 @@ class DirectRecruitmentApplicationStatusUpdateSeeder extends Seeder
      */
     public function run(): void
     {
-        DirectRecruitmentApplicationStatus::updateOrCreate(['id' => 5, 'status_name' => 'Interview Approved', 'status' => 1]);
+        DirectRecruitmentApplicationStatus::updateOrCreate(['id' => 5], ['status_name' => 'Interview Approved', 'status' => 1]);
     }
 }
