@@ -33,6 +33,10 @@ class DirectRecruitmentPostArrivalFomemaServices
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var DirectrecruitmentExpensesServices
+     */
+    private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
 
     /**
      * DirectRecruitmentPostArrivalFomemaServices constructor.
@@ -41,14 +45,16 @@ class DirectRecruitmentPostArrivalFomemaServices
      * @param FOMEMAAttachment $fomemaAttachment
      * @param Workers $workers
      * @param Storage $storage
+     * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerFomema $workerFomema, FOMEMAAttachment $fomemaAttachment, Workers $workers, Storage $storage)
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerFomema $workerFomema, FOMEMAAttachment $fomemaAttachment, Workers $workers, Storage $storage, DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
     {
         $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
         $this->workerFomema                         = $workerFomema;
         $this->fomemaAttachment                     = $fomemaAttachment;
         $this->workers                              = $workers;
         $this->storage                              = $storage;
+        $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -162,6 +168,17 @@ class DirectRecruitmentPostArrivalFomemaServices
                 ]);
         }
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
+        
+        // ADD OTHER EXPENSES - Onboarding - FOMEMA Total Charge + Convenient Fee (RM)
+        $request['expenses_application_id'] = $request['application_id'] ?? 0;
+        $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[6];
+        $request['expenses_payment_reference_number'] = '';
+        $request['expenses_payment_date'] = $request['purchase_date'];
+        $request['expenses'] = $request['fomema_total_charge'] + ($request['convenient_fee'] ?? 3);
+        $request['expenses_amount'] = $request['expenses'] ?? 0;
+        $request['expenses_remarks'] = $request['remarks'] ?? '';
+        $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+        
         return true;
     }
     /**

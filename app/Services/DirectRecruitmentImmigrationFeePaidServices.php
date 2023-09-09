@@ -47,6 +47,10 @@ class DirectRecruitmentImmigrationFeePaidServices
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var DirectrecruitmentExpensesServices
+     */
+    private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
     
 
     /**
@@ -58,8 +62,9 @@ class DirectRecruitmentImmigrationFeePaidServices
      * @param WorkerVisa $workerVisa
      * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param Storage $storage;
+     * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
      */
-    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerImmigration $workerImmigration, WorkerImmigrationAttachments $workerImmigrationAttachments, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, Storage $storage)
+    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerImmigration $workerImmigration, WorkerImmigrationAttachments $workerImmigrationAttachments, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, Storage $storage,DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
     {
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->workers                            = $workers;
@@ -68,6 +73,7 @@ class DirectRecruitmentImmigrationFeePaidServices
         $this->workerVisa                         = $workerVisa;
         $this->workerInsuranceDetails             = $workerInsuranceDetails;
         $this->storage                            = $storage;
+        $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -153,6 +159,16 @@ class DirectRecruitmentImmigrationFeePaidServices
                     'application_id' => $request['application_id'],
                     'onboarding_country_id' => $request['onboarding_country_id']
                 ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
+
+                // ADD OTHER EXPENSES
+                $request['expenses_application_id'] = $request['application_id'] ?? 0;
+                $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[4];
+                $request['expenses_payment_reference_number'] = $request['immigration_reference_number'] ?? '';
+                $request['expenses_payment_date'] = $request['payment_date'] ?? '';
+                $request['expenses_amount'] = $request['total_fee'] ?? 0;
+                $request['expenses_remarks'] = $request['remarks'] ?? '';
+                $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+
                 return true;
 
             } else{
