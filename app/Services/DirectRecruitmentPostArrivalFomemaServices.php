@@ -34,9 +34,9 @@ class DirectRecruitmentPostArrivalFomemaServices
      */
     private Storage $storage;
     /**
-     * @var DirectrecruitmentExpensesServices
+     * @var DirectRecruitmentExpensesServices
      */
-    private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
+    private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
 
     /**
      * DirectRecruitmentPostArrivalFomemaServices constructor.
@@ -45,16 +45,16 @@ class DirectRecruitmentPostArrivalFomemaServices
      * @param FOMEMAAttachment $fomemaAttachment
      * @param Workers $workers
      * @param Storage $storage
-     * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
+     * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerFomema $workerFomema, FOMEMAAttachment $fomemaAttachment, Workers $workers, Storage $storage, DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerFomema $workerFomema, FOMEMAAttachment $fomemaAttachment, Workers $workers, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
     {
         $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
         $this->workerFomema                         = $workerFomema;
         $this->fomemaAttachment                     = $fomemaAttachment;
         $this->workers                              = $workers;
         $this->storage                              = $storage;
-        $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
+        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -177,7 +177,7 @@ class DirectRecruitmentPostArrivalFomemaServices
         $request['expenses'] = $request['fomema_total_charge'] + ($request['convenient_fee'] ?? 3);
         $request['expenses_amount'] = $request['expenses'] ?? 0;
         $request['expenses_remarks'] = $request['remarks'] ?? '';
-        $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+        $this->directRecruitmentExpensesServices->addOtherExpenses($request);
         
         return true;
     }

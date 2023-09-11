@@ -50,9 +50,9 @@ class DirectRecruitmentInsurancePurchaseServices
      */
     private Storage $storage;
     /**
-     * @var DirectrecruitmentExpensesServices
+     * @var DirectRecruitmentExpensesServices
      */
-    private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
+    private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
     
 
     /**
@@ -64,9 +64,9 @@ class DirectRecruitmentInsurancePurchaseServices
      * @param WorkerInsuranceAttachments $workerInsuranceAttachments
      * @param Vendor $vendor
      * @param Storage $storage;
-     * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
+     * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
      */
-    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, WorkerInsuranceAttachments $workerInsuranceAttachments, Vendor $vendor, Storage $storage, DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
+    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, WorkerInsuranceAttachments $workerInsuranceAttachments, Vendor $vendor, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
     {
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->workers                            = $workers;
@@ -75,7 +75,7 @@ class DirectRecruitmentInsurancePurchaseServices
         $this->workerInsuranceAttachments         = $workerInsuranceAttachments;
         $this->vendor                             = $vendor;
         $this->storage = $storage;
-        $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
+        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -264,13 +264,13 @@ class DirectRecruitmentInsurancePurchaseServices
             $request['expenses_payment_date'] = $request['insurance_submitted_on'];
             $request['expenses_amount'] = $request['ig_amount'] ?? 0;
             $request['expenses_remarks'] = $request['remarks'] ?? '';
-            $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+            $this->directRecruitmentExpensesServices->addOtherExpenses($request);
 
             // ADD OTHER EXPENSES - Onboarding - Calling Visa - Hospitalisation
             $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[5];
             $request['expenses_payment_date'] = $request['insurance_submitted_on'];
             $request['expenses_amount'] = $request['hospitalization_amount'] ?? 0;
-            $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+            $this->directRecruitmentExpensesServices->addOtherExpenses($request);
 
             return true;
 

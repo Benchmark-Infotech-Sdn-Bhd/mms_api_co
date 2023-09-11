@@ -34,9 +34,9 @@ class DirectRecruitmentRepatriationServices
      */
     private Storage $storage;
     /**
-     * @var DirectrecruitmentExpensesServices
+     * @var DirectRecruitmentExpensesServices
      */
-    private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
+    private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
 
     /**
      * DirectRecruitmentRepatriationServices constructor.
@@ -45,16 +45,16 @@ class DirectRecruitmentRepatriationServices
      * @param WorkerRepatriationAttachments $workerRepatriationAttachments
      * @param Workers $workers
      * @param Storage $storage
-     * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
+     * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerRepatriation $workerRepatriation, WorkerRepatriationAttachments $workerRepatriationAttachments, Workers $workers, Storage $storage, DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerRepatriation $workerRepatriation, WorkerRepatriationAttachments $workerRepatriationAttachments, Workers $workers, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
     {
         $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
         $this->workerRepatriation                   = $workerRepatriation;
         $this->workerRepatriationAttachments        = $workerRepatriationAttachments;
         $this->workers                              = $workers;
         $this->storage                              = $storage;
-        $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
+        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -182,7 +182,7 @@ class DirectRecruitmentRepatriationServices
         $request['expenses_payment_date'] = Carbon::now();
         $request['expenses_amount'] = $request['expenses'] ?? 0;
         $request['expenses_remarks'] = $request['remarks'] ?? '';
-        $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+        $this->directRecruitmentExpensesServices->addOtherExpenses($request);
         
         return true;
     }

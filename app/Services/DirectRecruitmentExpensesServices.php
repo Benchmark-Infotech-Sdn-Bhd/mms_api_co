@@ -12,15 +12,30 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 
-class DirectrecruitmentExpensesServices
+class DirectRecruitmentExpensesServices
 {
+    /**
+     * @var DirectRecruitmentExpenses
+     */
     private DirectRecruitmentExpenses $directRecruitmentExpenses;
+    /**
+     * @var DirectRecruitmentExpensesAttachments
+     */
     private DirectRecruitmentExpensesAttachments $directRecruitmentExpensesAttachments;
+    /**
+     * @var ValidationServices
+     */
     private ValidationServices $validationServices;
+    /**
+     * @var AuthServices
+     */
     private AuthServices $authServices;
+    /**
+     * @var Storage
+     */
     private Storage $storage;
     /**
-     * WorkersServices constructor.
+     * DirectRecruitmentExpensesServices constructor.
      * @param DirectRecruitmentExpenses $directRecruitmentExpenses
      * @param DirectRecruitmentExpensesAttachments $directRecruitmentExpensesAttachments
      * @param ValidationServices $validationServices
@@ -186,7 +201,7 @@ class DirectrecruitmentExpensesServices
     public function addOtherExpenses($request): bool|array
     {
         $user = JWTAuth::parseToken()->authenticate();
-        $params['modified_by'] = $user['id'];
+        $params['created_by'] = $user['id'];
 
         $expenses = $this->directRecruitmentExpenses->create([
             'application_id' => $request['expenses_application_id'],

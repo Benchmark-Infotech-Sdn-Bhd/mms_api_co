@@ -32,9 +32,9 @@ class LevyServices
      */
     private ApplicationInterviews $applicationInterviews;
     /**
-     * @var DirectrecruitmentExpensesServices
+     * @var DirectRecruitmentExpensesServices
      */
-    private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
+    private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
     /**
      * LevyServices Constructor
      * @param Levy $levy
@@ -42,16 +42,16 @@ class LevyServices
      * @param FWCMS $fwcms;
      * @param ApplicationSummaryServices $applicationSummaryServices
      * @param ApplicationInterviews $applicationInterviews
-     * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
+     * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
      */
-    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices, ApplicationInterviews $applicationInterviews,DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
+    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices, ApplicationInterviews $applicationInterviews,DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
     {
         $this->levy = $levy;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->fwcms = $fwcms;
         $this->applicationSummaryServices = $applicationSummaryServices;
         $this->applicationInterviews = $applicationInterviews;
-        $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
+        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -173,7 +173,7 @@ class LevyServices
         $request['expenses_payment_date'] = $request['payment_date'] ?? '';
         $request['expenses_amount'] = $request['payment_amount'] ?? 0;
         $request['expenses_remarks'] = $request['remarks'] ?? '';
-        $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+        $this->directRecruitmentExpensesServices->addOtherExpenses($request);
         
         return true;
     }
