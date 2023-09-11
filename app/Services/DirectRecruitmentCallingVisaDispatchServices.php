@@ -168,7 +168,7 @@ class DirectRecruitmentCallingVisaDispatchServices
             ->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'worker_visa.dispatch_method', 'worker_visa.dispatch_consignment_number', 'worker_visa.dispatch_acknowledgement_number', 'worker_visa.dispatch_submitted_on',  'worker_visa.dispatch_status', DB::raw('COUNT(workers.id) as workers', 'worker_immigration.immigration_status'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
             ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'worker_visa.dispatch_method', 'worker_visa.dispatch_consignment_number', 'worker_visa.dispatch_acknowledgement_number', 'worker_visa.dispatch_submitted_on',  'worker_visa.dispatch_status')
             ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
-            ->paginate(Config::get('services.paginate_row'));
+            ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
      * @param $request
