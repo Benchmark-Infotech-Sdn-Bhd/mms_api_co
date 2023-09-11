@@ -144,13 +144,13 @@ class DirectRecruitmentWorkersServices
             $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
         }
 
-        /*if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
+        if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
             if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
                 return [
                     'ksmError' => true
                 ];    
             }
-        }*/
+        }
 
         $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
 
