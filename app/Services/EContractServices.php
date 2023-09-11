@@ -105,7 +105,7 @@ class EContractServices
             'sector_id' => 'required',
             'sector_name' => 'required',
             'fomnext_quota' => 'required|regex:/^[0-9]+$/|max:3',
-            'air_ticket_deposit' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'air_ticket_deposit' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/|gte:0|lte:999999.99',
         ];
     }
     /**
@@ -116,7 +116,7 @@ class EContractServices
         return [
             'prospect_service_id' => 'required',
             'fomnext_quota' => 'required|regex:/^[0-9]+$/|max:3',
-            'air_ticket_deposit' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'air_ticket_deposit' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/|gte:0|lte:999999.99',
         ];
     }
     /**
@@ -136,17 +136,24 @@ class EContractServices
         return $this->eContractApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'e-contract_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'e-contract_applications.service_id')
         ->leftJoin('e-contract_project', 'e-contract_project.application_id', 'e-contract_applications.id')
-        ->leftJoin('worker_employment', 'worker_employment.project_id', 'e-contract_project.id')
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.project_id','=','e-contract_project.id')
+            ->where('worker_employment.service_type', 'e-Contract')
+            ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date');
+        })
+        ->leftJoin('workers', function($query) {
+            $query->on('workers.id','=','worker_employment.worker_id')
+            ->whereIN('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
+        })
         ->where('crm_prospect_services.service_id', 2)
         ->where('crm_prospect_services.deleted_at', NULL)
-        ->where('worker_employment.transfer_flag', 0)
-        ->where('worker_employment.service_type', 'e-Contract')
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
             }
         })
-        ->selectRaw('`e-contract_applications`.`id`, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, crm_prospect_services.sector_id, crm_prospect_services.sector_name, `e-contract_applications`.`status`, count(`e-contract_project`.`id`) as projects, count(`worker_employment`.`worker_id`) as workers')
+        ->selectRaw('`e-contract_applications`.`id`, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, crm_prospect_services.sector_id, crm_prospect_services.sector_name, `e-contract_applications`.`status`, count(distinct `e-contract_project`.`id`) as projects, count(distinct workers.id) as workers, count(distinct worker_employment.id) as worker_employments')
         ->groupBy('e-contract_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'e-contract_applications.status')
         ->orderBy('e-contract_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));

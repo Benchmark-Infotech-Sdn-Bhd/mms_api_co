@@ -123,10 +123,11 @@ class CRMController extends Controller
      * 
      * @return JsonResponse
      */
-    public function dropDownCompanies(): JsonResponse
+    public function dropDownCompanies(Request $request): JsonResponse
     {
         try {
-            $response = $this->crmServices->dropDownCompanies();
+            $params = $this->getRequest($request);
+            $response = $this->crmServices->dropDownCompanies($params);
             return $this->sendSuccess($response);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
