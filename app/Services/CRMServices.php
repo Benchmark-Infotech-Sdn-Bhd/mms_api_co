@@ -415,11 +415,19 @@ class CRMServices
     /**
      * @return mixed
      */
-    public function dropDownCompanies(): mixed
+    public function dropDownCompanies($request): mixed
     {
-        return $this->crmProspect->where('status', 1)
-            ->select('id', 'company_name')
-            ->get();
+        return $this->crmProspect
+        ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
+        ->where('crm_prospects.status', 1)
+        ->where(function ($query) use ($request) {
+            if(isset($request['service_id']) && !empty($request['service_id'])) {
+                $query->where('crm_prospect_services.service_id', $request['service_id']);
+            }
+        })
+        ->select('crm_prospects.id', 'crm_prospects.company_name')
+        ->distinct('crm_prospects.id', 'crm_prospects.company_name')
+        ->get();
     }
     /**
      * @param $request
