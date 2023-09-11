@@ -48,9 +48,9 @@ class DirectRecruitmentImmigrationFeePaidServices
      */
     private Storage $storage;
     /**
-     * @var DirectrecruitmentExpensesServices
+     * @var DirectRecruitmentExpensesServices
      */
-    private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
+    private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
     
 
     /**
@@ -62,9 +62,9 @@ class DirectRecruitmentImmigrationFeePaidServices
      * @param WorkerVisa $workerVisa
      * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param Storage $storage;
-     * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
+     * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
      */
-    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerImmigration $workerImmigration, WorkerImmigrationAttachments $workerImmigrationAttachments, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, Storage $storage,DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
+    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerImmigration $workerImmigration, WorkerImmigrationAttachments $workerImmigrationAttachments, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, Storage $storage,DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
     {
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->workers                            = $workers;
@@ -73,7 +73,7 @@ class DirectRecruitmentImmigrationFeePaidServices
         $this->workerVisa                         = $workerVisa;
         $this->workerInsuranceDetails             = $workerInsuranceDetails;
         $this->storage                            = $storage;
-        $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
+        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -167,7 +167,7 @@ class DirectRecruitmentImmigrationFeePaidServices
                 $request['expenses_payment_date'] = $request['payment_date'] ?? '';
                 $request['expenses_amount'] = $request['total_fee'] ?? 0;
                 $request['expenses_remarks'] = $request['remarks'] ?? '';
-                $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+                $this->directRecruitmentExpensesServices->addOtherExpenses($request);
 
                 return true;
 

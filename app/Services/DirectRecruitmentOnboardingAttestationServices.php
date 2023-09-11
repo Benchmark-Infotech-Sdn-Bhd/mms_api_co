@@ -46,9 +46,9 @@ class DirectRecruitmentOnboardingAttestationServices
      */
     private Storage $storage;
     /**
-     * @var DirectrecruitmentExpensesServices
+     * @var DirectRecruitmentExpensesServices
      */
-    private DirectrecruitmentExpensesServices $directrecruitmentExpensesServices;
+    private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
 
     /**
      * @var DirectRecruitmentOnboardingCountry
@@ -64,10 +64,10 @@ class DirectRecruitmentOnboardingAttestationServices
      * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
      * @param Storage $storage;
-     * @param DirectrecruitmentExpensesServices $directrecruitmentExpensesServices
+     * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
      */
 
-    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage, DirectrecruitmentExpensesServices $directrecruitmentExpensesServices)
+    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
     {
         $this->onboardingAttestation = $onboardingAttestation;
         $this->onboardingDispatch = $onboardingDispatch;
@@ -75,7 +75,7 @@ class DirectRecruitmentOnboardingAttestationServices
         $this->embassyAttestationFileCosting = $embassyAttestationFileCosting;
         $this->directRecruitmentOnboardingCountryServices = $directRecruitmentOnboardingCountryServices;
         $this->storage = $storage;
-        $this->directrecruitmentExpensesServices = $directrecruitmentExpensesServices;
+        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
     }
     /**
@@ -402,7 +402,7 @@ class DirectRecruitmentOnboardingAttestationServices
                 $request['expenses_payment_date'] = Carbon::now();
                 $request['expenses_amount'] = $request['amount'] ?? 0;
                 $request['expenses_remarks'] = '';
-                $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+                $this->directRecruitmentExpensesServices->addOtherExpenses($request);
 
             }
         }elseif( isset($request['amount'])){
@@ -427,7 +427,7 @@ class DirectRecruitmentOnboardingAttestationServices
             $request['expenses_payment_date'] = Carbon::now();
             $request['expenses_amount'] = $request['amount'] ?? 0;
             $request['expenses_remarks'] = '';
-            $this->directrecruitmentExpensesServices->addOtherExpenses($request);
+            $this->directRecruitmentExpensesServices->addOtherExpenses($request);
         }else{
             return false;
         }
