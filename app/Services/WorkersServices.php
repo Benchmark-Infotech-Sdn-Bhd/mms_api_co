@@ -643,9 +643,17 @@ class WorkersServices
                 ->whereRaw('worker_employment.id IN (select MAX(WORKER_EMP.id) from worker_employment as WORKER_EMP JOIN workers as WORKER ON WORKER.id = WORKER_EMP.worker_id group by WORKER.id)');
         })
         ->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
+        ->leftjoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+        ->leftJoin('crm_prospects as total_management_crm', 'total_management_crm.id', '=', 'total_management_applications.crm_prospect_id')
+        ->leftJoin('crm_prospect_services as total_management_service', 'total_management_service.id', 'total_management_applications.service_id')
+        ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
+        ->leftjoin('e-contract_applications', 'e-contract_applications.id', '=', 'econtract_project.application_id')
+        ->leftJoin('crm_prospects as econtract_crm', 'econtract_crm.id', '=', 'e-contract_applications.crm_prospect_id')
+        ->leftJoin('crm_prospect_services as econtract_service', 'econtract_service.id', 'e-contract_applications.service_id')
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
         ->leftjoin('directrecruitment_applications', 'directrecruitment_applications.id', '=', 'directrecruitment_workers.application_id')
         ->leftJoin('crm_prospects as directrecruitment_crm', 'directrecruitment_crm.id', '=', 'directrecruitment_applications.crm_prospect_id')
+        ->leftJoin('crm_prospect_services as directrecruitment_service', 'directrecruitment_service.id', 'directrecruitment_applications.service_id')
         ->where(function ($query) use ($request) {
             if(isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) {
                 $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
@@ -659,7 +667,14 @@ class WorkersServices
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
             
-        })->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'workers.total_management_status', 'workers.crm_prospect_id as total_management_company_id', 'crm_prospects.company_name as total_management_company_name', 'worker_employment.id as total_management_employment_id', 'total_management_project.id as total_management_project_id', 'total_management_project.city as total_management_project_city', 'directrecruitment_workers.application_id as directrecruitment_application_id', 'directrecruitment_applications.crm_prospect_id as directrecruitment_company_id', 'directrecruitment_crm.company_name as directrecruitment_company_name')
+        })
+        ->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'workers.total_management_status', 'worker_employment.service_type', 'worker_employment.id as worker_employment_id')
+        ->selectRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_crm.company_name 
+        WHEN (worker_employment.service_type = 'e-Contract') THEN econtract_crm.company_name 
+        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN directrecruitment_crm.company_name 
+        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' END) as company_name,  (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city 
+        WHEN (worker_employment.service_type = 'e-Contract') THEN econtract_project.city 
+        ELSE null END) as project_location")
         ->distinct('workers.id')
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
