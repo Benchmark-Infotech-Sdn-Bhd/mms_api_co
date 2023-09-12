@@ -355,6 +355,11 @@ class DirectRecruitmentWorkersServices
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
         ->where('directrecruitment_workers.agent_id', $request['agent_id'])
         ->where('worker_visa.status', 'Pending')
+        ->where(function ($query) use ($request) {
+            if ($request['worker_id']) {
+                $query->where('workers.id', '!=', $request['worker_id']);
+            }
+        })
         ->select('workers.id','workers.name')
         ->orderBy('workers.created_at','DESC')->get();
     }
