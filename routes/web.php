@@ -685,5 +685,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('update', 'V1\DispatchManagementController@update');
                 $router->post('deleteAttachment', 'V1\DispatchManagementController@deleteAttachment');
         });
+        $router->group(['prefix' => 'reports'], function () use ($router) {
+            $router->group(['prefix' => 'serviceAgreement'], function () use ($router) {
+                $router->post('list', 'V1\ServiceAgreementReportController@list');
+            });
+        });
     });
 });
