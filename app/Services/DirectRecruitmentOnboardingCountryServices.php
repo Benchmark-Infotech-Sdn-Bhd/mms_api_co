@@ -197,7 +197,10 @@ class DirectRecruitmentOnboardingCountryServices
             })
         ->leftJoin('directrecruitment_onboarding_countries', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_application_approval.application_id')
         ->where('directrecruitment_application_approval.application_id', $request['application_id'])
-        ->select('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota', 'directrecruitment_onboarding_countries.utilised_quota')->distinct()
+        ->select('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota')
+        ->selectRaw('sum(directrecruitment_onboarding_countries.utilised_quota) as utilised_quota')
+        ->groupBy('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota')
+        ->distinct()
         ->get();
     }
 
