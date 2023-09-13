@@ -689,6 +689,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->group(['prefix' => 'serviceAgreement'], function () use ($router) {
                 $router->post('list', 'V1\ServiceAgreementReportController@list');
             });
+            $router->group(['prefix' => 'availableWorkers'], function () use ($router) {
+                $router->post('list', 'V1\AvailableWorkersReportController@list');
+            });
         });
     });
 });

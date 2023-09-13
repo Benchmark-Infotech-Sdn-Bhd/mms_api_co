@@ -107,7 +107,7 @@ class DirectRecruitmentCallingVisaGenerateServices
                 ];
             }
         }
-        return $this->workers
+        $data = $this->workers
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_immigration', 'worker_immigration.worker_id', 'workers.id')
@@ -129,11 +129,20 @@ class DirectRecruitmentCallingVisaGenerateServices
                 if(isset($request['agent_id']) && !empty($request['agent_id'])) {
                     $query->where('directrecruitment_workers.agent_id', $request['agent_id']);
                 }
-            })
-            ->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_valid_until', DB::raw('COUNT(workers.id) as workers', 'worker_immigration.immigration_status'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
-            ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_valid_until', 'worker_immigration.immigration_status')
-            ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
-            ->paginate(Config::get('services.paginate_worker_row'));
+            });
+            
+            if(isset($request['export']) && !empty($request['export']) ){
+                $data = $data->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number',  'worker_visa.calling_visa_valid_until', DB::raw('COUNT(workers.id) as workers', 'worker_immigration.immigration_status'))
+                ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_valid_until', 'worker_immigration.immigration_status')
+                ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
+                ->get();
+            }else{
+                $data = $data->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_valid_until', DB::raw('COUNT(workers.id) as workers', 'worker_immigration.immigration_status'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
+                ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_valid_until', 'worker_immigration.immigration_status')
+                ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
+                ->paginate(Config::get('services.paginate_worker_row'));
+            }
+            return $data;
     }
     /**
      * @param $request
