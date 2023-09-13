@@ -685,5 +685,18 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('update', 'V1\DispatchManagementController@update');
                 $router->post('deleteAttachment', 'V1\DispatchManagementController@deleteAttachment');
         });
+
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'invoice'], function () use ($router) {
+            $router->post('list', 'V1\InvoiceController@list');
+            $router->post('show', 'V1\InvoiceController@show');
+            $router->post('create', 'V1\InvoiceController@create');
+            $router->post('update', 'V1\InvoiceController@update');
+            $router->post('getTaxRates', 'V1\InvoiceController@getTaxRates');
+            $router->post('getAccessToken', 'V1\InvoiceController@getAccessToken');
+        });
+
     });
 });
