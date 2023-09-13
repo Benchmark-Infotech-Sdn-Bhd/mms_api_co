@@ -136,7 +136,7 @@ class DirectRecruitmentCallingVisaServices
                 ];
             }
         }
-        return $this->workers
+        $data = $this->workers
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
@@ -156,10 +156,19 @@ class DirectRecruitmentCallingVisaServices
                 if(isset($request['agent_id']) && !empty($request['agent_id'])) {
                     $query->where('directrecruitment_workers.agent_id', $request['agent_id']);
                 }
-            })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status')->distinct('workers.id')
+            });
+
+            if(isset($request['export']) && !empty($request['export']) ){
+                $data = $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'worker_visa.status')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
-            ->paginate(Config::get('services.paginate_worker_row'));
+            ->get();
+            }else{
+                $data = $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status')->distinct('workers.id')
+                ->orderBy('workers.id', 'desc')
+                ->paginate(Config::get('services.paginate_worker_row'));
+            }
+            return $data;
+            
     }
     /**
      * @param $request
@@ -237,7 +246,7 @@ class DirectRecruitmentCallingVisaServices
                 ];
             }
         }
-        return $this->workers
+        $data = $this->workers
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->where([
@@ -255,9 +264,17 @@ class DirectRecruitmentCallingVisaServices
                 if(isset($request['calling_visa_reference_number']) && !empty($request['calling_visa_reference_number'])) {
                     $query->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number']);
                 }
-            })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'workers.cancel_status', 'workers.date_of_birth', 'workers.gender')->distinct('workers.id')
-            ->orderBy('workers.id', 'desc')
-            ->paginate(Config::get('services.paginate_row'));
+            });
+            
+            if(isset($request['export']) && !empty($request['export']) ){
+                $data = $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'workers.cancel_status', 'workers.date_of_birth', 'workers.gender')->distinct('workers.id')
+                ->orderBy('workers.id', 'desc')
+                ->get();
+            }else{
+                $data = $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'workers.cancel_status', 'workers.date_of_birth', 'workers.gender')->distinct('workers.id')
+                ->orderBy('workers.id', 'desc')
+                ->paginate(Config::get('services.paginate_row'));
+            }
+            return $data;
     }
 }

@@ -118,7 +118,7 @@ class DirectRecruitmentInsurancePurchaseServices
                 ];
             }
         }
-        return $this->workers
+        $data = $this->workers
         ->join('worker_visa', function ($join) {
             $join->on('worker_visa.worker_id', '=', 'workers.id')
             ->where('worker_visa.status', '=', 'Processed');
@@ -138,11 +138,19 @@ class DirectRecruitmentInsurancePurchaseServices
                 ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%')
                 ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
             }
-        })
-        ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date', 'worker_insurance_details.insurance_status')->distinct('workers.id')
-        ->distinct('workers.id')
-        ->orderBy('workers.id','DESC')
-        ->paginate(Config::get('services.paginate_worker_row'));
+        });
+        if(isset($request['export']) && !empty($request['export']) ){
+            $data = $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on','worker_insurance_details.insurance_status')->distinct('workers.id')
+            ->distinct('workers.id')
+            ->orderBy('workers.id','DESC')
+            ->get();
+        }else{
+            $data = $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date', 'worker_insurance_details.insurance_status')->distinct('workers.id')
+            ->distinct('workers.id')
+            ->orderBy('workers.id','DESC')
+            ->paginate(Config::get('services.paginate_worker_row'));
+        }
+        return $data;
     }
     /**
      * @param $request
