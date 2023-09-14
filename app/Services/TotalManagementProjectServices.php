@@ -70,6 +70,16 @@ class TotalManagementProjectServices
         ->leftJoin('employee', 'employee.id', '=', 'total_management_project.employee_id')
         ->leftJoin('vendors', 'vendors.id', '=', 'total_management_project.transportation_provider_id')
         ->leftJoin('transportation', 'transportation.id', '=', 'total_management_project.driver_id')
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.project_id','=','total_management_project.id')
+            ->where('worker_employment.service_type', 'Total Management')
+            ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date');
+        })
+        ->leftJoin('workers', function($query) {
+            $query->on('workers.id','=','worker_employment.worker_id')
+            ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'));
+        })
         ->where('total_management_project.application_id',$request['application_id'])
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
@@ -80,7 +90,8 @@ class TotalManagementProjectServices
             }
         })
         ->select('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name as vendor_name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.created_at', 'total_management_project.updated_at')
-        ->distinct('total_management_project.id')
+        ->selectRaw('count(distinct workers.id) as workers, count(distinct worker_employment.id) as worker_employments')
+        ->groupBy('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.created_at', 'total_management_project.updated_at')
         ->orderBy('total_management_project.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
