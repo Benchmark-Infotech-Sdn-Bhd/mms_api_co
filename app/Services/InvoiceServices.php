@@ -90,16 +90,17 @@ class InvoiceServices
         ]);
 
         $generateInvoice['Type'] = 'ACCREC';
-        $generateInvoice['Date'] = '\/Date(1518685950940+0000)\/';
-        $generateInvoice['DueDate'] = '\/Date(1518685950940+0000)\/';
+        $generateInvoice['Date'] = '/Date(1518685950940+0000)/';
+        $generateInvoice['DueDate'] = '/Date(1518685950940+0000)/';
         $generateInvoice['DateString'] = '2023-09-13T00:00:00';
         $generateInvoice['DueDateString'] = '2023-09-15T00:00:00';
-        $generateInvoice['LineAmountTypes'] = '\/Date(1518685950940+0000)\/';
+        $generateInvoice['LineAmountTypes'] = 'Exclusive';
         $generateInvoice['Contact']['ContactID'] = 'b2762afb-19e7-41b0-b3f7-e62cd0fe3ca1';
 
         $lineItems = json_decode($request['invoice_items']);
-
+        
         if ($request['invoice_items']){
+            $increment = 0;
             foreach($lineItems as $item){
                 $this->invoiceItems::create([
                     "invoice_id" => $invoice['id'],
@@ -110,18 +111,20 @@ class InvoiceServices
                     "total_price" => $item->total_price
                 ]);
 
-                $generateInvoice['LineItems']['Description'] = 'Expense';
-                $generateInvoice['LineItems']['item'] = $item->item ?? '';
-                $generateInvoice['LineItems']['description'] = $item->description;
-                $generateInvoice['LineItems']['quantity'] = $item->quantity;
-                $generateInvoice['LineItems']['price'] = $item->price;
-                $generateInvoice['LineItems']['total_price'] = $item->total_price;
-
+                $generateInvoice['LineItems'][$increment] = new \stdClass();
+                $generateInvoice['LineItems'][$increment]->Description = 'Expense';
+                //$generateInvoice['LineItems'][$increment]->Item = $item->item ?? '';
+                $generateInvoice['LineItems'][$increment]->Description = $item->description;
+                $generateInvoice['LineItems'][$increment]->Quantity = $item->quantity;
+                $generateInvoice['LineItems'][$increment]->UnitAmount = $item->price;
+                $generateInvoice['LineItems'][$increment]->AccountCode = 200;
+                $generateInvoice['LineItems'][$increment]->DiscountRate = 20;
+                $increment++;                
             }
         }
 
-        $this->generateInvoices($generateInvoice);
-
+        $generateInvoiceXero = $this->generateInvoices($generateInvoice);
+        
         return $invoice;
     }
 
@@ -334,6 +337,7 @@ class InvoiceServices
      */
     public function generateInvoices($request) : mixed
     {
+        //echo "<pre>"; print_r($request); exit;
         $http = new Client();
         try {
             $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'), [
@@ -342,10 +346,29 @@ class InvoiceServices
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
-                'form_params' => json_encode($request),
+                //'json' => [json_encode($request)],
+                /* 'json' => [
+                    'Type'=>$request['Type'],
+                    'Contact'=>json_encode($request['Contact']),
+                    'Date' => $request['Date'],
+                    'DueDate' => $request['DueDate'],
+                    'DateString' => $request['DateString'],
+                    'DueDateString' => $request['DueDateString'],
+                    'LineAmountTypes' => $request['LineAmountTypes'],
+                    'LineItems' => json_encode($request['LineItems']),
+                ],*/
+                'json' => [
+                    'Type'=>'ACCREC',
+                    'Contact'=> $request['Contact'],
+                    /*'Date' => $request['Date'],
+                    'DueDate' => $request['DueDate'],
+                    'DateString' => $request['DateString'],
+                    'DueDateString' => $request['DueDateString'],*/
+                    'LineAmountTypes' => $request['LineAmountTypes'],
+                    'LineItems' => $request['LineItems']
+                ],
             ]);
             $result = json_decode((string)$response->getBody(), true);
-            
             return response()->json($result);
         } catch (Exception $e) {
             Log::error('Exception in submitting invoice details' . $e);
