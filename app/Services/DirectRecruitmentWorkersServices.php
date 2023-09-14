@@ -143,7 +143,6 @@ class DirectRecruitmentWorkersServices
         foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
             $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
         }
-
         if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
             if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
                 return [
@@ -151,11 +150,19 @@ class DirectRecruitmentWorkersServices
                 ];    
             }
         }
-
         $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
-        $workerCount = $this->directrecruitmentWorkers->where('application_id', $request['application_id'])
-        ->where('onboarding_country_id', $request['onboarding_country_id'])
-        ->count('worker_id');
+
+        $workerCount = $this->directrecruitmentWorkers
+        ->leftjoin('worker_visa', 'directrecruitment_workers.worker_id', '=', 'worker_visa.worker_id')
+        ->leftjoin('worker_fomema', 'directrecruitment_workers.worker_id', '=', 'worker_fomema.worker_id')
+        ->leftjoin('worker_arrival', 'directrecruitment_workers.worker_id', '=', 'worker_arrival.worker_id')
+        ->where('directrecruitment_workers.application_id', $request['application_id'])
+        ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
+        ->where('worker_visa.approval_status', '!=' , 'Rejected')
+        ->where('worker_fomema.fomema_status', '!=' , 'Unfit')
+        ->where('worker_arrival.arrival_status', '!=' , 'Not Arrived')
+        ->count('directrecruitment_workers.worker_id');
+
         if($workerCount >= $onboardingCountryDetails->quota) {
             return [
                 'workerCountError' => true
@@ -348,6 +355,11 @@ class DirectRecruitmentWorkersServices
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
         ->where('directrecruitment_workers.agent_id', $request['agent_id'])
         ->where('worker_visa.status', 'Pending')
+        ->where(function ($query) use ($request) {
+            if ($request['worker_id']) {
+                $query->where('workers.id', '!=', $request['worker_id']);
+            }
+        })
         ->select('workers.id','workers.name')
         ->orderBy('workers.created_at','DESC')->get();
     }
