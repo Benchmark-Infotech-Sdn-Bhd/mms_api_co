@@ -437,4 +437,39 @@ class TotalManagementPayrollServices
         return false;
     }
 
+    /**
+     * upload Timesheet
+     * @param $request
+     * @return bool|array
+     */
+    public function uploadTimesheet($request): bool|array
+    {
+        $result = return $this->workers
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.worker_id','=','workers.id');
+        })
+        ->leftJoin('total_management_payroll', function($query) use ($request) {
+            $query->on('total_management_payroll.worker_id','=','workers.id');
+            if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+            $query->whereRaw('total_management_payroll.id IN (select MAX(TMPAY.id) from total_management_payroll as TMPAY JOIN workers as WORKER ON WORKER.id = TMPAY.worker_id group by WORKER.id)');
+            }
+        })
+
+        ->where(function ($query) use ($request) {
+            if (isset($request['month']) && !empty($request['month'])) {
+                $query->where('total_management_payroll.month', $request['month']);
+            }
+            if (isset($request['year']) && !empty($request['year'])) {
+                $query->where('total_management_payroll.year', $request['year']);
+            }
+            if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                $query->whereNull('worker_employment.work_end_date');
+                $query->whereNull('worker_employment.remove_date');
+            }
+        })
+        ->select('workers.id', 'workers.name', 'total_management_payroll.amount', 'total_management_payroll.sosco_contribution')
+        ->distinct('workers.id')
+        ->orderBy('workers.created_at','DESC');
+    }
+
 }

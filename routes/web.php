@@ -575,6 +575,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('listTimesheet', 'V1\TotalManagementPayrollController@listTimesheet');
                 $router->post('uploadTimesheet', 'V1\TotalManagementPayrollController@uploadTimesheet');
                 $router->post('viewTimesheet', 'V1\TotalManagementPayrollController@viewTimesheet');
+                $router->post('authorizePayroll', 'V1\TotalManagementPayrollController@authorizePayroll');
             });
             $router->group(['prefix' => 'transfer'], function () use ($router) {
                 $router->post('workerEmploymentDetail', 'V1\TotalManagementTransferController@workerEmploymentDetail');
