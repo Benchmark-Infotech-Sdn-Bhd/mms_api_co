@@ -124,7 +124,12 @@ class InvoiceServices
         }
 
         $generateInvoiceXero = $this->generateInvoices($generateInvoice);
-        
+
+        $invoiceData = $this->invoice->findOrFail($invoice['id']);
+        $invoiceData->invoice_number = $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'];
+        $invoiceData->invoice_status = $generateInvoiceXero->original['Invoices'][0]['Status'];
+        $invoiceData->save();
+
         return $invoice;
     }
 
@@ -217,11 +222,14 @@ class InvoiceServices
         return $this->invoice
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('reference_number', 'like', "%{$request['search_param']}%")
+                $query->where('invoice_number', 'like', "%{$request['search_param']}%")
                 ->orWhere('account', 'like', '%'.$request['search_param'].'%');
             }
+            if (isset($request['invoice_status']) && !empty($request['invoice_status'])) {
+                $query->where('invoice_status', 'like', "%{$request['invoice_status']}%");
+            }
             
-        })->select('id','crm_prospect_id','issue_date','due_date','reference_number','account','tax','amount','created_at')
+        })->select('id','crm_prospect_id','issue_date','due_date','reference_number','account','tax','amount','created_at','invoice_number','invoice_status')
         ->distinct()
         ->orderBy('created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
@@ -369,6 +377,9 @@ class InvoiceServices
                 ],
             ]);
             $result = json_decode((string)$response->getBody(), true);
+
+
+
             return response()->json($result);
         } catch (Exception $e) {
             Log::error('Exception in submitting invoice details' . $e);
