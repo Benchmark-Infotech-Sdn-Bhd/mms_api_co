@@ -139,6 +139,66 @@ class InvoiceController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
+    public function getItems(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->invoiceServices->getItems($params);
+            
+            return $this->sendSuccess($data->original);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    } 
+
+    /**
+     * Search & Retrieve all the Invoice.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getAccounts(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->invoiceServices->getAccounts($params);
+            
+            return $this->sendSuccess($data->original);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    } 
+
+    /**
+     * Search & Retrieve all the Invoice.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getInvoices(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->invoiceServices->getInvoices($params);
+            
+            return $this->sendSuccess($data->original);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    } 
+
+    /**
+     * Search & Retrieve all the Invoice.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function getAccessToken(): JsonResponse
     {
         try {

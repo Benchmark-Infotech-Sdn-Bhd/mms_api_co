@@ -695,6 +695,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('create', 'V1\InvoiceController@create');
             $router->post('update', 'V1\InvoiceController@update');
             $router->post('getTaxRates', 'V1\InvoiceController@getTaxRates');
+            $router->post('getItems', 'V1\InvoiceController@getItems');
+            $router->post('getAccounts', 'V1\InvoiceController@getAccounts');
+            $router->post('getInvoices', 'V1\InvoiceController@getInvoices');
             $router->post('getAccessToken', 'V1\InvoiceController@getAccessToken');
         });
 

@@ -89,19 +89,38 @@ class InvoiceServices
             'modified_by'   => $params['created_by'] ?? 0
         ]);
 
-        //if (isset($request['invoice_items']) && sizeof($request['invoice_items']) > 0) {
+        $generateInvoice['Type'] = 'ACCREC';
+        $generateInvoice['Date'] = '\/Date(1518685950940+0000)\/';
+        $generateInvoice['DueDate'] = '\/Date(1518685950940+0000)\/';
+        $generateInvoice['DateString'] = '2023-09-13T00:00:00';
+        $generateInvoice['DueDateString'] = '2023-09-15T00:00:00';
+        $generateInvoice['LineAmountTypes'] = '\/Date(1518685950940+0000)\/';
+        $generateInvoice['Contact']['ContactID'] = 'b2762afb-19e7-41b0-b3f7-e62cd0fe3ca1';
 
-        foreach($request['invoice_items'] as $item){
-            $this->invoiceItems::create([
-                "invoice_id" => $invoice['id'],
-                "item" => $item['item'],
-                "description" => $item['description'],
-                "quantity" => $item['quantity'],
-                "price" => $item['price'],
-                "total_price" => $item['total_price']
-            ]);
+        $lineItems = json_decode($request['invoice_items']);
 
+        if ($request['invoice_items']){
+            foreach($lineItems as $item){
+                $this->invoiceItems::create([
+                    "invoice_id" => $invoice['id'],
+                    "item" => $item->item ?? '',
+                    "description" => $item->description,
+                    "quantity" => $item->quantity,
+                    "price" => $item->price,
+                    "total_price" => $item->total_price
+                ]);
+
+                $generateInvoice['LineItems']['Description'] = 'Expense';
+                $generateInvoice['LineItems']['item'] = $item->item ?? '';
+                $generateInvoice['LineItems']['description'] = $item->description;
+                $generateInvoice['LineItems']['quantity'] = $item->quantity;
+                $generateInvoice['LineItems']['price'] = $item->price;
+                $generateInvoice['LineItems']['total_price'] = $item->total_price;
+
+            }
         }
+
+        $this->generateInvoices($generateInvoice);
 
         return $invoice;
     }
@@ -138,17 +157,18 @@ class InvoiceServices
         if ($request['invoice_items']){
 
             $this->invoiceItems->where('invoice_id', $request['id'])->delete();
-
+            $lineItems = json_decode($request['invoice_items']);
             foreach($request['invoice_items'] as $item){
                     $this->invoiceItems::create([
                     "invoice_id" => $request['id'],
-                    "item" => $item['item'],
-                    "description" => $item['description'],
-                    "quantity" => $item['quantity'],
-                    "price" => $item['price'],
-                    "total_price" => $item['total_price']
+                    "item" => $item->item,
+                    "description" => $item->description,
+                    "quantity" => $item->quantity,
+                    "price" => $item->price,
+                    "total_price" => $item->total_price
                 ]); 
             }
+        
         }
 
         return true;
@@ -226,6 +246,109 @@ class InvoiceServices
             return response()->json($result);
         } catch (Exception $e) {
             Log::error('Exception in getting Tax details' . $e);
+            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function getItems($request) : mixed
+    {
+        $http = new Client();
+        try {
+            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ITEMS_URL'), [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Accept' => 'application/json',
+                ],
+                'form_params' => [
+                ],
+            ]);
+            $result = json_decode((string)$response->getBody(), true);
+            
+            return response()->json($result);
+        } catch (Exception $e) {
+            Log::error('Exception in getting Items details' . $e);
+            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function getAccounts($request) : mixed
+    {
+        $http = new Client();
+        try {
+            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ACCOUNTS_URL'), [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Accept' => 'application/json',
+                ],
+                'form_params' => [
+                ],
+            ]);
+            $result = json_decode((string)$response->getBody(), true);
+            
+            return response()->json($result);
+        } catch (Exception $e) {
+            Log::error('Exception in getting Account details' . $e);
+            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function getInvoices($request) : mixed
+    {
+        $http = new Client();
+        try {
+            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'), [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Accept' => 'application/json',
+                ],
+                'form_params' => [
+                ],
+            ]);
+            $result = json_decode((string)$response->getBody(), true);
+            
+            return response()->json($result);
+        } catch (Exception $e) {
+            Log::error('Exception in getting Invoice details' . $e);
+            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function generateInvoices($request) : mixed
+    {
+        $http = new Client();
+        try {
+            $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'), [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Accept' => 'application/json',
+                ],
+                'form_params' => json_encode($request),
+            ]);
+            $result = json_decode((string)$response->getBody(), true);
+            
+            return response()->json($result);
+        } catch (Exception $e) {
+            Log::error('Exception in submitting invoice details' . $e);
             return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
         }
     }
