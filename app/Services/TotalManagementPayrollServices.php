@@ -12,6 +12,7 @@ use App\Models\Workers;
 use App\Models\TotalManagementPayroll;
 use App\Models\TotalManagementPayrollAttachments;
 use App\Models\PayrollBulkUpload;
+use App\Models\TotalManagementProject;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\PayrollImport;
 
@@ -38,6 +39,10 @@ class TotalManagementPayrollServices
      */
     private Storage $storage;
     /**
+     * @var TotalManagementProject
+     */
+    private TotalManagementProject $totalManagementProject;
+    /**
      * TotalManagementPayrollServices constructor.
      * @param TotalManagementProject $totalManagementProject
      * @param TotalManagementPayroll $totalManagementPayroll
@@ -45,13 +50,14 @@ class TotalManagementPayrollServices
      * @param PayrollBulkUpload $payrollBulkUpload
      * @param Storage $storage;
      */
-    public function __construct(Workers $workers, TotalManagementPayroll $totalManagementPayroll, TotalManagementPayrollAttachments $totalManagementPayrollAttachments, Storage $storage, PayrollBulkUpload $payrollBulkUpload)
+    public function __construct(Workers $workers, TotalManagementPayroll $totalManagementPayroll, TotalManagementPayrollAttachments $totalManagementPayrollAttachments, Storage $storage, PayrollBulkUpload $payrollBulkUpload, TotalManagementProject $totalManagementProject)
     {
         $this->workers = $workers;
         $this->totalManagementPayroll = $totalManagementPayroll;
         $this->totalManagementPayrollAttachments = $totalManagementPayrollAttachments;
         $this->storage = $storage;
         $this->payrollBulkUpload = $payrollBulkUpload;
+        $this->totalManagementProject = $totalManagementProject;
     }
     /**
      * @return array
@@ -100,14 +106,20 @@ class TotalManagementPayrollServices
      */   
     public function projectDetails($request): mixed
     {
-        return $this->workers
-            ->leftJoin('worker_employment', 'worker_employment.worker_id','=','workers.id')
-            ->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
-            ->where('worker_employment.project_id', $request['project_id']) 
-            ->where('worker_employment.service_type', 'Total Management')   
-            ->select(DB::raw('COUNT(DISTINCT workers.id) as workers'), 'worker_employment.project_id', 'total_management_project.name')
+            return $this->totalManagementProject
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.project_id','=','total_management_project.id')
+            ->where('worker_employment.service_type', 'Total Management')
+            ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date');
+        })
+        ->leftJoin('workers', function($query) {
+            $query->on('workers.id','=','worker_employment.worker_id')
+            ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'));
+        })
+        ->where('total_management_project.id',$request['project_id'])
+        ->select(DB::raw('COUNT(DISTINCT workers.id) as workers'), 'worker_employment.project_id', 'total_management_project.name')
             ->groupBy('worker_employment.project_id', 'total_management_project.name')
-            ->distinct('workers.id')
             ->get();
     }
     /**
