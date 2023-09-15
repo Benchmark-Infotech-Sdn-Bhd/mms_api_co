@@ -664,6 +664,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('listTimesheet', 'V1\EContractPayrollController@listTimesheet');
                 $router->post('uploadTimesheet', 'V1\EContractPayrollController@uploadTimesheet');
                 $router->post('viewTimesheet', 'V1\EContractPayrollController@viewTimesheet');
+                $router->post('authorizePayroll', 'V1\EContractPayrollController@authorizePayroll');
             });
         });
 

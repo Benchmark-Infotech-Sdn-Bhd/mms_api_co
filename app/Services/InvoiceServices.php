@@ -427,6 +427,7 @@ class InvoiceServices
      */
     public function getAccessToken() : mixed
     {
+        //echo Config::get('services.XERO_REFRESH_TOKEN'); exit;
         $http = new Client();
         try {
             $response = $http->request('POST', Config::get('services.XERO_TOKEN_URL'), [
@@ -437,13 +438,17 @@ class InvoiceServices
                 ], 
                 'form_params' => [
                     'grant_type' => 'refresh_token',
-                    'client_id' => Config::get('services.XERO_CLIENT_ID'),
-                    'refresh_token' => Config::get('services.XERO_REFRESH_TOKEN'),
+                    'client_id' => "eyJhbGciOiJSUzI1NiIsImtpZCI6IjFDQUY4RTY2NzcyRDZEQzAyOEQ2NzI2RkQwMjYxNTgxNTcwRUZDMTkiLCJ0eXAiOiJKV1QiLCJ4NXQiOiJISy1PWm5jdGJjQW8xbkp2MENZVmdWY09fQmsifQ.eyJuYmYiOjE2OTQ3NjI5MjUsImV4cCI6MTY5NDc2NDcyNSwiaXNzIjoiaHR0cHM6Ly9pZGVudGl0eS54ZXJvLmNvbSIsImF1ZCI6Imh0dHBzOi8vaWRlbnRpdHkueGVyby5jb20vcmVzb3VyY2VzIiwiY2xpZW50X2lkIjoiMDUzODRDRkExQTYyNDA1NEIwNUU1NzI5NzZFQjM3NDgiLCJzdWIiOiI3ODM5NjUyYWNjM2I1ZjJlYjFiZTNlMWM1YTdlMmZmNSIsImF1dGhfdGltZSI6MTY5NDc2MDg2NywieGVyb191c2VyaWQiOiJhZmIyMjMwYy1kMjRmLTQ0NGQtOGIwOC05OTc0YzMxMjkxNTkiLCJnbG9iYWxfc2Vzc2lvbl9pZCI6ImY1YzI3ZDYwZmJjYTRmM2NiYmIyYzJmMjg5ZDNhNTAxIiwic2lkIjoiZjVjMjdkNjBmYmNhNGYzY2JiYjJjMmYyODlkM2E1MDEiLCJqdGkiOiI4NTg0RkFDODkxNTI4M0E1ODU1Mjk4MDI0NjM0QzYzMyIsImF1dGhlbnRpY2F0aW9uX2V2ZW50X2lkIjoiZTE3M2E5MWMtNmM3My00OWViLTliMmUtYzY1NmQwNTUwMjA2Iiwic2NvcGUiOlsiYWNjb3VudGluZy5zZXR0aW5ncyIsImFjY291bnRpbmcudHJhbnNhY3Rpb25zIiwiYWNjb3VudGluZy5jb250YWN0cyIsIm9mZmxpbmVfYWNjZXNzIl0sImFtciI6WyJwd2QiXX0.r10FYCNN5qhjId7OFgqf-qXxNO0yxDCxbmDr58kk8e7bKT_nPOo-6Futjp4sURb5o7mIyo5AXehq5JGoX1aDko01ISKexokp3lUIJ6cGrDGG_OoBcPpG0rLVSBoU5qkeU_F1tsJiUG86Hh7B0lxDhZL7R1uc3iCy--Y1u91GTCsCgOiKE-kUDfLG0bzQmQGmakTwN_4lszWbO2PnsgIlhg9I6155LAEN9FD6FN5WWnNEJaFd-tnG4ab5lZ02l3WlQAwneWXJmyAk70BeVahRhQteN_ysiWPdpdWsRKcVvoK8EifqDcbKQoWEcXa_lmiBShGwwRP0JhIPqMGsKPmhYA",
+                    'refresh_token' => "AZzQtwzD-2Gjn7QcX0hVpqxW-FYtRyUd4Ltnq0trXUk",
                 ],
             ]);
             $result = json_decode((string)$response->getBody(), true);
+            Log::info(Config::get('services.XERO_REFRESH_TOKEN')." ~~ Refresh Token");
+            Log::info(Config::get('services.XERO_ACCESS_TOKEN')." ~~ Access Token");
             Config::set('services.XERO_REFRESH_TOKEN', $result['refresh_token']);
             Config::set('services.XERO_ACCESS_TOKEN', $result['access_token']);
+            Log::info(Config::get('services.XERO_REFRESH_TOKEN')." ~~ New Refresh Token");
+            Log::info(Config::get('services.XERO_ACCESS_TOKEN')." ~~ New Access Token");
             return response()->json($result);
         } catch (Exception $e) {
             Log::error('Exception in getting refresh token' . $e);
