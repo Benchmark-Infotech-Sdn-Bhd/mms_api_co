@@ -8,6 +8,9 @@ use App\Models\WorkerKin;
 use App\Models\WorkerVisa;
 use App\Models\WorkerBioMedical;
 use App\Models\BulkUploadRecords;
+use App\Models\WorkerFomema;
+use App\Models\WorkerInsuranceDetails;
+use App\Models\WorkerBankDetails;
 use App\Services\ManageWorkersServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -106,6 +109,34 @@ class WorkersImport extends Job
                     "bio_medical_reference_number" => $this->workerParameter['bio_medical_reference_number'],
                     "bio_medical_valid_until" => $this->workerParameter['bio_medical_valid_until'],
                 ]);
+
+                WorkerFomema::create([
+                    "worker_id" => $worker['id'],
+                    "purchase_date" => ((isset($request['purchase_date']) && !empty($request['purchase_date'])) ? $request['purchase_date'] : null),
+                    "clinic_name" => $request['clinic_name'] ?? '',
+                    "doctor_code" =>  $request['doctor_code'] ?? '',         
+                    "allocated_xray" =>  $request['allocated_xray'] ?? '',
+                    "xray_code" =>  $request['xray_code'] ?? ''
+                ]);
+        
+                WorkerInsuranceDetails::create([
+                    "worker_id" => $worker['id'],
+                    "ig_policy_number" => $request['ig_policy_number'] ?? '',
+                    "ig_policy_number_valid_until" => ((isset($request['ig_policy_number_valid_until']) && !empty($request['ig_policy_number_valid_until'])) ? $request['ig_policy_number_valid_until'] : null),
+                    "hospitalization_policy_number" =>  $request['hospitalization_policy_number'] ?? '',         
+                    "hospitalization_policy_number_valid_until" =>  ((isset($request['hospitalization_policy_number_valid_until']) && !empty($request['hospitalization_policy_number_valid_until'])) ? $request['hospitalization_policy_number_valid_until'] : null),
+                    "insurance_expiry_date" => ((isset($request['insurance_expiry_date']) && !empty($request['insurance_expiry_date'])) ? $request['insurance_expiry_date'] : null)
+                ]);
+        
+                if(isset($request['bank_name']) && !empty($request['bank_name'])){
+                    WorkerBankDetails::create([
+                        "worker_id" => $worker['id'],
+                        "bank_name" => $request['bank_name'] ?? '',
+                        "account_number" => $request['account_number'] ?? '',
+                        "socso_number" =>  $request['socso_number'] ?? ''
+                    ]);
+                }
+                
     
                 Log::info('Worker instertd -  '.$worker['id']);
     
