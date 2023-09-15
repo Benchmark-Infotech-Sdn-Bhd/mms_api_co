@@ -89,6 +89,7 @@ return [
     'XERO_TAX_RATES_URL' => env('XERO_TAX_RATES_URL', "TaxRates"),
     'XERO_ITEMS_URL' => env('XERO_ITEMS_URL', "Items"),
     'XERO_ACCOUNTS_URL' => env('XERO_ACCOUNTS_URL', "Accounts"),
+    'XERO_CONTACTS_URL' => env('XERO_CONTACTS_URL', "Contacts"),
     'XERO_INVOICES_URL' => env('XERO_INVOICES_URL', "Invoices"),
     'XERO_TOKEN_URL' => env('XERO_TOKEN_URL', "token"),
     'XERO_TENANT_ID' => env('XERO_TENANT_ID', "08e3e7d9-5304-4fa6-a337-1f21262b6dca"),

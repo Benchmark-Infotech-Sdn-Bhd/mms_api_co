@@ -345,7 +345,6 @@ class InvoiceServices
      */
     public function generateInvoices($request) : mixed
     {
-        //echo "<pre>"; print_r($request); exit;
         $http = new Client();
         try {
             $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'), [
@@ -354,17 +353,6 @@ class InvoiceServices
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
-                //'json' => [json_encode($request)],
-                /* 'json' => [
-                    'Type'=>$request['Type'],
-                    'Contact'=>json_encode($request['Contact']),
-                    'Date' => $request['Date'],
-                    'DueDate' => $request['DueDate'],
-                    'DateString' => $request['DateString'],
-                    'DueDateString' => $request['DueDateString'],
-                    'LineAmountTypes' => $request['LineAmountTypes'],
-                    'LineItems' => json_encode($request['LineItems']),
-                ],*/
                 'json' => [
                     'Type'=>'ACCREC',
                     'Contact'=> $request['Contact'],
@@ -377,12 +365,58 @@ class InvoiceServices
                 ],
             ]);
             $result = json_decode((string)$response->getBody(), true);
-
-
-
             return response()->json($result);
         } catch (Exception $e) {
             Log::error('Exception in submitting invoice details' . $e);
+            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function createContacts($request) : mixed
+    {
+        $http = new Client();
+        if(isset($request['ContactID']) && !empty($request['ContactID'])){
+            $data = [
+                'ContactID'=>$request['ContactID'] ?? '',
+                'Name'=>$request['company_name'],
+                'ContactNumber'=> $request['contact_number'],
+                'AccountNumber' => $request['bank_account_number'],
+                'EmailAddress' => $request['email'],
+                'BankAccountDetails' => $request['bank_account_number'],
+                'TaxNumber' => $request['tax_id'],
+                'AccountsReceivableTaxType' => $request['account_receivable_tax_type'],
+                'AccountsPayableTaxType' => $request['account_payable_tax_type']
+                ];
+        } else {
+            $data = [
+                'Name'=>$request['company_name'],
+                'ContactNumber'=> $request['contact_number'],
+                'AccountNumber' => $request['bank_account_number'],
+                'EmailAddress' => $request['email'],
+                'BankAccountDetails' => $request['bank_account_number'],
+                'TaxNumber' => $request['tax_id'],
+                'AccountsReceivableTaxType' => $request['account_receivable_tax_type'],
+                'AccountsPayableTaxType' => $request['account_payable_tax_type']
+            ];
+        }
+        
+        try {
+            $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_CONTACTS_URL'), [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Accept' => 'application/json',
+                ],
+                'json' => $data,
+            ]);
+            $result = json_decode((string)$response->getBody(), true);
+            return response()->json($result);
+        } catch (Exception $e) {
+            Log::error('Exception in submitting contact details' . $e);
             return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
         }
     }
