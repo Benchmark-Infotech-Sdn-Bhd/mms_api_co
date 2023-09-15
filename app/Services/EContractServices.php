@@ -202,7 +202,7 @@ class EContractServices
         $this->eContractApplications::create([
             'crm_prospect_id' => $request['prospect_id'],
             'service_id' => $prospectService->id,
-            'quota_requested' => 0,
+            'quota_requested' => $request['fomnext_quota'] ?? 0,
             'person_incharge' => '',
             'cost_quoted' => 0,
             'status' => 'Pending Proposal',
