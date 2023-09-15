@@ -105,6 +105,7 @@ $app->middleware([
  $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
  $app->register(OwenIt\Auditing\AuditingServiceProvider::class);
  $app->register(Illuminate\Mail\MailServiceProvider::class);
+ $app->register(Maatwebsite\Excel\ExcelServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------

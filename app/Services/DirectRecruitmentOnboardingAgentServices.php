@@ -5,6 +5,8 @@ namespace App\Services;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use App\Models\DirectRecruitmentOnboardingAgent;
+use App\Services\DirectRecruitmentOnboardingCountryServices;
+use App\Models\DirectRecruitmentOnboardingCountry;
 
 class DirectRecruitmentOnboardingAgentServices
 {
@@ -19,14 +21,28 @@ class DirectRecruitmentOnboardingAgentServices
     private DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices;
 
     /**
+     * @var DirectRecruitmentOnboardingCountryServices
+     */
+    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+
+    /**
      * DirectRecruitmentOnboardingAgentServices constructor.
      * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
-     * @param DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices;
+     * @param DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
      */
-    public function __construct(DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent, DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices)
+    public function __construct(DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent, DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
         $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
         $this->directRecruitmentOnboardingAttestationServices = $directRecruitmentOnboardingAttestationServices;
+        $this->directRecruitmentOnboardingCountryServices = $directRecruitmentOnboardingCountryServices;
+        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -86,6 +102,31 @@ class DirectRecruitmentOnboardingAgentServices
                 'error' => $validator->errors()
             ];
         }
+
+        $countriesQuota = $this->directRecruitmentOnboardingCountry
+                               ->where('application_id', $request['application_id'])
+                               ->where('id', $request['onboarding_country_id'])
+                               ->sum('quota');
+        $agentQuota = $this->directRecruitmentOnboardingAgent
+        ->where('application_id', $request['application_id'])
+        ->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->sum('quota');
+        $agentQuota += $request['quota'];
+        if($agentQuota > $countriesQuota) {
+            return [
+                'quotaError' => true
+            ];
+        }
+        $checkAgent = $this->directRecruitmentOnboardingAgent
+        ->where('agent_id', $request['agent_id'])
+        ->where('application_id', $request['application_id'])
+        ->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->get();
+        if(count($checkAgent) > 0) {
+            return [
+                'agentError' => true
+            ];
+        }
         $this->directRecruitmentOnboardingAgent->create([
             'application_id' => $request['application_id'] ?? 0,
             'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
@@ -96,6 +137,11 @@ class DirectRecruitmentOnboardingAgentServices
             'modified_by' => $request['created_by'] ?? 0
         ]);
         $this->directRecruitmentOnboardingAttestationServices->create($request);
+
+        $onBoardingStatus['application_id'] = $request['application_id'];
+        $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
+        $onBoardingStatus['onboarding_status'] = 2; //Agent Added
+        $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
         return true;
     }
     /**
@@ -108,6 +154,21 @@ class DirectRecruitmentOnboardingAgentServices
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+        $countriesQuota = $this->directRecruitmentOnboardingCountry
+                               ->where('application_id', $request['application_id'])
+                               ->where('id', $request['onboarding_country_id'])
+                               ->sum('quota');
+        $agentQuota = $this->directRecruitmentOnboardingAgent
+        ->where('application_id', $request['application_id'])
+        ->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->where('id', '<>', $request['id'])
+        ->sum('quota');
+        $agentQuota += $request['quota'];
+        if($agentQuota > $countriesQuota) {
+            return [
+                'quotaError' => true
             ];
         }
         $onboardingAgent = $this->directRecruitmentOnboardingAgent->findOrFail($request['id']);

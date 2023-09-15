@@ -7,24 +7,28 @@ use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
 use Illuminate\Support\Str;
+use App\Models\Role;
 
 class EmployeeServices
 {
     private Employee $employee;
     private ValidationServices $validationServices;
     private AuthServices $authServices;
+    private Role $role;
     /**
      * EmployeeServices constructor.
      * @param Employee $employee
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
+     * @param Role $role
      */
     public function __construct(Employee $employee,ValidationServices $validationServices,
-    AuthServices $authServices)
+    AuthServices $authServices,Role $role)
     {
         $this->employee = $employee;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
+        $this->role = $role;
     }
 
     /**
@@ -275,5 +279,22 @@ class EmployeeServices
             "isUpdated" => $employee,
             "message" => "Updated Successfully"
         ];
+    }
+    /**
+     * @return mixed
+     */
+    public function supervisorList($request) : mixed
+    {
+        $role = $this->role->where('role_name', Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'))->where('status',1)->first('id');
+
+        return $this->employee
+        ->join('users', 'employee.id', '=', 'users.reference_id')
+        ->join('user_role_type','users.id','=','user_role_type.user_id')
+        ->join('roles','user_role_type.role_id','=','roles.id')
+        ->where('roles.id',$role->id ?? 0)
+        ->select('employee.id','employee.employee_name')
+        ->distinct('employee.id','employee.employee_name')
+        ->orderBy('employee.id','DESC')
+        ->get();
     }
 }

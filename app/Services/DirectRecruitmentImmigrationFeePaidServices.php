@@ -6,6 +6,8 @@ use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\Workers;
 use App\Models\WorkerImmigration;
 use App\Models\WorkerImmigrationAttachments;
+use App\Models\WorkerVisa;
+use App\Models\WorkerInsuranceDetails;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -33,11 +35,22 @@ class DirectRecruitmentImmigrationFeePaidServices
      * @var WorkerImmigrationAttachments
      */
     private WorkerImmigrationAttachments $workerImmigrationAttachments;
-
+    /**
+     * @var WorkerVisa
+     */
+    private WorkerVisa $workerVisa;
+    /**
+     * @var WorkerInsuranceDetails
+     */
+    private WorkerInsuranceDetails $workerInsuranceDetails;
     /**
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var DirectRecruitmentExpensesServices
+     */
+    private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
     
 
     /**
@@ -46,15 +59,21 @@ class DirectRecruitmentImmigrationFeePaidServices
      * @param Workers $workers
      * @param WorkerImmigration $workerImmigration
      * @param WorkerImmigrationAttachments $workerImmigrationAttachments
+     * @param WorkerVisa $workerVisa
+     * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param Storage $storage;
+     * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
      */
-    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerImmigration $workerImmigration, WorkerImmigrationAttachments $workerImmigrationAttachments, Storage $storage)
+    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerImmigration $workerImmigration, WorkerImmigrationAttachments $workerImmigrationAttachments, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, Storage $storage,DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
     {
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->workers                            = $workers;
         $this->workerImmigration                  = $workerImmigration;
         $this->workerImmigrationAttachments       = $workerImmigrationAttachments;
+        $this->workerVisa                         = $workerVisa;
+        $this->workerInsuranceDetails             = $workerInsuranceDetails;
         $this->storage                            = $storage;
+        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -98,6 +117,10 @@ class DirectRecruitmentImmigrationFeePaidServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
 
+            $workers = explode(",", $request['workers']);
+
+            if(is_array($workers)){
+
                 if (request()->hasFile('attachment')){
                     foreach($request->file('attachment') as $file){
                         $fileName = $file->getClientOriginalName();
@@ -111,7 +134,7 @@ class DirectRecruitmentImmigrationFeePaidServices
                     $fileUrl = '';
                 }
 
-                foreach ($request['workers'] as $workerId) {
+                foreach ($workers as $workerId) {
 
                     $this->workerImmigration->updateOrCreate(
                         ['worker_id' => $workerId],
@@ -136,8 +159,22 @@ class DirectRecruitmentImmigrationFeePaidServices
                     'application_id' => $request['application_id'],
                     'onboarding_country_id' => $request['onboarding_country_id']
                 ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
+
+                // ADD OTHER EXPENSES
+                $request['expenses_application_id'] = $request['application_id'] ?? 0;
+                $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[4];
+                $request['expenses_payment_reference_number'] = $request['immigration_reference_number'] ?? '';
+                $request['expenses_payment_date'] = $request['payment_date'] ?? '';
+                $request['expenses_amount'] = $request['total_fee'] ?? 0;
+                $request['expenses_remarks'] = $request['remarks'] ?? '';
+                $this->directRecruitmentExpensesServices->addOtherExpenses($request);
+
                 return true;
-            
+
+            } else{
+                return  false;
+            }
+
         }else{
             return false;
         }
@@ -153,6 +190,7 @@ class DirectRecruitmentImmigrationFeePaidServices
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'workers.id')
+            ->where('worker_visa.approval_status', 'Approved')
             ->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number'])
             ->where('worker_visa.ksm_reference_number', $request['ksm_reference_number'])
             ->where('workers.cancel_status', 0)
@@ -174,14 +212,16 @@ class DirectRecruitmentImmigrationFeePaidServices
                 ];
             }
         }
-        return $this->workers
+        $data = $this->workers
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_immigration', 'worker_immigration.worker_id', 'workers.id')
+            ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->where('worker_visa.approval_status', 'Approved')
+            ->where('worker_immigration.immigration_status', null)
             ->where([
-                'workers.application_id' => $request['application_id'],
-                'workers.onboarding_country_id' => $request['onboarding_country_id'],
+                'directrecruitment_workers.application_id' => $request['application_id'],
+                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
                 'workers.cancel_status' => 0
             ])
             ->where(function ($query) use ($request) {
@@ -189,10 +229,45 @@ class DirectRecruitmentImmigrationFeePaidServices
                     $query->Where('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
                     ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
                 }
-            })
-            ->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_immigration.total_fee', 'worker_immigration.immigration_reference_number', 'worker_immigration.payment_date', 'worker_immigration.immigration_status', DB::raw('COUNT(workers.id) as workers'))
-            ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_immigration.total_fee', 'worker_immigration.immigration_reference_number', 'worker_immigration.payment_date', 'worker_immigration.immigration_status')
-            ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
-            ->paginate(Config::get('services.paginate_row'));
+            });
+            if(isset($request['export']) && !empty($request['export']) ){
+                $data = $data->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', DB::raw('COUNT(workers.id) as workers'))
+                ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until')
+                ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
+                ->get();
+            }else{
+                $data = $data->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_immigration.total_fee', 'worker_immigration.immigration_reference_number', 'worker_immigration.payment_date', 'worker_immigration.immigration_status', DB::raw('COUNT(workers.id) as workers'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
+                ->selectRaw("(CASE WHEN (worker_immigration.immigration_status IS NULL) THEN 'Pending' ELSE worker_immigration.immigration_status END) as immigration_status_value")
+                ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_immigration.total_fee', 'worker_immigration.immigration_reference_number', 'worker_immigration.payment_date', 'worker_immigration.immigration_status')
+                ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
+                ->paginate(Config::get('services.paginate_worker_row'));
+            }
+            return $data;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function show($request): mixed
+    {
+        $processCallingVisa = $this->workerVisa
+                            ->where('calling_visa_reference_number', $request['calling_visa_reference_number'])
+                            ->first(['calling_visa_reference_number', 'submitted_on']);
+
+        $insurancePurchase = $this->workerInsuranceDetails
+                        ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_insurance_details.worker_id')
+                        ->leftJoin('vendors', 'vendors.id', 'worker_insurance_details.insurance_provider_id')
+                        ->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number'])
+                        ->first(['worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date']);
+                        
+        $callingVisaApproval = $this->workerVisa
+                        ->where('calling_visa_reference_number', $request['calling_visa_reference_number'])
+                        ->first(['calling_visa_generated', 'calling_visa_valid_until']);
+                        
+        return [
+            'process' => $processCallingVisa,
+            'insurance' => $insurancePurchase,
+            'approval' => $callingVisaApproval
+        ];
     }
 }

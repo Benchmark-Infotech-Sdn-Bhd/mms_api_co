@@ -74,6 +74,10 @@ class FWCMSController extends Controller
             $response = $this->fwcmsServices->create($param);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Proposal Quota'], 422);
+            } else if(isset($response['processError'])) {
+                return $this->sendError(['message' => 'Application has been completed, further modification is not allowed'], 422);
             }
             return $this->sendSuccess(['message' => 'FWCMS Details Created Successfully']);
         } catch (Exception $e) {
@@ -97,7 +101,9 @@ class FWCMSController extends Controller
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             } else if(isset($response['processError'])) {
-                return $this->sendError(['message' => 'Levy payment has been made for the selected KSM reference Number, further modification is not allowed']);
+                return $this->sendError(['message' => 'Levy payment has been made for the selected KSM reference Number, further modification is not allowed'], 422);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Proposal Quota'], 422);
             }
             return $this->sendSuccess(['message' => 'FWCMS Details Updated Successfully']);
         } catch (Exception $e) {

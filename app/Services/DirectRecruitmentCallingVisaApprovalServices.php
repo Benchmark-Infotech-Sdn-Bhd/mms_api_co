@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\DirectRecruitmentCallingVisaStatus;
+use App\Models\WorkerInsuranceDetails;
 use App\Models\Workers;
 use App\Models\WorkerVisa;
+use App\Models\DirectRecruitmentOnboardingCountry;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -20,21 +22,33 @@ class DirectRecruitmentCallingVisaApprovalServices
      */
     private WorkerVisa $workerVisa;
     /**
+     * @var workerInsuranceDetails
+     */
+    private WorkerInsuranceDetails $workerInsuranceDetails;
+    /**
      * @var DirectRecruitmentCallingVisaStatus
      */
     private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
 
     /**
      * DirectRecruitmentCallingVisaApprovalServices constructor.
      * @param Workers $workers
      * @param WorkerVisa $workerVisa
+     * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
         $this->workers                                = $workers;
         $this->workerVisa                             = $workerVisa;
+        $this->workerInsuranceDetails                 = $workerInsuranceDetails;
         $this->directRecruitmentCallingVisaStatus     = $directRecruitmentCallingVisaStatus;
+        $this->directRecruitmentOnboardingCountry     = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -62,15 +76,48 @@ class DirectRecruitmentCallingVisaApprovalServices
      */
     public function approvalStatusUpdate($request): bool|array
     {
-        $validator = Validator::make($request, $this->createValidation());
+        if(isset($request['workers']) && !empty($request['workers'])) {
+            $workerVisaProcessed = $this->workerInsuranceDetails
+                            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_insurance_details.worker_id')
+                            ->whereIn('worker_insurance_details.worker_id', $request['workers'])
+                            ->where('worker_insurance_details.insurance_status', 'Purchased')
+                            ->select('worker_visa.calling_visa_reference_number')
+                            ->groupBy('worker_visa.calling_visa_reference_number')
+                            ->get()->toArray();
+            if(count($workerVisaProcessed) != 1) {
+                return [
+                    'visaReferenceNumberCountError' => true
+                ];
+            }
+        }
+        if ($request['status'] == 'Approved') {
+            $validator = Validator::make($request, $this->createValidation());
             if($validator->fails()) {
                 return [
                     'error' => $validator->errors()
                 ];
             }
-        if(isset($request['workers']) && !empty($request['workers'])) {
             $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['calling_visa_generated' => $request['calling_visa_generated'], 'calling_visa_valid_until' => $request['calling_visa_valid_until'], 'remarks' => $request['remarks'], 'approval_status' => $request['status'], 'modified_by' => $request['modified_by']]);
+
+            $this->workers->whereIn('id', $request['workers'])
+                ->update([
+                    'directrecruitment_status' => 'Accepted', 
+                    'modified_by' => $request['modified_by']
+                ]);
+        } else {
+            $this->workerVisa->whereIn('worker_id', $request['workers'])
+            ->update([
+                'approval_status' => $request['status'], 
+                'modified_by' => $request['modified_by']
+            ]);
+
+            $this->workers->whereIn('id', $request['workers'])
+            ->update([
+                'directrecruitment_status' => $request['status'], 
+                'modified_by' => $request['modified_by']
+            ]);
         }
+
         $this->directRecruitmentCallingVisaStatus->where([
             'application_id' => $request['application_id'],
             'onboarding_country_id' => $request['onboarding_country_id']
@@ -91,14 +138,15 @@ class DirectRecruitmentCallingVisaApprovalServices
                 ];
             }
         }
-        return $this->workers
+        $data = $this->workers
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'workers.id')
+            ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->where('worker_visa.approval_status', '!=', 'Approved')
             ->where([
-                'workers.application_id' => $request['application_id'],
-                'workers.onboarding_country_id' => $request['onboarding_country_id'],
+                'directrecruitment_workers.application_id' => $request['application_id'],
+                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
                 'workers.cancel_status' => 0,
                 'worker_insurance_details.insurance_status' => 'Purchased'
             ])
@@ -117,12 +165,19 @@ class DirectRecruitmentCallingVisaApprovalServices
             })
             ->where(function ($query) use ($request) {
                 if(isset($request['agent_id']) && !empty($request['agent_id'])) {
-                    $query->where('workers.agent_id', $request['agent_id']);
+                    $query->where('directrecruitment_workers.agent_id', $request['agent_id']);
                 }
-            })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approval_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')->distinct('workers.id')
-            ->orderBy('workers.id', 'desc')
-            ->paginate(Config::get('services.paginate_row'));
+            });
+            if(isset($request['export']) && !empty($request['export']) ){
+                $data = $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated')->distinct('workers.id')
+                ->orderBy('workers.id', 'desc')
+                ->get();
+            }else{
+                $data = $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approval_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')->distinct('workers.id')
+                ->orderBy('workers.id', 'desc')
+                ->paginate(Config::get('services.paginate_worker_row'));
+            }
+            return $data;
     }
     /**
      * @param $request

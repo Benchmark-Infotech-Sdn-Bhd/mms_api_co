@@ -129,4 +129,20 @@ class TransportationController extends Controller
             return $this->sendError(['message' => 'Delete attachments was failed']);
         }        
     }
+    /**
+     * Display a dropdown of the Transportation.
+     * @param Request $request
+     * @return JsonResponse
+     */    
+    public function dropdown(Request $request): JsonResponse
+    {        
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->transportationServices->dropdown($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => $e->getMessage()]);
+        }
+    }
 }

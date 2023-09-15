@@ -81,7 +81,7 @@ class RolesController extends Controller
             } 
             $response = $this->rolesServices->create($params);
             if(isset($response['adminError'])) {
-                return $this->sendError(['message' => 'Role Name as Admin is not allowed, kindly provide a different Role Name.']);
+                return $this->sendError(['message' => 'Role Name as Admin is not allowed, kindly provide a different Role Name.'],422);
             }
             return $this->sendSuccess(['message' => 'Role Created Successfully']);
         } catch (Exception $e) {

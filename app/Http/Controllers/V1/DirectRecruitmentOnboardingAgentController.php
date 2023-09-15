@@ -75,6 +75,10 @@ class DirectRecruitmentOnboardingAgentController extends Controller
             $response = $this->directRecruitmentOnboardingAgentServices->create($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            }else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Country Quota'], 422);
+            } else if(isset($response['agentError'])) {
+                return $this->sendError(['message' => 'The Agent already added for this Country'], 422);
             }
             return $this->sendSuccess(['message' => 'Agent Added Successfully']);
         } catch (Exception $e) {
@@ -97,6 +101,8 @@ class DirectRecruitmentOnboardingAgentController extends Controller
             $response = $this->directRecruitmentOnboardingAgentServices->update($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            }else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Country Quota'], 422);
             }
             return $this->sendSuccess(['message' => 'Agent Updated Successfully']);
         } catch (Exception $e) {

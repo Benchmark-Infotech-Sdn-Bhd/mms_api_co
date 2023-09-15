@@ -22,9 +22,8 @@ class Workers extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['onboarding_country_id','agent_id','application_id','name','gender','date_of_birth','passport_number',
-    'passport_valid_until','fomema_valid_until','address','status', 'cancel_Status', 'remarks',
-    'city','state','created_by','modified_by'];
+    protected $fillable = ['onboarding_country_id','agent_id','application_id','name','gender', 'date_of_birth', 'passport_number', 'passport_valid_until', 'fomema_valid_until','address', 'status', 'cancel_status', 'remarks','city','state', 'special_pass', 'special_pass_submission_date', 'special_pass_valid_until', 'plks_status', 'plks_expiry_date', 'directrecruitment_status', 'created_by','modified_by', 'crm_prospect_id', 'total_management_status', 'econtract_status', 'module_type'];
+
    
     /**
      * The attributes that are required.
@@ -32,15 +31,11 @@ class Workers extends Model implements Auditable
      * @var array
      */
     public $rules = [
-        'onboarding_country_id' => 'required|regex:/^[0-9]+$/',
-        'agent_id' => 'required|regex:/^[0-9]+$/',
-        'application_id' => 'required|regex:/^[0-9]+$/',
-        'name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+        'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
         'date_of_birth' => 'required|date_format:Y-m-d',
         'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
-        'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
+        'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/|unique:workers',
         'passport_valid_until' => 'required|date_format:Y-m-d',
-        'fomema_valid_until' => 'required|date_format:Y-m-d',
         'address' => 'required',
         'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
         'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
@@ -55,15 +50,11 @@ class Workers extends Model implements Auditable
         // Unique name with deleted at
         return [
             'id' => 'required|regex:/^[0-9]+$/',
-            'onboarding_country_id' => 'required|regex:/^[0-9]+$/',
-            'agent_id' => 'required|regex:/^[0-9]+$/',
-            'application_id' => 'required|regex:/^[0-9]+$/',
-            'name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+            'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
             'date_of_birth' => 'required|date_format:Y-m-d',
             'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',
-            'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
+            'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/|unique:workers,passport_number,'.$id,
             'passport_valid_until' => 'required|date_format:Y-m-d',
-            'fomema_valid_until' => 'required|date_format:Y-m-d',
             'address' => 'required',
             'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
             'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
@@ -75,7 +66,7 @@ class Workers extends Model implements Auditable
      */
     public function workerAttachments()
     {
-        return $this->hasMany(WorkerAttachments::class, 'file_id');
+        return $this->hasMany(WorkerAttachments::class, 'file_id')->where('file_type', '<>', 'WORKERATTACHMENT');
     }
 
     /**
@@ -109,6 +100,13 @@ class Workers extends Model implements Auditable
     {
         return $this->hasOne(WorkerFomema::class, 'worker_id');
     }
+    /**
+     * @return HasMany
+     */
+    public function workerFomemaAttachments()
+    {
+        return $this->hasMany(FOMEMAAttachment::class, 'file_id');
+    }
 
     /**
      * @return HasOne
@@ -132,5 +130,64 @@ class Workers extends Model implements Auditable
     public function workerInsuranceAttachments(): HasMany
     {
         return $this->hasMany(WorkerInsuranceAttachments::class, 'file_id');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function workerEmployment(): HasMany
+    {
+        return $this->hasMany(WorkerEmployment::class, 'worker_id');
+    }
+
+        /**
+     * @return HasMany
+     */
+    public function directrecruitmentWorkers(): HasMany
+    {
+        return $this->hasMany(DirectrecruitmentWorkers::class, 'worker_id');
+    }
+
+     /**
+     * @return HasMany
+     */
+    public function workerOtherAttachments(): HasMany
+    {
+        return $this->hasMany(WorkerAttachments::class, 'file_id')->where('file_type', '=', 'WORKERATTACHMENT');
+    }
+    /**
+     * @return hasMany
+     */
+    public function SpecialPassAttachments()
+    {
+        return $this->hasMany(SpecialPassAttachments::class, 'file_id');
+    }
+    /**
+     * @return hasMany
+     */
+    public function WorkerRepatriationAttachments()
+    {
+        return $this->hasMany(WorkerRepatriationAttachments::class, 'file_id');
+    }
+    /**
+     * @return hasMany
+     */
+    public function WorkerPLKSAttachments()
+    {
+        return $this->hasMany(WorkerPLKSAttachments::class, 'file_id');
+    }
+    /**
+     * @return hasMany
+     */
+    public function CancellationAttachment()
+    {
+        return $this->hasMany(CancellationAttachment::class, 'file_id');
+    }
+    /**
+     * @return hasMany
+     */
+    public function WorkerImmigrationAttachments()
+    {
+        return $this->hasMany(WorkerImmigrationAttachments::class, 'file_id');
     }
 }

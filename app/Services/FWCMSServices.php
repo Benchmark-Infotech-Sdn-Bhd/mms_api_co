@@ -67,13 +67,13 @@ class FWCMSServices
                 'submission_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'applied_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'status' => 'required',
-                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21'
+                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21|unique:fwcms'
             ];
     }
      /**
      * @return array
      */
-    public function updateValidation(): array
+    public function updateValidation($param): array
     {
         return
             [
@@ -82,7 +82,7 @@ class FWCMSServices
                 'submission_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'applied_quota' => 'required|regex:/^[0-9]+$/|max:3',
                 'status' => 'required',
-                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21'
+                'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21|unique:fwcms,ksm_reference_number,'.$param['id']
             ];
     }
     /**
@@ -91,8 +91,13 @@ class FWCMSServices
      */
     public function list($request): mixed
     {
-        return $this->fwcms->where('application_id', $request['application_id'])
-        ->select('id', 'application_id', 'submission_date', 'applied_quota', 'status', 'ksm_reference_number', 'updated_at')
+        return $this->fwcms
+        ->leftJoin('levy', function($join) use ($request){
+            $join->on('levy.application_id', '=', 'fwcms.application_id')
+            ->on('levy.ksm_reference_number', '=', 'fwcms.ksm_reference_number');
+          })
+        ->where('fwcms.application_id', $request['application_id'])
+        ->select('fwcms.id', 'fwcms.application_id', 'fwcms.submission_date', 'fwcms.applied_quota', 'fwcms.status', 'fwcms.ksm_reference_number', 'fwcms.updated_at', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
         ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -102,8 +107,13 @@ class FWCMSServices
      */
     public function show($request): mixed
     {
-        return $this->fwcms->where('id', $request['id'])
-                ->first(['id', 'application_id', 'submission_date', 'applied_quota', 'status', 'ksm_reference_number', 'remarks']);
+        return $this->fwcms
+        ->leftJoin('levy', function($join) use ($request){
+            $join->on('levy.application_id', '=', 'fwcms.application_id')
+            ->on('levy.ksm_reference_number', '=', 'fwcms.ksm_reference_number');
+          })
+        ->where('fwcms.id', $request['id'])
+                ->first(['fwcms.id', 'fwcms.application_id', 'fwcms.submission_date', 'fwcms.applied_quota', 'fwcms.status', 'fwcms.ksm_reference_number', 'fwcms.remarks', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application')]);
     }
     /**
      * @param $request
@@ -117,6 +127,24 @@ class FWCMSServices
                 'error' => $validator->errors()
             ];
         }
+
+        $proposalQuota = $this->directrecruitmentApplications->where('id', $request['application_id'])->sum('quota_applied');
+        $fwcmsQuota = $this->fwcms
+        ->where('application_id', $request['application_id'])
+        ->where('status', '<>' , 'Rejected')
+        ->sum('applied_quota');
+        $fwcmsQuota += $request['applied_quota'];
+        if($fwcmsQuota > $proposalQuota) {
+            return [
+                'quotaError' => true
+            ];
+        }
+        $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+        if($applicationDetails->status == Config::get('services.APPROVAL_COMPLETED')) {
+            return [
+                'processError' => true
+            ];
+        }
         $this->fwcms->create([
             'application_id' => $request['application_id'] ?? 0,
             'submission_date' => $request['submission_date'] ?? '',
@@ -127,10 +155,15 @@ class FWCMSServices
             'created_by' =>  $request['created_by'] ?? 0,
             'modified_by' =>  $request['created_by'] ?? 0
         ]);
-        $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-        if ($applicationDetails->status == Config::get('services.FWCMS_REJECTED')) {
+        /* if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
             $applicationDetails->status = Config::get('services.CHECKLIST_COMPLETED');
-        }
+            $applicationDetails->save();
+        } */
+
+        if(($applicationDetails->status <= Config::get('services.CHECKLIST_COMPLETED')) || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')) {
+            $applicationDetails->status = Config::get('services.CHECKLIST_COMPLETED');
+            $applicationDetails->save();
+        }        
 
         $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? '';
         $request['status'] = $request['status'] ?? '';
@@ -145,35 +178,41 @@ class FWCMSServices
      */
     public function update($request): bool|array
     {
-        $validator = Validator::make($request, $this->updateValidation());
+        $validator = Validator::make($request, $this->updateValidation($request));
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
+        $proposalQuota = $this->directrecruitmentApplications->where('id', $request['application_id'])->sum('quota_applied');
+        $fwcmsQuota = $this->fwcms
+        ->where('application_id', $request['application_id'])
+        ->where('status', '<>' , 'Rejected')
+        ->where('id', '<>' , $request['id'])
+        ->sum('applied_quota');
+        $fwcmsQuota += $request['applied_quota'];
+        if($fwcmsQuota > $proposalQuota) {
+            return [
+                'quotaError' => true
+            ];
+        }
         
         $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
         $fwcmsDetails = $this->fwcms->findOrFail($request['id']);
-        if($applicationDetails->status >= Config::get('services.LEVY_COMPLETED'))
-        {
-            return [
-                'processError' => true
-            ];
-        } else {
-            $ksmReferenceNumbers = $this->levy->levyKSM($request['application_id']);
-            if(count($ksmReferenceNumbers) > 0) {
-                if(in_array($fwcmsDetails->ksm_reference_number, $ksmReferenceNumbers)) {
-                    return [
-                        'processError' => true
-                    ];
-                } else {
-                    $interviewDetails = $this->applicationInterviews->where('ksm_reference_number', $fwcmsDetails->ksm_reference_number)
-                                        ->where('application_id', $request['application_id'])
-                                        ->select('id')
-                                        ->first();
-                    if(!empty($interviewDetails)) {
-                        $this->applicationInterviews->where('id', $interviewDetails->id)->update(['ksm_reference_number' => $request['ksm_reference_number']]);
-                    }
+        $ksmReferenceNumbers = $this->levy->levyKSM($request['application_id']);
+        if(count($ksmReferenceNumbers) > 0) {
+            if(in_array($fwcmsDetails->ksm_reference_number, $ksmReferenceNumbers)) {
+                return [
+                    'processError' => true
+                ];
+            } else {
+                $interviewDetails = $this->applicationInterviews->where('ksm_reference_number', $fwcmsDetails->ksm_reference_number)
+                                    ->where('application_id', $request['application_id'])
+                                    ->select('id')
+                                    ->first();
+                if(!empty($interviewDetails)) {
+                    $this->applicationInterviews->where('id', $interviewDetails->id)->update(['ksm_reference_number' => $request['ksm_reference_number']]);
                 }
             }
         }
@@ -207,18 +246,24 @@ class FWCMSServices
         $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
         $this->applicationSummaryServices->ksmUpdateStatus($request);
 
-        if($fwcmsCount == $fwcmsRejectedCount) {
-            $applicationDetails->status = Config::get('services.FWCMS_REJECTED');
-            $applicationDetails->save();
+        if($request['status'] == 'Approved') {
+            if(($applicationDetails->status <= Config::get('services.FWCMS_COMPLETED'))  || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')) {
+                $applicationDetails->status = Config::get('services.FWCMS_COMPLETED');
+                $applicationDetails->save();
+            }             
         }
-        if($fwcmsCount == $fwcmsApprovedCount) {
-            $applicationDetails->status = Config::get('services.FWCMS_COMPLETED');
-            $applicationDetails->save();
+        
+        if($request['status'] == 'Rejected') {
+            if($fwcmsCount == $fwcmsRejectedCount) {
+                $applicationDetails->status = Config::get('services.FWCMS_REJECTED');
+                $applicationDetails->save();
+            }
+        }
 
-            $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
-            $request['status'] = 'Completed';
-            $this->applicationSummaryServices->updateStatus($request);
-        }
+        $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
+        $request['status'] = 'Completed';
+        $this->applicationSummaryServices->updateStatus($request);
+        
         return true;
     }
 }

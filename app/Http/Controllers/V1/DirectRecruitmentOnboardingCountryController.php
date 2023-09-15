@@ -76,7 +76,7 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             } else if(isset($response['quotaError'])) {
-                return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota'], 400);
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota'], 422);
             }
             return $this->sendSuccess(['message' => 'Country Added Successfully']);
         } catch (Exception $e) {
@@ -100,7 +100,9 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             } else if(isset($response['quotaError'])) {
-                return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota'], 400);
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota.'], 422);
+            } else if(isset($response['editError'])) {
+                return $this->sendError(['message' => 'Attestation submission has been processed for this record, users are not allowed to modify the records.'], 422);
             }
             return $this->sendSuccess(['message' => 'Country Updated Successfully']);
         } catch (Exception $e) {
@@ -123,6 +125,29 @@ class DirectRecruitmentOnboardingCountryController extends Controller
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Onboarding Countries'], 400);
+        }
+    }
+
+    /**
+     * Update country to Onboarding Process Status Update
+     * 
+     * @param Request $request
+     * @return JsonResponse   
+     */
+    public function onboarding_status_update(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $response = $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            } 
+            return $this->sendSuccess(['message' => 'Status Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error = ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Faild to Update Status'], 400);
         }
     }
 }

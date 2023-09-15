@@ -74,11 +74,13 @@ class ApplicationInterviewController extends Controller
             $response = $this->applicationInterviewsServices->create($request);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the FWCMS Quota'], 422);
             }
             return $this->sendSuccess(['message' => 'Application Interview Details Created Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Create Application Interview Details']);
+            return $this->sendError(['message' => 'Failed to Create Application Interview Details'], 400);
         }
     }
     /**
@@ -96,11 +98,13 @@ class ApplicationInterviewController extends Controller
             $response = $this->applicationInterviewsServices->update($request);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the FWCMS Quota'], 422);
             }
             return $this->sendSuccess(['message' => 'Application Interview Details Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Update Application Interview Details']);
+            return $this->sendError(['message' => 'Failed to Update Application Interview Details'], 400);
         }
     }
 
@@ -118,7 +122,7 @@ class ApplicationInterviewController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Delete attachments was failed']);
+            return $this->sendError(['message' => 'Delete attachments was failed'], 400);
         }        
     }
 
@@ -136,7 +140,7 @@ class ApplicationInterviewController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to List Ksm Reference Number']);
+            return $this->sendError(['message' => 'Failed to List Ksm Reference Number'], 400);
         }        
     }
 }

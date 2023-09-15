@@ -37,12 +37,14 @@ class WorkersController extends Controller
             $data = $this->workersServices->create($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['ksmError'])) {
+                return $this->sendError(['message' => 'KSM reference number does not matched.'], 422);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'creation failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -59,12 +61,14 @@ class WorkersController extends Controller
             $data = $this->workersServices->update($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['ksmError'])) {
+                return $this->sendError(['message' => 'KSM reference number does not matched.'], 422);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'updation failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
     
@@ -86,7 +90,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
     
@@ -109,7 +113,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -131,7 +135,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -148,7 +152,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -165,7 +169,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Update failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -182,7 +186,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -199,7 +203,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -216,7 +220,7 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Update failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
         }
     }
 
@@ -238,7 +242,200 @@ class WorkersController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+    /**
+     * assign workers.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function assignWorker(Request $request): JsonResponse
+    {
+        try {
+            $response = $this->workersServices->assignWorker($request);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            } else if($response == false) {
+                return $this->sendSuccess(['message' => 'Failed to Assign Workers'], 400);
+            }
+            return $this->sendSuccess(['message' => 'Workers are Assigned Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Assign Workers'], 400);
+        }
+    }
+
+    /**
+     * Show the form for creating a new Worker.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function createBankDetails(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->workersServices->createBankDetails($request);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            } else if(isset($data['workerCountError'])) {
+                return $this->sendError(['message' => 'Reached Max Limit to Add the Bank Details'], 422);
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'creation failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+
+    /**
+     * Show the form for creating a new Worker.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateBankDetails(Request $request): JsonResponse
+    {
+        try {
+            
+            $data = $this->workersServices->updateBankDetails($request);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            } else if(isset($data['workerCountError'])) {
+                return $this->sendError(['message' => 'Reached Max Limit to Add the Bank Details'], 422);
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'updation failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+    
+    /**
+     * Retrieve the specified Worker.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function showBankDetails(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->workersServices->showBankDetails($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+    
+    
+    /**
+     * Search & Retrieve all the Workers.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function listBankDetails(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->workersServices->listBankDetails($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+
+    /**
+     * delete the specified Vendors data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteBankDetails(Request $request): JsonResponse
+    {  
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->workersServices->deleteBankDetails($params); 
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Delete Bank detail was failed']);
+        }  
+    }
+    /**
+     * add attachment.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function addAttachment(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->workersServices->addAttachment($request);
+            if(isset($data['error'])){
+                return $this->validationError($data['error']); 
+            }else if(isset($data['workerError'])){
+                return $this->sendError(['message' => 'Worker Not Found'], 422);
+            }else if($data == false){
+                return $this->sendError(['message' => 'Failed to Upload Attachment'], 422);
+            }
+            return $this->sendSuccess(['message' => 'Attachment Uploaded Sucessfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Upload Attachment'], 400);
+        }
+    }
+    /**
+     * list attachment
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function listAttachment(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->workersServices->listAttachment($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+    /**
+     * Delete attachment.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteAttachment(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->workersServices->deleteAttachment($params);
+            if ($response == true) {
+                return $this->sendSuccess(['message' => 'Attachment Deleted Sussessfully']);
+            } else {
+                return $this->sendError(['message' => 'Data Not Found'], 400);
+            }
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Delete Attachment'], 400);
         }
     }
     

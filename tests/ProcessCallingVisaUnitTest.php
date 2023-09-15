@@ -68,7 +68,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForProcessCallingVisaSubmissionDateFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '05-05-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -83,7 +83,7 @@ class ProcessCallingVisaUnitTest extends TestCase
      */
     public function testForProcessCallingVisaSubmissionDateFutureValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => '2053-05-05']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', array_merge($this->creationData(), ['submitted_on' => Carbon::now()->addYear()->format('Y-m-d')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -216,10 +216,84 @@ class ProcessCallingVisaUnitTest extends TestCase
     public function testForWorkerCancellation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/cancelWorker', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'worker_id' => 1, 'remarks' => 'test remark'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/cancelWorker', ['application_id' => 1, 'onboarding_country_id' => 1, 'workers' => 1, 'remarks' => 'test remark'], $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Worker Cancellation Completed Successfully']
+        ]);
+    }
+    /**
+     * Functional test for worker list for cancellation search validation
+     * 
+     * @return void
+     */
+    public function testForCancellationWorkersListSearchValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/workerListForCancellation', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wo' , 'calling_visa_reference_number' => ''], $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'search' => ['The search must be at least 3 characters.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker list for cancellation with search
+     * 
+     * @return void
+     */
+    public function testForCancellationWorkersListWithSearch(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/workerListForCancellation', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wor', 'calling_visa_reference_number' => ''], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
+        ]);
+    }
+    /**
+     * Functional test for worker list for cancellation with filter
+     * 
+     * @return void
+     */
+    public function testForCancellationWorkersListWithFilter(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/workerListForCancellation', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => '', 'calling_visa_reference_number' => 'AGTF/7637'], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
         ]);
     }
     /**
@@ -248,7 +322,7 @@ class ProcessCallingVisaUnitTest extends TestCase
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
-            'date_of_birth' => '1998-11-02', 
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'), 
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
@@ -286,7 +360,7 @@ class ProcessCallingVisaUnitTest extends TestCase
             'sector_type' => 1, 
             'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])
         ];
-        $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
 
         $payload = [
             "country_name" => "India",
@@ -297,9 +371,29 @@ class ProcessCallingVisaUnitTest extends TestCase
         $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
 
         $payload = [
+            'id' => 1, 
+            'crm_prospect_id' => 1, 
+            'quota_applied' => 100, 
+            'person_incharge' => 'test', 
+            'cost_quoted' => 10.22, 
+            'remarks' => 'test'
+        ];
+        $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
+
+        $payload = [
+            'id' => 1, 
             'application_id' => 1, 
-            'submission_date' => '2023-05-04', 
-            'applied_quota' => 100, 
+            'item_name' => 'Document Checklist', 
+            'application_checklist_status' => 'Completed', 
+            'remarks' => 'test', 
+            'file_url' => 'test'
+        ];
+        $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/update', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'submission_date' => Carbon::now()->format('Y-m-d'), 
+            'applied_quota' => 50, 
             'status' => 'Approved', 
             'ksm_reference_number' => 'My/643/7684548', 
             'remarks' => 'test'
@@ -310,7 +404,7 @@ class ProcessCallingVisaUnitTest extends TestCase
             'application_id' => 1, 
             'ksm_reference_number' => 'My/643/7684548', 
             'schedule_date' => Carbon::now()->format('Y-m-d'), 
-            'approved_quota' => 100, 
+            'approved_quota' => 50, 
             'approval_date' => Carbon::now()->format('Y-m-d'),
             'status' => 'Approved',
             'remarks' => 'test'
@@ -319,9 +413,9 @@ class ProcessCallingVisaUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'payment_date' => '2023-05-10', 
+            'payment_date' => Carbon::now()->format('Y-m-d'), 
             'payment_amount' => 10.87, 
-            'approved_quota' => 100, 
+            'approved_quota' => 10, 
             'ksm_reference_number' => 'My/643/7684548', 
             'payment_reference_number' => 'SVZ498787', 
             'approval_number' => 'ADR4674', 
@@ -333,15 +427,15 @@ class ProcessCallingVisaUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'ksm_reference_number' => 'My/643/7684548', 
-            'received_date' => '2023-05-13', 
-            'valid_until' => '2023-06-13'
+            'received_date' => Carbon::now()->format('Y-m-d'), 
+            'valid_until' => Carbon::now()->addYear()->format('Y-m-d')
         ];
         $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $payload, $this->getHeader(false));
 
         $payload = [
-            'application_id' => 1,
-            'country_id' => 1,
-            'quota' => 10
+            'application_id' => 1, 
+            'country_id' => 1, 
+            'quota' => 15
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
         
@@ -357,18 +451,65 @@ class ProcessCallingVisaUnitTest extends TestCase
         $this->json('POST', 'api/v1/agent/create', $payload, $this->getHeader(false));
 
         $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'agent_id' => 1,
+            'application_id' => 1, 
+            'onboarding_country_id' => 1, 
+            'agent_id' => 1, 
             'quota' => 10
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            "id" => 1,
+            "submission_date" => Carbon::now()->format('Y-m-d'),
+            "collection_date" => Carbon::now()->format('Y-m-d'),
+            "file_url" => "google.com",
+            "remarks" => "remarks testing"
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/update', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1,
+            'onboarding_country_id' => 1,
+            'agent_id' => 1,
+            'name' => 'TestWorker',
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'),
+            'gender' => 'Female',
+            'passport_number' => 123456789154,
+            'passport_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'address' => 'address',
+            'city' => 'city',
+            'state' => 'state',
+            'kin_name' => 'Kin name',
+            'kin_relationship_id' => 1,
+            'kin_contact_number' => 1234567890,
+            'ksm_reference_number' => 'My/643/7684548',
+            'calling_visa_reference_number' => '',
+            'calling_visa_valid_until' => '',
+            'entry_visa_valid_until' => '',
+            'work_permit_valid_until' => '',
+            'bio_medical_reference_number' => 'BIO1234567',
+            'bio_medical_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'purchase_date' => Carbon::now()->format('Y-m-d'),
+            'clinic_name' => 'Test Clinic',
+            'doctor_code' => 'Doc123',
+            'allocated_xray' => 'Tst1234',
+            'xray_code' => 'Xray1234',
+            'ig_policy_number' => '',
+            'ig_policy_number_valid_until' => '',
+            'hospitalization_policy_number' => '',
+            'hospitalization_policy_number_valid_until' => '',
+            'bank_name' => 'Bank Name',
+            'account_number' => 1234556678,
+            'socso_number' => 12345678
+        ];
+        $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
     }
     /**
      * @return array
      */
     public function creationData(): array
     {
-        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'calling_visa_reference_number' => 'AGTF/7637', 'submitted_on' => '2023-05-30', 'workers' => [1]];
+        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'calling_visa_reference_number' => 'AGTF/7637', 'submitted_on' => Carbon::now()->format('Y-m-d'), 'workers' => [1]];
     }
 }

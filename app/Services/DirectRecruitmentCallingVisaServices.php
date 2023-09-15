@@ -75,7 +75,7 @@ class DirectRecruitmentCallingVisaServices
     public function cancelValidation(): array
     {
         return [
-            'worker_id' => 'required'
+            'workers' => 'required'
         ];
     }
     /**
@@ -136,13 +136,13 @@ class DirectRecruitmentCallingVisaServices
                 ];
             }
         }
-        return $this->workers
+        $data = $this->workers
             ->leftJoin('worker_bio_medical', 'worker_bio_medical.worker_id', 'workers.id')
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->where([
-                'workers.application_id' => $request['application_id'],
-                'workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'workers.cancel_status' => 0,
+                'directrecruitment_workers.application_id' => $request['application_id'],
+                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
                 'worker_visa.status' => 'Pending'
             ])
             ->where(function ($query) use ($request) {
@@ -154,12 +154,21 @@ class DirectRecruitmentCallingVisaServices
             })
             ->where(function ($query) use ($request) {
                 if(isset($request['agent_id']) && !empty($request['agent_id'])) {
-                    $query->where('workers.agent_id', $request['agent_id']);
+                    $query->where('directrecruitment_workers.agent_id', $request['agent_id']);
                 }
-            })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.application_id', 'workers.onboarding_country_id', 'workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status')->distinct('workers.id')
+            });
+
+            if(isset($request['export']) && !empty($request['export']) ){
+                $data = $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'worker_visa.status')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
-            ->paginate(Config::get('services.paginate_row'));
+            ->get();
+            }else{
+                $data = $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status')->distinct('workers.id')
+                ->orderBy('workers.id', 'desc')
+                ->paginate(Config::get('services.paginate_worker_row'));
+            }
+            return $data;
+            
     }
     /**
      * @param $request
@@ -187,27 +196,34 @@ class DirectRecruitmentCallingVisaServices
                 'error' => $validator->errors()
             ];
         }
-        $workerDetail = $this->workers->findOrFail($request['worker_id']);
-        $workerDetail->cancel_status = 1;
-        $workerDetail->remarks = $request['remarks'];
-        $workerDetail->modified_by = $request['modified_by'];
-        $workerDetail->save();
-
-        if(request()->hasFile('attachment')) {
-            foreach($request->file('attachment') as $file) { 
-                $fileName = $file->getClientOriginalName();
-                $filePath = 'directRecruitment/workers/cancellation/' . $workerDetail->id. '/'. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);    
-                $this->cancellationAttachment->create([
-                    'file_id' => $request['worker_id'],
-                    'file_name' => $fileName,
-                    'file_type' => 'Cancellation Letter',
-                    'file_url' => $fileUrl,
-                    'created_by' => $request['modified_by'],
+        if(isset($request['workers']) && !empty($request['workers'])) {
+            $request['workers'] = explode(',', $request['workers']);
+            $this->workers->whereIn('id', $request['workers'])
+                ->update([
+                    'directrecruitment_status' => 'Cancelled',
+                    'cancel_status' => 1, 
+                    'remarks' => $request['remarks'] ?? '',
                     'modified_by' => $request['modified_by']
                 ]);
+
+            if(request()->hasFile('attachment')) {
+                foreach ($request['workers'] as $workerId) {
+                    foreach($request->file('attachment') as $file) {
+                        $fileName = $file->getClientOriginalName();
+                        $filePath = 'directRecruitment/workers/cancellation/' . $workerId. '/'. $fileName; 
+                        $linode = $this->storage::disk('linode');
+                        $linode->put($filePath, file_get_contents($file));
+                        $fileUrl = $this->storage::disk('linode')->url($filePath);    
+                        $this->cancellationAttachment->create([
+                            'file_id' => $workerId,
+                            'file_name' => $fileName,
+                            'file_type' => 'Cancellation Letter',
+                            'file_url' => $fileUrl,
+                            'created_by' => $request['modified_by'],
+                            'modified_by' => $request['modified_by']
+                        ]);
+                    }
+                }
             }
         }
         $this->directRecruitmentCallingVisaStatus->where([
@@ -215,5 +231,50 @@ class DirectRecruitmentCallingVisaServices
             'onboarding_country_id' => $request['onboarding_country_id']
         ])->update(['updated_on' => Carbon::now(), 'modified_by' => $request['modified_by']]);
         return true;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function workerListForCancellation($request): mixed
+    {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
+        $data = $this->workers
+            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
+            ->where([
+                'directrecruitment_workers.application_id' => $request['application_id'],
+                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id']
+            ])
+            ->where(function ($query) use ($request) {
+                if(isset($request['search']) && !empty($request['search'])) {
+                    $query->where('workers.name', 'like', '%'.$request['search'].'%')
+                    ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
+                    ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%');
+                }
+            })
+            ->where(function ($query) use ($request) {
+                if(isset($request['calling_visa_reference_number']) && !empty($request['calling_visa_reference_number'])) {
+                    $query->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number']);
+                }
+            });
+            
+            if(isset($request['export']) && !empty($request['export']) ){
+                $data = $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'workers.cancel_status', 'workers.date_of_birth', 'workers.gender')->distinct('workers.id')
+                ->orderBy('workers.id', 'desc')
+                ->get();
+            }else{
+                $data = $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'workers.cancel_status', 'workers.date_of_birth', 'workers.gender')->distinct('workers.id')
+                ->orderBy('workers.id', 'desc')
+                ->paginate(Config::get('services.paginate_row'));
+            }
+            return $data;
     }
 }

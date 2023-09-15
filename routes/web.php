@@ -144,6 +144,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('updateStatus', 'V1\EmployeeController@updateStatus');
             $router->post('list', 'V1\EmployeeController@list');
             $router->post('dropDown', 'V1\EmployeeController@dropdown');
+            $router->post('supervisorList', 'V1\EmployeeController@supervisorList');
         });
         /**
          * Routes for CRM.
@@ -171,6 +172,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
             $router->post('filter', 'V1\VendorController@filter');
             $router->post('insuranceVendorList', 'V1\VendorController@insuranceVendorList');
+            $router->post('transportationVendorList', 'V1\VendorController@transportationVendorList');
         });
         /**
          * Routes for FOMEMA Clinics.
@@ -228,6 +230,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('list', 'V1\TransportationController@list');
             $router->post('search', 'V1\TransportationController@search');
             $router->post('deleteAttachment', 'V1\TransportationController@deleteAttachment');
+            $router->post('dropdown', 'V1\TransportationController@dropdown');
         });
 
         /**
@@ -261,6 +264,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('create', 'V1\DirectRecruitmentOnboardingCountryController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingCountryController@update');
                     $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
+                    $router->post('onboarding_status_update', 'V1\DirectRecruitmentOnboardingCountryController@onboarding_status_update');
                 });
                 $router->group(['prefix' => 'agent'], function () use ($router) {
                     $router->post('list', 'V1\DirectRecruitmentOnboardingAgentController@list');
@@ -283,9 +287,24 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('uploadEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@uploadEmbassyFile');
                     $router->post('deleteEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@deleteEmbassyFile');
                 });
+                $router->group(['prefix' => 'workers'], function () use ($router) {
+                    $router->post('list', 'V1\DirectRecruitmentWorkersController@list');
+                    $router->post('create', 'V1\DirectRecruitmentWorkersController@create');
+                    $router->post('update', 'V1\DirectRecruitmentWorkersController@update');
+                    $router->post('export', 'V1\DirectRecruitmentWorkersController@export');
+                    $router->post('dropdown', 'V1\DirectRecruitmentWorkersController@dropdown');
+                    $router->post('show', 'V1\DirectRecruitmentWorkersController@show');
+                    $router->post('kinRelationship', 'V1\DirectRecruitmentWorkersController@kinRelationship');
+                    $router->post('onboardingAgent', 'V1\DirectRecruitmentWorkersController@onboardingAgent');
+                    $router->post('replaceWorker', 'V1\DirectRecruitmentWorkersController@replaceWorker');
+                    $router->post('import', 'V1\DirectRecruitmentWorkersController@import');
+                    $router->post('workerStatusList', 'V1\DirectRecruitmentWorkersController@workerStatusList');
+                    $router->post('updateStatus', 'V1\DirectRecruitmentWorkersController@updateStatus');
+                });
                 $router->group(['prefix' => 'callingVisa'], function () use ($router) {
                     $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');
                     $router->post('cancelWorker', 'V1\DirectRecruitmentCallingVisaController@cancelWorker');
+                    $router->post('workerListForCancellation', 'V1\DirectRecruitmentCallingVisaController@workerListForCancellation');
                     $router->group(['prefix' => 'process'], function () use ($router) {
                         $router->post('submitCallingVisa', 'V1\DirectRecruitmentCallingVisaController@submitCallingVisa');
                         $router->post('workersList', 'V1\DirectRecruitmentCallingVisaController@workersList');
@@ -295,6 +314,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('workersList', 'V1\DirectRecruitmentInsurancePurchaseController@workersList');
                         $router->post('show', 'V1\DirectRecruitmentInsurancePurchaseController@show');
                         $router->post('submit', 'V1\DirectRecruitmentInsurancePurchaseController@submit');
+                        $router->post('insuranceProviderDropDown', 'V1\DirectRecruitmentInsurancePurchaseController@insuranceProviderDropDown');
                     });
                     $router->group(['prefix' => 'approval'], function () use ($router) {
                         $router->post('approvalStatusUpdate', 'V1\DirectRecruitmentCallingVisaApprovalController@approvalStatusUpdate');
@@ -305,16 +325,19 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentImmigrationFeePaidController@listBasedOnCallingVisa');
                         $router->post('update', 'V1\DirectRecruitmentImmigrationFeePaidController@update');
                         $router->post('workersList', 'V1\DirectRecruitmentImmigrationFeePaidController@workersList');
+                        $router->post('show', 'V1\DirectRecruitmentImmigrationFeePaidController@show');
                     });
                     $router->group(['prefix' => 'generation'], function () use ($router) {
                         $router->post('generatedStatusUpdate', 'V1\DirectRecruitmentCallingVisaGenerateController@generatedStatusUpdate');
                         $router->post('workersList', 'V1\DirectRecruitmentCallingVisaGenerateController@workersList');
                         $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentCallingVisaGenerateController@listBasedOnCallingVisa');
+                        $router->post('show', 'V1\DirectRecruitmentCallingVisaGenerateController@show');
                     });
                     $router->group(['prefix' => 'dispatch'], function () use ($router) {
                         $router->post('listBasedOnCallingVisa', 'V1\DirectRecruitmentCallingVisaDispatchController@listBasedOnCallingVisa');
                         $router->post('update', 'V1\DirectRecruitmentCallingVisaDispatchController@update');
                         $router->post('workersList', 'V1\DirectRecruitmentCallingVisaDispatchController@workersList');
+                        $router->post('show', 'V1\DirectRecruitmentCallingVisaDispatchController@show');
 					});
                 });
                 $router->group(['prefix' => 'arrival'], function () use ($router) {
@@ -325,6 +348,46 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('workersListForSubmit', 'V1\DirectRecruitmentArrivalController@workersListForSubmit');
                     $router->post('workersListForUpdate', 'V1\DirectRecruitmentArrivalController@workersListForUpdate');
                     $router->post('cancelWorker', 'V1\DirectRecruitmentArrivalController@cancelWorker');
+                    $router->post('updateWorkers', 'V1\DirectRecruitmentArrivalController@updateWorkers');
+                    $router->post('cancelWorkerDetail', 'V1\DirectRecruitmentArrivalController@cancelWorkerDetail');
+                    $router->post('callingvisaReferenceNumberList', 'V1\DirectRecruitmentArrivalController@callingvisaReferenceNumberList');
+                    $router->post('arrivalDateDropDown', 'V1\DirectRecruitmentArrivalController@arrivalDateDropDown');
+                });
+                $router->group(['prefix' => 'postArrival'], function () use ($router) {
+                    $router->post('postArrivalStatusList', 'V1\DirecRecruitmentPostArrivalController@postArrivalStatusList');
+                    $router->group(['prefix' => 'arrival'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirecRecruitmentPostArrivalController@workersList');
+                        $router->post('updatePostArrival', 'V1\DirecRecruitmentPostArrivalController@updatePostArrival');
+                        $router->post('updateJTKSubmission', 'V1\DirecRecruitmentPostArrivalController@updateJTKSubmission');
+                        $router->post('updateCancellation', 'V1\DirecRecruitmentPostArrivalController@updateCancellation');
+                        $router->post('updatePostponed', 'V1\DirecRecruitmentPostArrivalController@updatePostponed');
+                        $router->post('workersListExport', 'V1\DirecRecruitmentPostArrivalController@workersListExport');
+                    });
+                    $router->group(['prefix' => 'fomema'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentPostArrivalFomemaController@workersList');
+                        $router->post('purchase', 'V1\DirectRecruitmentPostArrivalFomemaController@purchase');
+                        $router->post('fomemaFit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaFit');
+                        $router->post('fomemaUnfit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaUnfit');
+                        $router->post('updateSpecialPass', 'V1\DirectRecruitmentPostArrivalFomemaController@updateSpecialPass');
+                        $router->post('workersListExport', 'V1\DirectRecruitmentPostArrivalFomemaController@workersListExport');
+                    });
+                    $router->group(['prefix' => 'plks'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentPostArrivalPLKSController@workersList');
+                        $router->post('updatePLKS', 'V1\DirectRecruitmentPostArrivalPLKSController@updatePLKS');
+                        $router->post('updateSpecialPass', 'V1\DirectRecruitmentPostArrivalFomemaController@updateSpecialPass');
+                        $router->post('workersListExport', 'V1\DirectRecruitmentPostArrivalPLKSController@workersListExport');
+                    });
+                    $router->group(['prefix' => 'repatriation'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentRepatriationController@workersList');
+                        $router->post('updateRepatriation', 'V1\DirectRecruitmentRepatriationController@updateRepatriation');
+                        $router->post('workersListExport', 'V1\DirectRecruitmentRepatriationController@workersListExport');
+                    });
+                    $router->group(['prefix' => 'specialPass'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentSpecialPassController@workersList');
+                        $router->post('updateSubmission', 'V1\DirectRecruitmentSpecialPassController@updateSubmission');
+                        $router->post('updateValidity', 'V1\DirectRecruitmentSpecialPassController@updateValidity');
+                        $router->post('workersListExport', 'V1\DirectRecruitmentSpecialPassController@workersListExport');
+                    });
                 });
             });
         });
@@ -419,6 +482,237 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('onboardingAgent', 'V1\WorkersController@onboardingAgent');
             $router->post('replaceWorker', 'V1\WorkersController@replaceWorker');
             $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
+            $router->post('addAttachment', 'V1\WorkersController@addAttachment');
+            $router->post('assignWorker', 'V1\WorkersController@assignWorker');
+            $router->post('listAttachment', 'V1\WorkersController@listAttachment');
+            $router->post('deleteAttachment', 'V1\WorkersController@deleteAttachment');
+            $router->group(['prefix' => 'workerEvent'], function () use ($router) {
+                $router->post('list', 'V1\WorkerEventController@list');
+                $router->post('create', 'V1\WorkerEventController@create');
+                $router->post('update', 'V1\WorkerEventController@update');
+                $router->post('show', 'V1\WorkerEventController@show');
+                $router->post('deleteAttachment', 'V1\WorkerEventController@deleteAttachment');
+            });
+            $router->group(['prefix' => 'bankdetails'], function () use ($router) {
+                $router->post('list', 'V1\WorkersController@listBankDetails');
+                $router->post('create', 'V1\WorkersController@createBankDetails');
+                $router->post('update', 'V1\WorkersController@updateBankDetails');
+                $router->post('show', 'V1\WorkersController@showBankDetails');
+                $router->post('delete', 'V1\WorkersController@deleteBankDetails');
+            });
         });
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'directRecrutmentExpenses'], function () use ($router) {
+            $router->post('list', 'V1\DirectRecruitmentExpensesController@list');
+            $router->post('show', 'V1\DirectRecruitmentExpensesController@show');
+            $router->post('create', 'V1\DirectRecruitmentExpensesController@create');
+            $router->post('update', 'V1\DirectRecruitmentExpensesController@update');
+        });
+        /**
+        * Routes for Total Management.
+        */
+        $router->group(['prefix' => 'totalManagement'], function () use ($router) {
+            $router->post('applicationListing', 'V1\TotalManagementController@applicationListing');
+            $router->post('addService', 'V1\TotalManagementController@addService');
+            $router->post('getQuota', 'V1\TotalManagementController@getQuota');
+            $router->post('showProposal', 'V1\TotalManagementController@showProposal');
+            $router->post('submitProposal', 'V1\TotalManagementController@submitProposal');
+            $router->post('allocateQuota', 'V1\TotalManagementController@allocateQuota');
+            $router->post('showService', 'V1\TotalManagementController@showService');
+            $router->group(['prefix' => 'project'], function () use ($router) {
+                $router->post('list', 'V1\TotalManagementProjectController@list');
+                $router->post('show', 'V1\TotalManagementProjectController@show');
+                $router->post('add', 'V1\TotalManagementProjectController@add');
+                $router->post('update', 'V1\TotalManagementProjectController@update');
+            });
+            $router->group(['prefix' => 'supervisor'], function () use ($router) {
+                $router->post('list', 'V1\TotalManagementSupervisorController@list');
+                $router->post('viewAssignments', 'V1\TotalManagementSupervisorController@viewAssignments');
+            });
+            $router->group(['prefix' => 'manage'], function () use ($router) {
+                $router->post('list', 'V1\TotalManagementWorkerController@list');
+                $router->group(['prefix' => 'workerAssign'], function () use ($router) {
+                    $router->post('workerListForAssignWorker', 'V1\TotalManagementWorkerController@workerListForAssignWorker');
+                    $router->post('accommodationProviderDropDown', 'V1\TotalManagementWorkerController@accommodationProviderDropDown');
+                    $router->post('accommodationUnitDropDown', 'V1\TotalManagementWorkerController@accommodationUnitDropDown');
+                    $router->post('assignWorker', 'V1\TotalManagementWorkerController@assignWorker');
+                    $router->post('getBalancedQuota', 'V1\TotalManagementWorkerController@getBalancedQuota');
+                    $router->post('getCompany', 'V1\TotalManagementWorkerController@getCompany');
+                    $router->post('ksmRefereneceNUmberDropDown', 'V1\TotalManagementWorkerController@ksmRefereneceNUmberDropDown');
+                    $router->post('getSectorAndValidUntil', 'V1\TotalManagementWorkerController@getSectorAndValidUntil');
+
+                    $router->post('getAssignedWorker', 'V1\TotalManagementWorkerController@getAssignedWorker');
+                    $router->post('removeWorker', 'V1\TotalManagementWorkerController@removeWorker');
+                });
+                $router->group(['prefix' => 'workerEvent'], function () use ($router) {
+                    $router->post('list', 'V1\TotalManagementWorkerEventController@list');
+                    $router->post('create', 'V1\TotalManagementWorkerEventController@create');
+                    $router->post('update', 'V1\TotalManagementWorkerEventController@update');
+                    $router->post('show', 'V1\TotalManagementWorkerEventController@show');
+                    $router->post('deleteAttachment', 'V1\TotalManagementWorkerEventController@deleteAttachment');
+                });
+                $router->group(['prefix' => 'expense'], function () use ($router) {
+                    $router->post('list', 'V1\TotalManagementExpensesController@list');
+                    $router->post('show', 'V1\TotalManagementExpensesController@show');
+                    $router->post('create', 'V1\TotalManagementExpensesController@create');
+                    $router->post('update', 'V1\TotalManagementExpensesController@update');
+                    $router->post('delete', 'V1\TotalManagementExpensesController@delete');
+                    $router->post('deleteAttachment', 'V1\TotalManagementExpensesController@deleteAttachment');
+                    $router->post('payBack', 'V1\TotalManagementExpensesController@payBack');
+                });
+            });
+
+            $router->group(['prefix' => 'payroll'], function () use ($router) {
+                $router->post('projectDetails', 'V1\TotalManagementPayrollController@projectDetails');
+                $router->post('list', 'V1\TotalManagementPayrollController@list');
+                $router->post('export', 'V1\TotalManagementPayrollController@export');
+                $router->post('import', 'V1\TotalManagementPayrollController@import');
+                $router->post('show', 'V1\TotalManagementPayrollController@show');
+                $router->post('update', 'V1\TotalManagementPayrollController@update');
+                $router->post('add', 'V1\TotalManagementPayrollController@add');
+                $router->post('listTimesheet', 'V1\TotalManagementPayrollController@listTimesheet');
+                $router->post('uploadTimesheet', 'V1\TotalManagementPayrollController@uploadTimesheet');
+                $router->post('viewTimesheet', 'V1\TotalManagementPayrollController@viewTimesheet');
+                $router->post('authorizePayroll', 'V1\TotalManagementPayrollController@authorizePayroll');
+            });
+            $router->group(['prefix' => 'transfer'], function () use ($router) {
+                $router->post('workerEmploymentDetail', 'V1\TotalManagementTransferController@workerEmploymentDetail');
+                $router->post('companyList', 'V1\TotalManagementTransferController@companyList');
+                $router->post('projectList', 'V1\TotalManagementTransferController@projectList');
+                $router->post('submit', 'V1\TotalManagementTransferController@submit');
+            });
+
+            /**
+            * Routes for Total Management Cost Management.
+            */
+            $router->group(['prefix' => 'costManagement'], function () use ($router) {
+                $router->post('list', 'V1\TotalManagementCostManagementController@list');
+                $router->post('show', 'V1\TotalManagementCostManagementController@show');
+                $router->post('create', 'V1\TotalManagementCostManagementController@create');
+                $router->post('update', 'V1\TotalManagementCostManagementController@update');
+                $router->post('delete', 'V1\TotalManagementCostManagementController@delete');
+                $router->post('deleteAttachment', 'V1\TotalManagementCostManagementController@deleteAttachment');
+            });
+        }); 
+
+        /**
+        * Routes for Total Management.
+        */
+        $router->group(['prefix' => 'eContract'], function () use ($router) {
+            $router->post('addService', 'V1\EContractController@addService');
+            $router->post('applicationListing', 'V1\EContractController@applicationListing');
+            $router->post('proposalSubmit', 'V1\EContractController@proposalSubmit');
+            $router->post('showProposal', 'V1\EContractController@showProposal');
+            $router->post('allocateQuota', 'V1\EContractController@allocateQuota');
+            $router->post('showService', 'V1\EContractController@showService');
+            $router->group(['prefix' => 'project'], function () use ($router) {
+                $router->post('list', 'V1\EContractProjectController@list');
+                $router->post('show', 'V1\EContractProjectController@show');
+                $router->post('add', 'V1\EContractProjectController@add');
+                $router->post('update', 'V1\EContractProjectController@update');
+                $router->post('deleteAttachment', 'V1\EContractProjectController@deleteAttachment');
+            });
+            $router->group(['prefix' => 'manage'], function () use ($router) {
+                $router->post('list', 'V1\EContractWorkerController@list');
+                $router->group(['prefix' => 'workerAssign'], function () use ($router) {
+                    $router->post('workerListForAssignWorker', 'V1\EContractWorkerController@workerListForAssignWorker');
+                    $router->post('assignWorker', 'V1\EContractWorkerController@assignWorker');
+                    $router->post('removeWorker', 'V1\EContractWorkerController@removeWorker');
+                });
+                $router->group(['prefix' => 'workerEvent'], function () use ($router) {
+                    $router->post('list', 'V1\TotalManagementWorkerEventController@list');
+                    $router->post('create', 'V1\TotalManagementWorkerEventController@create');
+                    $router->post('update', 'V1\TotalManagementWorkerEventController@update');
+                    $router->post('show', 'V1\TotalManagementWorkerEventController@show');
+                    $router->post('deleteAttachment', 'V1\TotalManagementWorkerEventController@deleteAttachment');
+                });
+                $router->group(['prefix' => 'transfer'], function () use ($router) {
+                    $router->post('workerEmploymentDetail', 'V1\EContractTransferController@workerEmploymentDetail');
+                    $router->post('companyList', 'V1\EContractTransferController@companyList');
+                    $router->post('projectList', 'V1\EContractTransferController@projectList');
+                    $router->post('submit', 'V1\EContractTransferController@submit');
+                });
+                $router->group(['prefix' => 'expense'], function () use ($router) {
+                    $router->post('list', 'V1\EContractExpensesController@list');
+                    $router->post('show', 'V1\EContractExpensesController@show');
+                    $router->post('create', 'V1\EContractExpensesController@create');
+                    $router->post('update', 'V1\EContractExpensesController@update');
+                    $router->post('delete', 'V1\EContractExpensesController@delete');
+                    $router->post('deleteAttachment', 'V1\EContractExpensesController@deleteAttachment');
+                    $router->post('payBack', 'V1\EContractExpensesController@payBack');
+                });
+            });
+            
+            $router->group(['prefix' => 'costManagement'], function () use ($router) {
+                $router->post('list', 'V1\EContractCostManagementController@list');
+                $router->post('show', 'V1\EContractCostManagementController@show');
+                $router->post('create', 'V1\EContractCostManagementController@create');
+                $router->post('update', 'V1\EContractCostManagementController@update');
+                $router->post('delete', 'V1\EContractCostManagementController@delete');
+                $router->post('deleteAttachment', 'V1\EContractCostManagementController@deleteAttachment');
+            });
+            $router->group(['prefix' => 'payroll'], function () use ($router) {
+                $router->post('projectDetails', 'V1\EContractPayrollController@projectDetails');
+                $router->post('list', 'V1\EContractPayrollController@list');
+                $router->post('export', 'V1\EContractPayrollController@export');
+                $router->post('import', 'V1\EContractPayrollController@import');
+                $router->post('show', 'V1\EContractPayrollController@show');
+                $router->post('update', 'V1\EContractPayrollController@update');
+                $router->post('add', 'V1\EContractPayrollController@add');
+                $router->post('listTimesheet', 'V1\EContractPayrollController@listTimesheet');
+                $router->post('uploadTimesheet', 'V1\EContractPayrollController@uploadTimesheet');
+                $router->post('viewTimesheet', 'V1\EContractPayrollController@viewTimesheet');
+            });
+        });
+
+        /**
+        * Routes for Manage workers.
+        */
+        $router->group(['prefix' => 'manageWorkers'], function () use ($router) {
+            $router->group(['prefix' => 'worker'], function () use ($router) {
+                $router->post('list', 'V1\ManageWorkersController@list');
+                $router->post('show', 'V1\ManageWorkersController@show');
+                $router->post('create', 'V1\ManageWorkersController@create');
+                $router->post('update', 'V1\ManageWorkersController@update');
+                $router->post('import', 'V1\ManageWorkersController@import');
+            });
+        });
+        $router->group(['prefix' => 'dispatchManagement'], function () use ($router) {
+                $router->post('list', 'V1\DispatchManagementController@list');
+                $router->post('show', 'V1\DispatchManagementController@show');
+                $router->post('create', 'V1\DispatchManagementController@create');
+                $router->post('update', 'V1\DispatchManagementController@update');
+                $router->post('deleteAttachment', 'V1\DispatchManagementController@deleteAttachment');
+        });
+
+        $router->group(['prefix' => 'reports'], function () use ($router) {
+            $router->group(['prefix' => 'serviceAgreement'], function () use ($router) {
+                $router->post('list', 'V1\ServiceAgreementReportController@list');
+            });
+            $router->group(['prefix' => 'availableWorkers'], function () use ($router) {
+                $router->post('list', 'V1\AvailableWorkersReportController@list');
+            });
+            $router->group(['prefix' => 'workerStatistics'], function () use ($router) {
+                $router->post('list', 'V1\WorkerStatisticsReportController@list');
+            });
+        });
+
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'invoice'], function () use ($router) {
+            $router->post('list', 'V1\InvoiceController@list');
+            $router->post('show', 'V1\InvoiceController@show');
+            $router->post('create', 'V1\InvoiceController@create');
+            $router->post('update', 'V1\InvoiceController@update');
+            $router->post('getTaxRates', 'V1\InvoiceController@getTaxRates');
+            $router->post('getItems', 'V1\InvoiceController@getItems');
+            $router->post('getAccounts', 'V1\InvoiceController@getAccounts');
+            $router->post('getInvoices', 'V1\InvoiceController@getInvoices');
+            $router->post('getAccessToken', 'V1\InvoiceController@getAccessToken');
+        });
+
     });
 });

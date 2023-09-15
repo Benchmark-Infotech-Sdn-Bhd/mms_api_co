@@ -174,14 +174,14 @@ class DirectRecruitmentApplicationApprovalServices
         $request['status'] = 'Submitted';
         $this->applicationSummaryServices->ksmUpdateStatus($request);
 
-        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
-        $fwcmsRejectedCount = $this->fwcms->where('application_id', $request['application_id'])
-                        ->where('status', 'Rejected')
-                        ->count();
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])
+                    ->where('status', '!=', 'Rejected')            
+                    ->count('ksm_reference_number');
         $approvalCount = $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])->count('ksm_reference_number');
-        if($ksmCount == $approvalCount || $ksmCount == ($fwcmsRejectedCount + $approvalCount)) {
+        if($ksmCount == $approvalCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = Config::get('services.APPROVAL_COMPLETED');
+            $applicationDetails->approval_flag = 1;
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[6];
@@ -191,6 +191,10 @@ class DirectRecruitmentApplicationApprovalServices
             $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
             $serviceDetails->status = 0;
             $serviceDetails->save();
+        } else { 
+            $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+            $applicationDetails->approval_flag = 1;
+            $applicationDetails->save();
         }
 
         return true;
@@ -249,11 +253,14 @@ class DirectRecruitmentApplicationApprovalServices
             }
         }
 
-        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])
+                    ->where('status', '!=', 'Rejected') 
+                    ->count('ksm_reference_number');
         $approvalCount = $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])->count('ksm_reference_number');
         if($ksmCount == $approvalCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = Config::get('services.APPROVAL_COMPLETED');
+            $applicationDetails->approval_flag = 1;
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[6];
@@ -263,6 +270,10 @@ class DirectRecruitmentApplicationApprovalServices
             $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
             $serviceDetails->status = 0;
             $serviceDetails->save();
+        } else { 
+            $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+            $applicationDetails->approval_flag = 1;
+            $applicationDetails->save();
         }
 
         return true;

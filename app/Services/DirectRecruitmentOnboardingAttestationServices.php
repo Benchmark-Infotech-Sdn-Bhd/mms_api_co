@@ -8,8 +8,11 @@ use App\Models\OnboardingAttestation;
 use App\Models\OnboardingDispatch;
 use App\Models\OnboardingEmbassy;
 use App\Models\EmbassyAttestationFileCosting;
+use App\Models\DirectRecruitmentOnboardingCountry;
+use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Carbon\Carbon;
 
 class DirectRecruitmentOnboardingAttestationServices
 {
@@ -34,9 +37,23 @@ class DirectRecruitmentOnboardingAttestationServices
     private EmbassyAttestationFileCosting $embassyAttestationFileCosting;
 
     /**
+     * @var DirectRecruitmentOnboardingCountryServices
+     */
+    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+
+    /**
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var DirectRecruitmentExpensesServices
+     */
+    private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
+
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
 
     /**
      * DirectRecruitmentOnboardingAttestationServices constructor.
@@ -44,15 +61,22 @@ class DirectRecruitmentOnboardingAttestationServices
      * @param OnboardingDispatch $onboardingDispatch;
      * @param OnboardingEmbassy $onboardingEmbassy;
      * @param EmbassyAttestationFileCosting $embassyAttestationFileCosting;
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
      * @param Storage $storage;
+     * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
      */
-    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, Storage $storage)
+
+    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
     {
         $this->onboardingAttestation = $onboardingAttestation;
         $this->onboardingDispatch = $onboardingDispatch;
         $this->onboardingEmbassy = $onboardingEmbassy;
         $this->embassyAttestationFileCosting = $embassyAttestationFileCosting;
+        $this->directRecruitmentOnboardingCountryServices = $directRecruitmentOnboardingCountryServices;
         $this->storage = $storage;
+        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
+        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -150,6 +174,7 @@ class DirectRecruitmentOnboardingAttestationServices
                 'created_by' => $request['created_by'] ?? 0,
                 'modified_by' => $request['created_by'] ?? 0
             ]);
+
             return true;
         }else{
             return false;
@@ -168,13 +193,16 @@ class DirectRecruitmentOnboardingAttestationServices
                 'error' => $validator->errors()
             ];
         }
+        $onboardingAttestation = $this->onboardingAttestation->findOrFail($request['id']);
         if (isset($request['submission_date']) && !empty($request['submission_date'])) {
             $request['status'] = 'Submitted';
         }
         if (isset($request['collection_date']) && !empty($request['collection_date'])) {
             $request['status'] = 'Collected';
+            $onboardingCountry = $this->directRecruitmentOnboardingCountry->findOrFail($onboardingAttestation->onboarding_country_id);
+            $onboardingCountry->utilised_quota = $onboardingCountry->quota;
+            $onboardingCountry->save();
         }
-        $onboardingAttestation = $this->onboardingAttestation->findOrFail($request['id']);
         if(isset($request['submission_date']) && !empty($request['submission_date'])){
             $onboardingAttestation->submission_date =  $request['submission_date'];
         }
@@ -186,6 +214,12 @@ class DirectRecruitmentOnboardingAttestationServices
         $onboardingAttestation->status =  $request['status'] ?? $onboardingAttestation->status;
         $onboardingAttestation->modified_by =  $request['modified_by'] ?? $onboardingAttestation->modified_by;
         $onboardingAttestation->save();
+
+        $onBoardingStatus['application_id'] = $onboardingAttestation->application_id;
+        $onBoardingStatus['country_id'] = $onboardingAttestation->onboarding_country_id;
+        $onBoardingStatus['onboarding_status'] = 3; //Agent Added
+        $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+
         return true;
     }
     /**
@@ -322,6 +356,12 @@ class DirectRecruitmentOnboardingAttestationServices
             ];
         }
 
+        $onboardingAttestation = $this->onboardingAttestation->where([
+            ['id', $request['onboarding_attestation_id']]
+        ])->first(['application_id']);
+
+        $request['application_id'] = isset($onboardingAttestation['application_id']) ? $onboardingAttestation['application_id'] : 0;
+
         $onboardingEmbassy = $this->onboardingEmbassy->where([
             ['onboarding_attestation_id', $request['onboarding_attestation_id']],
             ['embassy_attestation_id', $request['embassy_attestation_id']],
@@ -355,6 +395,14 @@ class DirectRecruitmentOnboardingAttestationServices
                         "modified_by" =>  $params['created_by'] ?? 0
                     ]); 
                 }
+                // ADD OTHER EXPENSES - Onboarding - Attestation Costing
+                $request['expenses_application_id'] = $request['application_id'] ?? 0;
+                $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[2];
+                $request['expenses_payment_reference_number'] = '';
+                $request['expenses_payment_date'] = Carbon::now();
+                $request['expenses_amount'] = $request['amount'] ?? 0;
+                $request['expenses_remarks'] = '';
+                $this->directRecruitmentExpensesServices->addOtherExpenses($request);
 
             }
         }elseif( isset($request['amount'])){
@@ -372,6 +420,14 @@ class DirectRecruitmentOnboardingAttestationServices
                     "modified_by" =>  $params['created_by'] ?? 0
                 ]); 
             }
+            // ADD OTHER EXPENSES - Onboarding - Attestation Costing
+            $request['expenses_application_id'] = $request['application_id'] ?? 0;
+            $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[2];
+            $request['expenses_payment_reference_number'] = '';
+            $request['expenses_payment_date'] = Carbon::now();
+            $request['expenses_amount'] = $request['amount'] ?? 0;
+            $request['expenses_remarks'] = '';
+            $this->directRecruitmentExpensesServices->addOtherExpenses($request);
         }else{
             return false;
         }

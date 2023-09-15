@@ -111,6 +111,20 @@ class DirectRecruitmentServices
         ];
     }
     /**
+     * @return array
+     */
+    public function proposalSubmissionValidation(): array
+    {
+        return [
+            'id' => 'required',
+            'quota_applied' => 'required|regex:/^[0-9]+$/|max:3',
+            'cost_quoted' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'person_incharge' => 'required',
+            'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
+
+        ];
+    }
+    /**
      * @param $request
      * @return bool|array
      */
@@ -187,7 +201,7 @@ class DirectRecruitmentServices
                 $query->where('crm_prospect_services.contract_type', $request['contract_type']);
             }
         })
-        ->select('directrecruitment_applications.id', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'direct_recruitment_application_status.status_name as status', 'crm_prospect_services.status as service_status')
+        ->select('directrecruitment_applications.id', 'directrecruitment_applications.approval_flag', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'direct_recruitment_application_status.status_name as status', 'crm_prospect_services.status as service_status', 'directrecruitment_applications.onboarding_flag')
         ->distinct('directrecruitment_applications.id')
         ->orderBy('directrecruitment_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
@@ -232,6 +246,12 @@ class DirectRecruitmentServices
      */
     public function submitProposal($request): array
     {   
+        $validator = Validator::make($request->toArray(), $this->proposalSubmissionValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
         $data = $this->directrecruitmentApplications::findorfail($request['id']);
         $activeServiceCount = $this->crmProspectService->where('crm_prospect_id', $data->crm_prospect_id)
                             ->where('status', 1)
@@ -245,7 +265,9 @@ class DirectRecruitmentServices
         $input = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $input['modified_by'] = $user['id']; 
-        $input['status'] = Config::get('services.PROPOSAL_SUBMITTED');
+        if($data->status != Config::get('services.APPROVAL_COMPLETED')){
+            $input['status'] = Config::get('services.PROPOSAL_SUBMITTED');
+        }
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
@@ -319,7 +341,9 @@ class DirectRecruitmentServices
                 "message"=> "Data not found"
             ];
         }
-        $directrecruitmentApplications->status = $request['status'];
+        if($directrecruitmentApplications->status != Config::get('services.APPROVAL_COMPLETED')){
+            $directrecruitmentApplications->status = $request['status'];
+        }
         return [
             "isUpdated" => $directrecruitmentApplications->save() == 1,
             "message" => "Updated Successfully"

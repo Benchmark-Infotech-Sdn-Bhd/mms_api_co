@@ -70,13 +70,13 @@ class ForgotPasswordUnitTest extends TestCase
      */
     public function creationSeeder(): void
     {
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Admin'], $this->getHeader());
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader());
         $payload =  [
             'name' => 'test', 
             'email' => 'test@gmail.com', 
             'password' => 'Welcome@123', 
             'reference_id' => 1, 
-            'user_type' => 'Admin',
+            'user_type' => 'Administrator',
             'role_id' => 1,
             'status' => 1
         ];

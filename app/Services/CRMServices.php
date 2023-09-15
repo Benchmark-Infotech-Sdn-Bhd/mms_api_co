@@ -9,9 +9,12 @@ use App\Models\LoginCredential;
 use App\Models\Sectors;
 use App\Models\SystemType;
 use App\Models\DirectrecruitmentApplications;
+use App\Models\TotalManagementApplications;
+use App\Models\EContractApplications;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use App\Services\InvoiceServices;
 
 class CRMServices
 {
@@ -47,6 +50,18 @@ class CRMServices
      * @var SystemType
      */
     private SystemType $systemType;
+    /**
+     * @var TotalManagementApplications
+     */
+    private TotalManagementApplications $totalManagementApplications;
+    /**
+     * @var EContractApplications
+     */
+    private EContractApplications $eContractApplications;
+    /**
+     * @var InvoiceServices
+     */
+    private InvoiceServices $invoiceServices;
 
     /**
      * RolesServices constructor.
@@ -57,9 +72,12 @@ class CRMServices
      * @param Storage $storage
      * @param Sectors $sectors
      * @param DirectrecruitmentApplications $directrecruitmentApplications;
-     * @param SystemType $systemType;
+     * @param SystemType $systemType
+     * @param TotalManagementApplications $totalManagementApplications
+     * @param EContractApplications $eContractApplications
+     * @param EContractApplications $eContractApplications
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -69,6 +87,9 @@ class CRMServices
         $this->sectors = $sectors;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->systemType = $systemType;
+        $this->totalManagementApplications = $totalManagementApplications;
+        $this->eContractApplications = $eContractApplications;
+        $this->invoiceServices = $invoiceServices;
     }
     /**
      * @return array
@@ -88,6 +109,11 @@ class CRMServices
             'registered_by' => 'required',
             'sector_type' => 'required',
             'prospect_service' => 'required',
+            'bank_account_name'=>'regex:/^[a-zA-Z0-9 ]*$/',
+            'bank_account_number'=>'regex:/^[0-9]+$/|min:5|max:17',
+            'tax_id'=>'regex:/^[0-9]+$/|min:12|max:13',
+            'account_receivable_tax_type'=>'regex:/^[a-zA-Z0-9 ]*$/',
+            'account_payable_tax_type'=>'regex:/^[a-zA-Z0-9 ]*$/',
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];
     }
@@ -110,6 +136,11 @@ class CRMServices
             'pic_designation' => 'regex:/^[a-zA-Z ]*$/',
             'registered_by' => 'required',
             'sector_type' => 'required',
+            'bank_account_name'=>'regex:/^[a-zA-Z0-9 ]*$/',
+            'bank_account_number'=>'regex:/^[0-9]+$/|min:5|max:17',
+            'tax_id'=>'regex:/^[0-9]+$/|min:12|max:13',
+            'account_receivable_tax_type'=>'regex:/^[a-zA-Z0-9 ]*$/',
+            'account_payable_tax_type'=>'regex:/^[a-zA-Z0-9 ]*$/',
             'attachment.*' => 'mimes:jpeg,pdf,png'
         ];
     }
@@ -162,7 +193,7 @@ class CRMServices
     {
         return $this->crmProspect->where('crm_prospects.id', $request['id'])
             ->leftJoin('employee', 'employee.id', 'crm_prospects.registered_by')
-            ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospects.director_or_owner', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospects.address', 'crm_prospects.pic_name', 'crm_prospects.pic_contact_number', 'crm_prospects.pic_designation', 'employee.id as registered_by', 'employee.employee_name as registered_by_name')
+            ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospects.director_or_owner', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospects.address', 'crm_prospects.pic_name', 'crm_prospects.pic_contact_number', 'crm_prospects.pic_designation', 'employee.id as registered_by', 'employee.employee_name as registered_by_name','crm_prospects.bank_account_number','crm_prospects.bank_account_name','crm_prospects.tax_id','crm_prospects.account_receivable_tax_type','crm_prospects.account_payable_tax_type','crm_prospects.xero_contact_id')
             ->with(['prospectServices', 'prospectServices.prospectAttachment', 'prospectLoginCredentials'])
             ->get();
     }
@@ -179,19 +210,24 @@ class CRMServices
             ];
         }
         $prospect  = $this->crmProspect->create([
-            'company_name'          => $request['company_name'] ?? '',
-            'roc_number'            => $request['roc_number'] ?? '',
-            'director_or_owner'     => $request['director_or_owner'] ?? '',
-            'contact_number'        => $request['contact_number'] ?? 0,
-            'email'                 => $request['email'] ?? '',
-            'address'               => $request['address'] ?? '',
-            'status'                => $request['status'] ?? 1,
-            'pic_name'              => $request['pic_name'] ?? '',
-            'pic_contact_number'    => $request['pic_contact_number'] ?? 0,
-            'pic_designation'       => $request['pic_designation'] ?? '',
-            'registered_by'         => $request['registered_by'] ?? 0,
-            'created_by'            => $request['created_by'] ?? 0,
-            'modified_by'           => $request['created_by'] ?? 0
+            'company_name'                  => $request['company_name'] ?? '',
+            'roc_number'                    => $request['roc_number'] ?? '',
+            'director_or_owner'             => $request['director_or_owner'] ?? '',
+            'contact_number'                => $request['contact_number'] ?? 0,
+            'email'                         => $request['email'] ?? '',
+            'address'                       => $request['address'] ?? '',
+            'status'                        => $request['status'] ?? 1,
+            'pic_name'                      => $request['pic_name'] ?? '',
+            'pic_contact_number'            => $request['pic_contact_number'] ?? 0,
+            'pic_designation'               => $request['pic_designation'] ?? '',
+            'registered_by'                 => $request['registered_by'] ?? 0,
+            'bank_account_name'             => $request['bank_account_name'] ?? '',
+            'bank_account_number'           => $request['bank_account_number'] ?? 0,
+            'tax_id'                        => $request['tax_id'] ?? '',
+            'account_receivable_tax_type'   => $request['account_receivable_tax_type'] ?? '',
+            'account_payable_tax_type'      => $request['account_payable_tax_type'] ?? '',
+            'created_by'                    => $request['created_by'] ?? 0,
+            'modified_by'                   => $request['created_by'] ?? 0
         ]);
 
         $sector = $this->sectors->findOrFail($request['sector_type']);
@@ -235,6 +271,30 @@ class CRMServices
                        'created_by' => $request["created_by"] ?? 0,
                    ]);
                 }
+                if($service->service_id == 3) {
+                    $this->totalManagementApplications::create([
+                        'crm_prospect_id' => $prospect->id,
+                        'service_id' => $prospectService->id,
+                        'quota_applied' => 0,
+                        'person_incharge' => $request['pic_name'],
+                        'cost_quoted' => 0,
+                        'status' => 'Pending Proposal',
+                        'remarks' => '',
+                        'created_by' => $request["created_by"] ?? 0
+                    ]);
+                }
+                if($service->service_id == 2) {
+                    $this->eContractApplications::create([
+                        'crm_prospect_id' => $prospect->id,
+                        'service_id' => $prospectService->id,
+                        'quota_requested' => 0,
+                        'person_incharge' => $request['pic_name'],
+                        'cost_quoted' => 0,
+                        'status' => 'Pending Proposal',
+                        'remarks' => '',
+                        'created_by' => $request["created_by"] ?? 0
+                    ]);
+                }
             }
         }
 
@@ -250,6 +310,12 @@ class CRMServices
                 ]);
             }
         }
+
+        $createContactXero = $this->invoiceServices->createContacts($request);
+        $prospectData = $this->crmProspect->findOrFail($prospect['id']);
+        $prospectData->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
+        $prospectData->save();
+
         return true;
     }
     /**
@@ -276,6 +342,11 @@ class CRMServices
         $prospect['pic_contact_number'] = $request['pic_contact_number'] ?? $prospect['pic_contact_number'];
         $prospect['pic_designation'] = $request['pic_designation'] ?? $prospect['pic_designation'];
         $prospect['registered_by'] = $request['registered_by'] ?? $prospect['registered_by'];
+        $prospect['bank_account_name'] = $request['bank_account_name'] ?? $prospect['bank_account_name'];
+        $prospect['bank_account_number'] = $request['bank_account_number'] ?? $prospect['bank_account_number'];
+        $prospect ['tax_id'] = $request['tax_id'] ?? $prospect['tax_id'];
+        $prospect['account_receivable_tax_type'] = $request['account_receivable_tax_type'] ?? $prospect['account_receivable_tax_type'];
+        $prospect['account_payable_tax_type'] = $request['account_payable_tax_type'] ?? $prospect['account_receivable_tax_type'];
         $prospect['modified_by'] = $request['modified_by'] ?? $prospect['modified_by'];
         $prospect->save();
 
@@ -312,6 +383,42 @@ class CRMServices
                         ]);  
                     } 
                 }
+                if($service->service_id == 1) {
+                    $this->directrecruitmentApplications::create([
+                       'crm_prospect_id' => $prospect->id,
+                       'service_id' => $prospectService->id,
+                       'quota_applied' => 0,
+                       'person_incharge' => '',
+                       'cost_quoted' => 0,
+                       'status' => Config::get('services.PENDING_PROPOSAL'),
+                       'remarks' => '',
+                       'created_by' => $request["created_by"] ?? 0,
+                   ]);
+                }
+                if($service->service_id == 3) {
+                    $this->totalManagementApplications::create([
+                        'crm_prospect_id' => $prospect->id,
+                        'service_id' => $prospectService->id,
+                        'quota_applied' => 0,
+                        'person_incharge' => $request['pic_name'],
+                        'cost_quoted' => 0,
+                        'status' => 'Pending Proposal',
+                        'remarks' => '',
+                        'created_by' => $request["created_by"] ?? 0
+                    ]);
+                }
+                if($service->service_id == 2) {
+                    $this->eContractApplications::create([
+                        'crm_prospect_id' => $prospect->id,
+                        'service_id' => $prospectService->id,
+                        'quota_requested' => 0,
+                        'person_incharge' => $request['pic_name'],
+                        'cost_quoted' => 0,
+                        'status' => 'Pending Proposal',
+                        'remarks' => '',
+                        'created_by' => $request["created_by"] ?? 0
+                    ]);
+                }
             }
         }
 
@@ -328,6 +435,12 @@ class CRMServices
                 ]);
             }
         }
+
+        $request['ContactID'] = $prospect['xero_contact_id'];
+        $createContactXero = $this->invoiceServices->createContacts($request);
+        $prospect->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
+        $prospect->save();
+
         return true;
     }
     /**
@@ -341,11 +454,19 @@ class CRMServices
     /**
      * @return mixed
      */
-    public function dropDownCompanies(): mixed
+    public function dropDownCompanies($request): mixed
     {
-        return $this->crmProspect->where('status', 1)
-            ->select('id', 'company_name')
-            ->get();
+        return $this->crmProspect
+        ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
+        ->where('crm_prospects.status', 1)
+        ->where(function ($query) use ($request) {
+            if(isset($request['service_id']) && !empty($request['service_id'])) {
+                $query->where('crm_prospect_services.service_id', $request['service_id']);
+            }
+        })
+        ->select('crm_prospects.id', 'crm_prospects.company_name')
+        ->distinct('crm_prospects.id', 'crm_prospects.company_name')
+        ->get();
     }
     /**
      * @param $request
