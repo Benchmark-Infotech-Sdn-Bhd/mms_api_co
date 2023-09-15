@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItems;
+use App\Models\XeroSettings;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -11,7 +12,6 @@ use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
-
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\JsonResponse;
@@ -29,6 +29,10 @@ class InvoiceServices
      */
     private InvoiceItems $invoiceItems;
     /**
+     * @var XeroSettings
+     */
+    private XeroSettings $xeroSettings;
+    /**
      * @var ValidationServices
      */
     private ValidationServices $validationServices;
@@ -41,9 +45,10 @@ class InvoiceServices
      */
     private Storage $storage;
     /**
-     * DirectRecruitmentExpensesServices constructor.
-     * @param DirectRecruitmentExpenses $directRecruitmentExpenses
+     * InvoiceServices constructor.
+     * @param Invoice $Invoice
      * @param InvoiceItems $invoiceItems
+     * @param XeroSettings $xeroSettings
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
@@ -51,6 +56,7 @@ class InvoiceServices
     public function __construct(
             Invoice                 $invoice,
             InvoiceItems            $invoiceItems,
+            XeroSettings            $xeroSettings,
             ValidationServices      $validationServices,
             AuthServices            $authServices,
             Storage                 $storage
@@ -58,6 +64,7 @@ class InvoiceServices
     {
         $this->invoice = $invoice;
         $this->invoiceItems = $invoiceItems;
+        $this->xeroSettings = $xeroSettings;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
@@ -242,10 +249,11 @@ class InvoiceServices
     public function getTaxRates($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         try {
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_TAX_RATES_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -268,10 +276,11 @@ class InvoiceServices
     public function getItems($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         try {
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ITEMS_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -294,10 +303,11 @@ class InvoiceServices
     public function getAccounts($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         try {
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ACCOUNTS_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -320,10 +330,11 @@ class InvoiceServices
     public function getInvoices($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         try {
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -346,10 +357,11 @@ class InvoiceServices
     public function generateInvoices($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         try {
             $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -379,6 +391,7 @@ class InvoiceServices
     public function createContacts($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         if(isset($request['ContactID']) && !empty($request['ContactID'])){
             $data = [
                 'ContactID'=>$request['ContactID'] ?? '',
@@ -407,7 +420,7 @@ class InvoiceServices
         try {
             $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_CONTACTS_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -427,8 +440,9 @@ class InvoiceServices
      */
     public function getAccessToken() : mixed
     {
-        //echo Config::get('services.XERO_REFRESH_TOKEN'); exit;
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
+
         try {
             $response = $http->request('POST', Config::get('services.XERO_TOKEN_URL'), [
                 'headers' => [
@@ -438,22 +452,30 @@ class InvoiceServices
                 ], 
                 'form_params' => [
                     'grant_type' => 'refresh_token',
-                    'client_id' => "eyJhbGciOiJSUzI1NiIsImtpZCI6IjFDQUY4RTY2NzcyRDZEQzAyOEQ2NzI2RkQwMjYxNTgxNTcwRUZDMTkiLCJ0eXAiOiJKV1QiLCJ4NXQiOiJISy1PWm5jdGJjQW8xbkp2MENZVmdWY09fQmsifQ.eyJuYmYiOjE2OTQ3NjI5MjUsImV4cCI6MTY5NDc2NDcyNSwiaXNzIjoiaHR0cHM6Ly9pZGVudGl0eS54ZXJvLmNvbSIsImF1ZCI6Imh0dHBzOi8vaWRlbnRpdHkueGVyby5jb20vcmVzb3VyY2VzIiwiY2xpZW50X2lkIjoiMDUzODRDRkExQTYyNDA1NEIwNUU1NzI5NzZFQjM3NDgiLCJzdWIiOiI3ODM5NjUyYWNjM2I1ZjJlYjFiZTNlMWM1YTdlMmZmNSIsImF1dGhfdGltZSI6MTY5NDc2MDg2NywieGVyb191c2VyaWQiOiJhZmIyMjMwYy1kMjRmLTQ0NGQtOGIwOC05OTc0YzMxMjkxNTkiLCJnbG9iYWxfc2Vzc2lvbl9pZCI6ImY1YzI3ZDYwZmJjYTRmM2NiYmIyYzJmMjg5ZDNhNTAxIiwic2lkIjoiZjVjMjdkNjBmYmNhNGYzY2JiYjJjMmYyODlkM2E1MDEiLCJqdGkiOiI4NTg0RkFDODkxNTI4M0E1ODU1Mjk4MDI0NjM0QzYzMyIsImF1dGhlbnRpY2F0aW9uX2V2ZW50X2lkIjoiZTE3M2E5MWMtNmM3My00OWViLTliMmUtYzY1NmQwNTUwMjA2Iiwic2NvcGUiOlsiYWNjb3VudGluZy5zZXR0aW5ncyIsImFjY291bnRpbmcudHJhbnNhY3Rpb25zIiwiYWNjb3VudGluZy5jb250YWN0cyIsIm9mZmxpbmVfYWNjZXNzIl0sImFtciI6WyJwd2QiXX0.r10FYCNN5qhjId7OFgqf-qXxNO0yxDCxbmDr58kk8e7bKT_nPOo-6Futjp4sURb5o7mIyo5AXehq5JGoX1aDko01ISKexokp3lUIJ6cGrDGG_OoBcPpG0rLVSBoU5qkeU_F1tsJiUG86Hh7B0lxDhZL7R1uc3iCy--Y1u91GTCsCgOiKE-kUDfLG0bzQmQGmakTwN_4lszWbO2PnsgIlhg9I6155LAEN9FD6FN5WWnNEJaFd-tnG4ab5lZ02l3WlQAwneWXJmyAk70BeVahRhQteN_ysiWPdpdWsRKcVvoK8EifqDcbKQoWEcXa_lmiBShGwwRP0JhIPqMGsKPmhYA",
-                    'refresh_token' => "AZzQtwzD-2Gjn7QcX0hVpqxW-FYtRyUd4Ltnq0trXUk",
+                    'client_id' => Config::get('services.XERO_CLIENT_ID'),
+                    'refresh_token' => $xeroConfig['refresh_token'],
                 ],
             ]);
             $result = json_decode((string)$response->getBody(), true);
-            Log::info(Config::get('services.XERO_REFRESH_TOKEN')." ~~ Refresh Token");
-            Log::info(Config::get('services.XERO_ACCESS_TOKEN')." ~~ Access Token");
-            Config::set('services.XERO_REFRESH_TOKEN', $result['refresh_token']);
-            Config::set('services.XERO_ACCESS_TOKEN', $result['access_token']);
-            Log::info(Config::get('services.XERO_REFRESH_TOKEN')." ~~ New Refresh Token");
-            Log::info(Config::get('services.XERO_ACCESS_TOKEN')." ~~ New Access Token");
+
+            $xeroConfig->refresh_token = $result['refresh_token'];
+            $xeroConfig->access_token = $result['access_token'];
+            $xeroConfig->save();
+
             return response()->json($result);
         } catch (Exception $e) {
             Log::error('Exception in getting refresh token' . $e);
             return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function getXeroSettings() : mixed
+    {
+        return $this->xeroSettings->find(1);
     }
 
 }
