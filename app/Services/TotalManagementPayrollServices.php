@@ -14,6 +14,7 @@ use App\Models\TotalManagementPayrollAttachments;
 use App\Models\PayrollBulkUpload;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\PayrollImport;
+use App\Models\TotalManagementExpenses;
 
 class TotalManagementPayrollServices
 {
@@ -34,6 +35,10 @@ class TotalManagementPayrollServices
      */
     private PayrollBulkUpload $payrollBulkUpload;
     /**
+     * @var TotalManagementExpenses
+     */
+    private TotalManagementExpenses $totalManagementExpenses;
+    /**
      * @var Storage
      */
     private Storage $storage;
@@ -43,15 +48,17 @@ class TotalManagementPayrollServices
      * @param TotalManagementPayroll $totalManagementPayroll
      * @param TotalManagementPayrollAttachments $totalManagementPayrollAttachments
      * @param PayrollBulkUpload $payrollBulkUpload
+     * @param TotalManagementExpenses $totalManagementExpenses
      * @param Storage $storage;
      */
-    public function __construct(Workers $workers, TotalManagementPayroll $totalManagementPayroll, TotalManagementPayrollAttachments $totalManagementPayrollAttachments, Storage $storage, PayrollBulkUpload $payrollBulkUpload)
+    public function __construct(Workers $workers, TotalManagementPayroll $totalManagementPayroll, TotalManagementPayrollAttachments $totalManagementPayrollAttachments, Storage $storage, PayrollBulkUpload $payrollBulkUpload, TotalManagementExpenses $totalManagementExpenses)
     {
         $this->workers = $workers;
         $this->totalManagementPayroll = $totalManagementPayroll;
         $this->totalManagementPayrollAttachments = $totalManagementPayrollAttachments;
         $this->storage = $storage;
         $this->payrollBulkUpload = $payrollBulkUpload;
+        $this->totalManagementExpenses = $totalManagementExpenses;
     }
     /**
      * @return array
@@ -435,6 +442,97 @@ class TotalManagementPayrollServices
             }
         }
         return false;
+    }
+
+    /**
+     * upload Timesheet
+     * @param $request
+     * @return bool|array
+     */
+    public function authorizePayroll($request): bool|array
+    {
+
+        $checkTotalManagementExpenses = $this->totalManagementExpenses->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
+
+        if($checkTotalManagementExpenses > 0) {
+            return [
+                'existsError' => true
+            ];
+        }
+
+        $payrollWorkers = $this->workers
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.worker_id','=','workers.id');
+        })
+        ->leftJoin('total_management_payroll', function($query) use ($request) {
+            $query->on('total_management_payroll.worker_id','=','workers.id');
+            if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+            $query->whereRaw('total_management_payroll.id IN (select MAX(TMPAY.id) from total_management_payroll as TMPAY JOIN workers as WORKER ON WORKER.id = TMPAY.worker_id group by WORKER.id)');
+            }
+        })
+        ->leftJoin('total_management_project', function($query) {
+            $query->on('total_management_payroll.project_id','=','total_management_project.id');
+        })
+        ->where(function ($query) use ($request) {
+            if (isset($request['month']) && !empty($request['month'])) {
+                $query->where('total_management_payroll.month', $request['month']);
+            }
+            if (isset($request['year']) && !empty($request['year'])) {
+                $query->where('total_management_payroll.year', $request['year']);
+            }
+            if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                $query->whereNull('worker_employment.work_end_date');
+                $query->whereNull('worker_employment.remove_date');
+            }
+        })
+        ->select('workers.id as worker_id', 'workers.name', 'total_management_payroll.id as payroll_id', 'total_management_payroll.amount', 'total_management_payroll.sosco_contribution', 'total_management_project.application_id')
+        ->distinct('workers.id')
+        ->orderBy('workers.created_at','DESC')->get();
+
+        if(isset($payrollWorkers) && count($payrollWorkers) > 0 ){
+            foreach($payrollWorkers as $result){
+                $user = JWTAuth::parseToken()->authenticate();
+                $this->totalManagementExpenses->create([
+                    'worker_id' => $result['worker_id'],
+                    'application_id' => $result['application_id'],
+                    'project_id' => $request['project_id'],
+                    'title' => $result['name'],
+                    'type' => 'Payroll',
+                    'payment_date' => Carbon::now(),
+                    'is_payroll' => 1,
+                    'amount' => $result['amount'],
+                    'remarks' => $result['name'],
+                    'is_payroll' => 1,
+                    'payroll_id' => $result['payroll_id'],
+                    'month' => $request['month'],
+                    'year' => $request['year'],
+                    'created_by'    => $user['worker_id'] ?? 0,
+                    'modified_by'   => $user['worker_id'] ?? 0,
+                ]);
+                $this->totalManagementExpenses->create([
+                    'worker_id' => $result['worker_id'],
+                    'application_id' => $result['application_id'],
+                    'project_id' => $request['project_id'] ?? 0,
+                    'title' => "SOCSO Contribution (" . $result['name'] . " )",
+                    'type' => 'Payroll',
+                    'payment_date' => Carbon::now(),
+                    'is_payroll' => 1,
+                    'amount' => $result['amount'],
+                    'remarks' => "SOCSO Contribution (" . $result['name'] . " )",
+                    'is_payroll' => 1,
+                    'payroll_id' => $result['payroll_id'],
+                    'month' => $request['month'],
+                    'year' => $request['year'],
+                    'created_by'    => $user['worker_id'] ?? 0,
+                    'modified_by'   => $user['worker_id'] ?? 0,
+                ]);
+            }
+        } else {
+            return [
+                'noRecords' => true
+            ];
+        }
+        return true;
     }
 
 }
