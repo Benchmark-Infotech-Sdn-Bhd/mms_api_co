@@ -144,6 +144,7 @@ class EContractWorkerServices
             }
         }
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->where('workers.total_management_status', 'On-Bench')
             ->where('workers.econtract_status', 'On-Bench')
             ->where('workers.crm_prospect_id', 0)
             ->where(function ($query) use ($request) {
