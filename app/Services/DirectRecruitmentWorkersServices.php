@@ -177,7 +177,6 @@ class DirectRecruitmentWorkersServices
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
         ->where('worker_visa.approval_status', '!=' , 'Rejected')
         ->where('worker_fomema.fomema_status', '!=' , 'Unfit')
-        ->where('worker_arrival.arrival_status', '!=' , 'Not Arrived')
         ->count('directrecruitment_workers.worker_id');
 
         if($workerCount >= $onboardingCountryDetails->quota) {
