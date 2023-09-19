@@ -11,6 +11,7 @@ use App\Models\BulkUploadRecords;
 use App\Models\WorkerFomema;
 use App\Models\WorkerInsuranceDetails;
 use App\Models\WorkerBankDetails;
+use App\Models\DirectrecruitmentApplications;
 use App\Services\ManageWorkersServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -58,6 +59,9 @@ class WorkersImport extends Job
 
             if($workerCount == 0){
 
+                $applicationDetails = DirectrecruitmentApplications::findOrFail($this->workerParameter['application_id']);
+                $prospect_id = $applicationDetails->crm_prospect_id;
+
                 $worker = Workers::create([            
                     'name' => $this->workerParameter['name'] ?? '',
                     'gender' => $this->workerParameter['gender'] ?? '',
@@ -69,6 +73,7 @@ class WorkersImport extends Job
                     'address' => $this->workerParameter['address'] ?? '',
                     'city' => $this->workerParameter['city'] ?? '',
                     'state' => $this->workerParameter['state'] ?? '',
+                    'crm_prospect_id' => $prospect_id ?? NULL,
                     'created_by'    => $this->workerParameter['created_by'] ?? 0,
                     'modified_by'   => $this->workerParameter['created_by'] ?? 0,
                     'created_at'    => null,

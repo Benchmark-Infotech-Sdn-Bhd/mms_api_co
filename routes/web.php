@@ -575,6 +575,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('listTimesheet', 'V1\TotalManagementPayrollController@listTimesheet');
                 $router->post('uploadTimesheet', 'V1\TotalManagementPayrollController@uploadTimesheet');
                 $router->post('viewTimesheet', 'V1\TotalManagementPayrollController@viewTimesheet');
+                $router->post('authorizePayroll', 'V1\TotalManagementPayrollController@authorizePayroll');
             });
             $router->group(['prefix' => 'transfer'], function () use ($router) {
                 $router->post('workerEmploymentDetail', 'V1\TotalManagementTransferController@workerEmploymentDetail');
@@ -663,6 +664,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('listTimesheet', 'V1\EContractPayrollController@listTimesheet');
                 $router->post('uploadTimesheet', 'V1\EContractPayrollController@uploadTimesheet');
                 $router->post('viewTimesheet', 'V1\EContractPayrollController@viewTimesheet');
+                $router->post('authorizePayroll', 'V1\EContractPayrollController@authorizePayroll');
             });
         });
 
@@ -685,6 +687,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('update', 'V1\DispatchManagementController@update');
                 $router->post('deleteAttachment', 'V1\DispatchManagementController@deleteAttachment');
         });
+
         $router->group(['prefix' => 'reports'], function () use ($router) {
             $router->group(['prefix' => 'serviceAgreement'], function () use ($router) {
                 $router->post('list', 'V1\ServiceAgreementReportController@list');
@@ -696,8 +699,25 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('list', 'V1\WorkerStatisticsReportController@list');
             });
         });
+
         $router->group(['prefix' => 'dashboard'], function () use ($router) {
             $router->post('list', 'V1\DashboardController@list');
         });
+
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'invoice'], function () use ($router) {
+            $router->post('list', 'V1\InvoiceController@list');
+            $router->post('show', 'V1\InvoiceController@show');
+            $router->post('create', 'V1\InvoiceController@create');
+            $router->post('update', 'V1\InvoiceController@update');
+            $router->post('getTaxRates', 'V1\InvoiceController@getTaxRates');
+            $router->post('getItems', 'V1\InvoiceController@getItems');
+            $router->post('getAccounts', 'V1\InvoiceController@getAccounts');
+            $router->post('getInvoices', 'V1\InvoiceController@getInvoices');
+            $router->post('getAccessToken', 'V1\InvoiceController@getAccessToken');
+        });
+
     });
 });

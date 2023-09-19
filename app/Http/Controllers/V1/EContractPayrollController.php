@@ -222,4 +222,30 @@ class EContractPayrollController extends Controller
             return $this->sendError(['message' => 'Failed to Upload E-Contract Payroll Timesheet'], 400);
         }
     }
+
+    /**
+     * Authorize Payroll
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function authorizePayroll(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->eContractPayrollServices->authorizePayroll($params);
+            if(isset($response['existsError'])) {
+                return $this->sendError(['message' => 'Failed to Upload E-Contract Payroll to Expenses Due to Expense Exists for This Month'], 422);
+            }
+            if(isset($response['existsError'])) {
+                return $this->sendError(['message' => 'Failed to Upload E-Contract Payroll to Expenses Due to Expense Exists for This Month'], 422);
+            }  else if(isset($response['noRecords'])) {
+                return $this->sendError(['message' => 'No Records Found to Update E-Contract Payroll to Expenses'], 422);
+            }
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error = ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Authorize Payroll'], 400);
+        }
+    }
 }
