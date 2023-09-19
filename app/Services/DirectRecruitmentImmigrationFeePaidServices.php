@@ -231,8 +231,8 @@ class DirectRecruitmentImmigrationFeePaidServices
                 }
             });
             if(isset($request['export']) && !empty($request['export']) ){
-                $data = $data->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', DB::raw('COUNT(workers.id) as workers'))
-                ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until')
+                $data = $data->select('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', DB::raw('COUNT(workers.id) as workers'), 'worker_immigration.immigration_status')
+                ->groupBy('worker_visa.ksm_reference_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_immigration.immigration_status')
                 ->orderBy('worker_visa.calling_visa_valid_until', 'desc')
                 ->get();
             }else{
