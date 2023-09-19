@@ -11,6 +11,7 @@ use App\Models\DirectRecruitmentOnboardingAgent;
 use App\Models\WorkerBulkUpload;
 use App\Models\DirectrecruitmentApplications;
 use App\Models\DirectRecruitmentOnboardingCountry;
+use App\Models\Levy;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
@@ -47,6 +48,10 @@ class DirectRecruitmentWorkersServices
      */
     private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
     /**
+     * @var Levy
+     */
+    private Levy $levy;
+    /**
      * DirectRecruitmentWorkersServices constructor.
      * @param Workers $workers
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
@@ -62,6 +67,7 @@ class DirectRecruitmentWorkersServices
      * @param WorkersServices $workersServices;
      * @param DirectrecruitmentApplications $directrecruitmentApplications;
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+     * @param Levy $levy
      */
     public function __construct(
             Workers                                     $workers,
@@ -77,7 +83,8 @@ class DirectRecruitmentWorkersServices
             DirectrecruitmentWorkers                    $directrecruitmentWorkers,
             WorkersServices                             $workersServices,
             DirectrecruitmentApplications               $directrecruitmentApplications,
-            DirectRecruitmentOnboardingCountry          $directRecruitmentOnboardingCountry
+            DirectRecruitmentOnboardingCountry          $directRecruitmentOnboardingCountry,
+            Levy                                        $levy
     )
     {
         $this->workers = $workers;
@@ -94,6 +101,7 @@ class DirectRecruitmentWorkersServices
         $this->workersServices = $workersServices;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
+        $this->levy = $levy;
     }
     /**
      * @return array
@@ -150,6 +158,15 @@ class DirectRecruitmentWorkersServices
                 ];    
             }
         }
+
+        // $approvedCount = $this->levy->where('application_id', $request['application_id'])
+        //                     ->where('ksm_reference_number', $request['ksm_reference_number'])
+        //                     ->select('approved_quota')
+        //                     ->get()->toArray();
+        // if($approvedCount[0]['approved_quota'] ) {
+
+        // }
+
         $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
 
         $workerCount = $this->directrecruitmentWorkers
@@ -160,7 +177,6 @@ class DirectRecruitmentWorkersServices
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
         ->where('worker_visa.approval_status', '!=' , 'Rejected')
         ->where('worker_fomema.fomema_status', '!=' , 'Unfit')
-        ->where('worker_arrival.arrival_status', '!=' , 'Not Arrived')
         ->count('directrecruitment_workers.worker_id');
 
         if($workerCount >= $onboardingCountryDetails->quota) {

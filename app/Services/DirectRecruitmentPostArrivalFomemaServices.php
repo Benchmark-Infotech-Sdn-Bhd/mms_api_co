@@ -135,6 +135,7 @@ class DirectRecruitmentPostArrivalFomemaServices
                 'worker_arrival.arrival_status' => 'Arrived',
                 'worker_fomema.fomema_status' => 'Pending'
             ])
+            ->whereNotNull('worker_arrival.jtk_submitted_on')
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
