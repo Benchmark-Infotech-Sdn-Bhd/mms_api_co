@@ -140,7 +140,7 @@ class DirectRecruitmentInsurancePurchaseServices
             }
         });
         if(isset($request['export']) && !empty($request['export']) ){
-            $data = $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on','worker_insurance_details.insurance_status')->distinct('workers.id')
+            $data = $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'worker_insurance_details.insurance_status')->distinct('workers.id')
             ->distinct('workers.id')
             ->orderBy('workers.id','DESC')
             ->get();

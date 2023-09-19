@@ -696,5 +696,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('list', 'V1\WorkerStatisticsReportController@list');
             });
         });
+        $router->group(['prefix' => 'dashboard'], function () use ($router) {
+            $router->post('list', 'V1\DashboardController@list');
+        });
     });
 });

@@ -169,11 +169,11 @@ class DirectRecruitmentCallingVisaApprovalServices
                 }
             });
             if(isset($request['export']) && !empty($request['export']) ){
-                $data = $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_generated')->distinct('workers.id')
+                $data = $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'worker_visa.calling_visa_reference_number', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_visa.approval_status')->distinct('workers.id')
                 ->orderBy('workers.id', 'desc')
                 ->get();
             }else{
-                $data = $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approval_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks')->distinct('workers.id')
+                $data = $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.approval_status', 'worker_visa.calling_visa_generated', 'worker_visa.calling_visa_valid_until', 'worker_visa.remarks', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number')->distinct('workers.id')
                 ->orderBy('workers.id', 'desc')
                 ->paginate(Config::get('services.paginate_worker_row'));
             }
