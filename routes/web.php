@@ -719,5 +719,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('getAccessToken', 'V1\InvoiceController@getAccessToken');
         });
 
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'invoiceItemsTemp'], function () use ($router) {
+            $router->post('list', 'V1\InvoiceItemsTempController@list');
+            $router->post('show', 'V1\InvoiceItemsTempController@show');
+            $router->post('create', 'V1\InvoiceItemsTempController@create');
+            $router->post('update', 'V1\InvoiceItemsTempController@update');
+            $router->post('delete', 'V1\InvoiceItemsTempController@delete');
+        });
+
     });
 });

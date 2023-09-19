@@ -236,7 +236,7 @@ class TotalManagementPayrollController extends Controller
             if(isset($response['existsError'])) {
                 return $this->sendError(['message' => 'Failed to Upload Total Management Payroll to Expenses Due to Expense Exists for This Month'], 422);
             } else if(isset($response['noRecords'])) {
-                return $this->sendError(['message' => 'No Records Found to Update E-Contract Payroll to Expenses'], 422);
+                return $this->sendError(['message' => 'No Records Found to Update Total Management Payroll to Expenses'], 422);
             }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
