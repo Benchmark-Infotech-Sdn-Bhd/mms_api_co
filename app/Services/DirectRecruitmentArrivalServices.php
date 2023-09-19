@@ -411,6 +411,7 @@ class DirectRecruitmentArrivalServices
         return $this->cancellationAttachment
         ->where('file_id', $request['worker_id'])
         ->where('file_type', 'Arrival Cancellation Letter')
+        ->orWhere('file_type', 'Cancellation Letter')
         ->select('file_id', 'file_name', 'file_url', 'remarks')
         ->get();
     }
