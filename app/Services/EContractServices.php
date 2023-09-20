@@ -285,6 +285,10 @@ class EContractServices
         $serviceDetails->fomnext_quota = $request['fomnext_quota'] ?? $serviceDetails->fomnext_quota;
         $serviceDetails->air_ticket_deposit = $request['air_ticket_deposit'] ?? $serviceDetails->air_ticket_deposit;
         $serviceDetails->save();
+
+        $applicationDetails = $this->eContractApplications->findOrFail($request['id']);
+        $applicationDetails->quota_requested = $request['fomnext_quota'] ?? $serviceDetails->fomnext_quota;
+        $applicationDetails->save();
         return true;
     }
     /**
