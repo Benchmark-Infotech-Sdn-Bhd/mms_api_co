@@ -47,26 +47,28 @@ class InvoiceItemsTempServices
     {
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
         /*if(!($this->validationServices->validate($request->toArray(),$this->invoiceItemsTemp->rules))){
             return [
               'validate' => $this->validationServices->errors()
             ];
         }*/
-        $invoiceItemsTemp = $this->invoiceItemsTemp->create([
-            'service_id' => $request['service_id'],
-            'expense_id' => $request['expense_id'],
-            'invoice_number' => $request['invoice_number'],
-            'item' => $request['item'] ?? '',
-            'description' => $request['description'] ?? '',
-            'quantity' => $request['quantity'] ?? '',
-            'price' => $request['price'] ?? '',
-            'account' => $request['account'] ?? '',
-            'tax_rate' => $request['tax_rate'] ?? '',
-            'total_price' => $request['total_price'] ?? '',
-            'created_by'    => $params['created_by'] ?? 0,
-            'modified_by'   => $params['created_by'] ?? 0
-        ]);
+        $lineItems = json_decode($request['invoice_items']);
+        foreach($lineItems as $item){
+            $invoiceItemsTemp = $this->invoiceItemsTemp::create([
+                'service_id' => $request['service_id'],
+                'expense_id' => $item->expense_id,
+                'invoice_number' => $request['invoice_number'],
+                'item' => $item->item ?? '',
+                'description' => $item->description ?? '',
+                'quantity' => $item->quantity ?? '',
+                'price' => $item->price ?? '',
+                'account' => $item->account ?? '',
+                'tax_rate' => $item->tax_rate ?? '',
+                'total_price' => $item->total_price ?? '',
+                'created_by'    => $user['id'],
+                'modified_by'   => $user['id']
+            ]);
+        }
 
         return $invoiceItemsTemp;
     }
@@ -80,8 +82,6 @@ class InvoiceItemsTempServices
 
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
-        $params['modified_by'] = $user['id'];
-
         /*if(!($this->validationServices->validate($request->toArray(),$this->invoiceItemsTemp->rulesForUpdation($request['id'])))){
             return [
                 'validate' => $this->validationServices->errors()
@@ -99,8 +99,8 @@ class InvoiceItemsTempServices
         $invoiceItemsTemp->account = $request['account'] ?? $invoiceItemsTemp->account;
         $invoiceItemsTemp->tax_rate = $request['tax_rate'] ?? $invoiceItemsTemp->tax_rate;
         $invoiceItemsTemp->total_price = $request['total_price'] ?? $invoiceItemsTemp->total_price;
-        //$invoiceItemsTemp->created_by = $request['created_by'] ?? $invoiceItemsTemp->created_by;
-        //$invoiceItemsTemp->modified_by = $params['modified_by'];
+        $invoiceItemsTemp->created_by = $request['created_by'] ?? $user['id'];
+        $invoiceItemsTemp->modified_by = $user['id'];
         $invoiceItemsTemp->save();
 
         return true;
@@ -136,6 +136,7 @@ class InvoiceItemsTempServices
      */
     public function list($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         if(isset($request['search_param']) && !empty($request['search_param'])){
             if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
                 return [
@@ -149,7 +150,8 @@ class InvoiceItemsTempServices
                 $query->where('item', 'like', "%{$request['search_param']}%")
                 ->orWhere('description', 'like', '%'.$request['search_param'].'%');
             }            
-        })->select('id','service_id','expense_id','invoice_number','item','description','quantity','price','account','tax_rate','total_price')
+        })
+        ->where('created_by',$user['id'])->select('id','service_id','expense_id','invoice_number','item','description','quantity','price','account','tax_rate','total_price','created_by','modified_by')
         ->distinct()
         ->orderBy('created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
