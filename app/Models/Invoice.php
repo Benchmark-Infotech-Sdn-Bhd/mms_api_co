@@ -34,8 +34,6 @@ class Invoice extends Model implements Auditable
         'issue_date' => 'required|date_format:Y-m-d|before:tomorrow',
         'due_date' => 'required|date_format:Y-m-d|before:tomorrow',
         'reference_number' => 'required|regex:/^[a-zA-Z0-9-]*$/',
-        'account' => 'required|max:255',
-        'tax' => 'required|max:255',
         'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/'
     ];
     /**
@@ -52,8 +50,6 @@ class Invoice extends Model implements Auditable
             'issue_date' => 'required|date_format:Y-m-d|before:tomorrow',
             'due_date' => 'required|date_format:Y-m-d|before:tomorrow',
             'reference_number' => 'required|regex:/^[a-zA-Z0-9-]*$/',
-            'account' => 'required|max:255',
-            'tax' => 'required|max:255',
             'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/'
         ];
     }
