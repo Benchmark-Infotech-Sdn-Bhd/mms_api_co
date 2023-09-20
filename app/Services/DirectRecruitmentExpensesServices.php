@@ -188,7 +188,7 @@ class DirectRecruitmentExpensesServices
                 ->orWhere('directrecruitment_expenses.payment_reference_number', 'like', '%'.$request['search_param'].'%');
             }
             
-        })->select('directrecruitment_expenses.id','directrecruitment_expenses.application_id','directrecruitment_expenses.title','directrecruitment_expenses.payment_reference_number','directrecruitment_expenses.payment_date','directrecruitment_expenses.amount','directrecruitment_expenses.remarks','directrecruitment_expenses_attachments.file_name','directrecruitment_expenses_attachments.file_url','directrecruitment_expenses.created_at')
+        })->select('directrecruitment_expenses.id','directrecruitment_expenses.application_id','directrecruitment_expenses.title','directrecruitment_expenses.payment_reference_number','directrecruitment_expenses.payment_date','directrecruitment_expenses.amount','directrecruitment_expenses.remarks','directrecruitment_expenses_attachments.file_name','directrecruitment_expenses_attachments.file_url','directrecruitment_expenses.created_at','directrecruitment_expenses.invoice_number')
         ->distinct()
         ->orderBy('directrecruitment_expenses.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));

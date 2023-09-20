@@ -4,7 +4,11 @@ namespace App\Services;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItems;
+use App\Models\InvoiceItemsTemp;
 use App\Models\XeroSettings;
+use App\Models\DirectRecruitmentExpenses;
+use App\Models\EContractExpenses;
+use App\Models\TotalManagementExpenses;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -29,9 +33,25 @@ class InvoiceServices
      */
     private InvoiceItems $invoiceItems;
     /**
+     * @var InvoiceItemsTemp
+     */
+    private InvoiceItemsTemp $invoiceItemsTemp;
+    /**
      * @var XeroSettings
      */
     private XeroSettings $xeroSettings;
+    /**
+     * @var DirectRecruitmentExpenses
+     */
+    private DirectRecruitmentExpenses $directRecruitmentExpenses;
+    /**
+     * @var EContractExpenses
+     */
+    private EContractExpenses $eContractExpenses;
+    /**
+     * @var TotalManagementExpenses
+     */
+    private TotalManagementExpenses $totalManagementExpenses;
     /**
      * @var ValidationServices
      */
@@ -48,23 +68,35 @@ class InvoiceServices
      * InvoiceServices constructor.
      * @param Invoice $Invoice
      * @param InvoiceItems $invoiceItems
+     * @param InvoiceItemsTemp $invoiceItemsTemp
+     * @param DirectRecruitmentExpenses $directRecruitmentExpenses
+     * @param EContractExpenses $eContractExpenses
+     * @param TotalManagementExpenses $totalManagementExpenses
      * @param XeroSettings $xeroSettings
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
      */
     public function __construct(
-            Invoice                 $invoice,
-            InvoiceItems            $invoiceItems,
-            XeroSettings            $xeroSettings,
-            ValidationServices      $validationServices,
-            AuthServices            $authServices,
-            Storage                 $storage
+            Invoice                     $invoice,
+            InvoiceItems                $invoiceItems,
+            InvoiceItemsTemp            $invoiceItemsTemp,
+            DirectRecruitmentExpenses   $directRecruitmentExpenses,
+            EContractExpenses           $eContractExpenses,
+            TotalManagementExpenses     $totalManagementExpenses,
+            XeroSettings                $xeroSettings,
+            ValidationServices          $validationServices,
+            AuthServices                $authServices,
+            Storage                     $storage
     )
     {
         $this->invoice = $invoice;
         $this->invoiceItems = $invoiceItems;
+        $this->invoiceItemsTemp = $invoiceItemsTemp;
         $this->xeroSettings = $xeroSettings;
+        $this->directRecruitmentExpenses = $directRecruitmentExpenses;
+        $this->eContractExpenses = $eContractExpenses;
+        $this->totalManagementExpenses = $totalManagementExpenses;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
@@ -89,8 +121,6 @@ class InvoiceServices
             'issue_date' => ((isset($request['issue_date']) && !empty($request['issue_date'])) ? $request['issue_date'] : null),
             'due_date' => ((isset($request['due_date']) && !empty($request['due_date'])) ? $request['due_date'] : null),
             'reference_number' => $request['reference_number'] ?? '',
-            'account' => $request['account'] ?? '',
-            'tax' => $request['tax'] ?? '',
             'amount' => $request['amount'] ?? '',
             'created_by'    => $params['created_by'] ?? 0,
             'modified_by'   => $params['created_by'] ?? 0
@@ -115,6 +145,8 @@ class InvoiceServices
                     "description" => $item->description,
                     "quantity" => $item->quantity,
                     "price" => $item->price,
+                    "account" => $item->account,
+                    "tax" => $item->tax_rate,
                     "total_price" => $item->total_price
                 ]);
 
@@ -136,6 +168,28 @@ class InvoiceServices
         $invoiceData->invoice_number = $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'];
         $invoiceData->invoice_status = $generateInvoiceXero->original['Invoices'][0]['Status'];
         $invoiceData->save();
+
+        if(isset($generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'])){
+            // Delete from temporary table
+            $this->invoiceItemsTemp->where('created_by', $user['id'])->delete();
+
+            foreach($lineItems as $item){
+                if($item->service_id == 1){
+                    $this->directRecruitmentExpenses->where('id', $item->expense_id)->update([
+                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
+                    ]);
+                } else if($item->service_id == 2){
+                    $this->eContractExpenses->where('id', $item->expense_id)->update([
+                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
+                    ]);
+                }
+                else if($item->service_id == 3){
+                    $this->totalManagementExpenses->where('id', $item->expense_id)->update([
+                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
+                    ]);
+                }
+            }
+        }
 
         return $invoice;
     }
@@ -162,8 +216,6 @@ class InvoiceServices
         $invoice->issue_date = ((isset($request['issue_date']) && !empty($request['issue_date'])) ? $request['issue_date'] : $invoice->issue_date);
         $invoice->due_date = ((isset($request['due_date']) && !empty($request['due_date'])) ? $request['due_date'] : $invoice->due_date);
         $invoice->reference_number = ((isset($request['reference_number']) && !empty($request['reference_number'])) ? $request['reference_number'] : $invoice->reference_number);
-        $invoice->account = $request['account'] ?? $invoice->account;
-        $invoice->tax = $request['tax'] ?? $invoice->tax;
         $invoice->amount = $request['amount'] ?? $invoice->amount;
         $invoice->created_by = $request['created_by'] ?? $invoice->created_by;
         $invoice->modified_by = $params['modified_by'];
@@ -180,6 +232,8 @@ class InvoiceServices
                     "description" => $item->description,
                     "quantity" => $item->quantity,
                     "price" => $item->price,
+                    "account" => $item->account,
+                    "tax" => $item->tax_rate,
                     "total_price" => $item->total_price
                 ]); 
             }

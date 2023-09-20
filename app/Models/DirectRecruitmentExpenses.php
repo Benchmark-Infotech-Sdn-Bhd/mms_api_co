@@ -22,7 +22,7 @@ class DirectRecruitmentExpenses extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['application_id','title','payment_reference_number','payment_date','amount','remarks','created_by','modified_by'];
+    protected $fillable = ['application_id','title','payment_reference_number','payment_date','amount','remarks','created_by','modified_by','invoice_number'];
    
     /**
      * The attributes that are required.
