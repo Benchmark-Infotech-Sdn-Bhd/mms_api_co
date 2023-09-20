@@ -635,7 +635,7 @@ class WorkersServices
                 ];
             }
         }
-        return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+        $data = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->leftjoin('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
         ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'workers.crm_prospect_id')
         ->leftJoin('worker_employment', function ($join) {
@@ -646,12 +646,8 @@ class WorkersServices
         ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
         ->where(function ($query) use ($request) {
-            if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || $request['crm_prospect_id'] == 0) {
+            if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
                 $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
-            }
-            if(isset($request['status']) && !empty($request['status'])) {
-                $query->where('workers.total_management_status', $request['status'])
-                ->orWhere('workers.econtract_status', $request['status']);
             }
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('workers.name', 'like', "%{$request['search_param']}%")
@@ -667,10 +663,16 @@ class WorkersServices
         ELSE null END) as project_location,
 		(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
 		WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
-		ELSE 'On-Bench' END) as status")
-        ->distinct('workers.id')
+		ELSE 'On-Bench' END) as status");
+        if(isset($request['status']) && !empty($request['status'])) {
+            $data = $data->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
+		WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
+		ELSE 'On-Bench' END) = '".$request['status']."'");
+        }
+        $data = $data->distinct('workers.id')
         ->orderBy('workers.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
+        return $data;
     }
 
     /**
