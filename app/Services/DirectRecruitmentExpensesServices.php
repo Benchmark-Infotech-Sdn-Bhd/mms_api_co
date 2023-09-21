@@ -181,14 +181,20 @@ class DirectRecruitmentExpensesServices
         }
         return $this->directRecruitmentExpenses
         ->leftJoin('directrecruitment_expenses_attachments', 'directrecruitment_expenses.id', '=', 'directrecruitment_expenses_attachments.file_id')
+        ->LeftJoin('invoice_items_temp', function($join) use ($request){
+            $join->on('invoice_items_temp.expense_id', '=', 'directrecruitment_expenses.id')
+            ->where('invoice_items_temp.service_id', '=', 1)
+            ->WhereNull('invoice_items_temp.deleted_at');
+          })
         ->where('directrecruitment_expenses.application_id', $request['application_id'])
+        ->whereNull('directrecruitment_expenses_attachments.deleted_at')
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('directrecruitment_expenses.title', 'like', "%{$request['search_param']}%")
                 ->orWhere('directrecruitment_expenses.payment_reference_number', 'like', '%'.$request['search_param'].'%');
             }
             
-        })->select('directrecruitment_expenses.id','directrecruitment_expenses.application_id','directrecruitment_expenses.title','directrecruitment_expenses.payment_reference_number','directrecruitment_expenses.payment_date','directrecruitment_expenses.amount','directrecruitment_expenses.remarks','directrecruitment_expenses_attachments.file_name','directrecruitment_expenses_attachments.file_url','directrecruitment_expenses.created_at','directrecruitment_expenses.invoice_number')
+        })->select('directrecruitment_expenses.id','directrecruitment_expenses.application_id','directrecruitment_expenses.title','directrecruitment_expenses.payment_reference_number','directrecruitment_expenses.payment_date','directrecruitment_expenses.amount','directrecruitment_expenses.remarks','directrecruitment_expenses_attachments.file_name','directrecruitment_expenses_attachments.file_url','directrecruitment_expenses.created_at','directrecruitment_expenses.invoice_number',\DB::raw('IF(invoice_items_temp.id is NULL, NULL, 1) as expense_flag'))
         ->distinct()
         ->orderBy('directrecruitment_expenses.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));

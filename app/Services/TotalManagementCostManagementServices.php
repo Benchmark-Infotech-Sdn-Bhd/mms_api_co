@@ -171,13 +171,18 @@ class TotalManagementCostManagementServices
             $join->on('total_management_cost_management.id', '=', 'total_management_cost_management_attachments.file_id')
             ->whereNull('total_management_cost_management_attachments.deleted_at');
           })
+        ->LeftJoin('invoice_items_temp', function($join) use ($request){
+            $join->on('invoice_items_temp.expense_id', '=', 'total_management_cost_management.id')
+            ->where('invoice_items_temp.service_id', '=', 3)
+            ->WhereNull('invoice_items_temp.deleted_at');
+          })
         ->where('total_management_cost_management.application_id', $request['application_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('total_management_cost_management.title', 'like', "%{$request['search_param']}%")
                 ->orWhere('total_management_cost_management.payment_reference_number', 'like', '%'.$request['search_param'].'%');
             }            
-        })->select('total_management_cost_management.id','total_management_cost_management.application_id','total_management_cost_management.title','total_management_cost_management.payment_reference_number','total_management_cost_management.payment_date','total_management_cost_management.quantity','total_management_cost_management.amount','total_management_cost_management.remarks','total_management_cost_management_attachments.file_name','total_management_cost_management_attachments.file_url','total_management_cost_management.created_at')
+        })->select('total_management_cost_management.id','total_management_cost_management.application_id','total_management_cost_management.title','total_management_cost_management.payment_reference_number','total_management_cost_management.payment_date','total_management_cost_management.quantity','total_management_cost_management.amount','total_management_cost_management.remarks','total_management_cost_management_attachments.file_name','total_management_cost_management_attachments.file_url','total_management_cost_management.created_at','total_management_cost_management.invoice_number',\DB::raw('IF(invoice_items_temp.id is NULL, NULL, 1) as expense_flag'))
         ->distinct()
         ->orderBy('total_management_cost_management.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
