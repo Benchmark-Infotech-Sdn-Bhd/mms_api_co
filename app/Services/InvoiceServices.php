@@ -7,8 +7,8 @@ use App\Models\InvoiceItems;
 use App\Models\InvoiceItemsTemp;
 use App\Models\XeroSettings;
 use App\Models\DirectRecruitmentExpenses;
-use App\Models\EContractExpenses;
-use App\Models\TotalManagementExpenses;
+use App\Models\EContractCostManagement;
+use App\Models\TotalManagementCostManagement;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -45,13 +45,13 @@ class InvoiceServices
      */
     private DirectRecruitmentExpenses $directRecruitmentExpenses;
     /**
-     * @var EContractExpenses
+     * @var EContractCostManagement
      */
-    private EContractExpenses $eContractExpenses;
+    private EContractCostManagement $eContractCostManagement;
     /**
-     * @var TotalManagementExpenses
+     * @var TotalManagementCostManagement
      */
-    private TotalManagementExpenses $totalManagementExpenses;
+    private TotalManagementCostManagement $totalManagementCostManagement;
     /**
      * @var ValidationServices
      */
@@ -70,8 +70,8 @@ class InvoiceServices
      * @param InvoiceItems $invoiceItems
      * @param InvoiceItemsTemp $invoiceItemsTemp
      * @param DirectRecruitmentExpenses $directRecruitmentExpenses
-     * @param EContractExpenses $eContractExpenses
-     * @param TotalManagementExpenses $totalManagementExpenses
+     * @param EContractCostManagement $eContractCostManagement
+     * @param TotalManagementCostManagement $totalManagementCostManagement
      * @param XeroSettings $xeroSettings
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
@@ -82,8 +82,8 @@ class InvoiceServices
             InvoiceItems                $invoiceItems,
             InvoiceItemsTemp            $invoiceItemsTemp,
             DirectRecruitmentExpenses   $directRecruitmentExpenses,
-            EContractExpenses           $eContractExpenses,
-            TotalManagementExpenses     $totalManagementExpenses,
+            EContractCostManagement     $eContractCostManagement,
+            TotalManagementCostManagement $totalManagementCostManagement,
             XeroSettings                $xeroSettings,
             ValidationServices          $validationServices,
             AuthServices                $authServices,
@@ -95,8 +95,8 @@ class InvoiceServices
         $this->invoiceItemsTemp = $invoiceItemsTemp;
         $this->xeroSettings = $xeroSettings;
         $this->directRecruitmentExpenses = $directRecruitmentExpenses;
-        $this->eContractExpenses = $eContractExpenses;
-        $this->totalManagementExpenses = $totalManagementExpenses;
+        $this->eContractCostManagement = $eContractCostManagement;
+        $this->totalManagementCostManagement = $totalManagementCostManagement;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
@@ -179,12 +179,12 @@ class InvoiceServices
                           'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
                     ]);
                 } else if($item->service_id == 2){
-                    $this->eContractExpenses->where('id', $item->expense_id)->update([
+                    $this->eContractCostManagement->where('id', $item->expense_id)->update([
                           'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
                     ]);
                 }
                 else if($item->service_id == 3){
-                    $this->totalManagementExpenses->where('id', $item->expense_id)->update([
+                    $this->totalManagementCostManagement->where('id', $item->expense_id)->update([
                           'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
                     ]);
                 }
