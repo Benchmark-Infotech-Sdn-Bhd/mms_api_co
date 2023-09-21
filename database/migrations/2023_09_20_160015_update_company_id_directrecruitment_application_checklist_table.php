@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('document_checklist', function (Blueprint $table) {
+        Schema::table('directrecruitment_application_checklist', function (Blueprint $table) {
             // Column for company id
             $table->bigInteger('company_id')->unsigned();
 

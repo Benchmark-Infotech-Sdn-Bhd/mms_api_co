@@ -49,6 +49,7 @@ class RolesServices
     public function list($request): mixed
     {
         return $this->role
+            ->whereIn('company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('role_name', 'like', '%'.$request['search'].'%');
@@ -85,7 +86,8 @@ class RolesServices
             'status'        => $request['status'] ?? 1,
             'parent_id'     => $request['parent_id'] ?? 0,
             'created_by'    => $request['created_by'] ?? 0,
-            'modified_by'   => $request['created_by'] ?? 0
+            'modified_by'   => $request['created_by'] ?? 0,
+            'company_id'   => $request['company_id'] ?? 0
         ]);
         return true;
     }
@@ -116,11 +118,13 @@ class RolesServices
     }
 
     /**
+     * @param $companyId
      * @return mixed
      */
-    public function dropDown(): mixed
+    public function dropDown($companyId): mixed
     {
         return $this->role->where('status', 1)
+            ->whereIn('company_id', $companyId)
             ->select('id', 'role_name')
             ->get();
     }

@@ -32,6 +32,7 @@ class FomemaClinics extends Model implements Auditable
         'postcode',
         'created_by',
         'modified_by',
+        'company_id'
     ];
     /**
      * The attributes that are required.

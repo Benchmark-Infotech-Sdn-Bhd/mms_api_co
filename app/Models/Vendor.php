@@ -37,6 +37,7 @@ class Vendor extends Model implements Auditable
         'remarks',
         'created_by',
         'modified_by',
+        'company_id'
     ];
     /**
      * The attributes that are required.

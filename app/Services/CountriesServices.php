@@ -45,7 +45,8 @@ class CountriesServices
             'bond' => (int)$request['bond'] ?? 0,
             'created_by'    => $request['created_by'] ?? 0,
             'modified_by'   => $request['created_by'] ?? 0,
-            'status' => 1
+            'status' => 1,
+            'company_id' => $request['company_id'] ?? 0
         ]);
     }
     /**
@@ -118,11 +119,16 @@ class CountriesServices
         return $this->countries->findOrFail($request['id']);
     }
     /**
+     * @param $companyId
      * @return mixed
      */
-    public function dropdown() : mixed
+    public function dropdown($companyId) : mixed
     {
-        return $this->countries->where('status', 1)->select('id','country_name')->orderBy('countries.created_at','DESC')->get();
+        return $this->countries->where('status', 1)
+                ->whereIn('company_id', $companyId)
+                ->select('id','country_name')
+                ->orderBy('countries.created_at','DESC')
+                ->get();
     }
     /**
      * @param $request
@@ -161,7 +167,8 @@ class CountriesServices
                 ];
             }
         }
-        return $this->countries->where(function ($query) use ($request) {
+        return $this->countries->whereIn('company_id', $request['company_id'])
+        ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('country_name', 'like', "%{$request['search_param']}%");
             }

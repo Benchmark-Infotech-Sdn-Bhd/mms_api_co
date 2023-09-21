@@ -74,6 +74,7 @@ class VendorServices
             'postcode' => $input["postcode"],
             'remarks' => $input["remarks"],
             'created_by' => $user['id'],
+            'company_id' => $user['company_id'] ?? 0
         ]);   
         $vendorDataId = $vendorData->id;
         if (request()->hasFile('attachment')){
@@ -102,6 +103,7 @@ class VendorServices
     public function list($request)
     {
         return $this->vendor::with('accommodations', 'insurances', 'transportations')
+        ->whereIn('company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('name', 'like', '%' . $request['search_param'] . '%')
@@ -221,6 +223,7 @@ class VendorServices
     public function insuranceVendorList($request)
     {
         return $this->vendor::where('type', 'Insurance')
+        ->whereIn('company_id', $request['company_id'])
         ->select('id', 'name', 'type')
         ->orderBy('vendors.created_at','DESC')
         ->get();
@@ -234,6 +237,7 @@ class VendorServices
     public function transportationVendorList($request)
     {
         return $this->vendor::where('type', 'Transportation')
+        ->whereIn('company_id', $request['company_id'])
         ->select('id', 'name')
         ->orderBy('vendors.id','DESC')
         ->get();

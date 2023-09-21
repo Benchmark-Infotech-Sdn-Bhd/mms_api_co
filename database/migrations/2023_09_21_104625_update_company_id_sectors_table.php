@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('insurance', function (Blueprint $table) {
+        Schema::table('sectors', function (Blueprint $table) {
             // Column for company id
             $table->bigInteger('company_id')->unsigned();
 

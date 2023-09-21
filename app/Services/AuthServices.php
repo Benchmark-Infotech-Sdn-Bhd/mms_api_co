@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserRoleType;
+use App\Models\Company;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Services\EmailServices;
@@ -29,18 +30,24 @@ class AuthServices extends Controller
      */
     private $passwordResets;
     /**
+     * @var Company
+     */
+    private $company;
+    /**
      * AuthServices constructor.
      * @param User $user
      * @param UserRoleType $uesrRoleType
      * @param EmailServices $emailServices
      * @param PasswordResets $passwordResets
+     * @param Company $company
      */
-    public function __construct(User $user, UserRoleType $uesrRoleType, EmailServices $emailServices, PasswordResets $passwordResets)
+    public function __construct(User $user, UserRoleType $uesrRoleType, EmailServices $emailServices, PasswordResets $passwordResets, Company $company)
     {
         $this->user = $user;
         $this->uesrRoleType = $uesrRoleType;
         $this->emailServices = $emailServices;
         $this->passwordResets = $passwordResets;
+        $this->company = $company;
     }
 
     /**
@@ -104,7 +111,8 @@ class AuthServices extends Controller
             'created_by' => $request['user_id'],
             'modified_by' => $request['user_id'],
             'user_type' => $request['user_type'] ?? '',
-            'reference_id' => $request['reference_id'] ?? 0
+            'reference_id' => $request['reference_id'] ?? 0,
+            'company_id' => $request['company_id'] ?? 0
         ]);
         if($request['user_type'] != 'Admin') {
             $this->uesrRoleType->create([
@@ -248,5 +256,23 @@ class AuthServices extends Controller
         } else {
             return false;
         }
+    }
+    /**
+     * @param $user
+     * @return array
+     */
+    public function getCompanyIds($user): array
+    {
+        $companyDetails = $this->company->findOrFail($user['company_id']);
+        $companyIds = [];
+        if($companyDetails->parent_id == 0) {
+            $companyIds = $this->company->where('parent_id', $user['company_id'])
+                            ->select('id')
+                            ->get()
+                            ->toArray();
+            $companyIds = array_column($companyIds, 'id');
+        }
+        array_push($companyIds, $user['company_id']);
+        return $companyIds;
     }
 }

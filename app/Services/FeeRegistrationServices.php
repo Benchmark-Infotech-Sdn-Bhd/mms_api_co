@@ -83,6 +83,7 @@ class FeeRegistrationServices
             'cost' => $request["cost"],
             'fee_type' => $request["fee_type"],
             'created_by' => $request["created_by"],
+            'company_id' => $user['company_id']
         ]);
         $feeRegistrationId = $feeRegistrationData->id;
         foreach ($request['applicable_for'] as $serviceType) {
@@ -118,6 +119,7 @@ class FeeRegistrationServices
     public function list($request)
     {
         return $this->feeRegistration::with('feeRegistrationServices', 'feeRegistrationSectors')
+        ->whereIn('company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('item_name', 'like', '%' . $request['search_param'] . '%')

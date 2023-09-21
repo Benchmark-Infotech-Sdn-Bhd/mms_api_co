@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('fee_registration_services', function (Blueprint $table) {
+        Schema::table('roles', function (Blueprint $table) {
             // Column for company id
             $table->bigInteger('company_id')->unsigned();
 

@@ -168,9 +168,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('delete', 'V1\VendorController@delete');
             $router->post('show', 'V1\VendorController@show');
             $router->post('list', 'V1\VendorController@list');
-            $router->post('search', 'V1\VendorController@search');
             $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
-            $router->post('filter', 'V1\VendorController@filter');
             $router->post('insuranceVendorList', 'V1\VendorController@insuranceVendorList');
             $router->post('transportationVendorList', 'V1\VendorController@transportationVendorList');
         });
@@ -183,7 +181,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('delete', 'V1\FomemaClinicsController@delete');
             $router->post('show', 'V1\FomemaClinicsController@show');
             $router->post('list', 'V1\FomemaClinicsController@list');
-            $router->post('search', 'V1\FomemaClinicsController@search');
         });
         /**
          * Routes for Fee Registration.

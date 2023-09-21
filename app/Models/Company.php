@@ -22,7 +22,7 @@ class Company extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['company_name', 'register_number', 'country', 'state', 'pic_name', 'role', 'status', 'created_by', 'modified_by'];
+    protected $fillable = ['company_name', 'register_number', 'country', 'state', 'pic_name', 'role', 'status', 'parent_id', 'created_by', 'modified_by'];
     /**
      * The attributes that are required.
      *
