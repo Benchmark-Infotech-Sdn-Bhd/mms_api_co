@@ -724,6 +724,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('create', 'V1\InvoiceItemsTempController@create');
             $router->post('update', 'V1\InvoiceItemsTempController@update');
             $router->post('delete', 'V1\InvoiceItemsTempController@delete');
+            $router->post('deleteAll', 'V1\InvoiceItemsTempController@deleteAll');
         });
 
     });

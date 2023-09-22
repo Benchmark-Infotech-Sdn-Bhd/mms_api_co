@@ -130,5 +130,23 @@ class InvoiceItemsTempController extends Controller
             $data['error'] = 'Retrieve failed. Please retry.';
             return $this->sendError(['message' => $data['error']]);
         }
-    }      
+    }
+
+    /**
+     * Search & Retrieve all the Invoice.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteAll(): JsonResponse
+    {
+        try {
+            $data = $this->invoiceItemsTempServices->deleteAll();
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
 }

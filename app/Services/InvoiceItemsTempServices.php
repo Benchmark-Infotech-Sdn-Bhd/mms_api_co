@@ -180,4 +180,28 @@ class InvoiceItemsTempServices
         ];
     }
 
+    /**
+     * delete all the data for the login user when use back button from invoice without submitting.
+     *
+     * @param $request
+     * @return mixed
+     */    
+    public function deleteAll(): mixed
+    {   
+        $user = JWTAuth::parseToken()->authenticate();
+        $invoiceItemsTemp = $this->invoiceItemsTemp->where('created_by', $user['id'])->count();
+        
+        if(isset($invoiceItemsTemp) && ($invoiceItemsTemp == 0)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        $this->invoiceItemsTemp->where('created_by', $user['id'])->delete();
+        return [
+            "isDeleted" => true,
+            "message" => "Deleted Successfully"
+        ];
+    }
+
 }
