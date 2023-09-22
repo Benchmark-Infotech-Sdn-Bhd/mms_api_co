@@ -31,8 +31,8 @@ class Invoice extends Model implements Auditable
      */
     public $rules = [
         'crm_prospect_id' => 'required|regex:/^[0-9]+$/',
-        'issue_date' => 'required|date_format:Y-m-d|before:tomorrow',
-        'due_date' => 'required|date_format:Y-m-d|before:tomorrow',
+        'issue_date' => 'required|date_format:Y-m-d',
+        'due_date' => 'required|date_format:Y-m-d',
         'reference_number' => 'required|regex:/^[a-zA-Z0-9-]*$/',
         'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/'
     ];
