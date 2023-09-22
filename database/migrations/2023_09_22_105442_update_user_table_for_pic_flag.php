@@ -11,12 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('branch_services', function (Blueprint $table) {
-            // Column for company id
-            $table->bigInteger('company_id')->unsigned();
-
-            // Foreign key from user table
-            $table->foreign('company_id')->references('id')->on('company')->onDelete('cascade');
+        Schema::table('users', function (Blueprint $table) {
+            // Column for pic flag
+            $table->tinyInteger('pic_flag')->default(0)->unsigned();
         });
     }
 

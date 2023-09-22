@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\CompanyServices;
+use App\Services\AuthServices;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class CompanyController extends Controller
      * @var CompanyServices
      */
     private CompanyServices $companyServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * CompanyController constructor
      * @param CompanyServices $companyServices
+     * @param AuthServices $authServices
      */
-    public function __construct(CompanyServices $companyServices)
+    public function __construct(CompanyServices $companyServices, AuthServices $authServices)
     {
         $this->companyServices = $companyServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display the list of Companies
@@ -35,6 +42,8 @@ class CompanyController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->companyServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -123,6 +132,42 @@ class CompanyController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to update Company Status'], 400);
+        }
+    }
+    /**
+     * Display the list of Companies
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function subsidiaryDropDown(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->subsidiaryDropDown($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
+    /**
+     * Update a Company status
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function assignSubsidiary(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $response = $this->companyServices->assignSubsidiary($params);
+            return $this->sendSuccess(['message' => 'Subsidiary Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update Subsidiary'], 400);
         }
     }
 }

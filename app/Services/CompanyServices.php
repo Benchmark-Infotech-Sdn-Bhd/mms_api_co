@@ -29,12 +29,13 @@ class CompanyServices
     public function list($request): mixed
     {
         return $this->company
+            ->whereIn('id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 $query->where('company_name', 'like', '%'.$request['search'].'%')
                 ->orWhere('register_number', 'like', '%'.$request['search'].'%')
                 ->orWhere('pic_name', 'like', '%'.$request['search'].'%');
             })
-            ->select('id', 'company_name', 'register_number', 'country', 'state', 'pic_name', 'status')
+            ->select('id', 'company_name', 'register_number', 'country', 'state', 'pic_name', 'status', 'parent_id')
             ->orderBy('id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
@@ -66,6 +67,7 @@ class CompanyServices
             'pic_name' => $request['pic_name'] ?? '',
             'role' => $request['role'] ?? 'Admin',
             'status' => $request['status'] ?? 1,
+            'parent_id' => $request['parent_id'] ?? 0,
             'created_by' => $request['created_by'] ?? 0,
             'modified_by' => $request['created_by'] ?? 0
         ]);
@@ -105,5 +107,29 @@ class CompanyServices
         $company->modified_by = $request['modified_by'] ?? $company->modified_by;
         $company->save();
         return true;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function subsidiaryDropDown($request): mixed
+    {
+        return $this->company
+            ->where('parent_id', 0)
+            ->where('id', '!=', $request['current_company_id'])
+            ->select('id', 'company_name')
+            ->get();
+    }
+    /**
+     * @param $request
+     * @return bool
+     */
+    public function assignSubsidiary($request): bool
+    {
+        return $this->company->whereIn('id', $request['subsidiary_company'])
+        ->update([
+            'parent_id' => $request['parent_company_id'],
+            'modified_by' => $request['modified_by']
+        ]);
     }
 }
