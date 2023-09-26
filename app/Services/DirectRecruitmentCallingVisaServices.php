@@ -253,6 +253,7 @@ class DirectRecruitmentCallingVisaServices
                 'directrecruitment_workers.application_id' => $request['application_id'],
                 'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id']
             ])
+            ->whereNull('workers.replace_worker_id')
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
@@ -271,7 +272,7 @@ class DirectRecruitmentCallingVisaServices
                 ->orderBy('workers.id', 'desc')
                 ->get();
             }else{
-                $data = $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'workers.cancel_status')->distinct('workers.id')
+                $data = $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'workers.cancel_status')->selectRaw("(CASE WHEN workers.cancel_status = 1 THEN 'Cancelled' ELSE '' END) AS status")->distinct('workers.id')
                 ->orderBy('workers.id', 'desc')
                 ->paginate(Config::get('services.paginate_row'));
             }
