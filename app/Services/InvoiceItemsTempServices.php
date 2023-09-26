@@ -52,19 +52,35 @@ class InvoiceItemsTempServices
               'validate' => $this->validationServices->errors()
             ];
         }*/
+
+        $invoiceItemsTempCount = $this->invoiceItemsTemp->where('created_by', $user['id'])->count(); 
+        
+        if(isset($invoiceItemsTempCount) && ($invoiceItemsTempCount != 0)){
+
+            $invoiceItemsTempChk = $this->invoiceItemsTemp->where('crm_prospect_id', $request['crm_prospect_id'])->where('service_id', $request['service_id'])->where('created_by', $user['id'])->count();
+
+            if(isset($invoiceItemsTempChk) && ($invoiceItemsTempChk != $invoiceItemsTempCount)){
+                return [
+                    "isExists" => false,
+                    "message" => "Please complete the Pending Invoice before raising a new one. Proceed to Pending Invoice?"
+                ];
+            }
+        }
+
         $lineItems = json_decode($request['invoice_items']);
         foreach($lineItems as $item){
             $invoiceItemsTemp = $this->invoiceItemsTemp::create([
+                'crm_prospect_id' => $request['crm_prospect_id'],
                 'service_id' => $request['service_id'],
                 'expense_id' => $item->expense_id,
                 'invoice_number' => $request['invoice_number'],
                 'item' => $item->item ?? '',
                 'description' => $item->description ?? '',
                 'quantity' => $item->quantity ?? '',
-                'price' => $item->price ?? '',
+                'price' => $item->price ?? 0,
                 'account' => $item->account ?? '',
-                'tax_rate' => $item->tax_rate ?? '',
-                'total_price' => $item->total_price ?? '',
+                'tax_rate' => $item->tax_rate ?? 0,
+                'total_price' => $item->total_price ?? 0,
                 'created_by'    => $user['id'],
                 'modified_by'   => $user['id']
             ]);
@@ -89,6 +105,15 @@ class InvoiceItemsTempServices
         }*/
 
         $invoiceItemsTemp = $this->invoiceItemsTemp->findOrFail($request['id']);
+
+        if(($invoiceItemsTemp->crm_prospect_id != $request['crm_prospect_id']) || ($invoiceItemsTemp->service_id != $request['service_id'])){
+            return [
+                "isExists" => false,
+                "message" => "Please complete the Pending Invoice before raising a new one. Proceed to Pending Invoice?"
+            ];
+        }
+
+        $invoiceItemsTemp->crm_prospect_id = $request['crm_prospect_id'] ?? $invoiceItemsTemp->crm_prospect_id;
         $invoiceItemsTemp->service_id = $request['service_id'] ?? $invoiceItemsTemp->service_id;
         $invoiceItemsTemp->expense_id = $request['expense_id'] ?? $invoiceItemsTemp->expense_id;
         $invoiceItemsTemp->invoice_number = $request['invoice_number'] ?? $invoiceItemsTemp->invoice_number;
@@ -118,7 +143,9 @@ class InvoiceItemsTempServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $data = $this->invoiceItemsTemp->find($request['id']);
+        $data = $this->invoiceItemsTemp->with(['crm_prospect' => function ($query) {
+                $query->select(['id', 'company_name']);
+            }])->find($request['id']);
 
         if(is_null($data)){
             return [
@@ -145,13 +172,16 @@ class InvoiceItemsTempServices
             }
         }
         return $this->invoiceItemsTemp
+        ->with(['crm_prospect' => function ($query) {
+                $query->select(['id', 'company_name']);
+            }])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('item', 'like', "%{$request['search_param']}%")
                 ->orWhere('description', 'like', '%'.$request['search_param'].'%');
             }            
         })
-        ->where('created_by',$user['id'])->select('id','service_id','expense_id','invoice_number','item','description','quantity','price','account','tax_rate','total_price','created_by','modified_by')
+        ->where('created_by',$user['id'])->select('id','crm_prospect_id','service_id','expense_id','invoice_number','item','description','quantity','price','account','tax_rate','total_price','created_by','modified_by')
         ->distinct()
         ->orderBy('created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));

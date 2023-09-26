@@ -37,6 +37,8 @@ class InvoiceItemsTempController extends Controller
             $data = $this->invoiceItemsTempServices->create($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['isExists'])) {
+                return $this->sendError(['message' => $data['message']], 422);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -59,6 +61,8 @@ class InvoiceItemsTempController extends Controller
             $data = $this->invoiceItemsTempServices->update($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['isExists'])) {
+                return $this->sendError(['message' => $data['message']], 422);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {

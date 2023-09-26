@@ -121,8 +121,8 @@ class InvoiceServices
             'issue_date' => ((isset($request['issue_date']) && !empty($request['issue_date'])) ? $request['issue_date'] : null),
             'due_date' => ((isset($request['due_date']) && !empty($request['due_date'])) ? $request['due_date'] : null),
             'reference_number' => $request['reference_number'] ?? '',
-            'tax' => $request['tax'] ?? '',
-            'amount' => $request['amount'] ?? '',
+            'tax' => $request['tax'] ?? 0,
+            'amount' => $request['amount'] ?? 0,
             'created_by'    => $params['created_by'] ?? 0,
             'modified_by'   => $params['created_by'] ?? 0
         ]);
@@ -158,7 +158,7 @@ class InvoiceServices
                 $generateInvoice['LineItems'][$increment]->Quantity = $item->quantity;
                 $generateInvoice['LineItems'][$increment]->UnitAmount = $item->price;
                 $generateInvoice['LineItems'][$increment]->AccountCode = $item->account ?? '';
-                $generateInvoice['LineItems'][$increment]->DiscountRate = $item->tax_rate ?? '';
+                $generateInvoice['LineItems'][$increment]->DiscountRate = $item->tax_rate ?? 0;
                 $increment++;
             }
         }
