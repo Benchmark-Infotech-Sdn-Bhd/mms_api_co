@@ -255,9 +255,13 @@ class TotalManagementWorkerServices
                             ->where('total_management_status', 'Assigned')
                             ->count('id');
 
-        $fomNextWorkersCount = $this->workers->where('crm_prospect_id', 0)
-                            ->where('total_management_status', 'Assigned')
-                            ->count('id');
+        $fomNextWorkersCount = $this->workers
+        ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
+        ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
+        ->where('total_management_project.application_id', $request['application_id'])
+        ->where('workers.crm_prospect_id', 0)
+        ->where('workers.total_management_status', 'Assigned')
+        ->distinct('workers.id')->count('workers.id');
 
         if($serviceDetails->from_existing == 0) {
             return [
