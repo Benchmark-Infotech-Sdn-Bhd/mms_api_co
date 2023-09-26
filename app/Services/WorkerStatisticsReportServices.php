@@ -67,7 +67,7 @@ class WorkerStatisticsReportServices
         });
 
         if(isset($request['export']) && !empty($request['export']) ){
-            $data = $data->select('crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospect_services.sector_name', 'levy.ksm_reference_number', 'levy.approved_quota', 'levy.new_ksm_reference_number')
+            $data = $data->select('crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospect_services.sector_name', 'levy.approved_quota', 'levy.new_ksm_reference_number')
             ->selectRaw("SUM(CASE WHEN worker_visa.status = 'Processed' THEN 1 ELSE 0 END) AS calling_visa_submitted, SUM(CASE WHEN worker_visa.status = 'Pending' THEN 1 ELSE 0 END) AS calling_visa_pending, SUM(CASE WHEN worker_arrival.arrival_status = 'Not Arrived' THEN 1 ELSE 0 END) AS arrival_status_notarrived, SUM(CASE WHEN worker_arrival.arrival_status = 'Arrived' THEN 1 ELSE 0 END) AS arrival_status_arrived, SUM(CASE WHEN worker_arrival.arrival_status = 'Cancelled' THEN 1 ELSE 0 END) AS arrival_status_cancelled, SUM(CASE WHEN workers.plks_status = 'Pending' THEN 1 ELSE 0 END) AS plks_status_pending, SUM(CASE WHEN workers.plks_status = 'Approved' THEN 1 ELSE 0 END) AS plks_status_approved, SUM(CASE WHEN workers.directrecruitment_status = 'Repatriated' THEN 1 ELSE 0 END) AS workers_status_repatriated")
             ->groupBy('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospect_services.sector_name', 'levy.ksm_reference_number', 'levy.approved_quota', 'levy.new_ksm_reference_number')
             ->orderBy('crm_prospects.id','DESC')

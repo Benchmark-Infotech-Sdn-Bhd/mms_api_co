@@ -156,6 +156,7 @@ class TotalManagementWorkerServices
         }
         $request['company_ids'] = array($request['prospect_id'], 0);
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->where('workers.econtract_status', 'On-Bench')
             ->where('workers.total_management_status', 'On-Bench')
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {

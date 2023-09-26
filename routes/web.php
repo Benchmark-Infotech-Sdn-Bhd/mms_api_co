@@ -664,6 +664,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('listTimesheet', 'V1\EContractPayrollController@listTimesheet');
                 $router->post('uploadTimesheet', 'V1\EContractPayrollController@uploadTimesheet');
                 $router->post('viewTimesheet', 'V1\EContractPayrollController@viewTimesheet');
+                $router->post('authorizePayroll', 'V1\EContractPayrollController@authorizePayroll');
             });
         });
 
@@ -699,6 +700,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             });
         });
 
+        $router->group(['prefix' => 'dashboard'], function () use ($router) {
+            $router->post('list', 'V1\DashboardController@list');
+        });
+
         /**
         * Routes for Application Summary.
         */
@@ -712,6 +717,18 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('getAccounts', 'V1\InvoiceController@getAccounts');
             $router->post('getInvoices', 'V1\InvoiceController@getInvoices');
             $router->post('getAccessToken', 'V1\InvoiceController@getAccessToken');
+        });
+
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'invoiceItemsTemp'], function () use ($router) {
+            $router->post('list', 'V1\InvoiceItemsTempController@list');
+            $router->post('show', 'V1\InvoiceItemsTempController@show');
+            $router->post('create', 'V1\InvoiceItemsTempController@create');
+            $router->post('update', 'V1\InvoiceItemsTempController@update');
+            $router->post('delete', 'V1\InvoiceItemsTempController@delete');
+            $router->post('deleteAll', 'V1\InvoiceItemsTempController@deleteAll');
         });
 
     });

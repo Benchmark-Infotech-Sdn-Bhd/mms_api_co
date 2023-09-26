@@ -196,13 +196,18 @@ class EContractCostManagementServices
             $join->on('e-contract_cost_management.id', '=', 'e-contract_cost_management_attachments.file_id')
             ->whereNull('e-contract_cost_management_attachments.deleted_at');
           })
+        ->LeftJoin('invoice_items_temp', function($join) use ($request){
+            $join->on('invoice_items_temp.expense_id', '=', 'e-contract_cost_management.id')
+            ->where('invoice_items_temp.service_id', '=', 2)
+            ->WhereNull('invoice_items_temp.deleted_at');
+          })
         ->where('e-contract_cost_management.project_id', $request['project_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('e-contract_cost_management.title', 'like', "%{$request['search_param']}%")
                 ->orWhere('e-contract_cost_management.payment_reference_number', 'like', '%'.$request['search_param'].'%');
             }            
-        })->select('e-contract_cost_management.id','e-contract_cost_management.project_id','e-contract_cost_management.title','e-contract_cost_management.payment_reference_number','e-contract_cost_management.payment_date','e-contract_cost_management.quantity','e-contract_cost_management.amount','e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management_attachments.file_name','e-contract_cost_management_attachments.file_url','e-contract_cost_management.created_at')
+        })->select('e-contract_cost_management.id','e-contract_cost_management.project_id','e-contract_cost_management.title','e-contract_cost_management.payment_reference_number','e-contract_cost_management.payment_date','e-contract_cost_management.quantity','e-contract_cost_management.amount','e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management_attachments.file_name','e-contract_cost_management_attachments.file_url','e-contract_cost_management.created_at','e-contract_cost_management.invoice_number',\DB::raw('IF(invoice_items_temp.id is NULL, NULL, 1) as expense_flag'))
         ->distinct()
         ->orderBy('e-contract_cost_management.id','DESC')
         ->paginate(Config::get('services.paginate_row'));

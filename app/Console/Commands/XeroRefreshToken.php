@@ -46,8 +46,8 @@ class XeroRefreshToken extends Command
      */
     public function handle()
     {
-        Log::info('Cron Job Started - InvoiceServices Refresh Token Generation');
+        Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Refresh Token Generation');
         $data = $this->invoiceServices->getAccessToken();
-        Log::info('Cron Job Ended - InvoiceServices Refresh Token Generation');
+        Log::channel('cron_activity_logs')->info('Cron Job Ended - InvoiceServices Refresh Token Generation');
     }
 }

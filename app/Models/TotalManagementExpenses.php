@@ -22,7 +22,7 @@ class TotalManagementExpenses extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['worker_id', 'application_id', 'project_id', 'title','type', 'payment_reference_number', 'payment_date', 'amount', 'amount_paid', 'deduction', 'remaining_amount', 'remarks', 'created_by', 'modified_by'];
+    protected $fillable = ['worker_id', 'application_id', 'project_id', 'title','type', 'payment_reference_number', 'payment_date', 'amount', 'amount_paid', 'deduction', 'remaining_amount', 'remarks', 'created_by', 'modified_by','is_payroll','payroll_id','month','year','invoice_number'];
    
     /**
      * @return HasMany

@@ -4,6 +4,11 @@ namespace App\Services;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItems;
+use App\Models\InvoiceItemsTemp;
+use App\Models\XeroSettings;
+use App\Models\DirectRecruitmentExpenses;
+use App\Models\EContractCostManagement;
+use App\Models\TotalManagementCostManagement;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -11,7 +16,6 @@ use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
-
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\JsonResponse;
@@ -29,6 +33,26 @@ class InvoiceServices
      */
     private InvoiceItems $invoiceItems;
     /**
+     * @var InvoiceItemsTemp
+     */
+    private InvoiceItemsTemp $invoiceItemsTemp;
+    /**
+     * @var XeroSettings
+     */
+    private XeroSettings $xeroSettings;
+    /**
+     * @var DirectRecruitmentExpenses
+     */
+    private DirectRecruitmentExpenses $directRecruitmentExpenses;
+    /**
+     * @var EContractCostManagement
+     */
+    private EContractCostManagement $eContractCostManagement;
+    /**
+     * @var TotalManagementCostManagement
+     */
+    private TotalManagementCostManagement $totalManagementCostManagement;
+    /**
      * @var ValidationServices
      */
     private ValidationServices $validationServices;
@@ -41,23 +65,38 @@ class InvoiceServices
      */
     private Storage $storage;
     /**
-     * DirectRecruitmentExpensesServices constructor.
-     * @param DirectRecruitmentExpenses $directRecruitmentExpenses
+     * InvoiceServices constructor.
+     * @param Invoice $Invoice
      * @param InvoiceItems $invoiceItems
+     * @param InvoiceItemsTemp $invoiceItemsTemp
+     * @param DirectRecruitmentExpenses $directRecruitmentExpenses
+     * @param EContractCostManagement $eContractCostManagement
+     * @param TotalManagementCostManagement $totalManagementCostManagement
+     * @param XeroSettings $xeroSettings
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
      */
     public function __construct(
-            Invoice                 $invoice,
-            InvoiceItems            $invoiceItems,
-            ValidationServices      $validationServices,
-            AuthServices            $authServices,
-            Storage                 $storage
+            Invoice                     $invoice,
+            InvoiceItems                $invoiceItems,
+            InvoiceItemsTemp            $invoiceItemsTemp,
+            DirectRecruitmentExpenses   $directRecruitmentExpenses,
+            EContractCostManagement     $eContractCostManagement,
+            TotalManagementCostManagement $totalManagementCostManagement,
+            XeroSettings                $xeroSettings,
+            ValidationServices          $validationServices,
+            AuthServices                $authServices,
+            Storage                     $storage
     )
     {
         $this->invoice = $invoice;
         $this->invoiceItems = $invoiceItems;
+        $this->invoiceItemsTemp = $invoiceItemsTemp;
+        $this->xeroSettings = $xeroSettings;
+        $this->directRecruitmentExpenses = $directRecruitmentExpenses;
+        $this->eContractCostManagement = $eContractCostManagement;
+        $this->totalManagementCostManagement = $totalManagementCostManagement;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
@@ -82,7 +121,6 @@ class InvoiceServices
             'issue_date' => ((isset($request['issue_date']) && !empty($request['issue_date'])) ? $request['issue_date'] : null),
             'due_date' => ((isset($request['due_date']) && !empty($request['due_date'])) ? $request['due_date'] : null),
             'reference_number' => $request['reference_number'] ?? '',
-            'account' => $request['account'] ?? '',
             'tax' => $request['tax'] ?? '',
             'amount' => $request['amount'] ?? '',
             'created_by'    => $params['created_by'] ?? 0,
@@ -108,6 +146,8 @@ class InvoiceServices
                     "description" => $item->description,
                     "quantity" => $item->quantity,
                     "price" => $item->price,
+                    "account" => $item->account,
+                    "tax" => $item->tax_rate,
                     "total_price" => $item->total_price
                 ]);
 
@@ -117,9 +157,9 @@ class InvoiceServices
                 $generateInvoice['LineItems'][$increment]->Description = $item->description;
                 $generateInvoice['LineItems'][$increment]->Quantity = $item->quantity;
                 $generateInvoice['LineItems'][$increment]->UnitAmount = $item->price;
-                $generateInvoice['LineItems'][$increment]->AccountCode = 200;
-                $generateInvoice['LineItems'][$increment]->DiscountRate = 20;
-                $increment++;                
+                $generateInvoice['LineItems'][$increment]->AccountCode = $item->account ?? '';
+                $generateInvoice['LineItems'][$increment]->DiscountRate = $item->tax_rate ?? '';
+                $increment++;
             }
         }
 
@@ -129,6 +169,28 @@ class InvoiceServices
         $invoiceData->invoice_number = $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'];
         $invoiceData->invoice_status = $generateInvoiceXero->original['Invoices'][0]['Status'];
         $invoiceData->save();
+
+        if(isset($generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'])){
+            // Delete from temporary table
+            $this->invoiceItemsTemp->where('created_by', $user['id'])->delete();
+
+            foreach($lineItems as $item){
+                if($item->service_id == 1){
+                    $this->directRecruitmentExpenses->where('id', $item->expense_id)->update([
+                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
+                    ]);
+                } else if($item->service_id == 2){
+                    $this->eContractCostManagement->where('id', $item->expense_id)->update([
+                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
+                    ]);
+                }
+                else if($item->service_id == 3){
+                    $this->totalManagementCostManagement->where('id', $item->expense_id)->update([
+                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
+                    ]);
+                }
+            }
+        }
 
         return $invoice;
     }
@@ -155,8 +217,6 @@ class InvoiceServices
         $invoice->issue_date = ((isset($request['issue_date']) && !empty($request['issue_date'])) ? $request['issue_date'] : $invoice->issue_date);
         $invoice->due_date = ((isset($request['due_date']) && !empty($request['due_date'])) ? $request['due_date'] : $invoice->due_date);
         $invoice->reference_number = ((isset($request['reference_number']) && !empty($request['reference_number'])) ? $request['reference_number'] : $invoice->reference_number);
-        $invoice->account = $request['account'] ?? $invoice->account;
-        $invoice->tax = $request['tax'] ?? $invoice->tax;
         $invoice->amount = $request['amount'] ?? $invoice->amount;
         $invoice->created_by = $request['created_by'] ?? $invoice->created_by;
         $invoice->modified_by = $params['modified_by'];
@@ -173,6 +233,8 @@ class InvoiceServices
                     "description" => $item->description,
                     "quantity" => $item->quantity,
                     "price" => $item->price,
+                    "account" => $item->account,
+                    "tax" => $item->tax_rate,
                     "total_price" => $item->total_price
                 ]); 
             }
@@ -242,10 +304,11 @@ class InvoiceServices
     public function getTaxRates($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         try {
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_TAX_RATES_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -268,10 +331,11 @@ class InvoiceServices
     public function getItems($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         try {
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ITEMS_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -294,10 +358,11 @@ class InvoiceServices
     public function getAccounts($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         try {
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ACCOUNTS_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -320,10 +385,11 @@ class InvoiceServices
     public function getInvoices($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         try {
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -346,10 +412,11 @@ class InvoiceServices
     public function generateInvoices($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         try {
             $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -379,6 +446,7 @@ class InvoiceServices
     public function createContacts($request) : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
         if(isset($request['ContactID']) && !empty($request['ContactID'])){
             $data = [
                 'ContactID'=>$request['ContactID'] ?? '',
@@ -407,7 +475,7 @@ class InvoiceServices
         try {
             $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_CONTACTS_URL'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . Config::get('services.XERO_ACCESS_TOKEN'),
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
                     'Accept' => 'application/json',
                 ],
@@ -428,6 +496,8 @@ class InvoiceServices
     public function getAccessToken() : mixed
     {
         $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
+
         try {
             $response = $http->request('POST', Config::get('services.XERO_TOKEN_URL'), [
                 'headers' => [
@@ -438,17 +508,29 @@ class InvoiceServices
                 'form_params' => [
                     'grant_type' => 'refresh_token',
                     'client_id' => Config::get('services.XERO_CLIENT_ID'),
-                    'refresh_token' => Config::get('services.XERO_REFRESH_TOKEN'),
+                    'refresh_token' => $xeroConfig['refresh_token'],
                 ],
             ]);
             $result = json_decode((string)$response->getBody(), true);
-            Config::set('services.XERO_REFRESH_TOKEN', $result['refresh_token']);
-            Config::set('services.XERO_ACCESS_TOKEN', $result['access_token']);
+
+            $xeroConfig->refresh_token = $result['refresh_token'];
+            $xeroConfig->access_token = $result['access_token'];
+            $xeroConfig->save();
+
             return response()->json($result);
         } catch (Exception $e) {
             Log::error('Exception in getting refresh token' . $e);
             return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function getXeroSettings() : mixed
+    {
+        return $this->xeroSettings->find(1);
     }
 
 }

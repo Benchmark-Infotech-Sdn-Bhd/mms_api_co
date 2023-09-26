@@ -65,6 +65,13 @@ return [
             'level' => 'debug',
             'days' => 14,
         ],
+         'cron_activity_logs' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/cron_activity_logs.log'),
+            'level' => 'debug',
+            'days' => 14,
+            'permission' => 0777,
+        ],
 
         'slack' => [
             'driver' => 'slack',

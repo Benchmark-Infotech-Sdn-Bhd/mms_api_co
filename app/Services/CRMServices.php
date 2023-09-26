@@ -111,7 +111,7 @@ class CRMServices
             'prospect_service' => 'required',
             'bank_account_name'=>'regex:/^[a-zA-Z0-9 ]*$/',
             'bank_account_number'=>'regex:/^[0-9]+$/|min:5|max:17',
-            'tax_id'=>'regex:/^[0-9]+$/|min:12|max:13',
+            'tax_id'=>'regex:/^[a-zA-Z0-9]+$/|min:12|max:13',
             'account_receivable_tax_type'=>'regex:/^[a-zA-Z0-9 ]*$/',
             'account_payable_tax_type'=>'regex:/^[a-zA-Z0-9 ]*$/',
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
@@ -138,7 +138,7 @@ class CRMServices
             'sector_type' => 'required',
             'bank_account_name'=>'regex:/^[a-zA-Z0-9 ]*$/',
             'bank_account_number'=>'regex:/^[0-9]+$/|min:5|max:17',
-            'tax_id'=>'regex:/^[0-9]+$/|min:12|max:13',
+            'tax_id'=>'regex:/^[a-zA-Z0-9]+$/|min:12|max:13',
             'account_receivable_tax_type'=>'regex:/^[a-zA-Z0-9 ]*$/',
             'account_payable_tax_type'=>'regex:/^[a-zA-Z0-9 ]*$/',
             'attachment.*' => 'mimes:jpeg,pdf,png'
