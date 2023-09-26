@@ -22,7 +22,7 @@ class DirectRecruitmentExpenses extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['application_id','title','payment_reference_number','payment_date','amount','remarks','created_by','modified_by','invoice_number'];
+    protected $fillable = ['application_id','title','payment_reference_number','payment_date','quantity','amount','remarks','created_by','modified_by','invoice_number'];
    
     /**
      * The attributes that are required.
@@ -34,6 +34,7 @@ class DirectRecruitmentExpenses extends Model implements Auditable
         'title' => 'required|max:255',
         'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9-]*$/',
         'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
+        'quantity' => 'required|max:5',
         'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/'
     ];
     /**
@@ -50,6 +51,7 @@ class DirectRecruitmentExpenses extends Model implements Auditable
             'title' => 'required|max:255',
             'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9-]*$/',
             'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
+            'quantity' => 'required|max:5',
             'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/'
         ];
     }
