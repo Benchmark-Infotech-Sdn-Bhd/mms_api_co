@@ -288,7 +288,7 @@ class DirectRecruitmentWorkersServices
                 ];
             }
         }
-        return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+        $data = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
         ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
@@ -310,9 +310,6 @@ class DirectRecruitmentWorkersServices
             if (isset($request['agent_id'])) {
                 $query->where('directrecruitment_workers.agent_id',$request['agent_id']);
             }
-            if (isset($request['status'])) {
-                $query->where('worker_visa.approval_status',$request['status']);
-            }
             
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('workers.name', 'like', "%{$request['search_param']}%")
@@ -320,10 +317,20 @@ class DirectRecruitmentWorkersServices
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
 
-        })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as status', 'workers.cancel_status as cancellation_status', 'workers.created_at')
-        ->distinct()
+        })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as visa_status', 'workers.cancel_status as cancellation_status', 'workers.created_at', 'workers.directrecruitment_status')
+        ->selectRaw("
+		(CASE WHEN (workers.cancel_status = 1) THEN 'Cancelled'
+		WHEN (workers.directrecruitment_status = 'Repatriated') THEN workers.directrecruitment_status
+		ELSE worker_visa.approval_status END) as status");
+        if(isset($request['status']) && !empty($request['status'])) {
+            $data = $data->whereRaw("(CASE WHEN (workers.cancel_status = 1) THEN 'Cancelled'
+            WHEN (workers.directrecruitment_status = 'Repatriated') THEN workers.directrecruitment_status
+            ELSE worker_visa.approval_status END) = '".$request['status']."'");
+        }
+        $data = $data->distinct()
         ->orderBy('workers.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
+        return $data;
     }
 
     /**

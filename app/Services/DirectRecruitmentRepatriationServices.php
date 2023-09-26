@@ -113,6 +113,7 @@ class DirectRecruitmentRepatriationServices
                 'worker_fomema.fomema_status' => 'Unfit',
                 'workers.plks_status' => 'Pending'
             ])
+            ->whereNull('workers.replace_worker_id')
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
