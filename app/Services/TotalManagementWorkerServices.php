@@ -254,12 +254,17 @@ class TotalManagementWorkerServices
         $workersCount = $this->workers->where('crm_prospect_id', $applicationDetails->crm_prospect_id)
                             ->where('total_management_status', 'Assigned')
                             ->count('id');
+
+        $fomNextWorkersCount = $this->workers->where('crm_prospect_id', 0)
+                            ->where('total_management_status', 'Assigned')
+                            ->count('id');
+
         if($serviceDetails->from_existing == 0) {
             return [
                 'clientQuota' => $serviceDetails->client_quota,
                 'clientBalancedQuota' => $serviceDetails->client_quota - $workersCount,
                 'fomnextQuota' => $serviceDetails->fomnext_quota,
-                'fomnextBalancedQuota' => $serviceDetails->fomnext_quota - $workersCount
+                'fomnextBalancedQuota' => $serviceDetails->fomnext_quota - $fomNextWorkersCount
             ];
         } else if($serviceDetails->from_existing == 1) {
             return [
