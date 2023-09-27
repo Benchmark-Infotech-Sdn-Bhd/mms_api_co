@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserRoleType;
 use App\Models\Company;
+use App\Models\UserCompany;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Services\EmailServices;
@@ -34,20 +35,26 @@ class AuthServices extends Controller
      */
     private $company;
     /**
+     * @var UserCompany
+     */
+    private $userCompany;
+    /**
      * AuthServices constructor.
      * @param User $user
      * @param UserRoleType $uesrRoleType
      * @param EmailServices $emailServices
      * @param PasswordResets $passwordResets
      * @param Company $company
+     * @param UserCompany $userCompany
      */
-    public function __construct(User $user, UserRoleType $uesrRoleType, EmailServices $emailServices, PasswordResets $passwordResets, Company $company)
+    public function __construct(User $user, UserRoleType $uesrRoleType, EmailServices $emailServices, PasswordResets $passwordResets, Company $company, UserCompany $userCompany)
     {
         $this->user = $user;
         $this->uesrRoleType = $uesrRoleType;
         $this->emailServices = $emailServices;
         $this->passwordResets = $passwordResets;
         $this->company = $company;
+        $this->userCompany = $userCompany;
     }
 
     /**
@@ -145,6 +152,18 @@ class AuthServices extends Controller
                 'created_by' => $request['user_id'] ?? 0,
                 'modified_by' => $request['user_id'] ?? 0
             ]);
+            if(isset($request['subsidiary_companies']) && !empty($request['subsidiary_companies'])) {
+                array_push($request['subsidiary_companies'], $request['company_id']);
+                foreach ($request['subsidiary_companies'] as $subsidiaryCompany) {
+                    $this->userCompany->create([
+                        'user_id' => $response->id,
+                        'company_id' => $subsidiaryCompany ?? 0,
+                        'role_id' => $request['role_id'] ?? '',
+                        'created_by' => $request['user_id'] ?? 0,
+                        'modified_by' => $request['user_id'] ?? 0
+                    ]);
+                }
+            }
         }
         if(isset($request['pic_flag']) && $request['pic_flag'] == 1) {
             $this->company->where('id', $request['company_id'])
@@ -295,7 +314,7 @@ class AuthServices extends Controller
     {
         $companyDetails = $this->company->findOrFail($user['company_id']);
         $companyIds = [];
-        if($companyDetails->parent_id == 0) {
+        if($companyDetails->parent_id == 0 && $user->user_type == 'Super User') {
             $companyIds = $this->company->where('parent_id', $user['company_id'])
                             ->select('id')
                             ->get()

@@ -170,4 +170,40 @@ class CompanyController extends Controller
             return $this->sendError(['message' => 'Failed to Update Subsidiary'], 400);
         }
     }
+    /**
+     * Display the list of Companies
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function parentDropDown(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->parentDropDown($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
+    /**
+     * Display the list of Companies for the user
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function listUserCompany(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['user_id'] = $user['id'];
+            $response = $this->companyServices->listUserCompany($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
 }

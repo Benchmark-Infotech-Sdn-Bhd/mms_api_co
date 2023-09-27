@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Company extends Model implements Auditable
 {
@@ -49,5 +49,12 @@ class Company extends Model implements Auditable
             'country' => 'required|regex:/^[a-zA-Z]*$/',
             'state' => 'required|regex:/^[a-zA-Z ]*$/'
         ];
+    }
+    /**
+     * @return HasMany
+     */
+    public function userCompany()
+    {
+        return $this->hasMany(UserCompany::class, 'company_id');
     }
 }

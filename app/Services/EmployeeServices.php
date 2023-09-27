@@ -69,7 +69,9 @@ class EmployeeServices
             'status' => 1,
             'password' => Str::random(8),
             'reference_id' => $employee['id'],
-            'user_type' => "Employee"
+            'user_type' => "Employee",
+            'subsidiary_companies' => $request['subsidiary_companies'],
+            'company_id' => $request['company_id']
         ]);
         if($res){
             return $employee;

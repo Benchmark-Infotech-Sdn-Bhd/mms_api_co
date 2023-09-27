@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Company;
+use App\Models\UserCompany;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 
@@ -12,15 +13,20 @@ class CompanyServices
      * @var Company
      */
     private Company $company;
+    /**
+     * @var UserCompany
+     */
+    private $userCompany;
 
     /**
      * CompanyServices constructor,
      * 
      * @param Company $company
      */
-    public function __construct(Company $company) 
+    public function __construct(Company $company, UserCompany $userCompany) 
     {
         $this->company = $company;
+        $this->userCompany = $userCompany;
     }
     /**
      * @param $request
@@ -131,5 +137,30 @@ class CompanyServices
             'parent_id' => $request['parent_company_id'],
             'modified_by' => $request['modified_by']
         ]);
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function parentDropDown($request): mixed
+    {
+        return $this->company
+            ->where('parent_id', 0)
+            ->select('id', 'company_name')
+            ->get();
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function listUserCompany($request): mixed
+    {
+        return $this->userCompany
+                ->with(['company' => function ($query) {
+                    $query->select(['id', 'company_name']);
+                }])
+                ->where('user_id', $request['user_id'])
+                ->select('company_id')
+                ->get();
     }
 }

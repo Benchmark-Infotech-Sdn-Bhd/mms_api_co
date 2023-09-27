@@ -87,7 +87,8 @@ class RolesServices
             'parent_id'     => $request['parent_id'] ?? 0,
             'created_by'    => $request['created_by'] ?? 0,
             'modified_by'   => $request['created_by'] ?? 0,
-            'company_id'   => $request['company_id'] ?? 0
+            'company_id'   => $request['company_id'] ?? 0,
+            'special_permission' => $request['special_permission'] ?? 0
         ]);
         return true;
     }
