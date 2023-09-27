@@ -151,7 +151,7 @@ class DirectRecruitmentWorkersServices
         foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
             $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
         }
-        //echo "<pre>"; print_r($ksmReferenceNumbers); exit;
+        
         if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
             if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
                 return [
