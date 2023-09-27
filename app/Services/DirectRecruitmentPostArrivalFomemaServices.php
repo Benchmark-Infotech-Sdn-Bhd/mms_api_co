@@ -136,8 +136,7 @@ class DirectRecruitmentPostArrivalFomemaServices
                 'worker_fomema.fomema_status' => 'Pending'
             ])
             ->whereNotNull('worker_arrival.jtk_submitted_on')
-            ->where('workers.special_pass', 0)
-            ->orWhere('workers.special_pass', 2)
+            ->whereIn('workers.special_pass', [0,2])
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')

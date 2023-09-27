@@ -103,8 +103,7 @@ class DirectRecruitmentPostArrivalPLKSServices
                 'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
                 'worker_fomema.fomema_status' => 'Fit'
             ])
-            ->where('workers.special_pass', 0)
-            ->orWhere('workers.special_pass', 2)
+            ->whereIn('workers.special_pass', [0,2])
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')

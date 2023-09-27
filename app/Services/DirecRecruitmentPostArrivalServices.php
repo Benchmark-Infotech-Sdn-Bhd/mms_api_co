@@ -160,7 +160,8 @@ class DirecRecruitmentPostArrivalServices
                 'workers.cancel_status' => 0
             ])
             ->where(function ($query) use ($request) {
-                $query->where('worker_arrival.arrival_status', 'Not Arrived');
+                $query->where('worker_arrival.arrival_status', 'Not Arrived')
+                ->orWhere('worker_arrival.jtk_submitted_on', NULL);
             })
             ->whereNotNull('worker_arrival.arrival_id')
             ->where(function ($query) use ($request) {
