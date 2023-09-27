@@ -151,6 +151,7 @@ class DirectRecruitmentWorkersServices
         foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
             $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
         }
+        
         if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
             if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
                 return [
@@ -160,9 +161,9 @@ class DirectRecruitmentWorkersServices
         }
 
         $approvedCount = $this->levy->where('application_id', $request['application_id'])
-                             ->where('ksm_reference_number', $request['ksm_reference_number'])
+                             ->where('new_ksm_reference_number', $request['ksm_reference_number'])
                              ->select('approved_quota')
-                             ->get()->toArray();
+                             ->first()->toArray();
         
         $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
 
@@ -193,7 +194,7 @@ class DirectRecruitmentWorkersServices
         ])
         ->count('directrecruitment_workers.worker_id');
 
-        if($ksmReferenceNumberCount >= $approvedCount[0]['approved_quota']) {
+        if(isset($approvedCount) && ($ksmReferenceNumberCount >= $approvedCount['approved_quota'])) {
             return [
                 'ksmCountError' => true
             ]; 
@@ -260,7 +261,7 @@ class DirectRecruitmentWorkersServices
                     'status' => 1,
                     'created_by' => $params['created_by'] ?? 0,
                     'modified_by' => $params['created_by'] ?? 0,
-                ]);            
+                ]);
             }
 
             $onBoardingStatus['application_id'] = $request['application_id'];
