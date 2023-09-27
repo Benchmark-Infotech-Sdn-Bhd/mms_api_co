@@ -104,12 +104,12 @@ class DirectRecruitmentOnboardingAttestationServices
     {
         return [
             'onboarding_attestation_id' => 'required',
-            'date' => 'required|date|date_format:d/m/Y',
+            'date' => 'required|date|date_format:Y-m-d',
             'time' => 'required',
             'reference_number' => 'required',
             'employee_id' => 'required',
             'from' => 'required',
-            'calltime' => 'required',
+            'calltime' => 'required|date|date_format:Y-m-d',
             'area' => 'required',
             'employer_name' => 'required',
             'phone_number' => 'required'
@@ -253,12 +253,12 @@ class DirectRecruitmentOnboardingAttestationServices
         if(is_null($onboardingDispatch)){
             $this->onboardingDispatch->create([
                 'onboarding_attestation_id' => $request['onboarding_attestation_id'] ?? 0,
-                'date' => $request['date'] ?? '',
+                'date' => $request['date'] ?? null,
                 'time' => $request['time'] ?? '',
                 'reference_number' => $request['reference_number'],
                 'employee_id' => $request['employee_id'] ?? '',
                 'from' => $request['from'] ?? '',
-                'calltime' => $request['calltime'] ?? '',
+                'calltime' => $request['calltime'] ?? null,
                 'area' => $request['area'] ?? '',
                 'employer_name' => $request['employer_name'] ?? '',
                 'phone_number' => $request['phone_number'] ?? '',
@@ -268,11 +268,11 @@ class DirectRecruitmentOnboardingAttestationServices
             ]);
         }else{
             $onboardingDispatch->update([
-                'date' => $request['date'] ?? '',
+                'date' => $request['date'] ?? null,
                 'time' => $request['time'] ?? '',
                 'employee_id' => $request['employee_id'] ?? '',
                 'from' => $request['from'] ?? '',
-                'calltime' => $request['calltime'] ?? '',
+                'calltime' => $request['calltime'] ?? null,
                 'area' => $request['area'] ?? '',
                 'employer_name' => $request['employer_name'] ?? '',
                 'phone_number' => $request['phone_number'] ?? '',
