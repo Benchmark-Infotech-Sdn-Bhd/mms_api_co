@@ -112,10 +112,15 @@ class WorkerEventServices
             'created_by' => $request['created_by'],
             'modified_by' => $request['created_by']
         ]);
+        if(isset($request['service_type']) && $request['service_type'] == 'E-Contract'){
+            $updateField = 'econtract_status';
+        }else{
+            $updateField = 'total_management_status';
+        }
         $this->workers->where('id', $request['worker_id'])
             ->update([
-                'total_management_status' => $request['event_type'], 
-                'modified_by' => $request['created_by']
+                "$updateField" => $request['event_type'], 
+                "modified_by" => $request['created_by']
             ]);
         if(request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file) {
@@ -160,10 +165,16 @@ class WorkerEventServices
         $workerEvent->modified_by = $request['modified_by'];
         $workerEvent->save();
 
+        if(isset($request['service_type']) && $request['service_type'] == 'E-Contract'){
+            $updateField = 'econtract_status';
+        }else{
+            $updateField = 'total_management_status';
+        }
+
         $this->workers->where('id', $request['worker_id'])
             ->update([
-                'total_management_status' => $request['event_type'], 
-                'modified_by' => $request['modified_by']
+                "$updateField" => $request['event_type'], 
+                "modified_by" => $request['modified_by']
             ]);
 
         if(request()->hasFile('attachment')) {

@@ -197,7 +197,7 @@ class EContractWorkerServices
             ->where('worker_employment.service_type', 'e-Contract')
             ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
             ->where('worker_employment.transfer_flag', 0)
-            ->count('workers.id');
+            ->distinct('workers.id')->count('workers.id');
 
             $assignedWorkerCount += count($request['workers']);
 

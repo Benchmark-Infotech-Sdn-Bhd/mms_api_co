@@ -9,7 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-class TotalManagementWorkerEventController extends Controller
+class EContractWorkerEventController extends Controller
 {
     /**
      * @var WorkerEventServices
@@ -17,7 +17,7 @@ class TotalManagementWorkerEventController extends Controller
     private $workerEventServices;
 
     /**
-     * TotalManagementWorkerEventController constructor.
+     * EContractWorkerEventController constructor.
      * @param WorkerEventServices $workerEventServices
      */
     public function __construct(WorkerEventServices $workerEventServices) 
@@ -50,7 +50,7 @@ class TotalManagementWorkerEventController extends Controller
     public function create(Request $request) : JsonResponse
     {
         try {
-            $request['service_type'] = 'Total Management';
+            $request['service_type'] = 'E-Contract';
             $response = $this->workerEventServices->create($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -70,7 +70,7 @@ class TotalManagementWorkerEventController extends Controller
     public function update(Request $request) : JsonResponse
     {
         try {
-            $request['service_type'] = 'Total Management';
+            $request['service_type'] = 'E-Contract';
             $response = $this->workerEventServices->update($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);

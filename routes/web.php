@@ -622,11 +622,11 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('removeWorker', 'V1\EContractWorkerController@removeWorker');
                 });
                 $router->group(['prefix' => 'workerEvent'], function () use ($router) {
-                    $router->post('list', 'V1\TotalManagementWorkerEventController@list');
-                    $router->post('create', 'V1\TotalManagementWorkerEventController@create');
-                    $router->post('update', 'V1\TotalManagementWorkerEventController@update');
-                    $router->post('show', 'V1\TotalManagementWorkerEventController@show');
-                    $router->post('deleteAttachment', 'V1\TotalManagementWorkerEventController@deleteAttachment');
+                    $router->post('list', 'V1\EContractWorkerEventController@list');
+                    $router->post('create', 'V1\EContractWorkerEventController@create');
+                    $router->post('update', 'V1\EContractWorkerEventController@update');
+                    $router->post('show', 'V1\EContractWorkerEventController@show');
+                    $router->post('deleteAttachment', 'V1\EContractWorkerEventController@deleteAttachment');
                 });
                 $router->group(['prefix' => 'transfer'], function () use ($router) {
                     $router->post('workerEmploymentDetail', 'V1\EContractTransferController@workerEmploymentDetail');
