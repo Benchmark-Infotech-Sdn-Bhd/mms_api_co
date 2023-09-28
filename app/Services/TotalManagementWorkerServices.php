@@ -12,6 +12,7 @@ use App\Models\DirectrecruitmentApplications;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\TotalManagementProject;
 
 class TotalManagementWorkerServices
 {
@@ -43,6 +44,10 @@ class TotalManagementWorkerServices
      * @var DirectrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
+    /**
+     * @var TotalManagementProject
+     */
+    private TotalManagementProject $totalManagementProject;
 
     /**
      * TotalManagementWorkerServices constructor.
@@ -53,8 +58,9 @@ class TotalManagementWorkerServices
      * @param TotalManagementApplications $totalManagementApplications
      * @param CRMProspectService $crmProspectService
      * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * @param TotalManagementProject $totalManagementProject
      */
-    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications)
+    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, TotalManagementProject $totalManagementProject)
     {
         $this->workers = $workers;
         $this->vendor = $vendor;
@@ -63,6 +69,7 @@ class TotalManagementWorkerServices
         $this->totalManagementApplications = $totalManagementApplications;
         $this->crmProspectService = $crmProspectService;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->totalManagementProject = $totalManagementProject;
     }
     /**
      * @return array
@@ -220,6 +227,31 @@ class TotalManagementWorkerServices
         }
 
         if(isset($request['workers']) && !empty($request['workers'])) {
+
+            $applicationQuotaRequested = $this->totalManagementProject
+            ->leftJoin('total_management_applications', 'total_management_applications.id', 'total_management_project.application_id')
+            ->where('total_management_project.id',$request['project_id'])
+            ->select('total_management_applications.quota_applied')->get();
+
+            $quotaRequested = isset($applicationQuotaRequested[0]['quota_applied']) ?$applicationQuotaRequested[0]['quota_applied'] : 0;
+
+            $assignedWorkerCount = $this->workers
+            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
+            ->where('worker_employment.project_id', $request['project_id'])
+            ->where('worker_employment.service_type', 'Total Management')
+            ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
+            ->where('worker_employment.transfer_flag', 0)
+            ->count('workers.id');
+
+            $assignedWorkerCount += count($request['workers']);
+
+            if($assignedWorkerCount > $quotaRequested) {
+                return [
+                    'quotaError' => true
+                ];
+            }
+
             foreach ($request['workers'] as $workerId) {
                 $this->workerEmployment->create([
                     'worker_id' => $workerId,
