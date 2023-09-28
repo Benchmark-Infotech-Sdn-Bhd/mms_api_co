@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Role;
+use App\Models\Company;
 use Illuminate\Support\Facades\Config;
 
 class RolesServices
@@ -11,14 +12,20 @@ class RolesServices
      * @var Role
      */
     private Role $role;
+    /**
+     * @var Company
+     */
+    private Company $company;
 
     /**
      * RolesServices constructor.
      * @param Role $role
+     * @param Company $company
      */
-    public function __construct(Role $role)
+    public function __construct(Role $role, Company $company)
     {
         $this->role = $role;
+        $this->company = $company;
     }
 
     /**
@@ -80,6 +87,20 @@ class RolesServices
                 'adminError' => true
             ];
         }
+        if ($request['special_permission'] == 1) {
+            if($request['user_type'] != 'Super User') {
+                return [
+                    'superUserError' => true
+                ];
+            }
+            $companyDetail = $this->company->findOrFail($request['company_id']);
+            if($companyDetail->parent_id != 0) {
+                return [
+                    'subsidiaryError' => true
+                ];
+            }
+        }
+        
         $this->role->create([
             'role_name'     => $request['name'] ?? '',
             'system_role'   => $request['system_role'] ?? 0,

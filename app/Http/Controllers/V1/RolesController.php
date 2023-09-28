@@ -85,6 +85,7 @@ class RolesController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
             $params['company_id'] = $user['company_id'];
+            $params['user_type'] = $user['user_type'];
             $validator = Validator::make($params, $this->rolesServices->createValidation());
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());
@@ -92,6 +93,10 @@ class RolesController extends Controller
             $response = $this->rolesServices->create($params);
             if(isset($response['adminError'])) {
                 return $this->sendError(['message' => 'Role Name as Admin is not allowed, kindly provide a different Role Name.'],422);
+            } else if(isset($response['superUserError'])) {
+                return $this->sendError(['message' => 'Only Super User can Create Role with Speacial Permission'],422);
+            } else if(isset($response['subsidiaryError'])) {
+                return $this->sendError(['message' => 'Subsidiary Company cannot Create Role with Speacial Permission'],422);
             }
             return $this->sendSuccess(['message' => 'Role Created Successfully']);
         } catch (Exception $e) {
