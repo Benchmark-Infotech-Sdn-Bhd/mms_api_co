@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DirectRecruitmentExpensesAttachments extends Model implements Auditable
 {
-    use \OwenIt\Auditing\Auditable, SoftDeletes;
+    use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $table = 'directrecruitment_expenses_attachments';
 

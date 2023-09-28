@@ -156,7 +156,8 @@ class DirecRecruitmentPostArrivalServices
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
-                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id']
+                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
+                'workers.cancel_status' => 0
             ])
             ->where(function ($query) use ($request) {
                 $query->where('worker_arrival.arrival_status', 'Not Arrived')

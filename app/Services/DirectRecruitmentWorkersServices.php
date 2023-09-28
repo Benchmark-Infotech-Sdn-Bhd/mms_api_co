@@ -151,6 +151,7 @@ class DirectRecruitmentWorkersServices
         foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
             $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
         }
+        
         if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
             if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
                 return [
@@ -159,24 +160,21 @@ class DirectRecruitmentWorkersServices
             }
         }
 
-        // $approvedCount = $this->levy->where('application_id', $request['application_id'])
-        //                     ->where('ksm_reference_number', $request['ksm_reference_number'])
-        //                     ->select('approved_quota')
-        //                     ->get()->toArray();
-        // if($approvedCount[0]['approved_quota'] ) {
-
-        // }
-
+        $approvedCount = $this->levy->where('application_id', $request['application_id'])
+                             ->where('new_ksm_reference_number', $request['ksm_reference_number'])
+                             ->select('approved_quota')
+                             ->first()->toArray();
+        
         $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
 
         $workerCount = $this->directrecruitmentWorkers
         ->leftjoin('worker_visa', 'directrecruitment_workers.worker_id', '=', 'worker_visa.worker_id')
-        ->leftjoin('worker_fomema', 'directrecruitment_workers.worker_id', '=', 'worker_fomema.worker_id')
-        ->leftjoin('worker_arrival', 'directrecruitment_workers.worker_id', '=', 'worker_arrival.worker_id')
-        ->where('directrecruitment_workers.application_id', $request['application_id'])
-        ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
-        ->where('worker_visa.approval_status', '!=' , 'Rejected')
-        ->where('worker_fomema.fomema_status', '!=' , 'Unfit')
+        ->leftjoin('workers', 'workers.id', '=', 'worker_visa.worker_id')
+        ->where([
+            ['directrecruitment_workers.application_id', $request['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
+            ['workers.cancel_status', 0]
+        ])
         ->count('directrecruitment_workers.worker_id');
 
         if($workerCount >= $onboardingCountryDetails->quota) {
@@ -184,6 +182,24 @@ class DirectRecruitmentWorkersServices
                 'workerCountError' => true
             ]; 
         }
+
+        $ksmReferenceNumberCount = $this->directrecruitmentWorkers
+        ->leftjoin('worker_visa', 'directrecruitment_workers.worker_id', '=', 'worker_visa.worker_id')
+        ->leftjoin('workers', 'workers.id', '=', 'worker_visa.worker_id')
+        ->where([
+            ['directrecruitment_workers.application_id', $request['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
+            ['workers.cancel_status', 0],
+            ['worker_visa.ksm_reference_number', $request['ksm_reference_number']],
+        ])
+        ->count('directrecruitment_workers.worker_id');
+
+        if(isset($approvedCount) && ($ksmReferenceNumberCount >= $approvedCount['approved_quota'])) {
+            return [
+                'ksmCountError' => true
+            ]; 
+        }
+
         $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
         $request['crm_prospect_id'] = $applicationDetails->crm_prospect_id;
         $data = $this->workersServices->create($request);
@@ -245,7 +261,7 @@ class DirectRecruitmentWorkersServices
                     'status' => 1,
                     'created_by' => $params['created_by'] ?? 0,
                     'modified_by' => $params['created_by'] ?? 0,
-                ]);            
+                ]);
             }
 
             $onBoardingStatus['application_id'] = $request['application_id'];
@@ -273,7 +289,7 @@ class DirectRecruitmentWorkersServices
                 ];
             }
         }
-        return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+        $data = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
         ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
@@ -295,9 +311,6 @@ class DirectRecruitmentWorkersServices
             if (isset($request['agent_id'])) {
                 $query->where('directrecruitment_workers.agent_id',$request['agent_id']);
             }
-            if (isset($request['status'])) {
-                $query->where('worker_visa.approval_status',$request['status']);
-            }
             
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('workers.name', 'like', "%{$request['search_param']}%")
@@ -305,10 +318,20 @@ class DirectRecruitmentWorkersServices
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
 
-        })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as status', 'workers.cancel_status as cancellation_status', 'workers.created_at')
-        ->distinct()
+        })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as visa_status', 'workers.cancel_status as cancellation_status', 'workers.created_at', 'workers.directrecruitment_status')
+        ->selectRaw("
+		(CASE WHEN (workers.cancel_status = 1) THEN 'Cancelled'
+		WHEN (workers.directrecruitment_status = 'Repatriated') THEN workers.directrecruitment_status
+		ELSE worker_visa.approval_status END) as status");
+        if(isset($request['status']) && !empty($request['status'])) {
+            $data = $data->whereRaw("(CASE WHEN (workers.cancel_status = 1) THEN 'Cancelled'
+            WHEN (workers.directrecruitment_status = 'Repatriated') THEN workers.directrecruitment_status
+            ELSE worker_visa.approval_status END) = '".$request['status']."'");
+        }
+        $data = $data->distinct()
         ->orderBy('workers.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
+        return $data;
     }
 
     /**

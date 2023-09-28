@@ -76,6 +76,7 @@ class DirectRecruitmentExpensesServices
             'title' => $request['title'] ?? '',
             'payment_reference_number' => $request['payment_reference_number'] ?? '',
             'payment_date' => ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : null),
+            'quantity' => $request['quantity'] ?? 0,
             'amount' => $request['amount'] ?? '',
             'remarks' => $request['remarks'] ?? '',
             'created_by'    => $params['created_by'] ?? 0,
@@ -123,6 +124,7 @@ class DirectRecruitmentExpensesServices
         $expenses->title = $request['title'] ?? $expenses->title;
         $expenses->payment_reference_number = $request['payment_reference_number'] ?? $expenses->payment_reference_number;
         $expenses->payment_date = ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : $expenses->payment_date);
+        $expenses->quantity = $request['quantity'] ?? $expenses->quantity;
         $expenses->amount = $request['amount'] ?? $expenses->amount;
         $expenses->remarks = $request['remarks'] ?? $expenses->remarks;
         $expenses->created_by = $request['created_by'] ?? $expenses->created_by;
@@ -181,14 +183,20 @@ class DirectRecruitmentExpensesServices
         }
         return $this->directRecruitmentExpenses
         ->leftJoin('directrecruitment_expenses_attachments', 'directrecruitment_expenses.id', '=', 'directrecruitment_expenses_attachments.file_id')
+        ->LeftJoin('invoice_items_temp', function($join) use ($request){
+            $join->on('invoice_items_temp.expense_id', '=', 'directrecruitment_expenses.id')
+            ->where('invoice_items_temp.service_id', '=', 1)
+            ->WhereNull('invoice_items_temp.deleted_at');
+          })
         ->where('directrecruitment_expenses.application_id', $request['application_id'])
+        ->whereNull('directrecruitment_expenses_attachments.deleted_at')
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('directrecruitment_expenses.title', 'like', "%{$request['search_param']}%")
                 ->orWhere('directrecruitment_expenses.payment_reference_number', 'like', '%'.$request['search_param'].'%');
             }
             
-        })->select('directrecruitment_expenses.id','directrecruitment_expenses.application_id','directrecruitment_expenses.title','directrecruitment_expenses.payment_reference_number','directrecruitment_expenses.payment_date','directrecruitment_expenses.amount','directrecruitment_expenses.remarks','directrecruitment_expenses_attachments.file_name','directrecruitment_expenses_attachments.file_url','directrecruitment_expenses.created_at','directrecruitment_expenses.invoice_number')
+        })->select('directrecruitment_expenses.id','directrecruitment_expenses.application_id','directrecruitment_expenses.title','directrecruitment_expenses.payment_reference_number','directrecruitment_expenses.payment_date','directrecruitment_expenses.quantity','directrecruitment_expenses.amount','directrecruitment_expenses.remarks','directrecruitment_expenses_attachments.file_name','directrecruitment_expenses_attachments.file_url','directrecruitment_expenses.created_at','directrecruitment_expenses.invoice_number',\DB::raw('IF(invoice_items_temp.id is NULL, NULL, 1) as expense_flag'))
         ->distinct()
         ->orderBy('directrecruitment_expenses.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
@@ -208,6 +216,7 @@ class DirectRecruitmentExpensesServices
             'title' => $request['expenses_title'] ?? '',
             'payment_reference_number' => $request['expenses_payment_reference_number'] ?? '',
             'payment_date' => ((isset($request['expenses_payment_date']) && !empty($request['expenses_payment_date'])) ? $request['expenses_payment_date'] : null),
+            'quantity' => 0,
             'amount' => $request['expenses_amount'] ?? '',
             'remarks' => $request['expenses_remarks'] ?? '',
             'created_by'    => $params['created_by'] ?? 0,
