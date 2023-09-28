@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Config;
 
 class EContractWorkerEventController extends Controller
 {
@@ -50,7 +51,7 @@ class EContractWorkerEventController extends Controller
     public function create(Request $request) : JsonResponse
     {
         try {
-            $request['service_type'] = 'E-Contract';
+            $request['service_type'] = Config::get('services.WORKER_MODULE_TYPE')[2];
             $response = $this->workerEventServices->create($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -70,7 +71,7 @@ class EContractWorkerEventController extends Controller
     public function update(Request $request) : JsonResponse
     {
         try {
-            $request['service_type'] = 'E-Contract';
+            $request['service_type'] = Config::get('services.WORKER_MODULE_TYPE')[2];
             $response = $this->workerEventServices->update($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
