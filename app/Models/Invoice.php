@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Invoice extends Model implements Auditable
 {
@@ -60,6 +61,14 @@ class Invoice extends Model implements Auditable
     public function invoiceItems()
     {
         return $this->hasMany(InvoiceItems::class, 'invoice_id');
+    }
+
+    /**
+     * @return HasOne
+     */
+    public function crm_prospect(): HasOne
+    {
+        return $this->hasOne(CRMProspect::class, 'id', 'crm_prospect_id');
     }
 
 }

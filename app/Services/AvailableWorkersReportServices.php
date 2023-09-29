@@ -63,24 +63,28 @@ class AvailableWorkersReportServices
             if(isset($request['service_id']) && !empty($request['service_id'])) {
                 $query->where('crm_prospect_services.service_id', $request['service_id']);
             }
-            if(isset($request['status']) && !empty($request['status'])) {
-                $query->where('workers.total_management_status', $request['status']);
-            }
             if (isset($request['search']) && !empty($request['search'])) {
                 $query->where('workers.name', 'like', "%{$request['search']}%")
                 ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%')
                 ->orWhere('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
             }
+            if(isset($request['status']) && !empty($request['status'])) {
+                $query->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
+            WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
+            ELSE 'On-Bench' END) = '".$request['status']."'");
+            }
             
         })
         ->whereNotNull('workers.crm_prospect_id');
         if(isset($request['export']) && !empty($request['export']) ){
-            $data = $data->select('workers.name', 'workers.passport_number', 'workers.gender', 'worker_visa.ksm_reference_number', 'crm_prospects.company_name', 'crm_prospect_services.service_name', 'crm_prospect_services.sector_name', 'workers.total_management_status')
+            $data = $data->select('workers.name', 'workers.passport_number', 'workers.gender', 'worker_visa.ksm_reference_number', 'crm_prospect_services.service_name', 'workers.total_management_status')
+            ->selectRaw("(CASE WHEN (workers.crm_prospect_id = 0) THEN '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' ELSE crm_prospects.company_name END) as company_name, (CASE WHEN (workers.crm_prospect_id = 0) THEN '".Config::get('services.FOMNEXTS_DETAILS')['sector']."' ELSE crm_prospect_services.sector_name END) as sector_name, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status ELSE 'On-Bench' END) as status")
             ->distinct('workers.id')
             ->orderBy('workers.id','DESC')
             ->get();
         }else{
-            $data = $data->select('workers.id','workers.name', 'workers.passport_number', 'workers.gender', 'worker_visa.ksm_reference_number', 'crm_prospects.company_name', 'crm_prospect_services.service_name', 'crm_prospect_services.sector_name', 'workers.total_management_status', 'workers.module_type', 'worker_employment.service_type', 'worker_employment.id as worker_employment_id')
+            $data = $data->select('workers.id','workers.name', 'workers.passport_number', 'workers.gender', 'worker_visa.ksm_reference_number', 'crm_prospect_services.service_name',  'workers.total_management_status', 'workers.module_type', 'worker_employment.service_type', 'worker_employment.id as worker_employment_id')
+            ->selectRaw("(CASE WHEN (workers.crm_prospect_id = 0) THEN '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' ELSE crm_prospects.company_name END) as company_name, (CASE WHEN (workers.crm_prospect_id = 0) THEN '".Config::get('services.FOMNEXTS_DETAILS')['sector']."' ELSE crm_prospect_services.sector_name END) as sector_name, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status ELSE 'On-Bench' END) as status")
             ->distinct('workers.id')
             ->orderBy('workers.id','DESC')
             ->paginate(Config::get('services.paginate_row'));
