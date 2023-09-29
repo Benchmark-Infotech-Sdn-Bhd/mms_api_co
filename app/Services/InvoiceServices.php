@@ -281,17 +281,18 @@ class InvoiceServices
                 ];
             }
         }
-        return $this->invoice
+        return $this->invoice->with(['crm_prospect' => function ($query) {
+            $query->select(['id', 'company_name']);
+        }])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('invoice_number', 'like', "%{$request['search_param']}%")
-                ->orWhere('account', 'like', '%'.$request['search_param'].'%');
+                $query->where('invoice_number', 'like', "%{$request['search_param']}%");
             }
             if (isset($request['invoice_status']) && !empty($request['invoice_status'])) {
                 $query->where('invoice_status', 'like', "%{$request['invoice_status']}%");
             }
             
-        })->select('id','crm_prospect_id','issue_date','due_date','reference_number','account','tax','amount','created_at','invoice_number','invoice_status')
+        })->select('id','crm_prospect_id','issue_date','due_date','reference_number','tax','amount','created_at','invoice_number','invoice_status')
         ->distinct()
         ->orderBy('created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
