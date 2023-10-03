@@ -152,7 +152,7 @@ class ApplicationSummaryServices
             ->where('application_interviews.status', '=', 'Approved');
         })
         ->leftJoin('levy', 'levy.ksm_reference_number', 'application_interviews.ksm_reference_number')
-        ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.ksm_reference_number', 'levy.ksm_reference_number')
+        ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.ksm_reference_number', 'levy.new_ksm_reference_number')
         ->where([
             ['fwcms.application_id', $request['application_id']],
             ['fwcms.status', 'Approved']
