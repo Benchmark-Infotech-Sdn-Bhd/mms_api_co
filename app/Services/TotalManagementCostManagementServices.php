@@ -58,6 +58,7 @@ class TotalManagementCostManagementServices
         }
         $costManagement = $this->totalManagementCostManagement->create([
             'application_id' => $request['application_id'],
+            'project_id' => $request['project_id'],
             'title' => $request['title'] ?? '',
             'payment_reference_number' => $request['payment_reference_number'] ?? '',
             'payment_date' => ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : null),
@@ -106,6 +107,7 @@ class TotalManagementCostManagementServices
 
         $costManagement = $this->totalManagementCostManagement->findOrFail($request['id']);
         $costManagement->application_id = $request['application_id'] ?? $costManagement->application_id;
+        $costManagement->project_id = $request['project_id'] ?? $costManagement->project_id;
         $costManagement->title = $request['title'] ?? $costManagement->title;
         $costManagement->payment_reference_number = $request['payment_reference_number'] ?? $costManagement->payment_reference_number;
         $costManagement->payment_date = ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : $costManagement->payment_date);
@@ -182,7 +184,7 @@ class TotalManagementCostManagementServices
                 $query->where('total_management_cost_management.title', 'like', "%{$request['search_param']}%")
                 ->orWhere('total_management_cost_management.payment_reference_number', 'like', '%'.$request['search_param'].'%');
             }            
-        })->select('total_management_cost_management.id','total_management_cost_management.application_id','total_management_cost_management.title','total_management_cost_management.payment_reference_number','total_management_cost_management.payment_date','total_management_cost_management.quantity','total_management_cost_management.amount','total_management_cost_management.remarks','total_management_cost_management_attachments.file_name','total_management_cost_management_attachments.file_url','total_management_cost_management.created_at','total_management_cost_management.invoice_number',\DB::raw('IF(invoice_items_temp.id is NULL, NULL, 1) as expense_flag'))
+        })->select('total_management_cost_management.id','total_management_cost_management.application_id','total_management_cost_management.project_id','total_management_cost_management.title','total_management_cost_management.payment_reference_number','total_management_cost_management.payment_date','total_management_cost_management.quantity','total_management_cost_management.amount','total_management_cost_management.remarks','total_management_cost_management_attachments.file_name','total_management_cost_management_attachments.file_url','total_management_cost_management.created_at','total_management_cost_management.invoice_number',\DB::raw('IF(invoice_items_temp.id is NULL, NULL, 1) as expense_flag'))
         ->distinct()
         ->orderBy('total_management_cost_management.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));

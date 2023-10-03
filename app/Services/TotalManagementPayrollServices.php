@@ -465,7 +465,7 @@ class TotalManagementPayrollServices
     public function authorizePayroll($request): bool|array
     {
 
-        $checkTotalManagementCostManagement = $this->totalManagementCostManagement->where('application_id',$request['application_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
+        $checkTotalManagementCostManagement = $this->totalManagementCostManagement->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
 
         if($checkTotalManagementCostManagement > 0) {
             return [
@@ -506,7 +506,8 @@ class TotalManagementPayrollServices
             foreach($payrollWorkers as $result){
                 $user = JWTAuth::parseToken()->authenticate();
                 $this->totalManagementCostManagement->create([
-                    'application_id' => $request['application_id'],
+                    'application_id' => $result['application_id'],
+                    'project_id' => $request['project_id'],
                     'title' => $result['name'],
                     'type' => 'Payroll',
                     'payment_reference_number' => 1,
@@ -523,7 +524,8 @@ class TotalManagementPayrollServices
                     'modified_by'   => $user['worker_id'] ?? 0,
                 ]);
                 $this->totalManagementCostManagement->create([
-                    'application_id' => $request['application_id'] ?? 0,
+                    'application_id' => $result['application_id'],
+                    'project_id' => $request['project_id'],
                     'title' => "SOCSO Contribution (" . $result['name'] . " )",
                     'type' => 'Payroll',
                     'payment_reference_number' => 1,

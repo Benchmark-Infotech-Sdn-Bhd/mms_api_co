@@ -22,7 +22,7 @@ class TotalManagementCostManagement extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['application_id','title','payment_reference_number','quantity','amount','payment_date','remarks','created_by','modified_by','invoice_number','is_payroll','payroll_id','month','year'];
+    protected $fillable = ['application_id','project_id','title','payment_reference_number','quantity','amount','payment_date','remarks','created_by','modified_by','invoice_number','is_payroll','payroll_id','month','year'];
    
     /**
      * The attributes that are required.
