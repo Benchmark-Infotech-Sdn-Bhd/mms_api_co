@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\DirectRecruitmentInsurancePurchaseServices;
+use App\Services\AuthServices;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class DirectRecruitmentInsurancePurchaseController extends Controller
      * @var DirectRecruitmentInsurancePurchaseServices
      */
     private $directRecruitmentInsurancePurchaseServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentInsurancePurchaseController constructor.
      * @param DirectRecruitmentInsurancePurchaseServices $directRecruitmentInsurancePurchaseServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentInsurancePurchaseServices $directRecruitmentInsurancePurchaseServices) 
+    public function __construct(DirectRecruitmentInsurancePurchaseServices $directRecruitmentInsurancePurchaseServices, AuthServices $authServices) 
     {
         $this->directRecruitmentInsurancePurchaseServices = $directRecruitmentInsurancePurchaseServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display list of Insurance Purchase
@@ -35,6 +42,8 @@ class DirectRecruitmentInsurancePurchaseController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentInsurancePurchaseServices->workersList($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -95,6 +104,8 @@ class DirectRecruitmentInsurancePurchaseController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentInsurancePurchaseServices->insuranceProviderDropDown($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\DirectRecruitmentImmigrationFeePaidServices;
+use App\Services\AuthServices;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class DirectRecruitmentImmigrationFeePaidController extends Controller
      * @var DirectRecruitmentImmigrationFeePaidServices
      */
     private $directRecruitmentImmigrationFeePaidServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentImmigrationFeePaidController constructor.
      * @param DirectRecruitmentImmigrationFeePaidServices $directRecruitmentImmigrationFeePaidServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentImmigrationFeePaidServices $directRecruitmentImmigrationFeePaidServices) 
+    public function __construct(DirectRecruitmentImmigrationFeePaidServices $directRecruitmentImmigrationFeePaidServices, AuthServices $authServices) 
     {
         $this->directRecruitmentImmigrationFeePaidServices = $directRecruitmentImmigrationFeePaidServices;
+        $this->authServices = $authServices;
     }
     /**
      * Update Immigration Fee Paid
@@ -57,6 +64,8 @@ class DirectRecruitmentImmigrationFeePaidController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentImmigrationFeePaidServices->workersList($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -74,6 +83,8 @@ class DirectRecruitmentImmigrationFeePaidController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentImmigrationFeePaidServices->listBasedOnCallingVisa($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);

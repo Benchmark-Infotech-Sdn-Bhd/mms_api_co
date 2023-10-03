@@ -143,6 +143,7 @@ class DirectRecruitmentCallingVisaApprovalServices
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'workers.id')
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
+            ->whereIn('workers.company_id', $request['company_id'])
             ->where('worker_visa.approval_status', '!=', 'Approved')
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Services\DirectRecruitmentServices;
+use App\Services\AuthServices;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -16,14 +17,20 @@ class DirectRecruitmentController extends Controller
      * @var DirectRecruitmentServices
      */
     private $directRecruitmentServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentController constructor.
      * @param DirectRecruitmentServices $directRecruitmentServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentServices $directRecruitmentServices)
+    public function __construct(DirectRecruitmentServices $directRecruitmentServices, AuthServices $authServices)
     {
         $this->directRecruitmentServices = $directRecruitmentServices;
+        $this->authServices = $authServices;
     }
     /**
      * Show the form for creating a new Proposal.
@@ -76,6 +83,7 @@ class DirectRecruitmentController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $request['created_by'] = $user['id'];
+            $request['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentServices->addService($request);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
@@ -96,6 +104,8 @@ class DirectRecruitmentController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentServices->applicationListing($params);
             return $this->sendSuccess($response);
         } catch(Exception $e) {

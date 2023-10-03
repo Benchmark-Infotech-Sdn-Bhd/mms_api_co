@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\DirectRecruitmentCallingVisaGenerateServices;
+use App\Services\AuthServices;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class DirectRecruitmentCallingVisaGenerateController extends Controller
      * @var DirectRecruitmentCallingVisaGenerateServices
      */
     private $directRecruitmentCallingVisaGenerateServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentCallingVisaGenerateController constructor.
      * @param DirectRecruitmentCallingVisaGenerateServices $directRecruitmentCallingVisaGenerateServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentCallingVisaGenerateServices $directRecruitmentCallingVisaGenerateServices) 
+    public function __construct(DirectRecruitmentCallingVisaGenerateServices $directRecruitmentCallingVisaGenerateServices, AuthServices $authServices) 
     {
         $this->directRecruitmentCallingVisaGenerateServices = $directRecruitmentCallingVisaGenerateServices;
+        $this->authServices = $authServices;
     }
     /**
      * Submit calling visa.
@@ -54,6 +61,8 @@ class DirectRecruitmentCallingVisaGenerateController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentCallingVisaGenerateServices->workersList($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -71,6 +80,8 @@ class DirectRecruitmentCallingVisaGenerateController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentCallingVisaGenerateServices->listBasedOnCallingVisa($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);

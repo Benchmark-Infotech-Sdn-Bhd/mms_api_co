@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\DirectRecruitmentRepatriationServices;
+use App\Services\AuthServices;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class DirectRecruitmentRepatriationController extends Controller
      * @var DirectRecruitmentRepatriationServices
      */
     private $directRecruitmentRepatriationServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentRepatriationController constructor.
      * @param DirectRecruitmentRepatriationServices $directRecruitmentRepatriationServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentRepatriationServices $directRecruitmentRepatriationServices) 
+    public function __construct(DirectRecruitmentRepatriationServices $directRecruitmentRepatriationServices, AuthServices $authServices) 
     {
         $this->directRecruitmentRepatriationServices = $directRecruitmentRepatriationServices;
+        $this->authServices = $authServices;
     }
     /**
      * Dispaly list of workers for Repatriation.
@@ -35,6 +42,8 @@ class DirectRecruitmentRepatriationController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentRepatriationServices->workersList($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -76,6 +85,8 @@ class DirectRecruitmentRepatriationController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentRepatriationServices->workersListExport($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);

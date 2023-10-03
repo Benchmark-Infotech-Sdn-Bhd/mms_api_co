@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\DirectRecruitmentCallingVisaApprovalServices;
+use App\Services\AuthServices;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class DirectRecruitmentCallingVisaApprovalController extends Controller
      * @var DirectRecruitmentCallingVisaApprovalServices
      */
     private $directRecruitmentCallingVisaApprovalServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentCallingVisaApprovalController constructor.
      * @param DirectRecruitmentCallingVisaApprovalServices $directRecruitmentCallingVisaApprovalServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentCallingVisaApprovalServices $directRecruitmentCallingVisaApprovalServices) 
+    public function __construct(DirectRecruitmentCallingVisaApprovalServices $directRecruitmentCallingVisaApprovalServices, AuthServices $authServices) 
     {
         $this->directRecruitmentCallingVisaApprovalServices = $directRecruitmentCallingVisaApprovalServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display list of calling visa updation status.
@@ -35,6 +42,8 @@ class DirectRecruitmentCallingVisaApprovalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentCallingVisaApprovalServices->workersList($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);

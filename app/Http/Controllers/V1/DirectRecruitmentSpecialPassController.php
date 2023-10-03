@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\DirectRecruitmentSpecialPassServices;
+use App\Services\AuthServices;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class DirectRecruitmentSpecialPassController extends Controller
      * @var DirectRecruitmentSpecialPassServices
      */
     private $directRecruitmentSpecialPassServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentSpecialPassController constructor.
      * @param DirectRecruitmentSpecialPassServices $directRecruitmentSpecialPassServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentSpecialPassServices $directRecruitmentSpecialPassServices) 
+    public function __construct(DirectRecruitmentSpecialPassServices $directRecruitmentSpecialPassServices, AuthServices $authServices) 
     {
         $this->directRecruitmentSpecialPassServices = $directRecruitmentSpecialPassServices;
+        $this->authServices = $authServices;
     }
     /**
      * Dispaly list of workers for Special Pass.
@@ -35,6 +42,8 @@ class DirectRecruitmentSpecialPassController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentSpecialPassServices->workersList($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -99,6 +108,8 @@ class DirectRecruitmentSpecialPassController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentSpecialPassServices->workersListExport($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
