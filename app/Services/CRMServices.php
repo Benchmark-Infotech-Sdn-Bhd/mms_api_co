@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Services\InvoiceServices;
+use App\Services\AuthServices;
+use Illuminate\Support\Str;
 
 class CRMServices
 {
@@ -62,6 +64,10 @@ class CRMServices
      * @var InvoiceServices
      */
     private InvoiceServices $invoiceServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * RolesServices constructor.
@@ -75,9 +81,10 @@ class CRMServices
      * @param SystemType $systemType
      * @param TotalManagementApplications $totalManagementApplications
      * @param EContractApplications $eContractApplications
-     * @param EContractApplications $eContractApplications
+     * @param InvoiceServices $invoiceServices
+     * @param AuthServices $authServices
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices, AuthServices $authServices)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -90,6 +97,7 @@ class CRMServices
         $this->totalManagementApplications = $totalManagementApplications;
         $this->eContractApplications = $eContractApplications;
         $this->invoiceServices = $invoiceServices;
+        $this->authServices = $authServices;
     }
     /**
      * @return array
@@ -229,6 +237,27 @@ class CRMServices
             'created_by'                    => $request['created_by'] ?? 0,
             'modified_by'                   => $request['created_by'] ?? 0
         ]);
+
+        $res = $this->authServices->create(
+            ['name' => $request['pic_name'],
+            'email' => $request['email'],
+            'role_id' => 0,
+            'user_id' => $request['created_by'],
+            'status' => 1,
+            'password' => Str::random(8),
+            'reference_id' => $prospect['id'],
+            'user_type' => "Customer",
+            //'subsidiary_companies' => $request['subsidiary_companies'],
+            'company_id' => $request['company_id']
+        ]);
+
+        if(!$res){
+            $prospect->delete();
+            return [
+                "isCreated" => false,
+                "message"=> "Employee not created"
+            ];
+        }
 
         $sector = $this->sectors->findOrFail($request['sector_type']);
         if(isset($request['prospect_service']) && !empty($request['prospect_service'])) {
