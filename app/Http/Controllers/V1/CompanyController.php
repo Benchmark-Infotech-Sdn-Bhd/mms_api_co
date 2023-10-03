@@ -152,7 +152,7 @@ class CompanyController extends Controller
         }
     }
     /**
-     * Update a Company status
+     * Assign company as subsidiary
      * 
      * @param Request
      * @return JsonResponse
@@ -204,6 +204,25 @@ class CompanyController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
+     /**
+     * Update a company id after login
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function updateCompanyId(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['user_id'] = $user['id'];
+            $response = $this->companyServices->updateCompanyId($params);
+            return $this->sendSuccess(['message' => 'Company ID Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update Company ID'], 400);
         }
     }
 }

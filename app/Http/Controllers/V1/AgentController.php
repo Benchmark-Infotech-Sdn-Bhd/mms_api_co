@@ -114,43 +114,6 @@ class AgentController extends Controller
         }
     }
     /**
-     * Retrieve all agents.
-     *
-     * @return JsonResponse
-     */
-    public function retrieveAll(): JsonResponse
-    {
-        try {
-            $data = $this->agentServices->retrieveAll();
-            return $this->sendSuccess($data);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'Retrieve All failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
-        }
-    }
-    /**
-     * Retrieve all agents by country.
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function retrieveByCountry(Request $request): JsonResponse
-    {
-        try {
-            $params = $this->getRequest($request);
-            $data = $this->agentServices->retrieveByCountry($params);
-            if(isset($data['validate'])){
-                return $this->validationError($data['validate']); 
-            }
-            return $this->sendSuccess($data);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'Retrieve By Country failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
-        }
-    }
-    /**
      * Search & Retrieve all the agents.
      *
      * @param Request $request

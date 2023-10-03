@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\TotalManagementServices;
+use App\Services\AuthServices;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class TotalManagementController extends Controller
 {
@@ -15,14 +17,20 @@ class TotalManagementController extends Controller
      * @var TotalManagementServices
      */
     private $totalManagementServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementController constructor.
      * @param TotalManagementServices $totalManagementServices
+     * @param AuthServices $authServices
      */
-    public function __construct(TotalManagementServices $totalManagementServices)
+    public function __construct(TotalManagementServices $totalManagementServices, AuthServices $authServices)
     {
         $this->totalManagementServices = $totalManagementServices;
+        $this->authServices = $authServices;
     }
     /** Display list of prospect in total management.
      * 
@@ -33,6 +41,8 @@ class TotalManagementController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementServices->applicationListing($params);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);

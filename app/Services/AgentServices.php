@@ -118,32 +118,6 @@ class AgentServices
         return $this->agent->with('countries')->findOrFail($request['id']);
     }
     /**
-     * @return mixed
-     */
-    public function retrieveAll() : mixed
-    {
-        return $this->agent->join('countries', 'countries.id', '=', 'agent.country_id')
-        ->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge')
-        ->orderBy('agent.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
-    }
-    /**
-     * @param $request
-     * @return mixed
-     */
-    public function retrieveByCountry($request) : mixed
-    {
-        if(!($this->validationServices->validate($request,['country_id' => 'required']))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
-        }
-        return $this->agent->join('countries', 'countries.id', '=', 'agent.country_id')
-        ->where('country_id',$request['country_id'])->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge')
-        ->orderBy('agent.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
-    }
-    /**
      * @param $request
      * @return mixed
      */

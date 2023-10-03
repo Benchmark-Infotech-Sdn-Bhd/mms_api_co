@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\TotalManagementSupervisorServices;
+use App\Services\AuthServices;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Exception;
@@ -16,14 +17,20 @@ class TotalManagementSupervisorController extends Controller
      * @var TotalManagementSupervisorServices
      */
     private $TotalManagementSupervisorServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementSupervisorController constructor.
      * @param TotalManagementSupervisorServices $totalManagementSupervisorServices
+     * @param AuthServices $authServices
      */
-    public function __construct(TotalManagementSupervisorServices $totalManagementSupervisorServices)
+    public function __construct(TotalManagementSupervisorServices $totalManagementSupervisorServices, AuthServices $authServices)
     {
         $this->totalManagementSupervisorServices = $totalManagementSupervisorServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display list of Supervisor
@@ -35,6 +42,8 @@ class TotalManagementSupervisorController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementSupervisorServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -52,6 +61,8 @@ class TotalManagementSupervisorController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementSupervisorServices->viewAssignments($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {

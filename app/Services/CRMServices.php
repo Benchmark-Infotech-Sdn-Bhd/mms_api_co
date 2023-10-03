@@ -166,6 +166,7 @@ class CRMServices
         return $this->crmProspect
             ->leftJoin('employee', 'employee.id', 'crm_prospects.registered_by')
             ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
+            ->whereIn('crm_prospects.company_id', $request['company_id'])
             ->where('crm_prospects.status', 1)
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
@@ -227,7 +228,8 @@ class CRMServices
             'account_receivable_tax_type'   => $request['account_receivable_tax_type'] ?? '',
             'account_payable_tax_type'      => $request['account_payable_tax_type'] ?? '',
             'created_by'                    => $request['created_by'] ?? 0,
-            'modified_by'                   => $request['created_by'] ?? 0
+            'modified_by'                   => $request['created_by'] ?? 0,
+            'company_id'                    => $request['company_id'] ?? 0
         ]);
 
         $sector = $this->sectors->findOrFail($request['sector_type']);
@@ -269,6 +271,7 @@ class CRMServices
                        'status' => Config::get('services.PENDING_PROPOSAL'),
                        'remarks' => '',
                        'created_by' => $request["created_by"] ?? 0,
+                       'company_id' => $request['company_id'] ?? 0
                    ]);
                 }
                 if($service->service_id == 3) {
@@ -280,7 +283,8 @@ class CRMServices
                         'cost_quoted' => 0,
                         'status' => 'Pending Proposal',
                         'remarks' => '',
-                        'created_by' => $request["created_by"] ?? 0
+                        'created_by' => $request["created_by"] ?? 0,
+                        'company_id' => $request['company_id'] ?? 0
                     ]);
                 }
                 if($service->service_id == 2) {
@@ -292,7 +296,8 @@ class CRMServices
                         'cost_quoted' => 0,
                         'status' => 'Pending Proposal',
                         'remarks' => '',
-                        'created_by' => $request["created_by"] ?? 0
+                        'created_by' => $request["created_by"] ?? 0,
+                        'company_id' => $request['company_id'] ?? 0
                     ]);
                 }
             }
@@ -458,6 +463,7 @@ class CRMServices
     {
         return $this->crmProspect
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where('crm_prospects.status', 1)
         ->where(function ($query) use ($request) {
             if(isset($request['service_id']) && !empty($request['service_id'])) {

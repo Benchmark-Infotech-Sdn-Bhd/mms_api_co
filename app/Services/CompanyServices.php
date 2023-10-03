@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Company;
 use App\Models\UserCompany;
+use App\Models\User;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 
@@ -17,16 +18,22 @@ class CompanyServices
      * @var UserCompany
      */
     private $userCompany;
+    /**
+     * @var User
+     */
+    private User $user;
 
     /**
-     * CompanyServices constructor,
-     * 
+     * CompanyServices constructor
      * @param Company $company
+     * @param UserCompany $userCompany
+     * @param User $user
      */
-    public function __construct(Company $company, UserCompany $userCompany) 
+    public function __construct(Company $company, UserCompany $userCompany, User $user) 
     {
         $this->company = $company;
         $this->userCompany = $userCompany;
+        $this->user = $user;
     }
     /**
      * @param $request
@@ -162,5 +169,16 @@ class CompanyServices
                 ->where('user_id', $request['user_id'])
                 ->select('company_id')
                 ->get();
+    }
+    /**
+     * @param $request
+     * @return bool
+     */
+    public function updateCompanyId($request): bool
+    {
+        $userDetails = $this->user->findOrFail($request['user_id']);
+        $userDetails->company_id = $request['company_id'] ?? $userDetails->company_id;
+        $userDetails->save();
+        return true;
     }
 }

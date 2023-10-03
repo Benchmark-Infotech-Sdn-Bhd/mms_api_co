@@ -140,6 +140,7 @@ class TotalManagementServices
             $query->on('workers.id','=','worker_employment.worker_id')
             ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'));
         })
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where('crm_prospect_services.service_id', 3)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->where(function ($query) use ($request) {
@@ -198,7 +199,8 @@ class TotalManagementServices
             'cost_quoted' => 0,
             'status' => 'Pending Proposal',
             'remarks' => '',
-            'created_by' => $request["created_by"] ?? 0
+            'created_by' => $request["created_by"] ?? 0,
+            'company_id' => $user['company_id']
         ]);
         return true;
     }
