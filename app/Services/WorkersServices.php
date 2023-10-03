@@ -144,6 +144,7 @@ class WorkersServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
         if(!($this->validationServices->validate($request->toArray(),$this->workers->rules))){
             return [
               'validate' => $this->validationServices->errors()
@@ -164,7 +165,8 @@ class WorkersServices
             'state' => $request['state'] ?? '',
             'crm_prospect_id' => $request['crm_prospect_id'] ?? NULL,
             'created_by'    => $params['created_by'] ?? 0,
-            'modified_by'   => $params['created_by'] ?? 0
+            'modified_by'   => $params['created_by'] ?? 0,
+            'company_id' => $params['company_id']
         ]);
 
         if (request()->hasFile('fomema_attachment')){
@@ -635,6 +637,9 @@ class WorkersServices
                 ];
             }
         }
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         $data = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->leftjoin('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
         ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'workers.crm_prospect_id')
@@ -656,6 +661,7 @@ class WorkersServices
             }
             
         })
+        ->whereIn('workers.company_id', $request['company_id'])
         ->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'worker_employment.service_type', 'worker_employment.id as worker_employment_id')
         ->selectRaw("(CASE WHEN (workers.crm_prospect_id = 0) THEN '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' ELSE crm_prospects.company_name END) as company_name,  
 		(CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city 
@@ -688,6 +694,10 @@ class WorkersServices
                 ];
             }
         }
+
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->join('worker_kin', 'workers.id', '=', 'worker_kin.worker_id')
         ->join('kin_relationship', 'kin_relationship.id', '=', 'worker_kin.kin_relationship_id')
@@ -696,6 +706,7 @@ class WorkersServices
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
         ->where('directrecruitment_workers.application_id', $request['application_id'])
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
+        ->whereIn('workers.company_id', $request['company_id'])
         //->where('directrecruitment_workers.agent_id', $request['agent_id'])
         ->where(function ($query) use ($request) {
 
@@ -729,6 +740,9 @@ class WorkersServices
      */
     public function dropdown($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
         ->where('workers.status', 1)
@@ -736,6 +750,7 @@ class WorkersServices
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
         ->where('directrecruitment_workers.agent_id', $request['agent_id'])
         ->where('worker_visa.status', 'Pending')
+        ->whereIn('workers.company_id', $request['company_id'])
         ->select('workers.id','workers.name')
         ->orderBy('workers.created_at','DESC')->get();
     }

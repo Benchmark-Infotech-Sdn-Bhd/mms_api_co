@@ -122,6 +122,7 @@ class TotalManagementWorkerServices
             ->where('worker_employment.service_type', 'Total Management')
             ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
             ->where('worker_employment.transfer_flag', 0)
+            ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && $request['search']) {
                     $query->where('workers.name', 'like', '%' . $request['search'] . '%');
@@ -158,6 +159,7 @@ class TotalManagementWorkerServices
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->where('workers.econtract_status', 'On-Bench')
             ->where('workers.total_management_status', 'On-Bench')
+            ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
@@ -193,7 +195,10 @@ class TotalManagementWorkerServices
      */
     public function accommodationProviderDropDown($request): mixed
     {
-        return $this->vendor->where('type', 'Accommodation')->select('id', 'name')->get();
+        return $this->vendor->where('type', 'Accommodation')
+                ->whereIn('company_id', $request['company_id'])
+                ->select('id', 'name')
+                ->get();
     }
     /**
      * @param $request
@@ -334,6 +339,7 @@ class TotalManagementWorkerServices
         ->where('worker_employment.project_id', $request['project_id'])
         ->where('worker_employment.status', 1)
         ->where('service_type', 'Total Management')
+        ->whereIn('workers.company_id', $request['company_id'])
         ->select('worker_employment.id','worker_employment.worker_id','workers.name','workers.passport_number')
         ->get();
     }   
