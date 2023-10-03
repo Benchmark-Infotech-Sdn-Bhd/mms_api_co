@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('total_management_cost_management', function (Blueprint $table) {
-            // Invoice Number column
+            // Column for project id
+            $table->bigInteger('project_id')->unsigned()->after('application_id');
+            // Foreign key from total_management_project table
+            $table->foreign('project_id')->references('id')->on('total_management_project')->onDelete('cascade');
             $table->integer('is_payroll')->default(0);
             $table->integer('payroll_id')->default(0);
             $table->integer('month')->default(0);
