@@ -282,6 +282,9 @@ class InvoiceServices
             }
         }
         return $this->invoice
+        ->with(['crm_prospect' => function ($query) {
+            $query->select(['id', 'company_name']);
+        }])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('invoice_number', 'like', "%{$request['search_param']}%")

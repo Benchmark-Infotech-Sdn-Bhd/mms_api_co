@@ -144,7 +144,7 @@ class AuthServices extends Controller
             'company_id' => $request['company_id'] ?? 0,
             'pic_flag' => isset($request['pic_flag']) ?? 0
         ]);
-        if($request['user_type'] != 'Admin' && $request['user_type'] != 'Super User') {
+        if($request['user_type'] != 'Admin' && $request['user_type'] != 'Super User' && $request['user_type'] != 'Customer') {
             $this->uesrRoleType->create([
                 'user_id' => $response->id,
                 'role_id' => $request['role_id'],
@@ -323,5 +323,16 @@ class AuthServices extends Controller
         }
         array_push($companyIds, $user['company_id']);
         return $companyIds;
+    }
+
+    /**
+     * @param $user
+     * @return array
+     */
+    public function isCustomer($user): array
+    {
+        if($companyDetails->parent_id == 0 && $user->user_type == 'Customer') {
+            return $customer = ' where created_by = '.$user->id;
+        }
     }
 }
