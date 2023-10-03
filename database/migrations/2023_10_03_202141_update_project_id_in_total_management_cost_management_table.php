@@ -12,11 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('total_management_cost_management', function (Blueprint $table) {
-            
-            $table->integer('is_payroll')->default(0);
-            $table->integer('payroll_id')->default(0);
-            $table->integer('month')->default(0);
-            $table->integer('year')->default(0);
+            // Column for project id
+            $table->bigInteger('project_id')->unsigned();
+            // Foreign key from total_management_project table
+            $table->foreign('project_id')->references('id')->on('total_management_project')->onDelete('cascade');
         });
     }
 
@@ -25,6 +24,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('total_management_cost_management', function (Blueprint $table) {
+            //
+        });
     }
 };
