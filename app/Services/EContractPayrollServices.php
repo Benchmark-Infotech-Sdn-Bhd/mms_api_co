@@ -12,7 +12,7 @@ use App\Models\Workers;
 use App\Models\EContractPayroll;
 use App\Models\EContractPayrollAttachments;
 use App\Models\EContractPayrollBulkUpload;
-use App\Models\EContractExpenses;
+use App\Models\EContractCostManagement;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\EContractPayrollImport;
 
@@ -35,9 +35,9 @@ class EContractPayrollServices
      */
     private EContractPayrollBulkUpload $eContractPayrollBulkUpload;
     /**
-     * @var EContractExpenses
+     * @var EContractCostManagement
      */
-    private EContractExpenses $eContractExpenses;
+    private EContractCostManagement $eContractCostManagement;
     /**
      * @var Storage
      */
@@ -48,17 +48,17 @@ class EContractPayrollServices
      * @param EContractPayroll $eContractPayroll
      * @param EContractPayrollAttachments $eContractPayrollAttachments
      * @param EContractPayrollBulkUpload $eContractPayrollBulkUpload
-     * @param EContractExpenses $eContractExpenses
+     * @param EContractCostManagement $eContractCostManagement
      * @param Storage $storage;
      */
-    public function __construct(Workers $workers, EContractPayroll $eContractPayroll, EContractPayrollAttachments $eContractPayrollAttachments, Storage $storage, EContractPayrollBulkUpload $eContractPayrollBulkUpload, EContractExpenses $eContractExpenses)
+    public function __construct(Workers $workers, EContractPayroll $eContractPayroll, EContractPayrollAttachments $eContractPayrollAttachments, Storage $storage, EContractPayrollBulkUpload $eContractPayrollBulkUpload, EContractCostManagement $eContractCostManagement)
     {
         $this->workers = $workers;
         $this->eContractPayroll = $eContractPayroll;
         $this->eContractPayrollAttachments = $eContractPayrollAttachments;
         $this->storage = $storage;
         $this->eContractPayrollBulkUpload = $eContractPayrollBulkUpload;
-        $this->eContractExpenses = $eContractExpenses;
+        $this->eContractCostManagement = $eContractCostManagement;
     }
     /**
      * @return array
@@ -432,9 +432,9 @@ class EContractPayrollServices
     public function authorizePayroll($request): bool|array
     {
 
-        $checkEContractExpenses = $this->eContractExpenses->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
+        $checkEContractCostManagement = $this->eContractCostManagement->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
 
-        if($checkEContractExpenses > 0) {
+        if($checkEContractCostManagement > 0) {
             return [
                 'existsError' => true
             ];
@@ -472,15 +472,14 @@ class EContractPayrollServices
         if(isset($payrollWorkers) && count($payrollWorkers) > 0){
             foreach($payrollWorkers as $result){
                 $user = JWTAuth::parseToken()->authenticate();
-                $this->eContractExpenses->create([
-                    'worker_id' => $result['worker_id'],
-                    'application_id' => $result['application_id'],
+                $this->eContractCostManagement->create([
                     'project_id' => $request['project_id'],
                     'title' => $result['name'],
                     'type' => 'Payroll',
                     'payment_reference_number' => 1,
                     'payment_date' => Carbon::now(),
                     'is_payroll' => 1,
+                    'quantity' => 1,
                     'amount' => $result['amount'],
                     'remarks' => $result['name'],
                     'is_payroll' => 1,
@@ -490,15 +489,14 @@ class EContractPayrollServices
                     'created_by'    => $user['worker_id'] ?? 0,
                     'modified_by'   => $user['worker_id'] ?? 0,
                 ]);
-                $this->eContractExpenses->create([
-                    'worker_id' => $result['worker_id'],
-                    'application_id' => $result['application_id'],
+                $this->eContractCostManagement->create([
                     'project_id' => $request['project_id'] ?? 0,
                     'title' => "SOCSO Contribution (" . $result['name'] . " )",
                     'type' => 'Payroll',
                     'payment_reference_number' => 1,
                     'payment_date' => Carbon::now(),
                     'is_payroll' => 1,
+                    'quantity' => 1,
                     'amount' => $result['amount'],
                     'remarks' => "SOCSO Contribution (" . $result['name'] . " )",
                     'is_payroll' => 1,

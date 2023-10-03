@@ -22,7 +22,7 @@ class EContractCostManagement extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['project_id','title','payment_reference_number','quantity','amount','payment_date','remarks','created_by','modified_by', 'invoice_id', 'invoice_status','invoice_number'];
+    protected $fillable = ['project_id','title','payment_reference_number','quantity','amount','payment_date','remarks','created_by','modified_by', 'invoice_id', 'invoice_status','invoice_number','is_payroll', 'payroll_id', 'month', 'year'];
    
     /**
      * @return HasMany
