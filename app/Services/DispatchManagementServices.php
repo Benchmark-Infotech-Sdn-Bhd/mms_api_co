@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\OnboardingDispatch;
 use App\Models\OnboardingDispatchAttachments;
+use App\Services\AuthServices;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -26,16 +27,23 @@ class DispatchManagementServices
      */
     private Storage $storage;
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+
+    /**
      * dispatchManagementServices constructor.
      * @param OnboardingDispatch $onboardingDispatch
      * @param OnboardingDispatchAttachments $onboardingDispatchAttachments
      * @param Storage $storage
+     * @param AuthServices $authServices
      */
-    public function __construct(OnboardingDispatch $onboardingDispatch, OnboardingDispatchAttachments $onboardingDispatchAttachments, Storage $storage)
+    public function __construct(OnboardingDispatch $onboardingDispatch, OnboardingDispatchAttachments $onboardingDispatchAttachments, Storage $storage, AuthServices $authServices)
     {
         $this->onboardingDispatch = $onboardingDispatch;
         $this->onboardingDispatchAttachments = $onboardingDispatchAttachments;
         $this->storage = $storage;
+        $this->authServices = $authServices;
     }
     /**
      * @return array
@@ -77,8 +85,12 @@ class DispatchManagementServices
      */   
     public function list($request): mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         $list = $this->onboardingDispatch
         ->leftJoin('employee', 'employee.id', 'onboarding_dispatch.employee_id')
+        ->whereIn('employee.company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('employee.employee_name', 'like', '%'.$request['search'].'%')
