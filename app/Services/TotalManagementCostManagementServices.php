@@ -178,7 +178,7 @@ class TotalManagementCostManagementServices
             ->where('invoice_items_temp.service_id', '=', 3)
             ->WhereNull('invoice_items_temp.deleted_at');
           })
-        ->where('total_management_cost_management.application_id', $request['application_id'])
+        ->where('total_management_cost_management.project_id', $request['project_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('total_management_cost_management.title', 'like', "%{$request['search_param']}%")
