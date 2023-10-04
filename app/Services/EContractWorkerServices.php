@@ -118,6 +118,11 @@ class EContractWorkerServices
             ->where('worker_employment.transfer_flag', 0)
             ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
+                if ($request['user']['user_type'] == 'Customer') {
+                    $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
+                }
+            })
+            ->where(function ($query) use ($request) {
                 if (isset($request['search']) && $request['search']) {
                     $query->where('workers.name', 'like', '%' . $request['search'] . '%');
                     $query->orWhere('worker_visa.calling_visa_reference_number', 'like', '%' . $request['search'] . '%');
@@ -149,6 +154,11 @@ class EContractWorkerServices
             ->where('workers.econtract_status', 'On-Bench')
             ->where('workers.crm_prospect_id', 0)
             ->whereIn('workers.company_id', $request['company_id'])
+            ->where(function ($query) use ($request) {
+                if ($request['user']['user_type'] == 'Customer') {
+                    $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
+                }
+            })
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')

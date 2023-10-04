@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\EContractWorkerServices;
+use App\Services\AuthServices;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class EContractWorkerController extends Controller
 {
@@ -17,12 +19,19 @@ class EContractWorkerController extends Controller
     private EContractWorkerServices $eContractWorkerServices;
 
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+
+    /**
      * EContractWorkerController constructor.
      * @param EContractWorkerServices $eContractWorkerServices
+     * @param AuthServices $authServices
      */
-    public function __construct(EContractWorkerServices $eContractWorkerServices)
+    public function __construct(EContractWorkerServices $eContractWorkerServices, AuthServices $authServices)
     {
         $this->eContractWorkerServices = $eContractWorkerServices;
+        $this->authServices = $authServices;
     }
     /**
      * Dispaly all the Workers.
@@ -36,6 +45,7 @@ class EContractWorkerController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $data = $this->eContractWorkerServices->list($params);
             if (isset($data['error'])) {
                 return $this->validationError($data['error']);
@@ -58,6 +68,7 @@ class EContractWorkerController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $data = $this->eContractWorkerServices->workerListForAssignWorker($params);
             if (isset($data['error'])) {
                 return $this->validationError($data['error']);

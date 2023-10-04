@@ -124,7 +124,8 @@ class InvoiceServices
             'tax' => $request['tax'] ?? 0,
             'amount' => $request['amount'] ?? 0,
             'created_by'    => $params['created_by'] ?? 0,
-            'modified_by'   => $params['created_by'] ?? 0
+            'modified_by'   => $params['created_by'] ?? 0,
+            'company_id' => $user['company_id']
         ]);
 
         $generateInvoice['Type'] = 'ACCREC';
@@ -274,6 +275,9 @@ class InvoiceServices
      */
     public function list($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         if(isset($request['search_param']) && !empty($request['search_param'])){
             if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
                 return [
@@ -285,6 +289,12 @@ class InvoiceServices
         ->with(['crm_prospect' => function ($query) {
             $query->select(['id', 'company_name']);
         }])
+        ->whereIn('invoice.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('invoice_number', 'like', "%{$request['search_param']}%")
