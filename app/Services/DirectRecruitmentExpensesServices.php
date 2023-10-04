@@ -224,5 +224,16 @@ class DirectRecruitmentExpensesServices
         ]);
         return true;
     }
+    /**
+     *
+     * @param $request
+     * @return bool
+     */    
+    public function deleteAttachment($request): bool
+    {   
+        $data = $this->directRecruitmentExpensesAttachments::find($request['id']); 
+        $data->delete();
+        return true;
+    }
 
 }
