@@ -13,7 +13,7 @@ class EContractWorkerController extends Controller
 {
     /**
      * @var EContractWorkerServices
-     */
+     */ 
     private EContractWorkerServices $eContractWorkerServices;
 
     /**
@@ -34,6 +34,8 @@ class EContractWorkerController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->eContractWorkerServices->list($params);
             if (isset($data['error'])) {
                 return $this->validationError($data['error']);
@@ -54,6 +56,8 @@ class EContractWorkerController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->eContractWorkerServices->workerListForAssignWorker($params);
             if (isset($data['error'])) {
                 return $this->validationError($data['error']);

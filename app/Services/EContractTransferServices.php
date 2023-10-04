@@ -67,11 +67,14 @@ class EContractTransferServices
      */
     public function companyList($request): mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
         return $this->crmProspect
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
         ->leftJoin('sectors', 'sectors.id', 'crm_prospect_services.sector_id')
         ->where('crm_prospects.status', 1)
         ->where('crm_prospect_services.service_id', '!=', 1)
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
