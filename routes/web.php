@@ -509,6 +509,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('show', 'V1\DirectRecruitmentExpensesController@show');
             $router->post('create', 'V1\DirectRecruitmentExpensesController@create');
             $router->post('update', 'V1\DirectRecruitmentExpensesController@update');
+            $router->post('deleteAttachment', 'V1\DirectRecruitmentExpensesController@deleteAttachment');
         });
         /**
         * Routes for Total Management.
