@@ -33,6 +33,8 @@ class EContractController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->eContractServices->applicationListing($params);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
