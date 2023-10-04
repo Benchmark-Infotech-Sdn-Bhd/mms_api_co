@@ -223,4 +223,21 @@ class CompanyController extends Controller
             return $this->sendError(['message' => 'Failed to Update Company ID'], 400);
         }
     }
+    /**
+     * Display the list of subsidairy companies based on parent
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function subsidiaryDropdownBasedOnParent(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->subsidiaryDropdownBasedOnParent($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
 }

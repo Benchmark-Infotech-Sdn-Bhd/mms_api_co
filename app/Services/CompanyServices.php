@@ -180,4 +180,15 @@ class CompanyServices
         $userDetails->save();
         return true;
     }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function subsidiaryDropdownBasedOnParent($request): mixed
+    {
+        return $this->company
+            ->where('parent_id', $request['company_id'])
+            ->select('id', 'company_name')
+            ->get();
+    }
 }

@@ -153,6 +153,7 @@ class AuthServices extends Controller
                 'modified_by' => $request['user_id'] ?? 0
             ]);
             if(isset($request['subsidiary_companies']) && !empty($request['subsidiary_companies'])) {
+                array_push($request['subsidiary_companies'], $request['company_id']);
                 foreach ($request['subsidiary_companies'] as $subsidiaryCompany) {
                     $this->userCompany->create([
                         'user_id' => $response->id,
