@@ -42,8 +42,6 @@ class CompanyController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $user = JWTAuth::parseToken()->authenticate();
-            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->companyServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {

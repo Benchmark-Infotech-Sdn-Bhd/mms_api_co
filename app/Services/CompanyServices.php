@@ -42,7 +42,6 @@ class CompanyServices
     public function list($request): mixed
     {
         return $this->company
-            ->whereIn('id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 $query->where('company_name', 'like', '%'.$request['search'].'%')
                 ->orWhere('register_number', 'like', '%'.$request['search'].'%')
