@@ -44,6 +44,7 @@ class TotalManagementWorkerController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $data = $this->totalManagementWorkerServices->list($params);
             if (isset($data['error'])) {
                 return $this->validationError($data['error']);
@@ -66,6 +67,7 @@ class TotalManagementWorkerController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $data = $this->totalManagementWorkerServices->workerListForAssignWorker($params);
             if (isset($data['error'])) {
                 return $this->validationError($data['error']);

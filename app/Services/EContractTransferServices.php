@@ -84,7 +84,7 @@ class EContractTransferServices
         ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where(function ($query) use ($user) {
             if ($user['user_type'] == 'Customer') {
-                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+                $query->where('crm_prospects.id', '=', $user['reference_id']);
             }
         })
         ->where(function ($query) use ($request) {

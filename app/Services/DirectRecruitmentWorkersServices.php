@@ -300,6 +300,11 @@ class DirectRecruitmentWorkersServices
         ->where('directrecruitment_workers.application_id', $request['application_id'])
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
         ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
             if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
                 $query->where('worker_visa.status','Processed');
@@ -365,6 +370,11 @@ class DirectRecruitmentWorkersServices
         ->where('directrecruitment_workers.application_id', $request['application_id'])
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
         ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
 
             if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
@@ -408,6 +418,11 @@ class DirectRecruitmentWorkersServices
         ->where('directrecruitment_workers.agent_id', $request['agent_id'])
         ->where('worker_visa.status', 'Pending')
         ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
             if ($request['worker_id']) {
                 $query->where('workers.id', '!=', $request['worker_id']);

@@ -100,6 +100,11 @@ class TotalManagementTransferServices
         ->where('crm_prospects.status', 1)
         ->where('crm_prospect_services.service_id', '!=', 1)
         ->whereIn('crm_prospects.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('crm_prospects.id', '=', $user['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
