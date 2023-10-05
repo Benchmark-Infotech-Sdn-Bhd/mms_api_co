@@ -175,6 +175,7 @@ class DirectRecruitmentWorkersServices
             ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
             ['workers.cancel_status', 0]
         ])
+        ->whereIn('workers.directrecruitment_status', Config::get('services.DIRECT_RECRUITMENT_WORKER_STATUS'))
         ->count('directrecruitment_workers.worker_id');
 
         if($workerCount >= $onboardingCountryDetails->quota) {
@@ -192,6 +193,7 @@ class DirectRecruitmentWorkersServices
             ['workers.cancel_status', 0],
             ['worker_visa.ksm_reference_number', $request['ksm_reference_number']],
         ])
+        ->whereIn('workers.directrecruitment_status', Config::get('services.DIRECT_RECRUITMENT_WORKER_STATUS'))
         ->count('directrecruitment_workers.worker_id');
 
         if(isset($approvedCount) && ($ksmReferenceNumberCount >= $approvedCount['approved_quota'])) {
