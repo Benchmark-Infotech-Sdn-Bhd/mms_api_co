@@ -63,6 +63,7 @@ class DirectRecruitmentCallingVisaGenerateController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentCallingVisaGenerateServices->workersList($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -82,6 +83,7 @@ class DirectRecruitmentCallingVisaGenerateController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentCallingVisaGenerateServices->listBasedOnCallingVisa($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);

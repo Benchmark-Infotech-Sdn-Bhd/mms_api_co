@@ -44,6 +44,7 @@ class DirectRecruitmentSpecialPassController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentSpecialPassServices->workersList($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -110,6 +111,7 @@ class DirectRecruitmentSpecialPassController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentSpecialPassServices->workersListExport($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);

@@ -44,6 +44,7 @@ class DirectRecruitmentRepatriationController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentRepatriationServices->workersList($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -87,6 +88,7 @@ class DirectRecruitmentRepatriationController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentRepatriationServices->workersListExport($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);

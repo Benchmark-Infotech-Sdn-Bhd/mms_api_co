@@ -78,6 +78,7 @@ class DirectRecruitmentArrivalController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentArrivalServices->workersListForSubmit($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -97,6 +98,7 @@ class DirectRecruitmentArrivalController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentArrivalServices->workersListForUpdate($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -199,6 +201,7 @@ class DirectRecruitmentArrivalController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentArrivalServices->callingvisaReferenceNumberList($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {

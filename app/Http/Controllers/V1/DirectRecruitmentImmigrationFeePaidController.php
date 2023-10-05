@@ -66,6 +66,7 @@ class DirectRecruitmentImmigrationFeePaidController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentImmigrationFeePaidServices->workersList($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -85,6 +86,7 @@ class DirectRecruitmentImmigrationFeePaidController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentImmigrationFeePaidServices->listBasedOnCallingVisa($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);

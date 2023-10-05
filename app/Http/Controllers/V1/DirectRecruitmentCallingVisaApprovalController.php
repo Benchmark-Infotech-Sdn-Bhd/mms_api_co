@@ -44,6 +44,7 @@ class DirectRecruitmentCallingVisaApprovalController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentCallingVisaApprovalServices->workersList($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);

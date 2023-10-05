@@ -125,6 +125,11 @@ class DirectRecruitmentCallingVisaDispatchServices
             ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'workers.id')
             ->leftJoin('worker_immigration', 'worker_immigration.worker_id', 'workers.id')
             ->whereIn('workers.company_id', $request['company_id'])
+            ->where(function ($query) use ($request) {
+                if ($request['user']['user_type'] == 'Customer') {
+                    $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
+                }
+            })
             ->where('worker_visa.generated_status', 'Generated')
             ->where('worker_immigration.immigration_status', 'Paid')
             ->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number'])
@@ -154,6 +159,11 @@ class DirectRecruitmentCallingVisaDispatchServices
             ->leftJoin('worker_immigration', 'worker_immigration.worker_id', 'workers.id')
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->whereIn('workers.company_id', $request['company_id'])
+            ->where(function ($query) use ($request) {
+                if ($request['user']['user_type'] == 'Customer') {
+                    $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
+                }
+            })
             ->where('worker_visa.generated_status', 'Generated')
             ->where('worker_immigration.immigration_status', 'Paid')
             ->where([
