@@ -240,4 +240,21 @@ class CompanyController extends Controller
             return $this->sendError(['message' => 'Failed to List Companies'], 400);
         }
     }
+    /**
+     * Display the list of Companies
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function dropdown(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->dropdown($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
 }
