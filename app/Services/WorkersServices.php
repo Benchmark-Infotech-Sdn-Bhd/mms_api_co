@@ -662,6 +662,11 @@ class WorkersServices
             
         })
         ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'worker_employment.service_type', 'worker_employment.id as worker_employment_id')
         ->selectRaw("(CASE WHEN (workers.crm_prospect_id = 0) THEN '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' ELSE crm_prospects.company_name END) as company_name,  
 		(CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city 
@@ -708,6 +713,11 @@ class WorkersServices
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
         ->whereIn('workers.company_id', $request['company_id'])
         //->where('directrecruitment_workers.agent_id', $request['agent_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
 
             if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
@@ -751,6 +761,11 @@ class WorkersServices
         ->where('directrecruitment_workers.agent_id', $request['agent_id'])
         ->where('worker_visa.status', 'Pending')
         ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->select('workers.id','workers.name')
         ->orderBy('workers.created_at','DESC')->get();
     }
