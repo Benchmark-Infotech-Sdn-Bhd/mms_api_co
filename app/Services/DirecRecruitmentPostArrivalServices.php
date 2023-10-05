@@ -275,7 +275,7 @@ class DirecRecruitmentPostArrivalServices
                 ]);
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
-                    'cancel_status' => 1, 
+                    'cancel_status' => Config::get('services.POST_ARRIVAL_CANCELLED_STATUS'), 
                     'remarks' => $request['remarks'] ?? '',
                     'modified_by' => $request['modified_by']
                 ]);
