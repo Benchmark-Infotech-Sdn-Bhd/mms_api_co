@@ -103,6 +103,7 @@ class DirectRecruitmentRepatriationServices
                 ];
             }
         }
+        $request['post_arrival_cancelled_status'] = Config::get('services.POST_ARRIVAL_CANCELLED_STATUS');
         return $this->workers
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_fomema', 'worker_fomema.worker_id', 'workers.id')
@@ -117,7 +118,7 @@ class DirectRecruitmentRepatriationServices
                     ['workers.plks_status', 'Pending']
                 ])
                 ->orWhere([
-                    ['workers.cancel_status', 2]
+                    ['workers.cancel_status', $request['post_arrival_cancelled_status']]
                 ]);
             })
             ->whereNull('workers.replace_worker_id')
@@ -208,6 +209,7 @@ class DirectRecruitmentRepatriationServices
                 ];
             }
         }
+        $request['post_arrival_cancelled_status'] = Config::get('services.POST_ARRIVAL_CANCELLED_STATUS');
         return $this->workers
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_fomema', 'worker_fomema.worker_id', 'workers.id')
@@ -222,7 +224,7 @@ class DirectRecruitmentRepatriationServices
                     ['workers.plks_status', 'Pending']
                 ])
                 ->orWhere([
-                    ['workers.cancel_status', 2]
+                    ['workers.cancel_status', $request['post_arrival_cancelled_status']]
                 ]);
             })
             ->whereNull('workers.replace_worker_id')
