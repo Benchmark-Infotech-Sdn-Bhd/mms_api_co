@@ -162,10 +162,22 @@ class TotalManagementWorkerServices
             }
         }
         $request['company_ids'] = array($request['prospect_id'], 0);
+        
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->where('workers.econtract_status', 'On-Bench')
-            ->where('workers.total_management_status', 'On-Bench')
-            ->where(function ($query) use ($request) {
+        ->where(function ($query) use ($request) {
+            $query->where([
+                ['workers.crm_prospect_id', 0],
+                ['workers.econtract_status', 'On-Bench'],
+                ['workers.total_management_status', 'On-Bench']
+            ])
+            ->orWhere([
+                ['workers.crm_prospect_id', $request['prospect_id']],
+                ['workers.econtract_status', 'On-Bench'],
+                ['workers.total_management_status', 'On-Bench'],
+                ['workers.plks_status', 'Approved']
+            ]);
+        })
+        ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
                     ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
@@ -189,7 +201,7 @@ class TotalManagementWorkerServices
                     $query->where('worker_visa.ksm_reference_number', $request['ksm_reference_number']);
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', )
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', 'workers.econtract_status', 'workers.total_management_status', 'workers.plks_status')
             ->distinct()
             ->orderBy('workers.created_at','DESC')
             ->paginate(Config::get('services.paginate_row'));
