@@ -56,6 +56,9 @@ class RolesServices
     public function list($request): mixed
     {
         return $this->role
+            ->with(['roleCompany' => function ($query) {
+                $query->select('id as company_id', 'company_name');
+            }])
             ->whereIn('company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {

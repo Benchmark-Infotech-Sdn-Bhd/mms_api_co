@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Role extends Model implements Auditable
@@ -35,5 +36,12 @@ class Role extends Model implements Auditable
     public function userRoleTypes()
     {
         return $this->hasMany(UserRoleType::class, 'role_id');
+    }
+    /**
+     * @return BelongsTo
+     */
+    public function roleCompany()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
     }
 }
