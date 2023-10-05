@@ -147,7 +147,7 @@ class RolesServices
     {
         return $this->role->where('status', 1)
             ->whereIn('company_id', $companyId)
-            ->select('id', 'role_name')
+            ->select('id', 'role_name', 'special_permission')
             ->get();
     }
     /**
