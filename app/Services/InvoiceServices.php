@@ -123,6 +123,7 @@ class InvoiceServices
             'reference_number' => $request['reference_number'] ?? '',
             'tax' => $request['tax'] ?? 0,
             'amount' => $request['amount'] ?? 0,
+            'due_amount' => $request['due_amount'] ?? 0,
             'created_by'    => $params['created_by'] ?? 0,
             'modified_by'   => $params['created_by'] ?? 0,
             'company_id' => $user['company_id']
@@ -219,6 +220,7 @@ class InvoiceServices
         $invoice->due_date = ((isset($request['due_date']) && !empty($request['due_date'])) ? $request['due_date'] : $invoice->due_date);
         $invoice->reference_number = ((isset($request['reference_number']) && !empty($request['reference_number'])) ? $request['reference_number'] : $invoice->reference_number);
         $invoice->amount = $request['amount'] ?? $invoice->amount;
+        $invoice->due_amount = $request['amount'] ?? $invoice->due_amount;
         $invoice->created_by = $request['created_by'] ?? $invoice->created_by;
         $invoice->modified_by = $params['modified_by'];
         $invoice->save();
@@ -285,8 +287,7 @@ class InvoiceServices
                 ];
             }
         }
-        return $this->invoice
-        ->with(['crm_prospect' => function ($query) {
+        return $this->invoice->with(['crm_prospect' => function ($query) {
             $query->select(['id', 'company_name']);
         }])
         ->whereIn('invoice.company_id', $request['company_id'])
@@ -297,14 +298,13 @@ class InvoiceServices
         })
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('invoice_number', 'like', "%{$request['search_param']}%")
-                ->orWhere('account', 'like', '%'.$request['search_param'].'%');
+                $query->where('invoice_number', 'like', "%{$request['search_param']}%");
             }
             if (isset($request['invoice_status']) && !empty($request['invoice_status'])) {
                 $query->where('invoice_status', 'like', "%{$request['invoice_status']}%");
             }
             
-        })->select('id','crm_prospect_id','issue_date','due_date','reference_number','account','tax','amount','created_at','invoice_number','invoice_status')
+        })->select('id','crm_prospect_id','issue_date','due_date','reference_number','tax','amount','due_amount','created_at','invoice_number','invoice_status')
         ->distinct()
         ->orderBy('created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));

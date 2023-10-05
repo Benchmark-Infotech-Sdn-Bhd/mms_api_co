@@ -12,6 +12,7 @@ use App\Models\DirectrecruitmentApplications;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\EContractProject;
 
 class EContractWorkerServices
 {
@@ -43,7 +44,10 @@ class EContractWorkerServices
      * @var DirectrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
-
+    /**
+     * @var EContractProject
+     */
+    private EContractProject $eContractProject;
     /**
      * TotalManagementWorkerServices constructor.
      * @param Workers $workers
@@ -53,8 +57,9 @@ class EContractWorkerServices
      * @param TotalManagementApplications $totalManagementApplications
      * @param CRMProspectService $crmProspectService
      * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * @param EContractProject $eContractProject
      */
-    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications)
+    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, EContractProject $eContractProject)
     {
         $this->workers = $workers;
         $this->vendor = $vendor;
@@ -63,6 +68,7 @@ class EContractWorkerServices
         $this->totalManagementApplications = $totalManagementApplications;
         $this->crmProspectService = $crmProspectService;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->eContractProject = $eContractProject;
     }
     /**
      * @return array
@@ -188,6 +194,31 @@ class EContractWorkerServices
         $request['created_by'] = $user['id'];
 
         if(isset($request['workers']) && !empty($request['workers'])) {
+
+            $applicationQuotaRequested = $this->eContractProject
+            ->leftJoin('e-contract_applications', 'e-contract_applications.id', 'e-contract_project.application_id')
+            ->where('e-contract_project.id',$request['project_id'])
+            ->select('e-contract_applications.quota_requested')->get();
+
+            $quotaRequested = isset($applicationQuotaRequested[0]['quota_requested']) ?$applicationQuotaRequested[0]['quota_requested'] : 0;
+
+            $assignedWorkerCount = $this->workers
+            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
+            ->where('worker_employment.project_id', $request['project_id'])
+            ->where('worker_employment.service_type', 'e-Contract')
+            ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
+            ->where('worker_employment.transfer_flag', 0)
+            ->distinct('workers.id')->count('workers.id');
+
+            $assignedWorkerCount += count($request['workers']);
+
+            if($assignedWorkerCount > $quotaRequested) {
+                return [
+                    'quotaError' => true
+                ];
+            }
+
             foreach ($request['workers'] as $workerId) {
                 $this->workerEmployment->create([
                     'worker_id' => $workerId,

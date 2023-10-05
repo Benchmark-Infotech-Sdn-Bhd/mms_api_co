@@ -48,6 +48,8 @@ class CountriesController extends Controller
             $data = $this->countriesServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['countryExistsError'])) {
+                return $this->sendError(['message' => 'Country name already taken'],422);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {

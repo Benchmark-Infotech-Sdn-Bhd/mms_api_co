@@ -108,28 +108,28 @@ class AuthServices extends Controller
      */
     public function create($request)
     {
-        if($request['user_type'] == 'Super User') {
-            $company = $this->company->findOrFail($request['company_id']);
-            if($company['parent_id'] != 0) {
-                return [
-                    'subsidiaryError' => true
-                ];
-            }
-            $companyCount = $this->company->where('parent_id', $request['company_id'])->count();
-            if($companyCount == 0) {
-                return [
-                    'parentError' => true
-                ];
-            }
-            $userCount = $this->user->where('company_id', $request['company_id'])
-                        ->where('user_type', 'Super User')
-                        ->count();
-            if($userCount > 0) {
-                return [
-                    'userError' => true
-                ];
-            }
-        }
+        // if($request['user_type'] == 'Super User') {
+        //     $company = $this->company->findOrFail($request['company_id']);
+        //     if($company['parent_id'] != 0) {
+        //         return [
+        //             'subsidiaryError' => true
+        //         ];
+        //     }
+        //     $companyCount = $this->company->where('parent_id', $request['company_id'])->count();
+        //     if($companyCount == 0) {
+        //         return [
+        //             'parentError' => true
+        //         ];
+        //     }
+        //     $userCount = $this->user->where('company_id', $request['company_id'])
+        //                 ->where('user_type', 'Super User')
+        //                 ->count();
+        //     if($userCount > 0) {
+        //         return [
+        //             'userError' => true
+        //         ];
+        //     }
+        // }
         if($request['user_type'] == 'Admin' || $request['user_type'] == 'Super User') {
             $request['password'] = Str::random(8);
         }
@@ -144,7 +144,7 @@ class AuthServices extends Controller
             'company_id' => $request['company_id'] ?? 0,
             'pic_flag' => isset($request['pic_flag']) ?? 0
         ]);
-        if($request['user_type'] != 'Admin' && $request['user_type'] != 'Super User' && $request['user_type'] != 'Customer') {
+        if($request['user_type'] != 'Admin' && $request['user_type'] != 'Customer') {
             $this->uesrRoleType->create([
                 'user_id' => $response->id,
                 'role_id' => $request['role_id'],
@@ -153,6 +153,7 @@ class AuthServices extends Controller
                 'modified_by' => $request['user_id'] ?? 0
             ]);
             if(isset($request['subsidiary_companies']) && !empty($request['subsidiary_companies'])) {
+                array_push($request['subsidiary_companies'], $request['company_id']);
                 foreach ($request['subsidiary_companies'] as $subsidiaryCompany) {
                     $this->userCompany->create([
                         'user_id' => $response->id,
@@ -313,13 +314,13 @@ class AuthServices extends Controller
     {
         $companyDetails = $this->company->findOrFail($user['company_id']);
         $companyIds = [];
-        if($companyDetails->parent_id == 0 && $user->user_type == 'Super User') {
-            $companyIds = $this->company->where('parent_id', $user['company_id'])
-                            ->select('id')
-                            ->get()
-                            ->toArray();
-            $companyIds = array_column($companyIds, 'id');
-        }
+        // if($companyDetails->parent_id == 0 && $user->user_type == 'Super User') {
+        //     $companyIds = $this->company->where('parent_id', $user['company_id'])
+        //                     ->select('id')
+        //                     ->get()
+        //                     ->toArray();
+        //     $companyIds = array_column($companyIds, 'id');
+        // }
         array_push($companyIds, $user['company_id']);
         return $companyIds;
     }

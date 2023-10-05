@@ -42,7 +42,6 @@ class CompanyServices
     public function list($request): mixed
     {
         return $this->company
-            ->whereIn('id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 $query->where('company_name', 'like', '%'.$request['search'].'%')
                 ->orWhere('register_number', 'like', '%'.$request['search'].'%')
@@ -180,5 +179,16 @@ class CompanyServices
         $userDetails->company_id = $request['company_id'] ?? $userDetails->company_id;
         $userDetails->save();
         return true;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function subsidiaryDropdownBasedOnParent($request): mixed
+    {
+        return $this->company
+            ->where('parent_id', $request['company_id'])
+            ->select('id', 'company_name')
+            ->get();
     }
 }

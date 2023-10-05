@@ -88,9 +88,9 @@ class RolesServices
             ];
         }
         if ($request['special_permission'] == 1) {
-            if($request['user_type'] != 'Super User') {
+            if($request['user_type'] != 'Admin') {
                 return [
-                    'superUserError' => true
+                    'adminUserError' => true
                 ];
             }
             $companyDetail = $this->company->findOrFail($request['company_id']);
@@ -147,7 +147,7 @@ class RolesServices
     {
         return $this->role->where('status', 1)
             ->whereIn('company_id', $companyId)
-            ->select('id', 'role_name')
+            ->select('id', 'role_name', 'special_permission')
             ->get();
     }
     /**

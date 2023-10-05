@@ -57,6 +57,7 @@ class WorkerStatisticsReportServices
         ->leftJoin('worker_visa', 'worker_visa.worker_id', 'directrecruitment_workers.worker_id')
         ->leftJoin('worker_arrival', 'worker_arrival.worker_id', 'worker_visa.worker_id')
         ->leftJoin('workers', 'workers.id', 'worker_arrival.worker_id')
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where('crm_prospect_services.service_id', 1)
         ->whereNotNull('levy.ksm_reference_number')
         ->whereNotNull('directrecruitment_application_approval.ksm_reference_number')

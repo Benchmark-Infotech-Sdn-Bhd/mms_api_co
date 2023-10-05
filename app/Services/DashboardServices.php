@@ -77,18 +77,21 @@ class DashboardServices
 
         $serviceDirectRecruitment = $this->directrecruitmentApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where('crm_prospect_services.service_id', 1)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->count('directrecruitment_applications.id');
 
         $serviceEcontract = $this->eContractApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'e-contract_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'e-contract_applications.service_id')
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where('crm_prospect_services.service_id', 2)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->count('e-contract_applications.id');
 
         $serviceTotalManagementCount = $this->totalManagementApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'total_management_applications.service_id')
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where('crm_prospect_services.service_id', 3)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->count('total_management_applications.id');
@@ -97,15 +100,23 @@ class DashboardServices
 
         $workerPassportExpired = $this->workers
         ->where('passport_valid_until', '<=', $conditionDate)
+        ->whereIn('company_id', $request['company_id'])
         ->count('id');
 
         $fomemaExpired = $this->workers
         ->where('fomema_valid_until', '<=', $conditionDate)
+        ->whereIn('company_id', $request['company_id'])
         ->count('id');
 
-        $visaPermitExpired = $this->workerVisa
-        ->where('work_permit_valid_until', '<=', $conditionDate)
-        ->count('id');
+        $visaPermitExpired = $this->workers
+                    ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+                    ->whereIn('workers.company_id', $request['company_id'])
+                    ->where('worker_visa.work_permit_valid_until', '<=', $conditionDate)
+                    ->count('workers.id');
+
+        // $visaPermitExpired = $this->workerVisa
+        // ->where('work_permit_valid_until', '<=', $conditionDate)
+        // ->count('id');
 
         return [
             'worker_count' => $workerCount,
