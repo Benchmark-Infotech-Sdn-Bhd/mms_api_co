@@ -191,4 +191,15 @@ class CompanyServices
             ->select('id', 'company_name')
             ->get();
     }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function dropdown($request): mixed
+    {
+        return $this->company
+            ->where('status', 1)
+            ->select('id', 'company_name')
+            ->get();
+    }
 }
