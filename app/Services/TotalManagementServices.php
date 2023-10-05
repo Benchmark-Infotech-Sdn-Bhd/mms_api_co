@@ -141,6 +141,11 @@ class TotalManagementServices
             ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'));
         })
         ->whereIn('crm_prospects.company_id', $request['company_id'])
+        ->where(function ($query) use ($request) {
+            if ($request['user']['user_type'] == 'Customer') {
+                $query->where(`e-contract_applications`.`crm_prospect_id`, '=', $request['user']['reference_id']);
+            }
+        })
         ->where('crm_prospect_services.service_id', 3)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->where(function ($query) use ($request) {

@@ -85,6 +85,7 @@ class DirectRecruitmentCallingVisaController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentCallingVisaServices->workersList($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -145,6 +146,7 @@ class DirectRecruitmentCallingVisaController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentCallingVisaServices->workerListForCancellation($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);

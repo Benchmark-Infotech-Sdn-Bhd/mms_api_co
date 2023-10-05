@@ -44,6 +44,7 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentPostArrivalFomemaServices->workersList($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -149,6 +150,7 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentPostArrivalFomemaServices->workersListExport($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
