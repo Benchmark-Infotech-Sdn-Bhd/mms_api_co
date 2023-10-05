@@ -275,7 +275,7 @@ class DirecRecruitmentPostArrivalServices
                 ]);
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
-                    'cancel_status' => 1, 
+                    'cancel_status' => 2, 
                     'remarks' => $request['remarks'] ?? '',
                     'modified_by' => $request['modified_by']
                 ]);
