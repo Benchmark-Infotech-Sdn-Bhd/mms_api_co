@@ -12,9 +12,13 @@ use App\Models\WorkerFomema;
 use App\Models\WorkerInsuranceDetails;
 use App\Models\WorkerBankDetails;
 use App\Models\DirectrecruitmentApplications;
+use App\Models\DirectRecruitmentCallingVisaStatus;
+use App\Models\DirectRecruitmentOnboardingCountry;
+use App\Models\WorkerStatus;
 use App\Services\ManageWorkersServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Carbon;
 
 
 class WorkersImport extends Job
@@ -57,7 +61,38 @@ class WorkersImport extends Job
 
             $workerCount = DB::table('workers')->where('passport_number', $this->workerParameter['passport_number'])->count();
 
-            if($workerCount == 0){
+            $applicationId = $this->workerParameter['application_id'];
+
+            $ksmReferenceNumbersResult = DB::table('directrecruitment_application_approval')
+            ->leftJoin('levy', function($join) use ($applicationId){
+                $join->on('levy.application_id', '=', 'directrecruitment_application_approval.application_id')
+                ->on('levy.new_ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
+                })
+            ->leftJoin('directrecruitment_onboarding_countries', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_application_approval.application_id')
+            ->where('directrecruitment_application_approval.application_id', $applicationId)
+            ->select('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota')
+            ->selectRaw('sum(directrecruitment_onboarding_countries.utilised_quota) as utilised_quota')
+            ->groupBy('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota')
+            ->distinct()
+            ->get();
+
+            
+
+            $ksmReferenceNumbers = array();
+            foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
+                Log::info('ksm result - ' . ($ksmReferenceNumber->ksm_reference_number));
+                $ksmReferenceNumbers[$key] = $ksmReferenceNumber->ksm_reference_number;
+            }
+            
+            $ksmError = 0; 
+            if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
+                if(!in_array($this->workerParameter['ksm_reference_number'], $ksmReferenceNumbers)){
+                    Log::info('Row Data - KSM Reference Number Error - ' . print_r($workerRelationship->id, true));   
+                    $ksmError = 1; 
+                }
+            }
+
+            if($workerCount == 0 && $ksmError == 0){
 
                 $applicationDetails = DirectrecruitmentApplications::findOrFail($this->workerParameter['application_id']);
                 $prospect_id = $applicationDetails->crm_prospect_id;
@@ -78,6 +113,11 @@ class WorkersImport extends Job
                     'modified_by'   => $this->workerParameter['created_by'] ?? 0,
                     'created_at'    => null,
                     'updated_at'    => null
+                ]);
+
+                Workers::where('id', $worker['id'])
+                ->update([
+                    'module_type' => 'Direct Recruitment'
                 ]);
     
                 DirectrecruitmentWorkers::create([
@@ -141,7 +181,45 @@ class WorkersImport extends Job
                         "socso_number" =>  $request['socso_number'] ?? ''
                     ]);
                 }
-                
+
+                $checkCallingVisa = DirectRecruitmentCallingVisaStatus::where('application_id', $this->workerParameter['application_id'])
+                ->where('onboarding_country_id', $this->workerParameter['onboarding_country_id'])
+                ->where('agent_id', $this->workerParameter['agent_id'])->get()->toArray();
+
+                if(isset($checkCallingVisa) && count($checkCallingVisa) == 0 ){
+                    $callingVisaStatus = DirectRecruitmentCallingVisaStatus::create([
+                        'application_id' => $this->workerParameter['application_id'] ?? 0,
+                        'onboarding_country_id' => $this->workerParameter['onboarding_country_id'] ?? 0,
+                        'agent_id' => $this->workerParameter['agent_id'] ?? 0,
+                        'item' => 'Calling Visa Status',
+                        'updated_on' => Carbon::now(),
+                        'status' => 1
+                    ]);
+                }
+
+                $checkWorkerStatus = WorkerStatus::where('application_id', $this->workerParameter['application_id'])
+                ->where('onboarding_country_id', $this->workerParameter['onboarding_country_id'])
+                ->get()->toArray();
+
+                if(isset($checkWorkerStatus) && count($checkWorkerStatus) > 0 ){
+                    WorkerStatus::where([
+                        'application_id' => $this->workerParameter['application_id'],
+                        'onboarding_country_id' => $this->workerParameter['onboarding_country_id']
+                    ])->update(['updated_on' => Carbon::now()]);
+                } else {
+                    $workerStatus = WorkerStatus::create([
+                        'application_id' => $this->workerParameter['application_id'] ?? 0,
+                        'onboarding_country_id' => $this->workerParameter['onboarding_country_id'] ?? 0,
+                        'item' => 'Worker Biodata',
+                        'updated_on' => Carbon::now(),
+                        'status' => 1
+                    ]);
+                }
+
+                $onboardingCountry = DirectRecruitmentOnboardingCountry::findOrFail($this->workerParameter['onboarding_country_id']);
+
+                $onboardingCountry->onboarding_status =  4;
+                $onboardingCountry->save();                
     
                 Log::info('Worker instertd -  '.$worker['id']);
     

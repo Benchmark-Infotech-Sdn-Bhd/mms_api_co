@@ -43,12 +43,12 @@ class DispatchManagementServices
     public function createValidation(): array
     {
         return [
-            'date' => 'required|date|date_format:d/m/Y',
+            'date' => 'required|date|date_format:Y-m-d',
             'time' => 'required',
             'reference_number' => 'required',
             'employee_id' => 'required',
             'from' => 'required',
-            'calltime' => 'required',
+            'calltime' => 'required|date|date_format:Y-m-d',
             'area' => 'required',
             'employer_name' => 'required',
             'phone_number' => 'required'
@@ -61,11 +61,11 @@ class DispatchManagementServices
     {
         return [
             'id' => 'required',
-            'date' => 'required|date|date_format:d/m/Y',
+            'date' => 'required|date|date_format:Y-m-d',
             'time' => 'required',
             'employee_id' => 'required',
             'from' => 'required',
-            'calltime' => 'required',
+            'calltime' => 'required|date|date_format:Y-m-d',
             'area' => 'required',
             'employer_name' => 'required',
             'phone_number' => 'required'
@@ -89,27 +89,27 @@ class DispatchManagementServices
                     $query->where('onboarding_dispatch.dispatch_status', 'Completed');
                 }else if($request['status_filter'] == 'Assigned'){
                     $query->where('onboarding_dispatch.dispatch_status', 'Assigned')
-                    ->where(DB::raw("(STR_TO_DATE(onboarding_dispatch.calltime,'%d/%m/%Y'))"), '>', Carbon::now());
+                    ->where('onboarding_dispatch.calltime', '>', Carbon::now());
                 }else{
                     $query->where('onboarding_dispatch.dispatch_status', 'Assigned')
-                    ->where(DB::raw("(STR_TO_DATE(onboarding_dispatch.calltime,'%d/%m/%Y'))"), '<', Carbon::now());
+                    ->where('onboarding_dispatch.calltime', '<', Carbon::now());
                 }
             }
         })
         ->select('onboarding_dispatch.id', 'employee.employee_name', 'onboarding_dispatch.date', 'onboarding_dispatch.calltime', 'onboarding_dispatch.reference_number')
         ->selectRaw("(CASE WHEN (onboarding_dispatch.dispatch_status = 'Completed') THEN onboarding_dispatch.dispatch_status
-        WHEN (onboarding_dispatch.dispatch_status = 'Assigned' AND STR_TO_DATE(onboarding_dispatch.calltime,'%d/%m/%Y') > '".Carbon::now()."') THEN onboarding_dispatch.dispatch_status 
+        WHEN (onboarding_dispatch.dispatch_status = 'Assigned' AND onboarding_dispatch.calltime > '".Carbon::now()."') THEN onboarding_dispatch.dispatch_status 
         ELSE 'Pending' END) as status")
         ->distinct('onboarding_dispatch.id')
         ->orderBy('onboarding_dispatch.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
 
-        $assigned_count = $this->onboardingDispatch->where('dispatch_status', 'Assigned')->where(DB::raw("(STR_TO_DATE(calltime,'%d/%m/%Y'))"), '>', Carbon::now())->count();
+        $assigned_count = $this->onboardingDispatch->where('dispatch_status', 'Assigned')->where('calltime', '>', Carbon::now())->count();
 
         $completed_count = $this->onboardingDispatch->where('dispatch_status', 'Completed')->count();
 
         $pending_count = $this->onboardingDispatch->where('dispatch_status', 'Assigned')
-        ->where(DB::raw("(STR_TO_DATE(calltime,'%d/%m/%Y'))"), '<', Carbon::now())->count();
+        ->where('calltime', '<', Carbon::now())->count();
 
         return [
             'assigned_count' => $assigned_count,

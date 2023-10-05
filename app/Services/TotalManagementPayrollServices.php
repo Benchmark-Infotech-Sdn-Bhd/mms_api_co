@@ -15,7 +15,7 @@ use App\Models\PayrollBulkUpload;
 use App\Models\TotalManagementProject;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\PayrollImport;
-use App\Models\TotalManagementExpenses;
+use App\Models\TotalManagementCostManagement;
 
 class TotalManagementPayrollServices
 {
@@ -36,9 +36,9 @@ class TotalManagementPayrollServices
      */
     private PayrollBulkUpload $payrollBulkUpload;
     /**
-     * @var TotalManagementExpenses
+     * @var TotalManagementCostManagement
      */
-    private TotalManagementExpenses $totalManagementExpenses;
+    private TotalManagementCostManagement $totalManagementCostManagement;
     /**
      * @var Storage
      */
@@ -53,11 +53,11 @@ class TotalManagementPayrollServices
      * @param TotalManagementPayroll $totalManagementPayroll
      * @param TotalManagementPayrollAttachments $totalManagementPayrollAttachments
      * @param PayrollBulkUpload $payrollBulkUpload
-     * @param TotalManagementExpenses $totalManagementExpenses
+     * @param TotalManagementCostManagement $totalManagementCostManagement
      * @param Storage $storage;
      */
 
-    public function __construct(Workers $workers, TotalManagementPayroll $totalManagementPayroll, TotalManagementPayrollAttachments $totalManagementPayrollAttachments, Storage $storage, PayrollBulkUpload $payrollBulkUpload, TotalManagementProject $totalManagementProject, TotalManagementExpenses $totalManagementExpenses)
+    public function __construct(Workers $workers, TotalManagementPayroll $totalManagementPayroll, TotalManagementPayrollAttachments $totalManagementPayrollAttachments, Storage $storage, PayrollBulkUpload $payrollBulkUpload, TotalManagementProject $totalManagementProject, TotalManagementCostManagement $totalManagementCostManagement)
     {
         $this->workers = $workers;
         $this->totalManagementPayroll = $totalManagementPayroll;
@@ -65,7 +65,7 @@ class TotalManagementPayrollServices
         $this->storage = $storage;
         $this->payrollBulkUpload = $payrollBulkUpload;
         $this->totalManagementProject = $totalManagementProject;
-        $this->totalManagementExpenses = $totalManagementExpenses;
+        $this->totalManagementCostManagement = $totalManagementCostManagement;
     }
     /**
      * @return array
@@ -217,7 +217,7 @@ class TotalManagementPayrollServices
                     $query->whereNull('worker_employment.remove_date');
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_bank_details.bank_name', 'workers.passport_number', 'worker_employment.department', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
+            ->select('workers.id', 'workers.name', 'worker_bank_details.account_number', 'workers.passport_number', 'worker_employment.department', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
             ->distinct('workers.id')
             ->orderBy('workers.created_at','DESC')->get();
     }
@@ -241,7 +241,7 @@ class TotalManagementPayrollServices
                     ->whereRaw('worker_bank_details.id IN (select MIN(WORKER_BANK.id) from worker_bank_details as WORKER_BANK JOIN workers as WORKER ON WORKER.id = WORKER_BANK.worker_id group by WORKER.id)');
             })
             ->where('total_management_payroll.id', $request['id'])       
-            ->select('workers.id', 'workers.name', 'worker_bank_details.bank_name', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'workers.passport_number', 'worker_employment.department', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
+            ->select('workers.id', 'workers.name', 'worker_bank_details.account_number', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'workers.passport_number', 'worker_employment.department', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
             ->distinct('workers.id','total_management_payroll.id')->get();
     }
     /**
@@ -465,9 +465,9 @@ class TotalManagementPayrollServices
     public function authorizePayroll($request): bool|array
     {
 
-        $checkTotalManagementExpenses = $this->totalManagementExpenses->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
+        $checkTotalManagementCostManagement = $this->totalManagementCostManagement->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
 
-        if($checkTotalManagementExpenses > 0) {
+        if($checkTotalManagementCostManagement > 0) {
             return [
                 'existsError' => true
             ];
@@ -505,14 +505,15 @@ class TotalManagementPayrollServices
         if(isset($payrollWorkers) && count($payrollWorkers) > 0 ){
             foreach($payrollWorkers as $result){
                 $user = JWTAuth::parseToken()->authenticate();
-                $this->totalManagementExpenses->create([
-                    'worker_id' => $result['worker_id'],
+                $this->totalManagementCostManagement->create([
                     'application_id' => $result['application_id'],
                     'project_id' => $request['project_id'],
                     'title' => $result['name'],
                     'type' => 'Payroll',
+                    'payment_reference_number' => 1,
                     'payment_date' => Carbon::now(),
                     'is_payroll' => 1,
+                    'quantity' => 1,
                     'amount' => $result['amount'],
                     'remarks' => $result['name'],
                     'is_payroll' => 1,
@@ -522,14 +523,15 @@ class TotalManagementPayrollServices
                     'created_by'    => $user['worker_id'] ?? 0,
                     'modified_by'   => $user['worker_id'] ?? 0,
                 ]);
-                $this->totalManagementExpenses->create([
-                    'worker_id' => $result['worker_id'],
+                $this->totalManagementCostManagement->create([
                     'application_id' => $result['application_id'],
-                    'project_id' => $request['project_id'] ?? 0,
+                    'project_id' => $request['project_id'],
                     'title' => "SOCSO Contribution (" . $result['name'] . " )",
                     'type' => 'Payroll',
+                    'payment_reference_number' => 1,
                     'payment_date' => Carbon::now(),
                     'is_payroll' => 1,
+                    'quantity' => 1,
                     'amount' => $result['amount'],
                     'remarks' => "SOCSO Contribution (" . $result['name'] . " )",
                     'is_payroll' => 1,

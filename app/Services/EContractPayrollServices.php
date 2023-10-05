@@ -12,7 +12,7 @@ use App\Models\Workers;
 use App\Models\EContractPayroll;
 use App\Models\EContractPayrollAttachments;
 use App\Models\EContractPayrollBulkUpload;
-use App\Models\EContractExpenses;
+use App\Models\EContractCostManagement;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\EContractPayrollImport;
 
@@ -35,9 +35,9 @@ class EContractPayrollServices
      */
     private EContractPayrollBulkUpload $eContractPayrollBulkUpload;
     /**
-     * @var EContractExpenses
+     * @var EContractCostManagement
      */
-    private EContractExpenses $eContractExpenses;
+    private EContractCostManagement $eContractCostManagement;
     /**
      * @var Storage
      */
@@ -48,17 +48,17 @@ class EContractPayrollServices
      * @param EContractPayroll $eContractPayroll
      * @param EContractPayrollAttachments $eContractPayrollAttachments
      * @param EContractPayrollBulkUpload $eContractPayrollBulkUpload
-     * @param EContractExpenses $eContractExpenses
+     * @param EContractCostManagement $eContractCostManagement
      * @param Storage $storage;
      */
-    public function __construct(Workers $workers, EContractPayroll $eContractPayroll, EContractPayrollAttachments $eContractPayrollAttachments, Storage $storage, EContractPayrollBulkUpload $eContractPayrollBulkUpload, EContractExpenses $eContractExpenses)
+    public function __construct(Workers $workers, EContractPayroll $eContractPayroll, EContractPayrollAttachments $eContractPayrollAttachments, Storage $storage, EContractPayrollBulkUpload $eContractPayrollBulkUpload, EContractCostManagement $eContractCostManagement)
     {
         $this->workers = $workers;
         $this->eContractPayroll = $eContractPayroll;
         $this->eContractPayrollAttachments = $eContractPayrollAttachments;
         $this->storage = $storage;
         $this->eContractPayrollBulkUpload = $eContractPayrollBulkUpload;
-        $this->eContractExpenses = $eContractExpenses;
+        $this->eContractCostManagement = $eContractCostManagement;
     }
     /**
      * @return array
@@ -186,7 +186,7 @@ class EContractPayrollServices
                     $query->where('e-contract_payroll.year', $request['year']);
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_bank_details.bank_name', 'workers.passport_number', 'worker_employment.department', 'e-contract_payroll.month', 'e-contract_payroll.year', 'e-contract_payroll.basic_salary', 'e-contract_payroll.ot_1_5', 'e-contract_payroll.ot_2_0', 'e-contract_payroll.ot_3_0', 'e-contract_payroll.ph', 'e-contract_payroll.rest_day', 'e-contract_payroll.deduction_advance', 'e-contract_payroll.deduction_accommodation', 'e-contract_payroll.annual_leave', 'e-contract_payroll.medical_leave', 'e-contract_payroll.hospitalisation_leave', 'e-contract_payroll.amount', 'e-contract_payroll.no_of_workingdays', 'e-contract_payroll.normalday_ot_1_5', 'e-contract_payroll.ot_1_5_hrs_amount', 'e-contract_payroll.restday_daily_salary_rate', 'e-contract_payroll.hrs_ot_2_0', 'e-contract_payroll.ot_2_0_hrs_amount', 'e-contract_payroll.public_holiday_ot_3_0', 'e-contract_payroll.deduction_hostel', 'e-contract_payroll.sosco_deduction', 'e-contract_payroll.sosco_contribution')
+            ->select('workers.id', 'workers.name', 'worker_bank_details.account_number', 'workers.passport_number', 'worker_employment.department', 'e-contract_payroll.month', 'e-contract_payroll.year', 'e-contract_payroll.basic_salary', 'e-contract_payroll.ot_1_5', 'e-contract_payroll.ot_2_0', 'e-contract_payroll.ot_3_0', 'e-contract_payroll.ph', 'e-contract_payroll.rest_day', 'e-contract_payroll.deduction_advance', 'e-contract_payroll.deduction_accommodation', 'e-contract_payroll.annual_leave', 'e-contract_payroll.medical_leave', 'e-contract_payroll.hospitalisation_leave', 'e-contract_payroll.amount', 'e-contract_payroll.no_of_workingdays', 'e-contract_payroll.normalday_ot_1_5', 'e-contract_payroll.ot_1_5_hrs_amount', 'e-contract_payroll.restday_daily_salary_rate', 'e-contract_payroll.hrs_ot_2_0', 'e-contract_payroll.ot_2_0_hrs_amount', 'e-contract_payroll.public_holiday_ot_3_0', 'e-contract_payroll.deduction_hostel', 'e-contract_payroll.sosco_deduction', 'e-contract_payroll.sosco_contribution')
             ->distinct('workers.id')
             ->orderBy('workers.created_at','DESC')->get();
     }
@@ -208,7 +208,7 @@ class EContractPayrollServices
             ->leftJoin('e-contract_payroll', 'e-contract_payroll.worker_id', 'worker_employment.worker_id')
             ->leftJoin('e-contract_project', 'e-contract_project.id', 'worker_employment.project_id')
             ->where('e-contract_payroll.id', $request['id'])       
-            ->select('workers.id', 'workers.name', 'worker_bank_details.bank_name', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'workers.passport_number', 'worker_employment.department', 'e-contract_payroll.month', 'e-contract_payroll.year', 'e-contract_payroll.basic_salary', 'e-contract_payroll.ot_1_5', 'e-contract_payroll.ot_2_0', 'e-contract_payroll.ot_3_0', 'e-contract_payroll.ph', 'e-contract_payroll.rest_day', 'e-contract_payroll.deduction_advance', 'e-contract_payroll.deduction_accommodation', 'e-contract_payroll.annual_leave', 'e-contract_payroll.medical_leave', 'e-contract_payroll.hospitalisation_leave', 'e-contract_payroll.amount', 'e-contract_payroll.no_of_workingdays', 'e-contract_payroll.normalday_ot_1_5', 'e-contract_payroll.ot_1_5_hrs_amount', 'e-contract_payroll.restday_daily_salary_rate', 'e-contract_payroll.hrs_ot_2_0', 'e-contract_payroll.ot_2_0_hrs_amount', 'e-contract_payroll.public_holiday_ot_3_0', 'e-contract_payroll.deduction_hostel', 'e-contract_payroll.sosco_deduction', 'e-contract_payroll.sosco_contribution')
+            ->select('workers.id', 'workers.name', 'worker_bank_details.account_number', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'workers.passport_number', 'worker_employment.department', 'e-contract_payroll.month', 'e-contract_payroll.year', 'e-contract_payroll.basic_salary', 'e-contract_payroll.ot_1_5', 'e-contract_payroll.ot_2_0', 'e-contract_payroll.ot_3_0', 'e-contract_payroll.ph', 'e-contract_payroll.rest_day', 'e-contract_payroll.deduction_advance', 'e-contract_payroll.deduction_accommodation', 'e-contract_payroll.annual_leave', 'e-contract_payroll.medical_leave', 'e-contract_payroll.hospitalisation_leave', 'e-contract_payroll.amount', 'e-contract_payroll.no_of_workingdays', 'e-contract_payroll.normalday_ot_1_5', 'e-contract_payroll.ot_1_5_hrs_amount', 'e-contract_payroll.restday_daily_salary_rate', 'e-contract_payroll.hrs_ot_2_0', 'e-contract_payroll.ot_2_0_hrs_amount', 'e-contract_payroll.public_holiday_ot_3_0', 'e-contract_payroll.deduction_hostel', 'e-contract_payroll.sosco_deduction', 'e-contract_payroll.sosco_contribution')
             ->distinct('workers.id')->get();
     }
     /**
@@ -432,9 +432,9 @@ class EContractPayrollServices
     public function authorizePayroll($request): bool|array
     {
 
-        $checkEContractExpenses = $this->eContractExpenses->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
+        $checkEContractCostManagement = $this->eContractCostManagement->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
 
-        if($checkEContractExpenses > 0) {
+        if($checkEContractCostManagement > 0) {
             return [
                 'existsError' => true
             ];
@@ -472,15 +472,14 @@ class EContractPayrollServices
         if(isset($payrollWorkers) && count($payrollWorkers) > 0){
             foreach($payrollWorkers as $result){
                 $user = JWTAuth::parseToken()->authenticate();
-                $this->eContractExpenses->create([
-                    'worker_id' => $result['worker_id'],
-                    'application_id' => $result['application_id'],
+                $this->eContractCostManagement->create([
                     'project_id' => $request['project_id'],
                     'title' => $result['name'],
                     'type' => 'Payroll',
                     'payment_reference_number' => 1,
                     'payment_date' => Carbon::now(),
                     'is_payroll' => 1,
+                    'quantity' => 1,
                     'amount' => $result['amount'],
                     'remarks' => $result['name'],
                     'is_payroll' => 1,
@@ -490,15 +489,14 @@ class EContractPayrollServices
                     'created_by'    => $user['worker_id'] ?? 0,
                     'modified_by'   => $user['worker_id'] ?? 0,
                 ]);
-                $this->eContractExpenses->create([
-                    'worker_id' => $result['worker_id'],
-                    'application_id' => $result['application_id'],
+                $this->eContractCostManagement->create([
                     'project_id' => $request['project_id'] ?? 0,
                     'title' => "SOCSO Contribution (" . $result['name'] . " )",
                     'type' => 'Payroll',
                     'payment_reference_number' => 1,
                     'payment_date' => Carbon::now(),
                     'is_payroll' => 1,
+                    'quantity' => 1,
                     'amount' => $result['amount'],
                     'remarks' => "SOCSO Contribution (" . $result['name'] . " )",
                     'is_payroll' => 1,

@@ -216,11 +216,23 @@ class DirectRecruitmentExpensesServices
             'title' => $request['expenses_title'] ?? '',
             'payment_reference_number' => $request['expenses_payment_reference_number'] ?? '',
             'payment_date' => ((isset($request['expenses_payment_date']) && !empty($request['expenses_payment_date'])) ? $request['expenses_payment_date'] : null),
+            'quantity' => 0,
             'amount' => $request['expenses_amount'] ?? '',
             'remarks' => $request['expenses_remarks'] ?? '',
             'created_by'    => $params['created_by'] ?? 0,
             'modified_by'   => $params['created_by'] ?? 0
         ]);
+        return true;
+    }
+    /**
+     *
+     * @param $request
+     * @return bool
+     */    
+    public function deleteAttachment($request): bool
+    {   
+        $data = $this->directRecruitmentExpensesAttachments::find($request['id']); 
+        $data->delete();
         return true;
     }
 

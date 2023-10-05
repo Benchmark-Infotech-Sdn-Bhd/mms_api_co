@@ -112,5 +112,22 @@ class DirectRecruitmentExpensesController extends Controller
             $data['error'] = 'Retrieve failed. Please retry.';
             return $this->sendError(['message' => $data['error']]);
         }
-    }    
+    } 
+    /**
+     * Delete Expense Attachment.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteAttachment(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $this->directRecruitmentExpensesServices->deleteAttachment($params);
+            return $this->sendSuccess(['message' => 'Attachment Deleted Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Delete Attachment']);
+        }
+    }   
 }

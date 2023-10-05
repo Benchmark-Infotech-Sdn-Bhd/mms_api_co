@@ -95,5 +95,9 @@ return [
     'XERO_TENANT_ID' => env('XERO_TENANT_ID', "08e3e7d9-5304-4fa6-a337-1f21262b6dca"),
     'XERO_ACCESS_TOKEN' => env('XERO_ACCESS_TOKEN'),
     'XERO_REFRESH_TOKEN' => env('XERO_REFRESH_TOKEN'),
+
+    'DIRECT_RECRUITMENT_WORKER_STATUS' => ['Pending','Accepted','Not Arrived','Arrived','FOMEMA Fit','Processed'],
+
+    'POST_ARRIVAL_CANCELLED_STATUS' => env('POST_ARRIVAL_CANCELLED_STATUS', 2),
     
 ];

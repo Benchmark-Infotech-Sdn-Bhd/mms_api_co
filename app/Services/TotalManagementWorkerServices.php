@@ -12,6 +12,7 @@ use App\Models\DirectrecruitmentApplications;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\TotalManagementProject;
 
 class TotalManagementWorkerServices
 {
@@ -43,6 +44,10 @@ class TotalManagementWorkerServices
      * @var DirectrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
+    /**
+     * @var TotalManagementProject
+     */
+    private TotalManagementProject $totalManagementProject;
 
     /**
      * TotalManagementWorkerServices constructor.
@@ -53,8 +58,9 @@ class TotalManagementWorkerServices
      * @param TotalManagementApplications $totalManagementApplications
      * @param CRMProspectService $crmProspectService
      * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * @param TotalManagementProject $totalManagementProject
      */
-    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications)
+    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, TotalManagementProject $totalManagementProject)
     {
         $this->workers = $workers;
         $this->vendor = $vendor;
@@ -63,6 +69,7 @@ class TotalManagementWorkerServices
         $this->totalManagementApplications = $totalManagementApplications;
         $this->crmProspectService = $crmProspectService;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->totalManagementProject = $totalManagementProject;
     }
     /**
      * @return array
@@ -155,10 +162,22 @@ class TotalManagementWorkerServices
             }
         }
         $request['company_ids'] = array($request['prospect_id'], 0);
+        
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->where('workers.econtract_status', 'On-Bench')
-            ->where('workers.total_management_status', 'On-Bench')
-            ->where(function ($query) use ($request) {
+        ->where(function ($query) use ($request) {
+            $query->where([
+                ['workers.crm_prospect_id', 0],
+                ['workers.econtract_status', 'On-Bench'],
+                ['workers.total_management_status', 'On-Bench']
+            ])
+            ->orWhere([
+                ['workers.crm_prospect_id', $request['prospect_id']],
+                ['workers.econtract_status', 'On-Bench'],
+                ['workers.total_management_status', 'On-Bench'],
+                ['workers.plks_status', 'Approved']
+            ]);
+        })
+        ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
                     ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
@@ -182,7 +201,7 @@ class TotalManagementWorkerServices
                     $query->where('worker_visa.ksm_reference_number', $request['ksm_reference_number']);
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', )
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', 'workers.econtract_status', 'workers.total_management_status', 'workers.plks_status')
             ->distinct()
             ->orderBy('workers.created_at','DESC')
             ->paginate(Config::get('services.paginate_row'));
@@ -220,6 +239,31 @@ class TotalManagementWorkerServices
         }
 
         if(isset($request['workers']) && !empty($request['workers'])) {
+
+            $applicationQuotaRequested = $this->totalManagementProject
+            ->leftJoin('total_management_applications', 'total_management_applications.id', 'total_management_project.application_id')
+            ->where('total_management_project.id',$request['project_id'])
+            ->select('total_management_applications.quota_applied')->get();
+
+            $quotaRequested = isset($applicationQuotaRequested[0]['quota_applied']) ?$applicationQuotaRequested[0]['quota_applied'] : 0;
+
+            $assignedWorkerCount = $this->workers
+            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
+            ->where('worker_employment.project_id', $request['project_id'])
+            ->where('worker_employment.service_type', 'Total Management')
+            ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
+            ->where('worker_employment.transfer_flag', 0)
+            ->distinct('workers.id')->count('workers.id');
+
+            $assignedWorkerCount += count($request['workers']);
+
+            if($assignedWorkerCount > $quotaRequested) {
+                return [
+                    'quotaError' => true
+                ];
+            }
+
             foreach ($request['workers'] as $workerId) {
                 $this->workerEmployment->create([
                     'worker_id' => $workerId,
@@ -254,12 +298,21 @@ class TotalManagementWorkerServices
         $workersCount = $this->workers->where('crm_prospect_id', $applicationDetails->crm_prospect_id)
                             ->where('total_management_status', 'Assigned')
                             ->count('id');
+
+        $fomNextWorkersCount = $this->workers
+        ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
+        ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
+        ->where('total_management_project.application_id', $request['application_id'])
+        ->where('workers.crm_prospect_id', 0)
+        ->where('workers.total_management_status', 'Assigned')
+        ->distinct('workers.id')->count('workers.id');
+
         if($serviceDetails->from_existing == 0) {
             return [
                 'clientQuota' => $serviceDetails->client_quota,
                 'clientBalancedQuota' => $serviceDetails->client_quota - $workersCount,
                 'fomnextQuota' => $serviceDetails->fomnext_quota,
-                'fomnextBalancedQuota' => $serviceDetails->fomnext_quota - $workersCount
+                'fomnextBalancedQuota' => $serviceDetails->fomnext_quota - $fomNextWorkersCount
             ];
         } else if($serviceDetails->from_existing == 1) {
             return [

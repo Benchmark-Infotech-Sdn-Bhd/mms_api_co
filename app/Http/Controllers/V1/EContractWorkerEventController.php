@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Support\Facades\Config;
 
-class TotalManagementWorkerEventController extends Controller
+class EContractWorkerEventController extends Controller
 {
     /**
      * @var WorkerEventServices
@@ -18,7 +18,7 @@ class TotalManagementWorkerEventController extends Controller
     private $workerEventServices;
 
     /**
-     * TotalManagementWorkerEventController constructor.
+     * EContractWorkerEventController constructor.
      * @param WorkerEventServices $workerEventServices
      */
     public function __construct(WorkerEventServices $workerEventServices) 
@@ -51,7 +51,7 @@ class TotalManagementWorkerEventController extends Controller
     public function create(Request $request) : JsonResponse
     {
         try {
-            $request['service_type'] = Config::get('services.WORKER_MODULE_TYPE')[1];
+            $request['service_type'] = Config::get('services.WORKER_MODULE_TYPE')[2];
             $response = $this->workerEventServices->create($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -71,7 +71,7 @@ class TotalManagementWorkerEventController extends Controller
     public function update(Request $request) : JsonResponse
     {
         try {
-            $request['service_type'] = Config::get('services.WORKER_MODULE_TYPE')[1];
+            $request['service_type'] = Config::get('services.WORKER_MODULE_TYPE')[2];
             $response = $this->workerEventServices->update($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);

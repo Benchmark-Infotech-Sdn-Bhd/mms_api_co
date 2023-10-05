@@ -12,6 +12,9 @@ use Carbon\Carbon;
 use App\Models\CRMProspect;
 use App\Models\Workers;
 use App\Models\WorkerVisa;
+use App\Models\TotalManagementApplications;
+use App\Models\EContractApplications;
+use App\Models\DirectrecruitmentApplications;
 
 class DashboardServices
 {
@@ -32,18 +35,36 @@ class DashboardServices
      */
     private WorkerVisa $workerVisa;
     /**
+     * @var TotalManagementApplications
+     */
+    private TotalManagementApplications $totalManagementApplications;
+    /**
+     * @var EContractApplications
+     */
+    private EContractApplications $eContractApplications;
+    /**
+     * @var DirectrecruitmentApplications
+     */
+    private DirectrecruitmentApplications $directrecruitmentApplications;
+    /**
      * DashboardServices constructor.
      * @param CRMProspect $crmProspect
      * @param ValidationServices $validationServices
      * @param Workers $workers
      * @param WorkerVisa $workerVisa
+     * @param TotalManagementApplications $totalManagementApplications
+     * @param EContractApplications $eContractApplications
+     * @param DirectrecruitmentApplications $directrecruitmentApplications
      */
-    public function __construct(CRMProspect $crmProspect, ValidationServices $validationServices, Workers $workers, WorkerVisa $workerVisa)
+    public function __construct(CRMProspect $crmProspect, ValidationServices $validationServices, Workers $workers, WorkerVisa $workerVisa, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, DirectrecruitmentApplications $directrecruitmentApplications)
     {
         $this->crmProspect = $crmProspect;
         $this->validationServices = $validationServices;
         $this->workers = $workers;
         $this->workerVisa = $workerVisa;
+        $this->totalManagementApplications = $totalManagementApplications;
+        $this->eContractApplications = $eContractApplications;
+        $this->directrecruitmentApplications = $directrecruitmentApplications;
     }
     /**
      * @param $request
@@ -54,20 +75,23 @@ class DashboardServices
         $workerCount = $this->workers->where('crm_prospect_id',0)->count('id');
         $totalManagementOnbench = $this->workers->where('crm_prospect_id',0)->where('total_management_status','On-Bench')->count('id');
 
-        $serviceDirectRecruitment = $this->crmProspect
-        ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
+        $serviceDirectRecruitment = $this->directrecruitmentApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
+        ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
         ->where('crm_prospect_services.service_id', 1)
-        ->count('crm_prospect_services.id');
+        ->where('crm_prospect_services.deleted_at', NULL)
+        ->count('directrecruitment_applications.id');
 
-        $serviceEcontract = $this->crmProspect
-        ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
+        $serviceEcontract = $this->eContractApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'e-contract_applications.crm_prospect_id')
+        ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'e-contract_applications.service_id')
         ->where('crm_prospect_services.service_id', 2)
-        ->count('crm_prospect_services.id');
+        ->where('crm_prospect_services.deleted_at', NULL)
+        ->count('e-contract_applications.id');
 
-        $serviceTotalManagementCount = $this->crmProspect
-        ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
+        $serviceTotalManagementCount = $this->totalManagementApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
+        ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'total_management_applications.service_id')
         ->where('crm_prospect_services.service_id', 3)
-        ->count('crm_prospect_services.id');
+        ->where('crm_prospect_services.deleted_at', NULL)
+        ->count('total_management_applications.id');
 
         $conditionDate = Carbon::now()->addDays(60)->toDateTimeString(); 
 
