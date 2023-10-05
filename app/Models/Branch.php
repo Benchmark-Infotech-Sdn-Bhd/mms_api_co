@@ -121,4 +121,11 @@ class Branch extends Model implements Auditable
     {
         return $this->hasMany('App\Models\BranchesServices', 'branch_id');
     }
+    /**
+     * @return BelongsTo
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
 }

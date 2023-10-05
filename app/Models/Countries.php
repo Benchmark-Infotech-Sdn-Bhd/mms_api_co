@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class Countries extends Model implements Auditable
@@ -70,5 +71,12 @@ class Countries extends Model implements Auditable
             'bond' => 'regex:/^[0-9]+$/|max:3',
             'fee' => 'regex:/^(([0-9]*)(\.([0-9]{0,2}+))?)$/'
         ];
+    }
+    /**
+     * @return BelongsTo
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
     }
 }

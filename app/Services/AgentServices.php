@@ -131,6 +131,11 @@ class AgentServices
             }
         }
         return $this->agent->join('countries', 'countries.id', '=', 'agent.country_id')
+        ->with(['countries' => function ($query) {
+            $query->select(['id', 'company_id']);
+        }, 'countries.company' => function ($query) {
+            $query->select(['id', 'company_name']);
+        }])
         ->where(function($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('agent_name', 'like', '%'.$request['search_param'].'%')
@@ -138,7 +143,7 @@ class AgentServices
                     ->orWhere('city', 'like', '%'.$request['search_param'].'%')
                     ->orWhere('person_in_charge', 'like', '%'.$request['search_param'].'%');
             }
-        })->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge','agent.status')
+        })->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge','agent.status', 'agent.country_id')
         ->orderBy('agent.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }

@@ -167,12 +167,16 @@ class CountriesServices
                 ];
             }
         }
-        return $this->countries->whereIn('company_id', $request['company_id'])
+        return $this->countries
+        ->with(['company' => function ($query) {
+            $query->select(['id', 'company_name']);
+        }])
+        ->whereIn('company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('country_name', 'like', "%{$request['search_param']}%");
             }
-        })->select('id','country_name','system_type','costing_status','status')
+        })->select('id','country_name','system_type','costing_status','status', 'company_id')
         ->orderBy('countries.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }

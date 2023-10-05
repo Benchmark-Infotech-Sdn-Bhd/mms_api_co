@@ -156,12 +156,16 @@ class SectorsServices
                 ];
             }
         }
-        return $this->sectors->whereIn('company_id', $request['company_id'])
+        return $this->sectors
+        ->with(['company' => function ($query) {
+            $query->select(['id', 'company_name']);
+        }])
+        ->whereIn('company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('sector_name', 'like', "%{$request['search_param']}%");
             }
-        })->select('id','sector_name','sub_sector_name','checklist_status','status')
+        })->select('id','sector_name','sub_sector_name','checklist_status','status', 'company_id')
         ->orderBy('sectors.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }

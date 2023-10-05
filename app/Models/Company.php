@@ -57,4 +57,11 @@ class Company extends Model implements Auditable
     {
         return $this->hasMany(UserCompany::class, 'company_id');
     }
+     /**
+     * @return HasMany
+     */
+    public function countries()
+    {
+        return $this->hasMany(Countries::class, 'company_id');
+    }
 }

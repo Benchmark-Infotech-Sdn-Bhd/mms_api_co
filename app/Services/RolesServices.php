@@ -56,8 +56,8 @@ class RolesServices
     public function list($request): mixed
     {
         return $this->role
-            ->with(['roleCompany' => function ($query) {
-                $query->select('id as company_id', 'company_name');
+            ->with(['company' => function ($query) {
+                $query->select(['id', 'company_name']);
             }])
             ->whereIn('company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
@@ -65,7 +65,7 @@ class RolesServices
                     $query->where('role_name', 'like', '%'.$request['search'].'%');
                 }
             })
-            ->select('id', 'role_name', 'status')
+            ->select('id', 'role_name', 'status', 'company_id')
             ->orderBy('id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }

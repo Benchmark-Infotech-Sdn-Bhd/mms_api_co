@@ -40,7 +40,7 @@ class Role extends Model implements Auditable
     /**
      * @return BelongsTo
      */
-    public function roleCompany()
+    public function company()
     {
         return $this->belongsTo(Company::class, 'company_id');
     }

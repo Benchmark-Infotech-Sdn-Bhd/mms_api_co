@@ -110,7 +110,9 @@ class BranchServices
      */ 
     public function list($request)
     {
-        return $this->branch::with('branchServices')
+        return $this->branch::with(['branchServices', 'company' => function ($query) {
+            $query->select('id', 'company_name');
+        }])
         ->whereIn('company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
