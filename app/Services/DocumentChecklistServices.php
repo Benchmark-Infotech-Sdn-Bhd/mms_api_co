@@ -124,14 +124,6 @@ class DocumentChecklistServices
         return $this->documentChecklist->findOrFail($request['id']);
     }
     /**
-     * @return mixed
-     */
-    public function retrieveAll() : mixed
-    {
-        return $this->documentChecklist->orderBy('document_checklist.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
-    }
-    /**
      * @param $request
      * @return mixed
      */

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\DirecRecruitmentPostArrivalServices;
+use App\Services\AuthServices;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class DirecRecruitmentPostArrivalController extends Controller
      * @var DirecRecruitmentPostArrivalServices
      */
     private $direcRecruitmentPostArrivalServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirecRecruitmentPostArrivalController constructor.
      * @param DirecRecruitmentPostArrivalServices $direcRecruitmentPostArrivalServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirecRecruitmentPostArrivalServices $direcRecruitmentPostArrivalServices) 
+    public function __construct(DirecRecruitmentPostArrivalServices $direcRecruitmentPostArrivalServices,AuthServices $authServices) 
     {
         $this->direcRecruitmentPostArrivalServices = $direcRecruitmentPostArrivalServices;
+        $this->authServices = $authServices;
     }
     /**
      * Dispaly list of workers for post arrival.
@@ -52,6 +59,9 @@ class DirecRecruitmentPostArrivalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->direcRecruitmentPostArrivalServices->workersList($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -159,6 +169,9 @@ class DirecRecruitmentPostArrivalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->direcRecruitmentPostArrivalServices->workersListExport($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);

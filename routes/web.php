@@ -43,6 +43,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('create', 'V1\CompanyController@create');
             $router->post('update', 'V1\CompanyController@update');
             $router->post('updateStatus', 'V1\CompanyController@updateStatus');
+            $router->post('subsidiaryDropDown', 'V1\CompanyController@subsidiaryDropDown');
+            $router->post('assignSubsidiary', 'V1\CompanyController@assignSubsidiary');
+            $router->post('parentDropDown', 'V1\CompanyController@parentDropDown');
+            $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');
+            $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
+            $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');
         });
          /**
          * Routes for Roles.
@@ -168,9 +174,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('delete', 'V1\VendorController@delete');
             $router->post('show', 'V1\VendorController@show');
             $router->post('list', 'V1\VendorController@list');
-            $router->post('search', 'V1\VendorController@search');
             $router->post('deleteAttachment', 'V1\VendorController@deleteAttachment');
-            $router->post('filter', 'V1\VendorController@filter');
             $router->post('insuranceVendorList', 'V1\VendorController@insuranceVendorList');
             $router->post('transportationVendorList', 'V1\VendorController@transportationVendorList');
         });
@@ -183,7 +187,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('delete', 'V1\FomemaClinicsController@delete');
             $router->post('show', 'V1\FomemaClinicsController@show');
             $router->post('list', 'V1\FomemaClinicsController@list');
-            $router->post('search', 'V1\FomemaClinicsController@search');
         });
         /**
          * Routes for Fee Registration.
@@ -194,7 +197,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('delete', 'V1\FeeRegistrationController@delete');
             $router->post('show', 'V1\FeeRegistrationController@show');
             $router->post('list', 'V1\FeeRegistrationController@list');
-            $router->post('search', 'V1\FeeRegistrationController@search');
         });
         /**
          * Routes for Accommodation.
@@ -205,7 +207,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('delete', 'V1\AccommodationController@delete');
             $router->post('show', 'V1\AccommodationController@show');
             $router->post('list', 'V1\AccommodationController@list');
-            $router->post('search', 'V1\AccommodationController@search');
             $router->post('deleteAttachment', 'V1\AccommodationController@deleteAttachment');
         });
         /**
@@ -217,7 +218,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('delete', 'V1\InsuranceController@delete');
             $router->post('show', 'V1\InsuranceController@show');
             $router->post('list', 'V1\InsuranceController@list');
-            $router->post('search', 'V1\InsuranceController@search');
         });
         /**
          * Routes for Transportation.
@@ -228,7 +228,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('delete', 'V1\TransportationController@delete');
             $router->post('show', 'V1\TransportationController@show');
             $router->post('list', 'V1\TransportationController@list');
-            $router->post('search', 'V1\TransportationController@search');
             $router->post('deleteAttachment', 'V1\TransportationController@deleteAttachment');
             $router->post('dropdown', 'V1\TransportationController@dropdown');
         });
@@ -242,7 +241,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('delete', 'V1\BranchController@delete');
             $router->post('show', 'V1\BranchController@show');
             $router->post('list', 'V1\BranchController@list');
-            $router->post('search', 'V1\BranchController@search');
             $router->post('dropDown', 'V1\BranchController@dropdown');
             $router->post('updateStatus', 'V1\BranchController@updateStatus');
         });

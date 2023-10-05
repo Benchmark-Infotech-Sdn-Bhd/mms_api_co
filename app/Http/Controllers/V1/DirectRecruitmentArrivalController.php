@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\DirectRecruitmentArrivalServices;
+use App\Services\AuthServices;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class DirectRecruitmentArrivalController extends Controller
      * @var DirectRecruitmentArrivalServices
      */
     private $directRecruitmentArrivalServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentArrivalController constructor.
      * @param DirectRecruitmentArrivalServices $directRecruitmentArrivalServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentArrivalServices $directRecruitmentArrivalServices) 
+    public function __construct(DirectRecruitmentArrivalServices $directRecruitmentArrivalServices, AuthServices $authServices) 
     {
         $this->directRecruitmentArrivalServices = $directRecruitmentArrivalServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display list of Arrival
@@ -69,6 +76,9 @@ class DirectRecruitmentArrivalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentArrivalServices->workersListForSubmit($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -86,6 +96,9 @@ class DirectRecruitmentArrivalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentArrivalServices->workersListForUpdate($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -186,6 +199,9 @@ class DirectRecruitmentArrivalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentArrivalServices->callingvisaReferenceNumberList($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {

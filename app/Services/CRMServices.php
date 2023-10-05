@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Services\InvoiceServices;
+use App\Services\AuthServices;
+use Illuminate\Support\Str;
 
 class CRMServices
 {
@@ -62,6 +64,10 @@ class CRMServices
      * @var InvoiceServices
      */
     private InvoiceServices $invoiceServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * RolesServices constructor.
@@ -75,9 +81,10 @@ class CRMServices
      * @param SystemType $systemType
      * @param TotalManagementApplications $totalManagementApplications
      * @param EContractApplications $eContractApplications
-     * @param EContractApplications $eContractApplications
+     * @param InvoiceServices $invoiceServices
+     * @param AuthServices $authServices
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices, AuthServices $authServices)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -90,6 +97,7 @@ class CRMServices
         $this->totalManagementApplications = $totalManagementApplications;
         $this->eContractApplications = $eContractApplications;
         $this->invoiceServices = $invoiceServices;
+        $this->authServices = $authServices;
     }
     /**
      * @return array
@@ -166,6 +174,7 @@ class CRMServices
         return $this->crmProspect
             ->leftJoin('employee', 'employee.id', 'crm_prospects.registered_by')
             ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
+            ->whereIn('crm_prospects.company_id', $request['company_id'])
             ->where('crm_prospects.status', 1)
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
@@ -227,8 +236,30 @@ class CRMServices
             'account_receivable_tax_type'   => $request['account_receivable_tax_type'] ?? '',
             'account_payable_tax_type'      => $request['account_payable_tax_type'] ?? '',
             'created_by'                    => $request['created_by'] ?? 0,
-            'modified_by'                   => $request['created_by'] ?? 0
+            'modified_by'                   => $request['created_by'] ?? 0,
+            'company_id'                    => $request['company_id'] ?? 0
         ]);
+
+        $res = $this->authServices->create(
+            ['name' => $request['pic_name'],
+            'email' => $request['email'],
+            'role_id' => 0,
+            'user_id' => $request['created_by'],
+            'status' => 1,
+            'password' => Str::random(8),
+            'reference_id' => $prospect['id'],
+            'user_type' => "Customer",
+            //'subsidiary_companies' => $request['subsidiary_companies'],
+            'company_id' => $request['company_id']
+        ]);
+
+        if(!$res){
+            $prospect->delete();
+            return [
+                "isCreated" => false,
+                "message"=> "Employee not created"
+            ];
+        }
 
         $sector = $this->sectors->findOrFail($request['sector_type']);
         if(isset($request['prospect_service']) && !empty($request['prospect_service'])) {
@@ -269,6 +300,7 @@ class CRMServices
                        'status' => Config::get('services.PENDING_PROPOSAL'),
                        'remarks' => '',
                        'created_by' => $request["created_by"] ?? 0,
+                       'company_id' => $request['company_id'] ?? 0
                    ]);
                 }
                 if($service->service_id == 3) {
@@ -280,7 +312,8 @@ class CRMServices
                         'cost_quoted' => 0,
                         'status' => 'Pending Proposal',
                         'remarks' => '',
-                        'created_by' => $request["created_by"] ?? 0
+                        'created_by' => $request["created_by"] ?? 0,
+                        'company_id' => $request['company_id'] ?? 0
                     ]);
                 }
                 if($service->service_id == 2) {
@@ -292,7 +325,8 @@ class CRMServices
                         'cost_quoted' => 0,
                         'status' => 'Pending Proposal',
                         'remarks' => '',
-                        'created_by' => $request["created_by"] ?? 0
+                        'created_by' => $request["created_by"] ?? 0,
+                        'company_id' => $request['company_id'] ?? 0
                     ]);
                 }
             }
@@ -458,6 +492,7 @@ class CRMServices
     {
         return $this->crmProspect
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where('crm_prospects.status', 1)
         ->where(function ($query) use ($request) {
             if(isset($request['service_id']) && !empty($request['service_id'])) {

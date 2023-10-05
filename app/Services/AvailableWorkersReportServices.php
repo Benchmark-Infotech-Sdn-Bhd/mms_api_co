@@ -59,6 +59,7 @@ class AvailableWorkersReportServices
             $query->on('worker_employment.worker_id','=','workers.id')
                 ->whereRaw('worker_employment.id IN (select MAX(WORKER_EMP.id) from worker_employment as WORKER_EMP JOIN workers as WORKER ON WORKER.id = WORKER_EMP.worker_id group by WORKER.id)');
         })
+        ->whereIn('workers.company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if(isset($request['service_id']) && !empty($request['service_id'])) {
                 $query->where('crm_prospect_services.service_id', $request['service_id']);

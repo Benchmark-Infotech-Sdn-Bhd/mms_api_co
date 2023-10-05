@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use App\Services\AuthServices;
 
 class EContractTransferServices
 {
@@ -29,6 +30,10 @@ class EContractTransferServices
      * @var EContractProject
      */
     private EContractProject $eContractProject;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementWorkerServices constructor.
@@ -36,13 +41,15 @@ class EContractTransferServices
      * @param WorkerEmployment $workerEmployment
      * @param CRMProspect $crmProspect
      * @param EContractProject $eContractProject
+     * @param AuthServices $authServices
      */
-    public function __construct(Workers $workers, WorkerEmployment $workerEmployment, CRMProspect $crmProspect, EContractProject $eContractProject)
+    public function __construct(Workers $workers, WorkerEmployment $workerEmployment, CRMProspect $crmProspect, EContractProject $eContractProject, AuthServices $authServices)
     {
         $this->workers = $workers;
         $this->workerEmployment = $workerEmployment;
         $this->crmProspect = $crmProspect;
         $this->eContractProject = $eContractProject;
+        $this->authServices = $authServices;
     }
     /**
      * @return array
@@ -67,11 +74,19 @@ class EContractTransferServices
      */
     public function companyList($request): mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
         return $this->crmProspect
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
         ->leftJoin('sectors', 'sectors.id', 'crm_prospect_services.sector_id')
         ->where('crm_prospects.status', 1)
         ->where('crm_prospect_services.service_id', '!=', 1)
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('crm_prospects.id', '=', $user['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');

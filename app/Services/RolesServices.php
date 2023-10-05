@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Role;
+use App\Models\Company;
 use Illuminate\Support\Facades\Config;
 
 class RolesServices
@@ -11,14 +12,20 @@ class RolesServices
      * @var Role
      */
     private Role $role;
+    /**
+     * @var Company
+     */
+    private Company $company;
 
     /**
      * RolesServices constructor.
      * @param Role $role
+     * @param Company $company
      */
-    public function __construct(Role $role)
+    public function __construct(Role $role, Company $company)
     {
         $this->role = $role;
+        $this->company = $company;
     }
 
     /**
@@ -49,6 +56,7 @@ class RolesServices
     public function list($request): mixed
     {
         return $this->role
+            ->whereIn('company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('role_name', 'like', '%'.$request['search'].'%');
@@ -79,13 +87,29 @@ class RolesServices
                 'adminError' => true
             ];
         }
+        if ($request['special_permission'] == 1) {
+            if($request['user_type'] != 'Admin') {
+                return [
+                    'adminUserError' => true
+                ];
+            }
+            $companyDetail = $this->company->findOrFail($request['company_id']);
+            if($companyDetail->parent_id != 0) {
+                return [
+                    'subsidiaryError' => true
+                ];
+            }
+        }
+        
         $this->role->create([
             'role_name'     => $request['name'] ?? '',
             'system_role'   => $request['system_role'] ?? 0,
             'status'        => $request['status'] ?? 1,
             'parent_id'     => $request['parent_id'] ?? 0,
             'created_by'    => $request['created_by'] ?? 0,
-            'modified_by'   => $request['created_by'] ?? 0
+            'modified_by'   => $request['created_by'] ?? 0,
+            'company_id'   => $request['company_id'] ?? 0,
+            'special_permission' => $request['special_permission'] ?? 0
         ]);
         return true;
     }
@@ -116,12 +140,14 @@ class RolesServices
     }
 
     /**
+     * @param $companyId
      * @return mixed
      */
-    public function dropDown(): mixed
+    public function dropDown($companyId): mixed
     {
         return $this->role->where('status', 1)
-            ->select('id', 'role_name')
+            ->whereIn('company_id', $companyId)
+            ->select('id', 'role_name', 'special_permission')
             ->get();
     }
     /**

@@ -114,22 +114,6 @@ class EmbassyAttestationFileCostingController extends Controller
         }
     }
     /**
-     * Retrieve all EmbassyAttestationFileCosting.
-     *
-     * @return JsonResponse
-     */
-    public function retrieveAll(): JsonResponse
-    {
-        try {
-            $data = $this->embassyAttestationFileCostingServices->retrieveAll();
-            return $this->sendSuccess($data);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'Retrieve All failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
-        }
-    }
-    /**
      * Retrieve the specified EmbassyAttestationFileCosting based on Country.
      *
      * @param Request $request

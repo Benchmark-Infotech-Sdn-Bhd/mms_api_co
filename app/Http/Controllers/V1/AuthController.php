@@ -109,7 +109,14 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return $this->validationError($validator->errors());
         }
-        $this->authServices->create($request);
+        $response = $this->authServices->create($request);
+        // if(isset($response['subsidiaryError'])) {
+        //     return $this->sendError(['message' => 'Cannot Create Super User for Subsidiary Company'], 422);
+        // } else if(isset($response['parentError'])) {
+        //     return $this->sendError(['message' => 'Parent Company only can Create Super User'], 422);
+        // } else if(isset($response['userError'])) {
+        //     return $this->sendError(['message' => 'This Company alredy has a Super User'], 422);
+        // }
         return $this->sendSuccess(['message' => 'Successfully User was created']);
     }
 

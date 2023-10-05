@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\DirectRecruitmentPostArrivalFomemaServices;
+use App\Services\AuthServices;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
      * @var DirectRecruitmentPostArrivalFomemaServices
      */
     private $DirectRecruitmentPostArrivalFomemaServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentPostArrivalFomemaController constructor.
      * @param DirectRecruitmentPostArrivalFomemaServices $directRecruitmentPostArrivalFomemaServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentPostArrivalFomemaServices $directRecruitmentPostArrivalFomemaServices) 
+    public function __construct(DirectRecruitmentPostArrivalFomemaServices $directRecruitmentPostArrivalFomemaServices, AuthServices $authServices) 
     {
         $this->directRecruitmentPostArrivalFomemaServices = $directRecruitmentPostArrivalFomemaServices;
+        $this->authServices = $authServices;
     }
     /**
      * Dispaly list of workers for FOMEMA.
@@ -35,6 +42,9 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentPostArrivalFomemaServices->workersList($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -138,6 +148,9 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentPostArrivalFomemaServices->workersListExport($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);

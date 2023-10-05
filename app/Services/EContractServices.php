@@ -148,6 +148,12 @@ class EContractServices
         })
         ->where('crm_prospect_services.service_id', 2)
         ->where('crm_prospect_services.deleted_at', NULL)
+        ->whereIn('e-contract_applications.company_id', $request['company_id'])
+        ->where(function ($query) use ($request) {
+            if ($request['user']['user_type'] == 'Customer') {
+                $query->where(`e-contract_applications`.`crm_prospect_id`, '=', $request['user']['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
@@ -208,7 +214,8 @@ class EContractServices
             'status' => 'Pending Proposal',
             'remarks' => '',
             'created_by' => $request["created_by"] ?? 0,
-            'modified_by' => $request["created_by"] ?? 0
+            'modified_by' => $request["created_by"] ?? 0,
+            'company_id' => $user['company_id']
         ]);
         return true;
     }

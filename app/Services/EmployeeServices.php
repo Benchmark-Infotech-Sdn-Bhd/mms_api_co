@@ -58,7 +58,8 @@ class EmployeeServices
             'city' => $request['city'] ?? '',
             'state' => $request['state'] ?? '',
             'created_by'    => $request['created_by'] ?? 0,
-            'modified_by'   => $request['created_by'] ?? 0
+            'modified_by'   => $request['created_by'] ?? 0,
+            'company_id' => $request['company_id'] ?? 0
         ]);
         $res = $this->authServices->create(
             ['name' => $request['employee_name'],
@@ -68,7 +69,9 @@ class EmployeeServices
             'status' => 1,
             'password' => Str::random(8),
             'reference_id' => $employee['id'],
-            'user_type' => "Employee"
+            'user_type' => "Employee",
+            'subsidiary_companies' => $request['subsidiary_companies'],
+            'company_id' => $request['company_id']
         ]);
         if($res){
             return $employee;
@@ -182,14 +185,6 @@ class EmployeeServices
         return $emp;
     }
     /**
-     * @return mixed
-     */
-    public function retrieveAll() : mixed
-    {
-        return $this->employee->orderBy('employee.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
-    }
-    /**
      * @param $request
      * @return array
      */
@@ -238,6 +233,7 @@ class EmployeeServices
         ->join('users', 'employee.id', '=', 'users.reference_id')
         ->join('user_role_type','users.id','=','user_role_type.user_id')
         ->join('roles','user_role_type.role_id','=','roles.id')
+        ->whereIn('employee.company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('employee.employee_name', 'like', "%{$request['search_param']}%")
@@ -261,11 +257,16 @@ class EmployeeServices
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
+     * @param $companyId
      * @return mixed
      */
-    public function dropdown() : mixed
+    public function dropdown($companyId) : mixed
     {
-        return $this->employee->where('status', 1)->select('id','employee_name')->orderBy('employee.created_at','DESC')->get();
+        return $this->employee->where('status', 1)
+                ->whereIn('company_id', $companyId)
+                ->select('id','employee_name')
+                ->orderBy('employee.created_at','DESC')
+                ->get();
     }
     /**
      * @param $request
@@ -281,12 +282,15 @@ class EmployeeServices
         ];
     }
     /**
+     * $param $request
      * @return mixed
      */
     public function supervisorList($request) : mixed
     {
-        $role = $this->role->where('role_name', Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'))->where('status',1)->first('id');
-
+        $role = $this->role->where('role_name', Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'))
+                ->whereIn('company_id', $request['company_id'])
+                ->where('status',1)
+                ->first('id');
         return $this->employee
         ->join('users', 'employee.id', '=', 'users.reference_id')
         ->join('user_role_type','users.id','=','user_role_type.user_id')

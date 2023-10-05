@@ -26,7 +26,7 @@ class Employee extends Model implements Auditable
      */
     protected $fillable = ['employee_name','gender','date_of_birth','ic_number','passport_number',
     'email','contact_number','address','postcode','position','branch_id','role_id','salary','status',
-    'city','state','created_by','modified_by'];
+    'city','state','created_by','modified_by', 'company_id'];
     /**
      * @return BelongsTo
      */

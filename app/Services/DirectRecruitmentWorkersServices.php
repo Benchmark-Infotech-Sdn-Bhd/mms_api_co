@@ -291,12 +291,22 @@ class DirectRecruitmentWorkersServices
                 ];
             }
         }
+
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         $data = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
         ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
         ->where('directrecruitment_workers.application_id', $request['application_id'])
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
+        ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
             if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
                 $query->where('worker_visa.status','Processed');
@@ -349,6 +359,10 @@ class DirectRecruitmentWorkersServices
                 ];
             }
         }
+
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->join('worker_kin', 'workers.id', '=', 'worker_kin.worker_id')
         ->join('kin_relationship', 'kin_relationship.id', '=', 'worker_kin.kin_relationship_id')
@@ -357,6 +371,12 @@ class DirectRecruitmentWorkersServices
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
         ->where('directrecruitment_workers.application_id', $request['application_id'])
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
+        ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
 
             if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
@@ -389,6 +409,9 @@ class DirectRecruitmentWorkersServices
      */
     public function dropdown($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
         ->where('workers.status', 1)
@@ -396,6 +419,12 @@ class DirectRecruitmentWorkersServices
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
         ->where('directrecruitment_workers.agent_id', $request['agent_id'])
         ->where('worker_visa.status', 'Pending')
+        ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
             if ($request['worker_id']) {
                 $query->where('workers.id', '!=', $request['worker_id']);

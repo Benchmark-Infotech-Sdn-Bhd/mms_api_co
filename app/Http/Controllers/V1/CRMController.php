@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Services\CRMServices;
+use App\Services\AuthServices;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -16,14 +17,20 @@ class CRMController extends Controller
      * @var CRMServices
      */
     private $crmServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * CRMController constructor.
      * @param CRMServices $crmServices
+     * @param AuthServices $authServices
      */
-    public function __construct(CRMServices $crmServices)
+    public function __construct(CRMServices $crmServices, AuthServices $authServices)
     {
         $this->crmServices = $crmServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display a listing of the resource.
@@ -35,6 +42,8 @@ class CRMController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->crmServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -70,6 +79,7 @@ class CRMController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $request['created_by'] = $user['id'];
+            $request['company_id'] = $user['company_id'];
             $response = $this->crmServices->create($request);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
@@ -127,6 +137,8 @@ class CRMController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->crmServices->dropDownCompanies($params);
             return $this->sendSuccess($response);
         } catch(Exception $e) {

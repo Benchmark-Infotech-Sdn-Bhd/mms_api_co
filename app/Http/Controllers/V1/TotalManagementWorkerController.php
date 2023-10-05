@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\TotalManagementWorkerServices;
+use App\Services\AuthServices;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Exception;
 
 class TotalManagementWorkerController extends Controller
@@ -15,14 +17,20 @@ class TotalManagementWorkerController extends Controller
      * @var TotalManagementWorkerServices
      */
     private TotalManagementWorkerServices $totalManagementWorkerServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementWorkerController constructor.
      * @param TotalManagementWorkerServices $totalManagementWorkerServices
+     * @param AuthServices $authServices
      */
-    public function __construct(TotalManagementWorkerServices $totalManagementWorkerServices)
+    public function __construct(TotalManagementWorkerServices $totalManagementWorkerServices, AuthServices $authServices)
     {
         $this->totalManagementWorkerServices = $totalManagementWorkerServices;
+        $this->authServices = $authServices;
     }
     /**
      * Dispaly all the Workers.
@@ -34,6 +42,9 @@ class TotalManagementWorkerController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $data = $this->totalManagementWorkerServices->list($params);
             if (isset($data['error'])) {
                 return $this->validationError($data['error']);
@@ -54,6 +65,9 @@ class TotalManagementWorkerController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $data = $this->totalManagementWorkerServices->workerListForAssignWorker($params);
             if (isset($data['error'])) {
                 return $this->validationError($data['error']);
@@ -74,6 +88,8 @@ class TotalManagementWorkerController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementWorkerServices->accommodationProviderDropDown($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -199,6 +215,8 @@ class TotalManagementWorkerController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementWorkerServices->getAssignedWorker($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {

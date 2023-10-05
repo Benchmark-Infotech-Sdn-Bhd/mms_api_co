@@ -172,6 +172,7 @@ class DirectRecruitmentServices
             'status' => Config::get('services.PENDING_PROPOSAL'),
             'remarks' => '',
             'created_by' => $request["created_by"] ?? 0,
+            'company_id' => $request['company_id'] ?? 0
         ]);
         return true;
     }
@@ -186,6 +187,12 @@ class DirectRecruitmentServices
         ->leftJoin('direct_recruitment_application_status', 'direct_recruitment_application_status.id', 'directrecruitment_applications.status')
         ->where('crm_prospect_services.service_id', 1)
         ->where('crm_prospect_services.deleted_at', NULL)
+        ->whereIn('directrecruitment_applications.company_id', $request['company_id'])
+        ->where(function ($query) use ($request) {
+            if ($request['user']['user_type'] == 'Customer') {
+                $query->where('directrecruitment_applications.crm_prospect_id', '=', $request['user']['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
