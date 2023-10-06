@@ -126,6 +126,11 @@ class DirectRecruitmentInsurancePurchaseServices
         ->leftJoin('worker_insurance_details', 'worker_insurance_details.worker_id', 'worker_visa.worker_id')
         ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
         ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($request) {
+            if ($request['user']['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
+            }
+        })
         ->where('worker_insurance_details.insurance_status', 'Pending')
         ->where([
             ['directrecruitment_workers.application_id', $request['application_id']],

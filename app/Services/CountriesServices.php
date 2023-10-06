@@ -37,6 +37,15 @@ class CountriesServices
               'validate' => $this->validationServices->errors()
             ];
         }
+        $countryExists = $this->countries->where([
+            'country_name' => $request['country_name'],
+            'company_id' => $request['company_id']
+            ])->first();
+        if($countryExists != NULL) {
+            return [
+                'countryExistsError' => true
+            ];
+        }
         return $this->countries->create([
             'country_name' => $request['country_name'] ?? '',
             'system_type' => $request['system_type'] ?? '',

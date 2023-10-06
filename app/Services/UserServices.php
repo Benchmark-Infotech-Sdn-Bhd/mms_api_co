@@ -6,7 +6,6 @@ use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
 use Illuminate\Support\Str;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserServices
 {
@@ -40,18 +39,12 @@ class UserServices
                 ];
             }
         }
-        $userDetail = JWTAuth::parseToken()->authenticate();
-        $userDetail['company_id'] = $this->authServices->getCompanyIds($userDetail);
+
         return $this->user
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('users.name', 'like', "%{$request['search_param']}%")
                 ->orWhere('users.email', 'like', '%'.$request['search_param'].'%');
-            }
-        })
-        ->where(function ($query) use ($userDetail) {
-            if ($userDetail['user_type'] == 'Super User' || $userDetail['user_type'] == 'Admin') {
-                $query->whereIn('users.company_id', $userDetail['company_id']);
             }
         })
         ->where('users.user_type', Config::get('services.ROLE_TYPE_ADMIN'))

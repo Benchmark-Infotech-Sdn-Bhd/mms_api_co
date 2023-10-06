@@ -49,6 +49,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');
             $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
             $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');
+            $router->post('dropdown', 'V1\CompanyController@dropdown');
         });
          /**
          * Routes for Roles.

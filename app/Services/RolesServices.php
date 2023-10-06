@@ -91,9 +91,9 @@ class RolesServices
             ];
         }
         if ($request['special_permission'] == 1) {
-            if($request['user_type'] != 'Super User') {
+            if($request['user_type'] != 'Admin') {
                 return [
-                    'superUserError' => true
+                    'adminUserError' => true
                 ];
             }
             $companyDetail = $this->company->findOrFail($request['company_id']);
