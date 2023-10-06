@@ -103,6 +103,7 @@ class DirectRecruitmentRepatriationServices
                 ];
             }
         }
+        $request['post_arrival_cancelled_status'] = Config::get('services.POST_ARRIVAL_CANCELLED_STATUS');
         return $this->workers
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_fomema', 'worker_fomema.worker_id', 'workers.id')
@@ -115,10 +116,17 @@ class DirectRecruitmentRepatriationServices
             })
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
-                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'worker_fomema.fomema_status' => 'Unfit',
-                'workers.plks_status' => 'Pending'
+                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id']
             ])
+            ->where(function ($query)use ($request) {
+                $query->where([
+                    ['worker_fomema.fomema_status', 'Unfit'],
+                    ['workers.plks_status', 'Pending']
+                ])
+                ->orWhere([
+                    ['workers.cancel_status', $request['post_arrival_cancelled_status']]
+                ]);
+            })
             ->whereNull('workers.replace_worker_id')
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
@@ -127,7 +135,7 @@ class DirectRecruitmentRepatriationServices
                     ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%');
                 }
             })
-            ->select('workers.id', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'worker_fomema.fomema_status', 'workers.date_of_birth', 'workers.gender', 'directrecruitment_workers.agent_id')->distinct('workers.id')
+            ->select('workers.id', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'worker_fomema.fomema_status', 'workers.date_of_birth', 'workers.gender', 'directrecruitment_workers.agent_id', 'workers.plks_status', 'workers.cancel_status', 'workers.directrecruitment_status')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
@@ -207,6 +215,7 @@ class DirectRecruitmentRepatriationServices
                 ];
             }
         }
+        $request['post_arrival_cancelled_status'] = Config::get('services.POST_ARRIVAL_CANCELLED_STATUS');
         return $this->workers
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_fomema', 'worker_fomema.worker_id', 'workers.id')
@@ -219,10 +228,18 @@ class DirectRecruitmentRepatriationServices
             })
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
-                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'worker_fomema.fomema_status' => 'Unfit',
-                'workers.plks_status' => 'Pending'
+                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id']
             ])
+            ->where(function ($query)use ($request) {
+                $query->where([
+                    ['worker_fomema.fomema_status', 'Unfit'],
+                    ['workers.plks_status', 'Pending']
+                ])
+                ->orWhere([
+                    ['workers.cancel_status', $request['post_arrival_cancelled_status']]
+                ]);
+            })
+            ->whereNull('workers.replace_worker_id')
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
