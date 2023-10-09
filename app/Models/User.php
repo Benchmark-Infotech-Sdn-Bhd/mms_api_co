@@ -64,4 +64,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         return $this->hasOne(UserRoleType::class,'user_id');
     }
+    /**
+     * @return BelongsToMany
+     */
+    public function companies()
+    {
+        return $this->belongsToMany(Company::class, 'user_company');
+    }
 }

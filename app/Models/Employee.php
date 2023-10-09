@@ -83,4 +83,11 @@ class Employee extends Model implements Auditable
             'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
         ];
     }
+    /**
+     * @return HasOne
+     */
+    public function user()
+    {
+        return $this->hasOne(User::class, 'reference_id');
+    }
 }

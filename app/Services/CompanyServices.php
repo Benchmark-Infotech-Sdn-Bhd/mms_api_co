@@ -47,7 +47,7 @@ class CompanyServices
                 ->orWhere('register_number', 'like', '%'.$request['search'].'%')
                 ->orWhere('pic_name', 'like', '%'.$request['search'].'%');
             })
-            ->select('id', 'company_name', 'register_number', 'country', 'state', 'pic_name', 'status', 'parent_id')
+            ->select('id', 'company_name', 'register_number', 'country', 'state', 'pic_name', 'status', 'parent_id', 'parent_flag')
             ->orderBy('id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
@@ -83,6 +83,9 @@ class CompanyServices
             'created_by' => $request['created_by'] ?? 0,
             'modified_by' => $request['created_by'] ?? 0
         ]);
+        if(isset($request['parent_id']) && !empty($request['parent_id'])) {
+            $this->company->where('id', $request['parent_id'])->update(['parent_flag' => 1]);
+        }
         return true;
     }
     /**
@@ -129,6 +132,7 @@ class CompanyServices
         return $this->company
             ->where('parent_id', 0)
             ->where('id', '!=', $request['current_company_id'])
+            ->where('parent_flag', '!=', 1)
             ->select('id', 'company_name')
             ->get();
     }
@@ -138,11 +142,13 @@ class CompanyServices
      */
     public function assignSubsidiary($request): bool
     {
-        return $this->company->whereIn('id', $request['subsidiary_company'])
+        $this->company->whereIn('id', $request['subsidiary_company'])
         ->update([
             'parent_id' => $request['parent_company_id'],
             'modified_by' => $request['modified_by']
         ]);
+        $this->company->where('id', $request['parent_company_id'])->update(['parent_flag' => 1]);
+        return true;
     }
     /**
      * @param $request
