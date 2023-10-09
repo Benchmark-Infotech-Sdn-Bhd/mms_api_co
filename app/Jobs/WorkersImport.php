@@ -58,7 +58,7 @@ class WorkersImport extends Job
         $countryQuotaError = 0;
         $ksmReferenceNumberQuotaError = 0;
 
-        if( !empty($this->workerParameter['name']) ){
+        if( !empty($this->workerParameter['name']) && !empty($this->workerParameter['date_of_birth']) && !empty($this->workerParameter['gender']) && !empty($this->workerParameter['passport_number']) && !empty($this->workerParameter['passport_valid_until']) && !empty($this->workerParameter['address']) && !empty($this->workerParameter['state']) && !empty($this->workerParameter['kin_name']) && !empty($this->workerParameter['kin_relationship']) && !empty($this->workerParameter['kin_contact_number']) && !empty($this->workerParameter['ksm_reference_number']) && !empty($this->workerParameter['bio_medical_reference_number']) && !empty($this->workerParameter['bio_medical_valid_until'])){
 
             $workerRelationship = DB::table('kin_relationship')->where('name', $this->workerParameter['kin_relationship'])->first('id');
 
@@ -289,8 +289,8 @@ class WorkersImport extends Job
             }
         }else{
             DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
-            Log::info('ERROR - name param is empty');
-            $comments .= ' ERROR - name param is empty';
+            Log::info('ERROR - required params are empty');
+            $comments .= ' ERROR - required params are empty';
         }
         
         $this->insertRecord($comments);
