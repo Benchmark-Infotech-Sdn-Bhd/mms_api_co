@@ -152,17 +152,15 @@ class AuthServices extends Controller
                 'created_by' => $request['user_id'] ?? 0,
                 'modified_by' => $request['user_id'] ?? 0
             ]);
-            if(isset($request['subsidiary_companies']) && !empty($request['subsidiary_companies'])) {
-                array_push($request['subsidiary_companies'], $request['company_id']);
-                foreach ($request['subsidiary_companies'] as $subsidiaryCompany) {
-                    $this->userCompany->create([
-                        'user_id' => $response->id,
-                        'company_id' => $subsidiaryCompany ?? 0,
-                        'role_id' => $request['role_id'] ?? '',
-                        'created_by' => $request['user_id'] ?? 0,
-                        'modified_by' => $request['user_id'] ?? 0
-                    ]);
-                }
+            array_push($request['subsidiary_companies'], $request['company_id']);
+            foreach ($request['subsidiary_companies'] as $subsidiaryCompany) {
+                $this->userCompany->create([
+                    'user_id' => $response->id,
+                    'company_id' => $subsidiaryCompany ?? 0,
+                    'role_id' => $request['role_id'] ?? '',
+                    'created_by' => $request['user_id'] ?? 0,
+                    'modified_by' => $request['user_id'] ?? 0
+                ]);
             }
         }
         if(isset($request['pic_flag']) && $request['pic_flag'] == 1) {

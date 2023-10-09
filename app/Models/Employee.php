@@ -84,10 +84,17 @@ class Employee extends Model implements Auditable
         ];
     }
     /**
+     * * @return HasOne
+     */
+    public function user()
+    {
+        return $this->hasOne(User::class, 'reference_id');
+    }
+    /**
      * @return BelongsTo
      */
     public function company()
     {
         return $this->belongsTo(Company::class, 'company_id');
-    }
+    } 
 }
