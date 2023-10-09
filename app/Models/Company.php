@@ -22,7 +22,7 @@ class Company extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['company_name', 'register_number', 'country', 'state', 'pic_name', 'role', 'status', 'parent_id', 'created_by', 'modified_by'];
+    protected $fillable = ['company_name', 'register_number', 'country', 'state', 'pic_name', 'role', 'status', 'parent_id', 'parent_flag', 'created_by', 'modified_by'];
     /**
      * The attributes that are required.
      *
@@ -56,5 +56,12 @@ class Company extends Model implements Auditable
     public function userCompany()
     {
         return $this->hasMany(UserCompany::class, 'company_id');
+    }
+    /**
+     * @return BelongsToMany
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_company');
     }
 }

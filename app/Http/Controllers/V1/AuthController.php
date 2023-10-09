@@ -74,7 +74,7 @@ class AuthController extends Controller
             if(is_null($emp)){
                 return $this->sendError(['message' => 'User not found'], 400);
             }
-            if(is_null($emp['branches']) || ($emp['status'] == 0) || ($emp['branches']['status'] == 0)){
+            if(is_null($emp['employeeDetails']['branches']) || ($emp['employeeDetails']['status'] == 0) || ($emp['employeeDetails']['branches']['status'] == 0)){
                 return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
             }
         }

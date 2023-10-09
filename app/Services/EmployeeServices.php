@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Employee;
+use App\Models\User;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -15,20 +16,24 @@ class EmployeeServices
     private ValidationServices $validationServices;
     private AuthServices $authServices;
     private Role $role;
+    private User $user;
+
     /**
      * EmployeeServices constructor.
      * @param Employee $employee
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Role $role
+     * @param User $user
      */
     public function __construct(Employee $employee,ValidationServices $validationServices,
-    AuthServices $authServices,Role $role)
+    AuthServices $authServices,Role $role, User $user)
     {
         $this->employee = $employee;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->role = $role;
+        $this->user = $user;
     }
 
     /**
@@ -167,22 +172,26 @@ class EmployeeServices
     }
     /**
      * @param $request
-     * @return mixed
+     * @return array
      */
-    public function show($request) : mixed
+    public function show($request) : array
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $emp = $this->employee->with('branches')->findOrFail($request['id']);
+        $emp = $this->employee->with(['branches', 'user'])->findOrFail($request['id']);
+        $companies = $this->user->with('companies')->findOrFail($emp->user->id);
         if(isset($emp) && isset($emp['id'])){
             $user = $this->authServices->userWithRolesBasedOnReferenceId(['id' => $emp['id']]);
             $emp['email'] = $user['email'];
             $emp['role_id'] = $user['role_id'];
         }
-        return $emp;
+        return [
+            'employeeDetails' => $emp,
+            'User' => $companies
+        ];
     }
     /**
      * @param $request
