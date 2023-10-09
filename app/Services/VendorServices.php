@@ -224,9 +224,12 @@ class VendorServices
      */
     public function insuranceVendorList($request)
     {
-        return $this->vendor::where('type', 'Insurance')
+        return $this->vendor::with(['company' => function ($query) {
+            $query->select(['id', 'company_name']);
+        }])
+        ->where('type', 'Insurance')
         ->whereIn('company_id', $request['company_id'])
-        ->select('id', 'name', 'type')
+        ->select('id', 'name', 'type', 'company_id')
         ->orderBy('vendors.created_at','DESC')
         ->get();
     }
@@ -238,9 +241,12 @@ class VendorServices
      */
     public function transportationVendorList($request)
     {
-        return $this->vendor::where('type', 'Transportation')
+        return $this->vendor::with(['company' => function ($query) {
+            $query->select(['id', 'company_name']);
+        }])
+        ->where('type', 'Transportation')
         ->whereIn('company_id', $request['company_id'])
-        ->select('id', 'name')
+        ->select('id', 'name', 'company_id')
         ->orderBy('vendors.id','DESC')
         ->get();
     }

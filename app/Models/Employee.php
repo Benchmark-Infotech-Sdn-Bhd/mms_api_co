@@ -83,4 +83,11 @@ class Employee extends Model implements Auditable
             'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
         ];
     }
+    /**
+     * @return BelongsTo
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
 }

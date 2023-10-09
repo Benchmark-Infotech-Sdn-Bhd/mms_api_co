@@ -118,7 +118,9 @@ class FeeRegistrationServices
      */
     public function list($request)
     {
-        return $this->feeRegistration::with('feeRegistrationServices', 'feeRegistrationSectors')
+        return $this->feeRegistration::with(['feeRegistrationServices', 'feeRegistrationSectors', 'company' => function ($query) {
+            $query->select(['id', 'company_name']);
+        }])
         ->whereIn('company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {

@@ -135,4 +135,11 @@ class FeeRegistration extends Model implements Auditable
     {
         return $this->hasMany('App\Models\FeeRegSectors', 'fee_reg_id');
     }
+    /**
+     * @return BelongsTo
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
 }

@@ -233,6 +233,9 @@ class EmployeeServices
         ->join('users', 'employee.id', '=', 'users.reference_id')
         ->join('user_role_type','users.id','=','user_role_type.user_id')
         ->join('roles','user_role_type.role_id','=','roles.id')
+        ->with(['company' => function ($query) {
+            $query->select(['id', 'company_name']);
+        }])
         ->whereIn('employee.company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
@@ -250,7 +253,7 @@ class EmployeeServices
             if (isset($request['role_id'])) {
                 $query->where('roles.id',$request['role_id']);
             }
-        })->select('employee.id','employee.employee_name','users.email','employee.position','branch.branch_name','employee.salary','employee.status','employee.created_at')
+        })->select('employee.id','employee.employee_name','users.email','employee.position','branch.branch_name','employee.salary','employee.status','employee.created_at', 'employee.company_id')
         ->selectRaw("(CASE WHEN (roles.status = 1) THEN roles.role_name ELSE null END) as role_name")
         ->distinct()
         ->orderBy('employee.created_at','DESC')

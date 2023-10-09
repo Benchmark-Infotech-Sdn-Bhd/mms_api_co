@@ -102,5 +102,11 @@ class FomemaClinics extends Model implements Auditable
     {
         return $this->errors;
     }
-
+    /**
+     * @return BelongsTo
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
 }

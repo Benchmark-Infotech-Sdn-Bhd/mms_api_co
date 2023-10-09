@@ -68,7 +68,9 @@ class FomemaClinicsServices
      */ 
     public function list($request)
     {
-        return $this->fomemaClinics->whereIn('company_id', $request['company_id'])
+        return $this->fomemaClinics->with(['company' => function($query) {
+            $query->select(['id', 'company_name']);
+        }])->whereIn('company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('clinic_name', 'like', '%' . $request['search_param'] . '%')

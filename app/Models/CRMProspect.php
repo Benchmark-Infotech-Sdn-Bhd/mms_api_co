@@ -42,4 +42,11 @@ class CRMProspect extends Model implements Auditable
     {
         return $this->hasMany(DirectrecruitmentApplications::class, 'crm_prospect_id');
     }
+    /**
+     * @return BelongsTo
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
 }
