@@ -9,6 +9,7 @@ use App\Models\XeroSettings;
 use App\Models\DirectRecruitmentExpenses;
 use App\Models\EContractCostManagement;
 use App\Models\TotalManagementCostManagement;
+use App\Models\CRMProspect;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -53,6 +54,10 @@ class InvoiceServices
      */
     private TotalManagementCostManagement $totalManagementCostManagement;
     /**
+     * @var CRMProspect
+     */
+    private CRMProspect $crmProspect;
+    /**
      * @var ValidationServices
      */
     private ValidationServices $validationServices;
@@ -72,6 +77,7 @@ class InvoiceServices
      * @param DirectRecruitmentExpenses $directRecruitmentExpenses
      * @param EContractCostManagement $eContractCostManagement
      * @param TotalManagementCostManagement $totalManagementCostManagement
+     * @param CRMProspect $crmProspect
      * @param XeroSettings $xeroSettings
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
@@ -84,6 +90,7 @@ class InvoiceServices
             DirectRecruitmentExpenses   $directRecruitmentExpenses,
             EContractCostManagement     $eContractCostManagement,
             TotalManagementCostManagement $totalManagementCostManagement,
+            CRMProspect                 $crmProspect,
             XeroSettings                $xeroSettings,
             ValidationServices          $validationServices,
             AuthServices                $authServices,
@@ -97,6 +104,7 @@ class InvoiceServices
         $this->directRecruitmentExpenses = $directRecruitmentExpenses;
         $this->eContractCostManagement = $eContractCostManagement;
         $this->totalManagementCostManagement = $totalManagementCostManagement;
+        $this->crmProspect = $crmProspect;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
@@ -135,7 +143,9 @@ class InvoiceServices
         $generateInvoice['DateString'] = '2023-09-13T00:00:00';
         $generateInvoice['DueDateString'] = '2023-09-15T00:00:00';
         $generateInvoice['LineAmountTypes'] = 'Exclusive';
-        $generateInvoice['Contact']['ContactID'] = 'b2762afb-19e7-41b0-b3f7-e62cd0fe3ca1';
+
+        $crmProspect = $this->crmProspect->findOrFail($request['crm_prospect_id']);
+        $generateInvoice['Contact']['ContactID'] = $crmProspect->xero_contact_id;
 
         $lineItems = json_decode($request['invoice_items']);
         
