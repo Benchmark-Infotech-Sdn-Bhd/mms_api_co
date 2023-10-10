@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\AgentServices;
+use App\Services\AuthServices;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -16,14 +17,20 @@ class AgentController extends Controller
      * @var AgentServices
      */
     private AgentServices $agentServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * AgentController constructor.
      * @param AgentServices $agentServices
+     * @param AuthServices $authServices
      */
-    public function __construct(AgentServices $agentServices)
+    public function __construct(AgentServices $agentServices, AuthServices $authServices)
     {
         $this->agentServices = $agentServices;
+        $this->authServices = $authServices;
     }
     /**
      * Show the form for creating a new agent.
