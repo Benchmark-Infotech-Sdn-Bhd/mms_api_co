@@ -804,9 +804,9 @@ class WorkersServices
         ->where('directrecruitment_onboarding_agent.status', 1)
         ->where('directrecruitment_onboarding_agent.application_id', $request['application_id'])
         ->where('directrecruitment_onboarding_agent.onboarding_country_id', $request['onboarding_country_id'])
-        ->select('agent.id','agent.agent_name')
-        ->distinct('agent.id','agent.agent_name')
-        ->orderBy('agent.id','ASC')->get();
+        ->select('directrecruitment_onboarding_agent.id as id','agent.agent_name')
+        ->distinct('directrecruitment_onboarding_agent.id','agent.agent_name')
+        ->orderBy('directrecruitment_onboarding_agent.id','ASC')->get();
     }
 
     /**
