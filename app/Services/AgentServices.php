@@ -45,7 +45,8 @@ class AgentServices
             'email_address' => $request['email_address'] ?? '',
             'company_address' => $request['company_address'] ?? '',
             'created_by'    => $request['created_by'] ?? 0,
-            'modified_by'   => $request['created_by'] ?? 0
+            'modified_by'   => $request['created_by'] ?? 0,
+            'company_id' => $request['company_id'] ?? 0
         ]);
     }
     /**
@@ -131,6 +132,7 @@ class AgentServices
             }
         }
         return $this->agent->join('countries', 'countries.id', '=', 'agent.country_id')
+        ->whereIn('agent.company_id', $request['company_id'])
         ->where(function($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('agent_name', 'like', '%'.$request['search_param'].'%')
@@ -197,6 +199,7 @@ class AgentServices
         }
         $countryId = isset($country->country_id) ? $country->country_id : '';
         return $this->agent
+        ->whereIn('company_id', $request['company_id'])
         ->where('status', 1)
         ->where(function($query) use ($request, $countryId) {
             if (isset($request['onboarding_country_id']) && !empty($request['onboarding_country_id'])) {

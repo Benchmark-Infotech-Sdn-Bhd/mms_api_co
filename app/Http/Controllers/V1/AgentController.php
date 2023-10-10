@@ -37,6 +37,7 @@ class AgentController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->agentServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -123,6 +124,8 @@ class AgentController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->agentServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -163,6 +166,8 @@ class AgentController extends Controller
     public function dropdown(Request $request): JsonResponse
     {
         try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->agentServices->dropdown($request);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
