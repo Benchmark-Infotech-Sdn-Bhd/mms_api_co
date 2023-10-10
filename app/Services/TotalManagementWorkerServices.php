@@ -168,20 +168,32 @@ class TotalManagementWorkerServices
             }
         }
         $request['company_ids'] = array($request['prospect_id'], 0);
+
+        $request['application_id'] = $request['application_id']  ?? 0;
+        $applicationDetails = $this->totalManagementApplications->findOrFail($request['application_id']);
+        $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
         
+        if(isset($serviceDetails->from_existing) && $serviceDetails->from_existing == 1) {
+            $request['from_existing'] = $serviceDetails->from_existing;
+        }else{
+            $request['from_existing'] = 0;
+        }
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->where('workers.econtract_status', 'On-Bench')
+            ->where('workers.total_management_status', 'On-Bench')
+            ->whereIn('workers.crm_prospect_id', $request['company_ids'])
         ->where(function ($query) use ($request) {
-            $query->where([
-                ['workers.crm_prospect_id', 0],
-                ['workers.econtract_status', 'On-Bench'],
-                ['workers.total_management_status', 'On-Bench']
-            ])
-            ->orWhere([
-                ['workers.crm_prospect_id', $request['prospect_id']],
-                ['workers.econtract_status', 'On-Bench'],
-                ['workers.total_management_status', 'On-Bench'],
-                ['workers.plks_status', 'Approved']
-            ]);
+            if(isset($request['from_existing']) && $request['from_existing'] == 1){
+                $query->where([
+                    ['workers.crm_prospect_id', $request['prospect_id']],
+                    ['workers.plks_status', 'Approved']
+                ])
+                ->orWhere([
+                    ['workers.crm_prospect_id', 0]
+                ]);
+            }else{
+                    $query->where('workers.module_type', '<>', Config::get('services.WORKER_MODULE_TYPE')[0])->orWhereNull('workers.module_type');
+            }
         })
         ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
@@ -189,12 +201,6 @@ class TotalManagementWorkerServices
                     ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
                     ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%')
                     ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
-                }
-            })
-            ->where(function ($query) use ($request) {
-                if (isset($request['prospect_id']) && !empty($request['prospect_id'])) {
-                    $request['company_ids'] = array($request['prospect_id'], 0);
-                    $query->whereIn('workers.crm_prospect_id', $request['company_ids']);
                 }
             })
             ->where(function ($query) use ($request) {
@@ -207,7 +213,7 @@ class TotalManagementWorkerServices
                     $query->where('worker_visa.ksm_reference_number', $request['ksm_reference_number']);
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', 'workers.econtract_status', 'workers.total_management_status', 'workers.plks_status')
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', 'workers.econtract_status', 'workers.total_management_status', 'workers.plks_status', 'workers.module_type')
             ->distinct()
             ->orderBy('workers.created_at','DESC')
             ->paginate(Config::get('services.paginate_row'));
@@ -304,17 +310,32 @@ class TotalManagementWorkerServices
     {
         $applicationDetails = $this->totalManagementApplications->findOrFail($request['application_id']);
         $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
-        $workersCount = $this->workers->where('crm_prospect_id', $applicationDetails->crm_prospect_id)
-                            ->where('total_management_status', 'Assigned')
-                            ->count('id');
+
+        $request['project_id'] = $request['project_id']  ?? 0;
+        $workersCount = $this->workers
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.worker_id','=','workers.id')
+            ->where('worker_employment.service_type', 'Total Management')
+            ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date');
+        })
+        ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
+        ->where('worker_employment.project_id',$request['project_id'])
+        ->distinct('workers.id')->count('workers.id');
 
         $fomNextWorkersCount = $this->workers
-        ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
-        ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
-        ->where('total_management_project.application_id', $request['application_id'])
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.worker_id','=','workers.id')
+            ->where('worker_employment.service_type', 'Total Management')
+            ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date');
+        })
         ->where('workers.crm_prospect_id', 0)
-        ->where('workers.total_management_status', 'Assigned')
+        ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
+        ->where('worker_employment.project_id',$request['project_id'])
         ->distinct('workers.id')->count('workers.id');
+
+
 
         if($serviceDetails->from_existing == 0) {
             return [

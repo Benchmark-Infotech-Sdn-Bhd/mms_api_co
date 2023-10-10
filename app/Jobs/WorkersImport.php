@@ -15,10 +15,12 @@ use App\Models\DirectrecruitmentApplications;
 use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Models\WorkerStatus;
+use App\Models\Levy;
 use App\Services\ManageWorkersServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 
 
 class WorkersImport extends Job
@@ -51,9 +53,12 @@ class WorkersImport extends Job
     { 
 
         Log::info('Worker instert - started ');
-        DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_success');
 
-        if( !empty($this->workerParameter['name']) ){
+        $comments = '';
+        $countryQuotaError = 0;
+        $ksmReferenceNumberQuotaError = 0;
+
+        if( !empty($this->workerParameter['name']) && !empty($this->workerParameter['date_of_birth']) && !empty($this->workerParameter['gender']) && !empty($this->workerParameter['passport_number']) && !empty($this->workerParameter['passport_valid_until']) && !empty($this->workerParameter['address']) && !empty($this->workerParameter['state']) && !empty($this->workerParameter['kin_name']) && !empty($this->workerParameter['kin_relationship']) && !empty($this->workerParameter['kin_contact_number']) && !empty($this->workerParameter['ksm_reference_number']) && !empty($this->workerParameter['bio_medical_reference_number']) && !empty($this->workerParameter['bio_medical_valid_until'])){
 
             $workerRelationship = DB::table('kin_relationship')->where('name', $this->workerParameter['kin_relationship'])->first('id');
 
@@ -61,6 +66,11 @@ class WorkersImport extends Job
 
             $workerCount = DB::table('workers')->where('passport_number', $this->workerParameter['passport_number'])->count();
 
+            if($workerCount > 0){
+                Log::info('worker - passport already exist '.$this->workerParameter['passport_number']);
+                $comments .= 'ERROR - worker - passport already exist '.$this->workerParameter['passport_number'];
+            }
+            
             $applicationId = $this->workerParameter['application_id'];
 
             $ksmReferenceNumbersResult = DB::table('directrecruitment_application_approval')
@@ -89,10 +99,59 @@ class WorkersImport extends Job
                 if(!in_array($this->workerParameter['ksm_reference_number'], $ksmReferenceNumbers)){
                     Log::info('Row Data - KSM Reference Number Error - ' . print_r($workerRelationship->id, true));   
                     $ksmError = 1; 
+                    $comments .= 'ERROR - KSM Reference Number is mis-matched.';
                 }
             }
 
-            if($workerCount == 0 && $ksmError == 0){
+        $onboardingCountryDetails = DirectRecruitmentOnboardingCountry::findOrFail($this->workerParameter['onboarding_country_id']);
+
+        $assignedWorkers = DB::table('directrecruitment_workers')
+        ->leftjoin('worker_visa', 'directrecruitment_workers.worker_id', '=', 'worker_visa.worker_id')
+        ->leftjoin('workers', 'workers.id', '=', 'worker_visa.worker_id')
+        ->where([
+            ['directrecruitment_workers.application_id', $this->workerParameter['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $this->workerParameter['onboarding_country_id']],
+            ['workers.cancel_status', 0]
+        ])
+        ->whereIn('workers.directrecruitment_status', Config::get('services.DIRECT_RECRUITMENT_WORKER_STATUS'))
+        ->count('directrecruitment_workers.worker_id');
+
+        Log::info('workers count - ' . $assignedWorkers);
+        Log::info('country quota - ' . $onboardingCountryDetails->quota);  
+
+        if($assignedWorkers >= $onboardingCountryDetails->quota) {
+            $countryQuotaError = 1;
+            $comments .= 'ERROR - country quota cannot exceeded';
+        }
+
+        $approvedCount = Levy::where('application_id', $this->workerParameter['application_id'])
+                             ->where('new_ksm_reference_number', $this->workerParameter['ksm_reference_number'])
+                             ->first('approved_quota');
+
+        if(isset($approvedCount['approved_quota'])){
+            Log::info('levy approved count - ' . $approvedCount['approved_quota']);
+        }
+        
+        $ksmReferenceNumberCount = DB::table('directrecruitment_workers')
+        ->leftjoin('worker_visa', 'directrecruitment_workers.worker_id', '=', 'worker_visa.worker_id')
+        ->leftjoin('workers', 'workers.id', '=', 'worker_visa.worker_id')
+        ->where([
+            ['directrecruitment_workers.application_id', $this->workerParameter['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $this->workerParameter['onboarding_country_id']],
+            ['workers.cancel_status', 0],
+            ['worker_visa.ksm_reference_number', $this->workerParameter['ksm_reference_number']],
+        ])
+        ->whereIn('workers.directrecruitment_status', Config::get('services.DIRECT_RECRUITMENT_WORKER_STATUS'))
+        ->count('directrecruitment_workers.worker_id');
+
+        Log::info('ksm reference number count - ' . $ksmReferenceNumberCount);
+
+        if(isset($approvedCount['approved_quota']) && ($ksmReferenceNumberCount >= $approvedCount['approved_quota'])) {
+            $ksmReferenceNumberQuotaError = 1;
+            $comments .= ' ERROR - ksm reference number quota cannot exceeded';
+        }
+
+            if($workerCount == 0 && $ksmError == 0 && $countryQuotaError == 0 && $ksmReferenceNumberQuotaError == 0){
 
                 $applicationDetails = DirectrecruitmentApplications::findOrFail($this->workerParameter['application_id']);
                 $prospect_id = $applicationDetails->crm_prospect_id;
@@ -221,14 +280,20 @@ class WorkersImport extends Job
                 $onboardingCountry->onboarding_status =  4;
                 $onboardingCountry->save();                
     
-                Log::info('Worker instertd -  '.$worker['id']);
-    
-                $this->insertRecord();
-
+                Log::info('Worker inserted -  '.$worker['id']);
+                DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_success');
+                $comments .= ' SUCCESS - worker imported';
             }else{
-                Log::info('worker - passport already exist '.$this->workerParameter['passport_number']);
+                DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
+                Log::info('ERROR - worker import failed  due to '.$comments);
             }
+        }else{
+            DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
+            Log::info('ERROR - required params are empty');
+            $comments .= ' ERROR - required params are empty';
         }
+        
+        $this->insertRecord($comments);
     }
 
     /**
