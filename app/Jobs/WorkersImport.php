@@ -170,6 +170,7 @@ class WorkersImport extends Job
                     'crm_prospect_id' => $prospect_id ?? NULL,
                     'created_by'    => $this->workerParameter['created_by'] ?? 0,
                     'modified_by'   => $this->workerParameter['created_by'] ?? 0,
+                    'company_id'    => $applicationDetails->company_id,
                     'created_at'    => null,
                     'updated_at'    => null
                 ]);
