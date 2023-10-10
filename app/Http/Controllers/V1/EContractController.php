@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use App\Services\EContractServices;
 use App\Services\AuthServices;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Exception;
 
 class EContractController extends Controller
