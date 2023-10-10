@@ -72,8 +72,13 @@ class DashboardServices
      */   
     public function list($request): mixed
     {
-        $workerCount = $this->workers->where('crm_prospect_id',0)->count('id');
-        $totalManagementOnbench = $this->workers->where('crm_prospect_id',0)->where('total_management_status','On-Bench')->count('id');
+        $workerCount = $this->workers->where('crm_prospect_id',0)
+                        ->whereIn('company_id', $request['company_id'])
+                        ->count('id');
+        $totalManagementOnbench = $this->workers->where('crm_prospect_id',0)
+                        ->whereIn('company_id', $request['company_id'])
+                        ->where('total_management_status','On-Bench')
+                        ->count('id');
 
         $serviceDirectRecruitment = $this->directrecruitmentApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
