@@ -78,7 +78,7 @@ class DashboardServices
         $workerOnbenchCount = $this->workers->where('crm_prospect_id',0)
                         ->whereIn('company_id', $request['company_id'])
                         ->where('total_management_status','On-Bench')
-                        ->where('workers.econtract_status', 'On-Bench')
+                        ->where('econtract_status', 'On-Bench')
                         ->count('id');
 
         $serviceDirectRecruitment = $this->directrecruitmentApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
