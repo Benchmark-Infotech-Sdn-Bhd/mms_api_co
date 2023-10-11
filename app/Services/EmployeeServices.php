@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Employee;
+use App\Models\User;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -15,20 +16,24 @@ class EmployeeServices
     private ValidationServices $validationServices;
     private AuthServices $authServices;
     private Role $role;
+    private User $user;
+
     /**
      * EmployeeServices constructor.
      * @param Employee $employee
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Role $role
+     * @param User $user
      */
     public function __construct(Employee $employee,ValidationServices $validationServices,
-    AuthServices $authServices,Role $role)
+    AuthServices $authServices,Role $role, User $user)
     {
         $this->employee = $employee;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->role = $role;
+        $this->user = $user;
     }
 
     /**
@@ -58,7 +63,8 @@ class EmployeeServices
             'city' => $request['city'] ?? '',
             'state' => $request['state'] ?? '',
             'created_by'    => $request['created_by'] ?? 0,
-            'modified_by'   => $request['created_by'] ?? 0
+            'modified_by'   => $request['created_by'] ?? 0,
+            'company_id' => $request['company_id'] ?? 0
         ]);
         $res = $this->authServices->create(
             ['name' => $request['employee_name'],
@@ -68,7 +74,9 @@ class EmployeeServices
             'status' => 1,
             'password' => Str::random(8),
             'reference_id' => $employee['id'],
-            'user_type' => "Employee"
+            'user_type' => "Employee",
+            'subsidiary_companies' => $request['subsidiary_companies'],
+            'company_id' => $request['company_id']
         ]);
         if($res){
             return $employee;
@@ -164,30 +172,26 @@ class EmployeeServices
     }
     /**
      * @param $request
-     * @return mixed
+     * @return array
      */
-    public function show($request) : mixed
+    public function show($request) : array
     {
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $emp = $this->employee->with('branches')->findOrFail($request['id']);
+        $emp = $this->employee->with(['branches', 'user'])->findOrFail($request['id']);
+        $companies = $this->user->with('companies')->findOrFail($emp->user->id);
         if(isset($emp) && isset($emp['id'])){
             $user = $this->authServices->userWithRolesBasedOnReferenceId(['id' => $emp['id']]);
             $emp['email'] = $user['email'];
             $emp['role_id'] = $user['role_id'];
         }
-        return $emp;
-    }
-    /**
-     * @return mixed
-     */
-    public function retrieveAll() : mixed
-    {
-        return $this->employee->orderBy('employee.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
+        return [
+            'employeeDetails' => $emp,
+            'User' => $companies
+        ];
     }
     /**
      * @param $request
@@ -238,6 +242,7 @@ class EmployeeServices
         ->join('users', 'employee.id', '=', 'users.reference_id')
         ->join('user_role_type','users.id','=','user_role_type.user_id')
         ->join('roles','user_role_type.role_id','=','roles.id')
+        ->whereIn('employee.company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('employee.employee_name', 'like', "%{$request['search_param']}%")
@@ -261,11 +266,17 @@ class EmployeeServices
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
+     * @param $companyId
      * @return mixed
      */
-    public function dropdown() : mixed
+    public function dropdown($companyId) : mixed
     {
-        return $this->employee->where('status', 1)->select('id','employee_name')->orderBy('employee.created_at','DESC')->get();
+        return $this->employee->where('status', 1)
+                ->whereIn('company_id', $companyId)
+                ->whereNull('deleted_at')
+                ->select('id','employee_name')
+                ->orderBy('employee.created_at','DESC')
+                ->get();
     }
     /**
      * @param $request
@@ -281,12 +292,15 @@ class EmployeeServices
         ];
     }
     /**
+     * $param $request
      * @return mixed
      */
     public function supervisorList($request) : mixed
     {
-        $role = $this->role->where('role_name', Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'))->where('status',1)->first('id');
-
+        $role = $this->role->where('role_name', Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'))
+                ->whereIn('company_id', $request['company_id'])
+                ->where('status',1)
+                ->first('id');
         return $this->employee
         ->join('users', 'employee.id', '=', 'users.reference_id')
         ->join('user_role_type','users.id','=','user_role_type.user_id')

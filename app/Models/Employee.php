@@ -26,7 +26,7 @@ class Employee extends Model implements Auditable
      */
     protected $fillable = ['employee_name','gender','date_of_birth','ic_number','passport_number',
     'email','contact_number','address','postcode','position','branch_id','role_id','salary','status',
-    'city','state','created_by','modified_by'];
+    'city','state','created_by','modified_by', 'company_id'];
     /**
      * @return BelongsTo
      */
@@ -82,5 +82,12 @@ class Employee extends Model implements Auditable
             'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
             'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
         ];
+    }
+    /**
+     * @return HasOne
+     */
+    public function user()
+    {
+        return $this->hasOne(User::class, 'reference_id');
     }
 }

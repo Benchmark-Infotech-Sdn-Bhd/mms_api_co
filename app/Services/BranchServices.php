@@ -88,6 +88,7 @@ class BranchServices
             'postcode' => $request["postcode"],
             'remarks' => $request["remarks"],
             'created_by' => $request["created_by"],
+            'company_id' => $user['company_id']
         ]);
         $branchDataId = $branchData->id;
         foreach ($request['service_type'] as $serviceType) {
@@ -110,6 +111,7 @@ class BranchServices
     public function list($request)
     {
         return $this->branch::with('branchServices')
+        ->whereIn('company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('branch_name', 'like', '%' . $request['search_param'] . '%')
@@ -197,11 +199,16 @@ class BranchServices
         ];
     }
     /**
+     * @param $companyId
      * @return mixed
      */
-    public function dropDown(): mixed
+    public function dropDown($companyId): mixed
     {
-        return $this->branch::where('status', '=' ,1)->select('id','branch_name')->orderBy('branch.created_at','DESC')->get();
+        return $this->branch::where('status', '=' ,1)
+                    ->whereIn('company_id', $companyId)
+                    ->select('id','branch_name')
+                    ->orderBy('branch.created_at','DESC')
+                    ->get();
     }
 
     /**

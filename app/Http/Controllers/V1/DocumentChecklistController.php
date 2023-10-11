@@ -114,22 +114,6 @@ class DocumentChecklistController extends Controller
         }
     }
     /**
-     * Retrieve all DocumentChecklist.
-     *
-     * @return JsonResponse
-     */
-    public function retrieveAll(): JsonResponse
-    {
-        try {
-            $data = $this->documentChecklistServices->retrieveAll();
-            return $this->sendSuccess($data);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'Retrieve All failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
-        }
-    }
-    /**
      * Retrieve the specified DocumentChecklist based on Sectors.
      *
      * @param Request $request

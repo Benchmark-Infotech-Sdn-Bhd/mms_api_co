@@ -124,14 +124,6 @@ class EmbassyAttestationFileCostingServices
         return $this->embassyAttestationFileCosting->findOrFail($request['id']);
     }
     /**
-     * @return mixed
-     */
-    public function retrieveAll() : mixed
-    {
-        return $this->embassyAttestationFileCosting->orderBy('embassy_attestation_file_costing.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
-    }
-    /**
      * @param $request
      * @return mixed
      */

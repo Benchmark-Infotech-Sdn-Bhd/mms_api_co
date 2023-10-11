@@ -57,6 +57,8 @@ class FomemaClinicsServices
             'city' => $request["city"],
             'postcode' => $request["postcode"],
             'created_by' => $request["created_by"],
+            'modified_by' => $request["created_by"],
+            'company_id' => $user['company_id']
         ]);
     }
 	 /**
@@ -66,7 +68,8 @@ class FomemaClinicsServices
      */ 
     public function list($request)
     {
-        return $this->fomemaClinics::where(function ($query) use ($request) {
+        return $this->fomemaClinics->whereIn('company_id', $request['company_id'])
+        ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('clinic_name', 'like', '%' . $request['search_param'] . '%')
                 ->orWhere('state', 'like', '%' . $request['search_param'] . '%')

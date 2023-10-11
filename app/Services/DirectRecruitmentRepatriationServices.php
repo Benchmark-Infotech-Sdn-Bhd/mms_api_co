@@ -108,6 +108,12 @@ class DirectRecruitmentRepatriationServices
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_fomema', 'worker_fomema.worker_id', 'workers.id')
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
+            ->whereIn('workers.company_id', $request['company_id'])
+            ->where(function ($query) use ($request) {
+                if ($request['user']['user_type'] == 'Customer') {
+                    $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
+                }
+            })
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
                 'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id']
@@ -214,6 +220,12 @@ class DirectRecruitmentRepatriationServices
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_fomema', 'worker_fomema.worker_id', 'workers.id')
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
+            ->whereIn('workers.company_id', $request['company_id'])
+            ->where(function ($query) use ($request) {
+                if ($request['user']['user_type'] == 'Customer') {
+                    $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
+                }
+            })
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
                 'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id']

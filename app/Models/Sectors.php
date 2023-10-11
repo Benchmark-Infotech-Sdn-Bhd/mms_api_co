@@ -22,7 +22,7 @@ class Sectors extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['sector_name','sub_sector_name','checklist_status','status','created_by','modified_by'];
+    protected $fillable = ['sector_name','sub_sector_name','checklist_status','status','created_by','modified_by', 'company_id'];
     /**
      * @return HasMany
      */

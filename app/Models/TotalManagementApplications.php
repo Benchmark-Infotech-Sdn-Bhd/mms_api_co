@@ -19,7 +19,7 @@ class TotalManagementApplications extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'crm_prospect_id', 'service_id', 'quota_applied', 'person_incharge', 'cost_quoted', 'status', 'remarks', 'created_by', 'modified_by'
+        'crm_prospect_id', 'service_id', 'quota_applied', 'person_incharge', 'cost_quoted', 'status', 'remarks', 'created_by', 'modified_by', 'company_id'
     ];
 
     /**

@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\EContractServices;
+use App\Services\AuthServices;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Exception;
 
 class EContractController extends Controller
@@ -15,14 +17,20 @@ class EContractController extends Controller
      * @var EContractServices
      */
     private $eContractServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * EContractController constructor.
      * @param EContractServices $eContractServices
+     * @param AuthServices $authServices
      */
-    public function __construct(EContractServices $eContractServices)
+    public function __construct(EContractServices $eContractServices, AuthServices $authServices)
     {
         $this->eContractServices = $eContractServices;
+        $this->authServices = $authServices;
     }
     /** Display list of services in e-Contract.
      * 
@@ -33,6 +41,9 @@ class EContractController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->eContractServices->applicationListing($params);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);

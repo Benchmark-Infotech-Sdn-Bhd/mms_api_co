@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Company extends Model implements Auditable
 {
@@ -22,7 +22,7 @@ class Company extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['company_name', 'register_number', 'country', 'state', 'pic_name', 'role', 'status', 'created_by', 'modified_by'];
+    protected $fillable = ['company_name', 'register_number', 'country', 'state', 'pic_name', 'role', 'status', 'parent_id', 'parent_flag', 'created_by', 'modified_by'];
     /**
      * The attributes that are required.
      *
@@ -49,5 +49,19 @@ class Company extends Model implements Auditable
             'country' => 'required|regex:/^[a-zA-Z]*$/',
             'state' => 'required|regex:/^[a-zA-Z ]*$/'
         ];
+    }
+    /**
+     * @return HasMany
+     */
+    public function userCompany()
+    {
+        return $this->hasMany(UserCompany::class, 'company_id');
+    }
+    /**
+     * @return BelongsToMany
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_company');
     }
 }

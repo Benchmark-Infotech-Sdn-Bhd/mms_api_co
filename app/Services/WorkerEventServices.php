@@ -118,13 +118,7 @@ class WorkerEventServices
                 "econtract_status" => $request['event_type'], 
                 "modified_by" => $request['created_by']
             ]);
-        }else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
-            $this->workers->where('id', $request['worker_id'])
-            ->update([
-                "total_management_status" => $request['event_type'], 
-                "modified_by" => $request['created_by']
-            ]);
-        }else{
+        } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
             $this->workers->where('id', $request['worker_id'])
             ->update([
                 "total_management_status" => $request['event_type'], 
@@ -163,6 +157,12 @@ class WorkerEventServices
                 'error' => $validator->errors()
             ];
         }
+        $maxId = $this->workerEvent->where('worker_id', $request['worker_id'])->max('id');
+        if($maxId != $request['id']) {
+            return [
+                'maxIdError' => true
+            ];
+        }
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
         $workerEvent = $this->workerEvent->findOrFail($request['id']);
@@ -181,13 +181,7 @@ class WorkerEventServices
                 "econtract_status" => $request['event_type'], 
                 "modified_by" => $request['modified_by']
             ]);
-        }else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
-            $this->workers->where('id', $request['worker_id'])
-            ->update([
-                "total_management_status" => $request['event_type'], 
-                "modified_by" => $request['modified_by']
-            ]);
-        }else{
+        } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
             $this->workers->where('id', $request['worker_id'])
             ->update([
                 "total_management_status" => $request['event_type'], 

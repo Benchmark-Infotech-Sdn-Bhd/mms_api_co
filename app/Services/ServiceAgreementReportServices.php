@@ -36,6 +36,7 @@ class ServiceAgreementReportServices
         ->leftJoin('total_management_application_attachemnts', function($join) use ($request){
             $join->on('total_management_applications.id', '=', 'total_management_application_attachemnts.file_id');
           })
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where('crm_prospects.status', 1)
         ->where('crm_prospect_services.service_id', 3)
         ->whereNotNull('total_management_application_attachemnts.file_url')
@@ -53,6 +54,7 @@ class ServiceAgreementReportServices
         ->leftJoin('e-contract_application_attachments as econtract_application_attachments', function($join) use ($request){
             $join->on('econtract_application.id', '=', 'econtract_application_attachments.file_id');
           })
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where('crm_prospects.status', 1)
         ->where('crm_prospect_services.service_id', 2)
         ->whereNotNull('econtract_application_attachments.file_url')

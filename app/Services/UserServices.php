@@ -82,9 +82,6 @@ class UserServices
             ];
         }
         $user = $this->user->where('id',$request['id'])->first();
-        if(is_null($user) || $user['user_type'] != Config::get('services.ROLE_TYPE_ADMIN')){
-            return false;
-        }
         
         $user->update([
             'name' => $request['name'] ?? $user['name'],

@@ -29,6 +29,7 @@ class FeeRegistration extends Model implements Auditable
         'fee_type',
         'created_by',
         'modified_by',
+        'company_id'
     ];
     /**
      * The attributes that are required.

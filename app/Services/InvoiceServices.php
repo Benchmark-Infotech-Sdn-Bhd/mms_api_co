@@ -9,6 +9,7 @@ use App\Models\XeroSettings;
 use App\Models\DirectRecruitmentExpenses;
 use App\Models\EContractCostManagement;
 use App\Models\TotalManagementCostManagement;
+use App\Models\CRMProspect;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -53,6 +54,10 @@ class InvoiceServices
      */
     private TotalManagementCostManagement $totalManagementCostManagement;
     /**
+     * @var CRMProspect
+     */
+    private CRMProspect $crmProspect;
+    /**
      * @var ValidationServices
      */
     private ValidationServices $validationServices;
@@ -72,6 +77,7 @@ class InvoiceServices
      * @param DirectRecruitmentExpenses $directRecruitmentExpenses
      * @param EContractCostManagement $eContractCostManagement
      * @param TotalManagementCostManagement $totalManagementCostManagement
+     * @param CRMProspect $crmProspect
      * @param XeroSettings $xeroSettings
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
@@ -84,6 +90,7 @@ class InvoiceServices
             DirectRecruitmentExpenses   $directRecruitmentExpenses,
             EContractCostManagement     $eContractCostManagement,
             TotalManagementCostManagement $totalManagementCostManagement,
+            CRMProspect                 $crmProspect,
             XeroSettings                $xeroSettings,
             ValidationServices          $validationServices,
             AuthServices                $authServices,
@@ -97,6 +104,7 @@ class InvoiceServices
         $this->directRecruitmentExpenses = $directRecruitmentExpenses;
         $this->eContractCostManagement = $eContractCostManagement;
         $this->totalManagementCostManagement = $totalManagementCostManagement;
+        $this->crmProspect = $crmProspect;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
@@ -125,7 +133,8 @@ class InvoiceServices
             'amount' => $request['amount'] ?? 0,
             'due_amount' => $request['due_amount'] ?? 0,
             'created_by'    => $params['created_by'] ?? 0,
-            'modified_by'   => $params['created_by'] ?? 0
+            'modified_by'   => $params['created_by'] ?? 0,
+            'company_id' => $user['company_id']
         ]);
 
         $generateInvoice['Type'] = 'ACCREC';
@@ -134,7 +143,9 @@ class InvoiceServices
         $generateInvoice['DateString'] = '2023-09-13T00:00:00';
         $generateInvoice['DueDateString'] = '2023-09-15T00:00:00';
         $generateInvoice['LineAmountTypes'] = 'Exclusive';
-        $generateInvoice['Contact']['ContactID'] = 'b2762afb-19e7-41b0-b3f7-e62cd0fe3ca1';
+
+        $crmProspect = $this->crmProspect->findOrFail($request['crm_prospect_id']);
+        $generateInvoice['Contact']['ContactID'] = $crmProspect->xero_contact_id;
 
         $lineItems = json_decode($request['invoice_items']);
         
@@ -276,6 +287,9 @@ class InvoiceServices
      */
     public function list($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         if(isset($request['search_param']) && !empty($request['search_param'])){
             if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
                 return [
@@ -286,6 +300,12 @@ class InvoiceServices
         return $this->invoice->with(['crm_prospect' => function ($query) {
             $query->select(['id', 'company_name']);
         }])
+        ->whereIn('invoice.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('invoice_number', 'like', "%{$request['search_param']}%");

@@ -22,7 +22,7 @@ class Countries extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['country_name','system_type','fee','bond','costing_status','status','created_by','modified_by'];
+    protected $fillable = ['country_name','system_type','fee','bond','costing_status','status','created_by','modified_by', 'company_id'];
     /**
      * @return HasMany
      */
@@ -50,7 +50,8 @@ class Countries extends Model implements Auditable
      * @var array
      */
     public $rules = [
-        'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150|unique:countries,country_name,NULL,id,deleted_at,NULL',
+        // 'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150|unique:countries,country_name,NULL,id,deleted_at,NULL',
+        'country_name' => 'required|regex:/^[a-zA-Z ]*$/',
         'system_type' => 'required|regex:/^[a-zA-Z]*$/',
         'bond' => 'regex:/^[0-9]+$/|max:3',
         'fee' => 'regex:/^(([0-9]*)(\.([0-9]{0,2}+))?)$/'

@@ -74,7 +74,7 @@ class AuthController extends Controller
             if(is_null($emp)){
                 return $this->sendError(['message' => 'User not found'], 400);
             }
-            if(is_null($emp['branches']) || ($emp['status'] == 0) || ($emp['branches']['status'] == 0)){
+            if(is_null($emp['employeeDetails']['branches']) || ($emp['employeeDetails']['status'] == 0) || ($emp['employeeDetails']['branches']['status'] == 0)){
                 return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
             }
         }
@@ -109,7 +109,14 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return $this->validationError($validator->errors());
         }
-        $this->authServices->create($request);
+        $response = $this->authServices->create($request);
+        // if(isset($response['subsidiaryError'])) {
+        //     return $this->sendError(['message' => 'Cannot Create Super User for Subsidiary Company'], 422);
+        // } else if(isset($response['parentError'])) {
+        //     return $this->sendError(['message' => 'Parent Company only can Create Super User'], 422);
+        // } else if(isset($response['userError'])) {
+        //     return $this->sendError(['message' => 'This Company alredy has a Super User'], 422);
+        // }
         return $this->sendSuccess(['message' => 'Successfully User was created']);
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\DirectRecruitmentCallingVisaServices;
+use App\Services\AuthServices;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class DirectRecruitmentCallingVisaController extends Controller
      * @var DirectRecruitmentCallingVisaServices
      */
     private $directRecruitmentCallingVisaServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentCallingVisaController constructor.
      * @param DirectRecruitmentCallingVisaServices $directRecruitmentCallingVisaServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentCallingVisaServices $directRecruitmentCallingVisaServices) 
+    public function __construct(DirectRecruitmentCallingVisaServices $directRecruitmentCallingVisaServices, AuthServices $authServices) 
     {
         $this->directRecruitmentCallingVisaServices = $directRecruitmentCallingVisaServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display list of calling visa updation status.
@@ -76,6 +83,9 @@ class DirectRecruitmentCallingVisaController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentCallingVisaServices->workersList($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
@@ -134,6 +144,9 @@ class DirectRecruitmentCallingVisaController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
             $response = $this->directRecruitmentCallingVisaServices->workerListForCancellation($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);

@@ -44,6 +44,7 @@ class TotalManagementSupervisorServices
                 ->orWhere('transportation.driver_name', 'like', '%'.$request['search'].'%');
             }
         })
+        ->whereIn('employee.company_id', $request['company_id'])
         ->select('total_management_project.employee_id','employee.employee_name', 'employee.contact_number', 'users.email', 'total_management_project.assign_as_supervisor', 'total_management_project.driver_id', 'transportation.driver_name', 'transportation.driver_contact_number', DB::raw('COUNT(total_management_project.id) as project_count'))
         ->groupBy('total_management_project.employee_id','employee.employee_name', 'employee.contact_number', 'users.email', 'total_management_project.assign_as_supervisor', 'total_management_project.driver_id', 'transportation.driver_name', 'transportation.driver_contact_number')
         ->paginate(Config::get('services.paginate_row'));
@@ -73,6 +74,7 @@ class TotalManagementSupervisorServices
                 ->orWhere('total_management_project.name', 'like', '%'.$request['search'].'%');
             }
         })
+        ->whereIn('employee.company_id', $request['company_id'])
         ->select('crm_prospects.company_name', 'total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.employee_id', 'employee.employee_name', 'employee.position', 'total_management_project.transportation_provider_id', 'vendors.name as vendor_name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.created_at')
         ->distinct('total_management_project.id')
         ->orderBy('total_management_project.id', 'desc')
