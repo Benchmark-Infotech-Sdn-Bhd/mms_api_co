@@ -100,4 +100,6 @@ return [
 
     'POST_ARRIVAL_CANCELLED_STATUS' => env('POST_ARRIVAL_CANCELLED_STATUS', 2),
     
+    'STANDARD_FEE_NAMES' => ['Processing Fee', 'FOMEMA Female', 'FOMEMA Male', 'PLKS Fee'],
+    'STANDARD_FEE_COST' => [100.00, 94.00, 50.00, 120.00],
 ];

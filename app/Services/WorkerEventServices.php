@@ -157,6 +157,12 @@ class WorkerEventServices
                 'error' => $validator->errors()
             ];
         }
+        $maxId = $this->workerEvent->where('worker_id', $request['worker_id'])->max('id');
+        if($maxId != $request['id']) {
+            return [
+                'maxIdError' => true
+            ];
+        }
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
         $workerEvent = $this->workerEvent->findOrFail($request['id']);

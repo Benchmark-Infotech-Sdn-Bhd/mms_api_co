@@ -72,6 +72,8 @@ class WorkerEventController extends Controller
             $response = $this->workerEventServices->update($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['maxIdError'])) {
+                return $this->sendError(['message' => 'Sorry! Cannot Update the Past Events'], 422);
             }
             return $this->sendSuccess(['message' => 'Event Updated Sussessfully']);
         } catch (Exception $e) {
