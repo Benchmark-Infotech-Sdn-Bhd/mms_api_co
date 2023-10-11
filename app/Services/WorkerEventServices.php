@@ -118,13 +118,7 @@ class WorkerEventServices
                 "econtract_status" => $request['event_type'], 
                 "modified_by" => $request['created_by']
             ]);
-        }else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
-            $this->workers->where('id', $request['worker_id'])
-            ->update([
-                "total_management_status" => $request['event_type'], 
-                "modified_by" => $request['created_by']
-            ]);
-        }else{
+        } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
             $this->workers->where('id', $request['worker_id'])
             ->update([
                 "total_management_status" => $request['event_type'], 
@@ -181,13 +175,7 @@ class WorkerEventServices
                 "econtract_status" => $request['event_type'], 
                 "modified_by" => $request['modified_by']
             ]);
-        }else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
-            $this->workers->where('id', $request['worker_id'])
-            ->update([
-                "total_management_status" => $request['event_type'], 
-                "modified_by" => $request['modified_by']
-            ]);
-        }else{
+        } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
             $this->workers->where('id', $request['worker_id'])
             ->update([
                 "total_management_status" => $request['event_type'], 

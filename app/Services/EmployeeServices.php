@@ -273,6 +273,7 @@ class EmployeeServices
     {
         return $this->employee->where('status', 1)
                 ->whereIn('company_id', $companyId)
+                ->whereNull('deleted_at')
                 ->select('id','employee_name')
                 ->orderBy('employee.created_at','DESC')
                 ->get();
