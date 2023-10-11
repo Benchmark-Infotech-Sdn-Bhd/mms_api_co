@@ -116,12 +116,15 @@ class DispatchManagementServices
         ->orderBy('onboarding_dispatch.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
 
-        $assigned_count = $this->onboardingDispatch->where('dispatch_status', 'Assigned')->where('calltime', '>', Carbon::now())->count();
+        $assigned_count = $this->onboardingDispatch->leftJoin('employee', 'employee.id', 'onboarding_dispatch.employee_id')
+        ->whereIn('employee.company_id', $request['company_id'])->where('onboarding_dispatch.dispatch_status', 'Assigned')->where('onboarding_dispatch.calltime', '>', Carbon::now())->distinct('onboarding_dispatch.id')->count('onboarding_dispatch.id');
 
-        $completed_count = $this->onboardingDispatch->where('dispatch_status', 'Completed')->count();
+        $completed_count = $this->onboardingDispatch->leftJoin('employee', 'employee.id', 'onboarding_dispatch.employee_id')
+        ->whereIn('employee.company_id', $request['company_id'])->where('onboarding_dispatch.dispatch_status', 'Completed')->distinct('onboarding_dispatch.id')->count('onboarding_dispatch.id');
 
-        $pending_count = $this->onboardingDispatch->where('dispatch_status', 'Assigned')
-        ->where('calltime', '<', Carbon::now())->count();
+        $pending_count = $this->onboardingDispatch->leftJoin('employee', 'employee.id', 'onboarding_dispatch.employee_id')
+        ->whereIn('employee.company_id', $request['company_id'])->where('onboarding_dispatch.dispatch_status', 'Assigned')
+        ->where('onboarding_dispatch.calltime', '<', Carbon::now())->distinct('onboarding_dispatch.id')->count('onboarding_dispatch.id');
 
         return [
             'assigned_count' => $assigned_count,
