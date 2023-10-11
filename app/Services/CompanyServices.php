@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Company;
 use App\Models\UserCompany;
 use App\Models\User;
+use App\Models\FeeRegistration;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 
@@ -22,18 +23,24 @@ class CompanyServices
      * @var User
      */
     private User $user;
+    /**
+     * @var feeRegistration
+     */
+    private FeeRegistration $feeRegistration;
 
     /**
      * CompanyServices constructor
      * @param Company $company
      * @param UserCompany $userCompany
      * @param User $user
+     * @param FeeRegistration $feeRegistration
      */
-    public function __construct(Company $company, UserCompany $userCompany, User $user) 
+    public function __construct(Company $company, UserCompany $userCompany, User $user, FeeRegistration $feeRegistration) 
     {
         $this->company = $company;
         $this->userCompany = $userCompany;
         $this->user = $user;
+        $this->feeRegistration = $feeRegistration;
     }
     /**
      * @param $request
@@ -71,7 +78,7 @@ class CompanyServices
                 'error' => $validator->errors()
             ];
         }
-        $this->company->create([
+        $companyDetails = $this->company->create([
             'company_name' => $request['company_name'] ?? '',
             'register_number' => $request['register_number'] ?? '',
             'country' => $request['country'] ?? '',
@@ -85,6 +92,15 @@ class CompanyServices
         ]);
         if(isset($request['parent_id']) && !empty($request['parent_id'])) {
             $this->company->where('id', $request['parent_id'])->update(['parent_flag' => 1]);
+        }
+        foreach(Config::get('services.STANDARD_FEE_NAMES') as $index => $fee ) {
+            $this->feeRegistration::create([
+                'item_name' => $fee, 
+                'cost' => Config::get('services.STANDARD_FEE_COST')[$index], 
+                'fee_type' => 'Standard', 
+                'created_by' => $request["created_by"], 
+                'company_id' => $companyDetails->id
+            ]);
         }
         return true;
     }
