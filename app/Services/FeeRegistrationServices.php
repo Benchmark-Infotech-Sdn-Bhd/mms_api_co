@@ -126,7 +126,7 @@ class FeeRegistrationServices
                 ->orWhere('fee_type', 'like', '%' . $request['search_param'] . '%');
             }
             if (isset($request['filter']) && !empty($request['filter'])) {
-                $query->where('fee_type', '=', $request->filter);
+                $query->where('fee_type', '=', $request['filter']);
             }
         })
         ->orderBy('fee_registration.created_at','DESC')
