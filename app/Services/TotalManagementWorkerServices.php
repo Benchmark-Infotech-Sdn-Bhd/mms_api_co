@@ -187,9 +187,6 @@ class TotalManagementWorkerServices
                 $query->where([
                     ['workers.crm_prospect_id', $request['prospect_id']],
                     ['workers.plks_status', 'Approved']
-                ])
-                ->orWhere([
-                    ['workers.crm_prospect_id', 0]
                 ]);
             }else{
                     $query->where('workers.module_type', '<>', Config::get('services.WORKER_MODULE_TYPE')[0])->orWhereNull('workers.module_type');

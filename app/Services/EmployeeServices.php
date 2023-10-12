@@ -243,6 +243,7 @@ class EmployeeServices
         ->join('user_role_type','users.id','=','user_role_type.user_id')
         ->join('roles','user_role_type.role_id','=','roles.id')
         ->whereIn('employee.company_id', $request['company_id'])
+        ->whereNull('employee.deleted_at')
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('employee.employee_name', 'like', "%{$request['search_param']}%")
@@ -299,6 +300,7 @@ class EmployeeServices
     {
         $role = $this->role->where('role_name', Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'))
                 ->whereIn('company_id', $request['company_id'])
+                ->whereNull('deleted_at')
                 ->where('status',1)
                 ->first('id');
         return $this->employee
@@ -306,6 +308,7 @@ class EmployeeServices
         ->join('user_role_type','users.id','=','user_role_type.user_id')
         ->join('roles','user_role_type.role_id','=','roles.id')
         ->where('roles.id',$role->id ?? 0)
+        ->whereNull('employee.deleted_at')
         ->select('employee.id','employee.employee_name')
         ->distinct('employee.id','employee.employee_name')
         ->orderBy('employee.id','DESC')
