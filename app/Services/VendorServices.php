@@ -104,6 +104,7 @@ class VendorServices
     {
         return $this->vendor::with('accommodations', 'insurances', 'transportations')
         ->whereIn('company_id', $request['company_id'])
+        ->whereNull('deleted_at')
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('name', 'like', '%' . $request['search_param'] . '%')
@@ -113,7 +114,7 @@ class VendorServices
                 ->orWhere('person_in_charge', 'like', '%' . $request['search_param'] . '%');
             }
             if (isset($request['filter']) && !empty($request['filter'])) {
-                $query->where('type', '=', $request->filter);
+                $query->where('type', '=', $request['filter']);
             }
         })
         ->orderBy('vendors.created_at','DESC')
@@ -224,6 +225,7 @@ class VendorServices
     {
         return $this->vendor::where('type', 'Insurance')
         ->whereIn('company_id', $request['company_id'])
+        ->whereNull('deleted_at')
         ->select('id', 'name', 'type')
         ->orderBy('vendors.created_at','DESC')
         ->get();
@@ -238,6 +240,7 @@ class VendorServices
     {
         return $this->vendor::where('type', 'Transportation')
         ->whereIn('company_id', $request['company_id'])
+        ->whereNull('deleted_at')
         ->select('id', 'name')
         ->orderBy('vendors.id','DESC')
         ->get();
