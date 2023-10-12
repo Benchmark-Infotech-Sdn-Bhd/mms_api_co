@@ -23,7 +23,7 @@ return new class extends Migration
             $table->unsignedBigInteger('agent_id');
             // Foreign key from Agent table
             $table->foreign('agent_id')
-              ->references('id')->on('agent')->onDelete('cascade');
+              ->references('id')->on('directrecruitment_onboarding_agent')->onDelete('cascade');
             // Direct Recruitment Application Id column
             $table->unsignedBigInteger('application_id');
             // Foreign key from Direct Recruitment Application table
