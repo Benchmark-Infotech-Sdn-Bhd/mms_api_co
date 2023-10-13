@@ -125,7 +125,7 @@ class TotalManagementTransferServices
             }
         })
         ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospect_services.service_id', 'sectors.sector_name')
-        ->selectRaw("(CASE WHEN (crm_prospect_services.service_id = 1) THEN 'Direct Recruitment' WHEN (crm_prospect_services.service_id = 2) THEN 'E-Contract' ELSE 'Total Management' END) as service_type")
+        ->selectRaw("(CASE WHEN (crm_prospect_services.service_id = 1) THEN 'Direct Recruitment' WHEN (crm_prospect_services.service_id = 2) THEN 'e-Contract' ELSE 'Total Management' END) as service_type")
         ->distinct('crm_prospects.id')
         ->orderBy('crm_prospects.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
