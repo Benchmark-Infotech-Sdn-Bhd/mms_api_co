@@ -207,7 +207,7 @@ class DirectRecruitmentCallingVisaDispatchServices
                         ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_insurance_details.worker_id')
                         ->leftJoin('vendors', 'vendors.id', 'worker_insurance_details.insurance_provider_id')
                         ->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number'])
-                        ->first(['worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date']);
+                        ->first(['worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date', 'vendors.name as insurance_provider_name']);
                         
         $callingVisaApproval = $this->workerVisa
                         ->where('calling_visa_reference_number', $request['calling_visa_reference_number'])
