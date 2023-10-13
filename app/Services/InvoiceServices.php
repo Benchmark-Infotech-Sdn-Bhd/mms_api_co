@@ -179,6 +179,7 @@ class InvoiceServices
 
         $invoiceData = $this->invoice->findOrFail($invoice['id']);
         $invoiceData->invoice_number = $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'];
+        $invoiceData->due_amount = $generateInvoiceXero->original['Invoices'][0]['AmountDue'];
         $invoiceData->invoice_status = $generateInvoiceXero->original['Invoices'][0]['Status'];
         $invoiceData->save();
 
