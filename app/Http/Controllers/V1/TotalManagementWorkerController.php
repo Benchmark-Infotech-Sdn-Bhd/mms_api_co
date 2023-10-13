@@ -128,7 +128,11 @@ class TotalManagementWorkerController extends Controller
             if(isset($data['error'])) {
                 return $this->validationError($data['error']);
             } else if(isset($data['quotaError'])) {
-                return $this->sendError(['message' => 'The number of worker cannot exceed the Quota'], 422);
+                return $this->sendError(['message' => 'The number of worker cannot exceed the Service Quota'], 422);
+            } else if(isset($data['fomnextQuotaError'])) {
+                return $this->sendError(['message' => 'The number of Fomnext worker cannot exceed the Fomnext Quota'], 422);
+            } else if(isset($data['clientQuotaError'])) {
+                return $this->sendError(['message' => 'The number of Client worker cannot exceed the Client Quota'], 422);
             }
             return $this->sendSuccess(['message' => 'Workers are Assigned Successfully']);
         } catch (Exception $e) {
