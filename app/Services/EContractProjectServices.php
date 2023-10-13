@@ -76,6 +76,16 @@ class EContractProjectServices
     public function list($request): mixed
     {
         return $this->eContractProject
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.project_id','=','e-contract_project.id')
+            ->where('worker_employment.service_type', 'e-Contract')
+            ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date');
+        })
+        ->leftJoin('workers', function($query) {
+            $query->on('workers.id','=','worker_employment.worker_id')
+            ->whereIN('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
+        })
         ->where('e-contract_project.application_id',$request['application_id'])
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
@@ -85,6 +95,8 @@ class EContractProjectServices
             }
         })
         ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at')
+        ->selectRaw('count(distinct workers.id) as workers, count(distinct worker_employment.id) as worker_employments')
+        ->groupBy('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at')
         ->distinct('e-contract_project.id')
         ->orderBy('e-contract_project.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
