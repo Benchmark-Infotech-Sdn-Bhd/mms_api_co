@@ -183,13 +183,27 @@ class EContractTransferServices
         }
 
         // UPDATE WORKERS TABLE
-        $this->workers->where([
-            'id' => $request['worker_id'],
-        ])->update([
-            'crm_prospect_id' => $request['new_prospect_id'], 
-            'updated_at' => Carbon::now(), 
-            'modified_by' => $request['modified_by']
-        ]);
+        if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[2]){
+            $this->workers->where([
+                'id' => $request['worker_id'],
+            ])->update([
+                'crm_prospect_id' => $request['new_prospect_id'], 
+                'updated_at' => Carbon::now(), 
+                'modified_by' => $request['modified_by'],
+                'module_type' => $request['service_type'],
+                "econtract_status" => "Assigned", 
+            ]);
+        } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
+            $this->workers->where([
+                'id' => $request['worker_id'],
+            ])->update([
+                'crm_prospect_id' => $request['new_prospect_id'], 
+                'updated_at' => Carbon::now(), 
+                'modified_by' => $request['modified_by'],
+                'module_type' => $request['service_type'],
+                "total_management_status" => "Assigned",
+            ]);
+        }
 
         // UPDATE WORKER EMPLOYMENT TABLE
         $this->workerEmployment->where([
