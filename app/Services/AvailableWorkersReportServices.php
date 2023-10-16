@@ -55,7 +55,9 @@ class AvailableWorkersReportServices
         ->leftjoin('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.worker_id','=','workers.id')
-                ->whereRaw('worker_employment.id IN (select MAX(WORKER_EMP.id) from worker_employment as WORKER_EMP JOIN workers as WORKER ON WORKER.id = WORKER_EMP.worker_id group by WORKER.id)');
+                ->whereRaw('worker_employment.id IN (select MAX(WORKER_EMP.id) from worker_employment as WORKER_EMP JOIN workers as WORKER ON WORKER.id = WORKER_EMP.worker_id group by WORKER.id)')
+                ->where('worker_employment.transfer_flag', 0)
+                ->whereNull('worker_employment.remove_date');
         })
         ->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
         ->leftjoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
@@ -88,7 +90,7 @@ class AvailableWorkersReportServices
             if(isset($request['status']) && !empty($request['status'])) {
                 $query->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status 
                 WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status 
-                WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN workers.directrecruitment_status
+                WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN 'On-Bench'
                 ELSE 'On-Bench' END) = '".$request['status']."'");
             }
             
@@ -107,7 +109,7 @@ class AvailableWorkersReportServices
         WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN directrecruitment_service.service_name 
         ELSE '' END) as service_type, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status 
         WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN workers.directrecruitment_status
+        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN 'On-Bench'
         ELSE 'On-Bench' END) as status")
             ->distinct('workers.id')
             ->orderBy('workers.id','DESC')
@@ -125,7 +127,7 @@ class AvailableWorkersReportServices
         WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN directrecruitment_service.service_name 
         ELSE '' END) as service_type, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status 
         WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN workers.directrecruitment_status
+        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN 'On-Bench'
         ELSE 'On-Bench' END) as status")
             ->distinct('workers.id')
             ->orderBy('workers.id','DESC')

@@ -614,7 +614,7 @@ class WorkersServices
             ->leftJoin('crm_prospects as crm_prospects_tm', 'crm_prospects_tm.id', 'total_management_applications.crm_prospect_id')
             ->leftJoin('crm_prospects as crm_prospects_econt', 'crm_prospects_econt.id', 'econtrat_applications.crm_prospect_id')
             ->leftJoin('crm_prospects as crm_prospects_dr', 'crm_prospects_dr.id', 'directrecruitment_applications.crm_prospect_id')
-            ->select('worker_employment.project_id', 'worker_employment.worker_id', 'worker_employment.work_start_date', 'worker_employment.work_end_date')
+            ->select('worker_employment.project_id', 'worker_employment.worker_id', 'worker_employment.work_start_date', 'worker_employment.work_end_date', 'worker_employment.remove_date')
             ->selectRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospects_tm.company_name 
         WHEN (worker_employment.service_type = '`e-Contract`') THEN crm_prospects_econt.company_name 
         WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.company_name 
@@ -650,7 +650,8 @@ class WorkersServices
         ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'workers.crm_prospect_id')
         ->leftJoin('worker_employment', function ($join) {
             $join->on('workers.id', '=', 'worker_employment.worker_id')
-                 ->where('worker_employment.transfer_flag', 0);
+                 ->where('worker_employment.transfer_flag', 0)
+                 ->whereNull('worker_employment.remove_date');
         })
         ->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
         ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
