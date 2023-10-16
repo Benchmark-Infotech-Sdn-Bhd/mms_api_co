@@ -75,7 +75,7 @@ return [
 
     'ECONTRACT_WORKER_STATUS' => ['Assigned', 'Counselling'],
 
-    'WORKER_MODULE_TYPE' => ['Direct Recruitment', 'Total Management', 'E-Contract'],
+    'WORKER_MODULE_TYPE' => ['Direct Recruitment', 'Total Management', 'e-Contract'],
 
     'FOMNEXTS_DETAILS' => ['company_name' => 'FOMNEXTS', 'roc_number' => '123456789', 'location' => 'A-10-12 & A-10-07, Menara A, Kompleks Atria, Damansara Jaya 47400, Petaling Jaya', 'sector' => 'Manufacturing'],
 

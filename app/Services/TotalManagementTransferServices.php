@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use App\Models\EContractProject;
 
 class TotalManagementTransferServices
 {
@@ -38,6 +39,10 @@ class TotalManagementTransferServices
      * @var AuthServices
      */
     private AuthServices $authServices;
+    /**
+     * @var EContractProject
+     */
+    private EContractProject $eContractProject;
 
     /**
      * TotalManagementWorkerServices constructor.
@@ -46,14 +51,17 @@ class TotalManagementTransferServices
      * @param CRMProspect $crmProspect
      * @param TotalManagementProject $totalManagementProject
      * @param AuthServices $authServices
+     * @param EContractTransferServices $eContractTransferServices
+     * @param EContractProject $eContractProject
      */
-    public function __construct(Workers $workers, WorkerEmployment $workerEmployment, CRMProspect $crmProspect, TotalManagementProject $totalManagementProject, AuthServices $authServices)
+    public function __construct(Workers $workers, WorkerEmployment $workerEmployment, CRMProspect $crmProspect, TotalManagementProject $totalManagementProject, AuthServices $authServices, EContractProject $eContractProject)
     {
         $this->workers = $workers;
         $this->workerEmployment = $workerEmployment;
         $this->crmProspect = $crmProspect;
         $this->totalManagementProject = $totalManagementProject;
         $this->authServices = $authServices;
+        $this->eContractProject = $eContractProject;
     }
     /**
      * @return array
@@ -117,7 +125,7 @@ class TotalManagementTransferServices
             }
         })
         ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospect_services.service_id', 'sectors.sector_name')
-        ->selectRaw("(CASE WHEN (crm_prospect_services.service_id = 1) THEN 'Direct Recruitment' WHEN (crm_prospect_services.service_id = 2) THEN 'E-Contract' ELSE 'Total Management' END) as service_type")
+        ->selectRaw("(CASE WHEN (crm_prospect_services.service_id = 1) THEN 'Direct Recruitment' WHEN (crm_prospect_services.service_id = 2) THEN 'e-Contract' ELSE 'Total Management' END) as service_type")
         ->distinct('crm_prospects.id')
         ->orderBy('crm_prospects.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
@@ -128,14 +136,25 @@ class TotalManagementTransferServices
      */
     public function projectList($request): mixed
     {
-        return $this->totalManagementProject
-        ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-        ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
-        ->where('crm_prospects.id',$request['crm_prospect_id'])
-        ->select('total_management_project.id', 'total_management_project.name')
-        ->distinct('total_management_project.id')
-        ->orderBy('total_management_project.id', 'desc')
-        ->get();
+        if($request['service_type'] == 'Total Management') {
+            return $this->totalManagementProject
+            ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+            ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
+            ->where('crm_prospects.id',$request['crm_prospect_id'])
+            ->select('total_management_project.id', 'total_management_project.name')
+            ->distinct('total_management_project.id')
+            ->orderBy('total_management_project.id', 'desc')
+            ->get();
+        } else if($request['service_type'] == 'e-Contract') {
+            return $this->eContractProject
+            ->leftJoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
+            ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'e-contract_applications.crm_prospect_id')
+            ->where('crm_prospects.id',$request['crm_prospect_id'])
+            ->select('e-contract_project.id', 'e-contract_project.name')
+            ->distinct('e-contract_project.id')
+            ->orderBy('e-contract_project.id', 'desc')
+            ->get();
+        }
     }
     /**
      * @param $request
@@ -176,6 +195,27 @@ class TotalManagementTransferServices
             'updated_at' => Carbon::now(), 
             'modified_by' => $request['modified_by']
         ]);
+        if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[2]){
+            $this->workers->where([
+                'id' => $request['worker_id'],
+            ])->update([
+                'crm_prospect_id' => $request['new_prospect_id'], 
+                'updated_at' => Carbon::now(), 
+                'modified_by' => $request['modified_by'],
+                'module_type' => $request['service_type'],
+                "econtract_status" => "Assigned", 
+            ]);
+        } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
+            $this->workers->where([
+                'id' => $request['worker_id'],
+            ])->update([
+                'crm_prospect_id' => $request['new_prospect_id'], 
+                'updated_at' => Carbon::now(), 
+                'modified_by' => $request['modified_by'],
+                'module_type' => $request['service_type'],
+                "total_management_status" => "Assigned",
+            ]);
+        }
 
         // UPDATE WORKER EMPLOYMENT TABLE
         $this->workerEmployment->where([
