@@ -184,7 +184,7 @@ class DirecRecruitmentPostArrivalServices
             })
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'worker_arrival.jtk_submitted_on', 'worker_arrival.arrival_status')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
-            ->paginate(Config::get('services.paginate_row'));
+            ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
      * @param $applicationId, $onboardingCountryId, $modifiedBy

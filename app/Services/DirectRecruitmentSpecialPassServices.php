@@ -118,7 +118,7 @@ class DirectRecruitmentSpecialPassServices
             })
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'workers.special_pass_submission_date', 'workers.special_pass_valid_until')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
-            ->paginate(Config::get('services.paginate_row'));
+            ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
      * @param $request
