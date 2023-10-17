@@ -207,7 +207,7 @@ class DirectRecruitmentArrivalServices
         ->select('workers.id', 'workers.name', 'workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id','directrecruitment_workers.agent_id', 'worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on')
         ->distinct('workers.id')
         ->orderBy('workers.id','DESC')
-        ->paginate(Config::get('services.paginate_row'));
+        ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
      * @param $request
@@ -248,7 +248,7 @@ class DirectRecruitmentArrivalServices
         ->select('workers.id', 'workers.name', 'workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.ksm_reference_number','worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_arrival.arrival_status')
         ->distinct('workers.id')
         ->orderBy('workers.id','DESC')
-        ->paginate(Config::get('services.paginate_row'));
+        ->paginate(Config::get('services.paginate_worker_row'));
     }
     
     /**
