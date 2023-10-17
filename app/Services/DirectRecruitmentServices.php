@@ -209,6 +209,13 @@ class DirectRecruitmentServices
             }
         })
         ->select('directrecruitment_applications.id', 'directrecruitment_applications.approval_flag', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'direct_recruitment_application_status.status_name as status', 'crm_prospect_services.status as service_status', 'directrecruitment_applications.onboarding_flag')
+        ->with(['fwcms' => function ($query) {
+            $query->leftJoin('application_interviews', 'application_interviews.ksm_reference_number', 'fwcms.ksm_reference_number')
+            ->leftJoin('levy', 'levy.ksm_reference_number', 'fwcms.ksm_reference_number')
+            ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.ksm_reference_number', 'levy.new_ksm_reference_number')
+            ->select('fwcms.application_id')
+            ->selectRaw("(CASE WHEN(levy.id IS NULL) THEN fwcms.ksm_reference_number WHEN(levy.id IS NOT NULL) THEN levy.new_ksm_reference_number ELSE fwcms.ksm_reference_number END) as ksm_reference_number, (CASE WHEN(directrecruitment_application_approval.id IS NOT NULL) THEN 'Approval Completed' WHEN(directrecruitment_application_approval.id IS NULL AND levy.id IS NOT NULL) THEN 'Levy Paid' WHEN(levy.id IS NULL AND application_interviews.id IS NOT NULL AND application_interviews.status = 'Scheduled') THEN 'Interview Scheduled' WHEN(levy.id IS NULL AND application_interviews.id IS NOT NULL AND application_interviews.status = 'Completed') THEN 'Interview Completed' WHEN(levy.id IS NULL AND application_interviews.id IS NOT NULL AND application_interviews.status = 'Approved') THEN 'Interview Approved' WHEN(application_interviews.id IS NULL AND fwcms.id IS NOT NULL AND fwcms.status = 'Approved') THEN 'FWCMS Approved' WHEN(application_interviews.id IS NULL AND fwcms.id IS NOT NULL AND fwcms.status = 'Rejected') THEN 'FWCMS Rejected' WHEN(application_interviews.id IS NULL AND fwcms.id IS NOT NULL AND fwcms.status = 'Query') THEN 'FWCMS Query' ELSE 'FWCMS Submitted' END) as status");
+        }])
         ->distinct('directrecruitment_applications.id')
         ->orderBy('directrecruitment_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
