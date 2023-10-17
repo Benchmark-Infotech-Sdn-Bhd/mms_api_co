@@ -286,7 +286,7 @@ class DirectRecruitmentCallingVisaServices
             }else{
                 $data = $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.calling_visa_valid_until', 'workers.cancel_status')->selectRaw("(CASE WHEN workers.cancel_status = 1 THEN 'Cancelled' ELSE '' END) AS status")->distinct('workers.id')
                 ->orderBy('workers.id', 'desc')
-                ->paginate(Config::get('services.paginate_row'));
+                ->paginate(Config::get('services.paginate_worker_row'));
             }
             return $data;
     }

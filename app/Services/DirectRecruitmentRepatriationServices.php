@@ -139,7 +139,7 @@ class DirectRecruitmentRepatriationServices
             WHEN (workers.directrecruitment_status = 'Cancelled') THEN workers.directrecruitment_status
             ELSE worker_fomema.fomema_status END) as status")->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
-            ->paginate(Config::get('services.paginate_row'));
+            ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
      * @param $request
