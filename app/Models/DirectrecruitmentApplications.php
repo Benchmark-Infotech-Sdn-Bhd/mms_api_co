@@ -118,7 +118,7 @@ class DirectrecruitmentApplications extends Model implements Auditable
     /**
      * @return HasMany
      */
-    public function applicationFWCMS(): HasMany
+    public function fwcms(): HasMany
     {
         return $this->hasMany(FWCMS::class, 'application_id');
     }

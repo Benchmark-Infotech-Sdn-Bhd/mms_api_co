@@ -190,7 +190,10 @@ class CRMServices
                 }
             })
             ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.director_or_owner', 'crm_prospects.created_at', 'employee.employee_name as registered_by')
-            ->with(['prospectServices', 'prospectServices.prospectAttachment', 'prospectLoginCredentials'])->distinct('crm_prospects.id')
+            ->withCount('prospectServices')
+            ->with(['prospectServices' => function ($query) {
+                $query->select('crm_prospect_id', 'service_name');
+            }])->distinct('crm_prospects.id')
             ->orderBy('crm_prospects.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
