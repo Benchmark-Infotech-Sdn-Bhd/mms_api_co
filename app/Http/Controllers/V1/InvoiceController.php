@@ -210,4 +210,26 @@ class InvoiceController extends Controller
             return $this->sendError(['message' => $data['error']]);
         }
     } 
+
+    /**
+     * Search & Retrieve all the Invoice.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function xeroCallBackUrl(Request $request)
+    {
+        try {
+            $params = $this->getRequest($request);
+            Log::info('Xero - ' . print_r($params, true));
+            $params['url'] = $request->url()."/api/v1/invoice/xeroCallBackUrl";
+            app('InvoiceCallbackLogsServices')->startApiLog($params['url'], $params);
+            $data = $this->invoiceServices->xeroCallBackUrl();            
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    } 
 }

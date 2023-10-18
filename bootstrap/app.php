@@ -51,6 +51,11 @@ $app->singleton(
     App\Console\Kernel::class
 );
 
+$app->singleton(
+    'InvoiceCallbackLogsServices',
+    App\Services\InvoiceCallbackLogsServices::class
+);
+
 /*
 |--------------------------------------------------------------------------
 | Register Config Files

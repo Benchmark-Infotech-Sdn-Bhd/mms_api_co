@@ -557,4 +557,13 @@ class InvoiceServices
         return $this->xeroSettings->find(1);
     }
 
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function xeroCallBackUrl() : mixed
+    {
+        return "updated Successfully";
+    }
+
 }

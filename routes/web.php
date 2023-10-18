@@ -717,6 +717,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('getAccounts', 'V1\InvoiceController@getAccounts');
             $router->post('getInvoices', 'V1\InvoiceController@getInvoices');
             $router->post('getAccessToken', 'V1\InvoiceController@getAccessToken');
+            $router->post('xeroCallBackUrl', 'V1\InvoiceController@xeroCallBackUrl');
         });
 
         /**
