@@ -88,6 +88,6 @@ class Employee extends Model implements Auditable
      */
     public function user()
     {
-        return $this->hasOne(User::class, 'reference_id');
+        return $this->hasOne(User::class, 'reference_id')->where('user_type', 'Employee');
     }
 }
