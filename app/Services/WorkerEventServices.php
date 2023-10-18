@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Workers;
 use App\Models\WorkerEvent;
+use App\Models\WorkerEmployment;
 use App\Models\WorkerEventAttachments;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
@@ -30,18 +31,24 @@ class WorkerEventServices
      */
     private Storage $storage;
     /**
+     * @var WorkerEmployment
+     */
+    private WorkerEmployment $workerEmployment;
+    /**
      * WorkerEventServices constructor.
      * @param Workers $workers
      * @param WorkerEvent $workerEvent;
      * @param WorkerEventAttachments $workerEventAttachments
      * @param Storage $storage
+     * @param WorkerEmployment $workerEmployment
      */
-    public function __construct(Workers $workers, WorkerEvent $workerEvent, WorkerEventAttachments $workerEventAttachments, Storage $storage)
+    public function __construct(Workers $workers, WorkerEvent $workerEvent, WorkerEventAttachments $workerEventAttachments, Storage $storage, WorkerEmployment $workerEmployment)
     {
         $this->workers                = $workers;
         $this->workerEvent            = $workerEvent;
         $this->workerEventAttachments = $workerEventAttachments;
         $this->storage                = $storage;
+        $this->workerEmployment = $workerEmployment;
     }
     /**
      * @return array
@@ -126,6 +133,19 @@ class WorkerEventServices
             ]);
         }
         
+        if(isset($request['service_type']) && isset($request['project_id']) && isset($request['last_working_day']) && in_array($request['event_type'], Config::get('services.OTHERS_EVENT_TYPE'))){
+            $this->workerEmployment->where([
+                'project_id' => $request['project_id'],
+                'worker_id' => $request['worker_id'],
+                'service_type' => $request['service_type'],
+            ])->update([
+                'work_end_date' => $request['last_working_day'],
+                'updated_at' => Carbon::now(), 
+                'modified_by' => $request['created_by'],
+                'event_type' => $request['event_type']
+            ]);
+        } 
+        
         if(request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file) {
                 $fileName = $file->getClientOriginalName();
@@ -188,6 +208,19 @@ class WorkerEventServices
                 "modified_by" => $request['modified_by']
             ]);
         }
+
+        if(isset($request['service_type']) && isset($request['project_id']) && isset($request['last_working_day']) && in_array($request['event_type'], Config::get('services.OTHERS_EVENT_TYPE'))){
+            $this->workerEmployment->where([
+                'project_id' => $request['project_id'],
+                'worker_id' => $request['worker_id'],
+                'service_type' => $request['service_type'],
+            ])->update([
+                'work_end_date' => $request['last_working_day'],
+                'updated_at' => Carbon::now(), 
+                'modified_by' => $request['modified_by'],
+                'event_type' => $request['event_type']
+            ]);
+        } 
 
         if(request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file) {
