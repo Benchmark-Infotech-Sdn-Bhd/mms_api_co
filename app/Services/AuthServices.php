@@ -237,7 +237,7 @@ class AuthServices extends Controller
      */
     public function userWithRolesBasedOnReferenceId($request) : mixed
     {
-        $user = $this->user->where('reference_id',$request['id'])->first();
+        $user = $this->user->where('reference_id',$request['id'])->where('user_type', 'Employee')->first();
         if($user['id']){
             $user = $this->userWithRoles($user);
         }
