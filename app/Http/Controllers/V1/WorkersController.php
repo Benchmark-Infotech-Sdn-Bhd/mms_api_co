@@ -438,5 +438,29 @@ class WorkersController extends Controller
             return $this->sendError(['message' => 'Failed to Delete Attachment'], 400);
         }
     }
-    
+    /**
+     * Import the Workers from Excel.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function import(Request $request): JsonResponse
+    {
+        try {
+
+            $originalFilename = $request->file('worker_file')->getClientOriginalName();
+            $originalFilename_arr = explode('.', $originalFilename);
+            $fileExt = end($originalFilename_arr);
+            $destinationPath = storage_path('upload/worker/');
+            $fileName = 'A-' . time() . '.' . $fileExt;
+            $request->file('worker_file')->move($destinationPath, $fileName);
+            $this->workersServices->import($request, $destinationPath . $fileName);
+            return $this->sendSuccess(['message' => "Successfully worker was imported"]);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Import failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+
+    }
 }

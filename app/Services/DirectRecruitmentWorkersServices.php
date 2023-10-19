@@ -572,7 +572,8 @@ class DirectRecruitmentWorkersServices
                 'agent_id' => $request['agent_id'] ?? '',
                 'application_id' => $request['application_id'] ?? '',
                 'name' => 'Worker Bulk Upload',
-                'type' => 'Worker bulk upload'
+                'type' => 'Worker bulk upload',
+                'module_type' => 'Direct Recruitment'
             ]
         );
         //echo "<pre>"; print_r($workerBulkUpload); exit;

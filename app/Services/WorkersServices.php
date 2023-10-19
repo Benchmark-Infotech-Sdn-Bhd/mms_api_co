@@ -16,6 +16,7 @@ use App\Models\KinRelationship;
 use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\DirectRecruitmentOnboardingAgent;
 use App\Models\WorkerStatus;
+use App\Models\WorkerBulkUpload;
 use App\Models\DirectrecruitmentWorkers;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Services\ValidationServices;
@@ -27,6 +28,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Imports\CommonWorkerImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class WorkersServices
 {
@@ -49,6 +52,8 @@ class WorkersServices
     private AuthServices $authServices;
     private Storage $storage;
     private DirectrecruitmentWorkers $directrecruitmentWorkers;
+    private WorkerBulkUpload $workerBulkUpload;
+
     /**
      * WorkersServices constructor.
      * @param Workers $workers
@@ -70,6 +75,7 @@ class WorkersServices
      * @param AuthServices $authServices
      * @param Storage $storage
      * @param DirectrecruitmentWorkers $directrecruitmentWorkers;
+     * @param WorkerBulkUpload $workerBulkUpload
      */
     public function __construct(
             Workers                                     $workers,
@@ -90,7 +96,8 @@ class WorkersServices
             ValidationServices                          $validationServices,
             AuthServices                                $authServices,
             Storage                                     $storage,
-            DirectrecruitmentWorkers                    $directrecruitmentWorkers
+            DirectrecruitmentWorkers                    $directrecruitmentWorkers,
+            WorkerBulkUpload                            $workerBulkUpload
     )
     {
         $this->workers = $workers;
@@ -112,6 +119,7 @@ class WorkersServices
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
         $this->directrecruitmentWorkers = $directrecruitmentWorkers;
+        $this->workerBulkUpload = $workerBulkUpload;
     }
     /**
      * @return array
@@ -1122,6 +1130,27 @@ class WorkersServices
             return false;
         }
         $data->delete();
+        return true;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function import($request, $file): mixed
+    {
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
+
+        $workerBulkUpload = $this->workerBulkUpload->create([
+                'name' => 'Worker Bulk Upload',
+                'type' => 'Worker bulk upload',
+                'module_type' => 'Workers'
+            ]
+        );
+
+        Excel::import(new CommonWorkerImport($params, $workerBulkUpload), $file);
         return true;
     }
 }

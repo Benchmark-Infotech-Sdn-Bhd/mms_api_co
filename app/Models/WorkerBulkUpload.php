@@ -22,6 +22,6 @@ class WorkerBulkUpload extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['onboarding_country_id','agent_id','application_id','name','type', 'total_records', 'total_success', 'total_failure'];
+    protected $fillable = ['onboarding_country_id','agent_id','application_id','name','type', 'total_records', 'total_success', 'total_failure', 'module_type'];
    
 }
