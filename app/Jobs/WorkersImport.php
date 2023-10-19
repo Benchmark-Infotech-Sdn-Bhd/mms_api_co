@@ -233,14 +233,12 @@ class WorkersImport extends Job
                     "insurance_expiry_date" => ((isset($request['insurance_expiry_date']) && !empty($request['insurance_expiry_date'])) ? $request['insurance_expiry_date'] : null)
                 ]);
         
-                if(isset($request['bank_name']) && !empty($request['bank_name'])){
-                    WorkerBankDetails::create([
-                        "worker_id" => $worker['id'],
-                        "bank_name" => $request['bank_name'] ?? '',
-                        "account_number" => $request['account_number'] ?? '',
-                        "socso_number" =>  $request['socso_number'] ?? ''
-                    ]);
-                }
+                WorkerBankDetails::create([
+                    "worker_id" => $worker['id'],
+                    "bank_name" => $request['bank_name'] ?? '',
+                    "account_number" => $request['account_number'] ?? '',
+                    "socso_number" =>  $request['socso_number'] ?? ''
+                ]);
 
                 $checkCallingVisa = DirectRecruitmentCallingVisaStatus::where('application_id', $this->workerParameter['application_id'])
                 ->where('onboarding_country_id', $this->workerParameter['onboarding_country_id'])
