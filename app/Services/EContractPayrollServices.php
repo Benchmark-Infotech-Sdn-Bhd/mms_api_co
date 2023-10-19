@@ -112,6 +112,7 @@ class EContractPayrollServices
             ->leftJoin('e-contract_project', 'e-contract_project.id', '=', 'worker_employment.project_id')
             ->where('worker_employment.project_id', $request['project_id']) 
             ->where('worker_employment.service_type', 'e-Contract')
+            ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
             ->select(DB::raw('COUNT(DISTINCT workers.id) as workers'), 'worker_employment.project_id', 'e-contract_project.name')
             ->groupBy('worker_employment.project_id', 'e-contract_project.name')
             ->distinct('workers.id')
