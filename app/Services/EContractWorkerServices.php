@@ -87,7 +87,8 @@ class EContractWorkerServices
         return [
             'project_id' => 'required',
             'worker_id' => 'required',
-            'remove_date' => 'required'
+            'remove_date' => 'required',
+            'last_working_day' => 'required|date|date_format:Y-m-d',
         ];
     }
     /**
@@ -264,6 +265,7 @@ class EContractWorkerServices
         ->where("service_type", "e-Contract")
         ->update([
             'status' => 0,
+            'work_end_date' => $request['last_working_day'],
             'remove_date' => $request['remove_date'],
             'remarks' => $request['remarks']
         ]);
