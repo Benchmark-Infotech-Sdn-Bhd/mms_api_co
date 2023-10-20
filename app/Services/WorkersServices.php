@@ -681,7 +681,7 @@ class WorkersServices
                 $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
             }
         })
-        ->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'worker_employment.service_type', 'worker_employment.id as worker_employment_id')
+        ->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'worker_employment.service_type', 'worker_employment.id as worker_employment_id', 'worker_employment.project_id')
         ->selectRaw("(CASE WHEN (workers.crm_prospect_id = 0) THEN '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' ELSE crm_prospects.company_name END) as company_name,  
 		(CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city 
         WHEN (worker_employment.service_type = 'e-Contract') THEN econtract_project.city 
