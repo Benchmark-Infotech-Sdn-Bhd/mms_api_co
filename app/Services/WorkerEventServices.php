@@ -115,6 +115,7 @@ class WorkerEventServices
             'event_type' => $request['event_type'] ?? '',
             'flight_number' => (isset($request['flight_number']) && !empty($request['flight_number'])) ? $request['flight_number'] : NULL,
             'departure_date' => (isset($request['departure_date']) && !empty($request['departure_date'])) ? $request['departure_date'] : NULL,
+            'last_working_date' => (isset($request['last_working_day']) && !empty($request['last_working_day'])) ? $request['last_working_day'] : NULL,
             'remarks' => $request['remarks'] ?? '',
             'created_by' => $request['created_by'],
             'modified_by' => $request['created_by']
@@ -191,6 +192,7 @@ class WorkerEventServices
         $workerEvent->event_type = $request['event_type'] ?? $workerEvent->event_type;
         $workerEvent->flight_number = (isset($request['flight_number']) && !empty($request['flight_number'])) ? $request['flight_number'] : $workerEvent->flight_number;
         $workerEvent->departure_date = (isset($request['departure_date']) && !empty($request['departure_date'])) ? $request['departure_date'] : $workerEvent->departure_date;
+        $workerEvent->last_working_date = (isset($request['last_working_day']) && !empty($request['last_working_day'])) ? $request['last_working_day'] : $workerEvent->last_working_date;
         $workerEvent->remarks = $request['remarks'] ?? '';
         $workerEvent->modified_by = $request['modified_by'];
         $workerEvent->save();

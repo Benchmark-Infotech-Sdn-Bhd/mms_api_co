@@ -23,7 +23,7 @@ class WorkerEvent extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['worker_id', 'event_date', 'event_type', 'flight_number', 'departure_date', 'remarks', 'created_by', 'modified_by'];
+    protected $fillable = ['worker_id', 'event_date', 'event_type', 'flight_number', 'departure_date', 'remarks', 'created_by', 'modified_by', 'last_working_date'];
 
     /**
      * @return BelongsTo
