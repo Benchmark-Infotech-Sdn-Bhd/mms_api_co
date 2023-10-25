@@ -39,7 +39,7 @@ class Insurance extends Model implements Auditable
     private $rules = [
         'no_of_worker_from' => 'required|regex:/^[0-9]*$/',
         'no_of_worker_to' => 'required|regex:/^[0-9]*$/',
-        'fee_per_pax' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/|max:9',
+        'fee_per_pax' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
     ];
     /**
      * The attributes that are required for updation.
@@ -50,7 +50,7 @@ class Insurance extends Model implements Auditable
         'id' => 'required',
         'no_of_worker_from' => 'required|regex:/^[0-9]*$/',
         'no_of_worker_to' => 'required|regex:/^[0-9]*$/',
-        'fee_per_pax' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/|max:9',
+        'fee_per_pax' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
     ];
     /**
      * The attributes that store validation errors.

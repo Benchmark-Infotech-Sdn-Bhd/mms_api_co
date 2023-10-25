@@ -61,7 +61,7 @@ class LevyServices
         return[
             'application_id' => 'required',
             'payment_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
-            'payment_amount' => 'required|decimal:0,2',
+            'payment_amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
             'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
             'ksm_reference_number' => 'required|unique:levy',
             'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
@@ -79,7 +79,7 @@ class LevyServices
             'id' => 'required',
             'application_id' => 'required',
             'payment_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
-            'payment_amount' => 'required|decimal:0,2',
+            'payment_amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
             'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
             'ksm_reference_number' => 'required|unique:levy,ksm_reference_number,'.$param['id'],
             'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/',

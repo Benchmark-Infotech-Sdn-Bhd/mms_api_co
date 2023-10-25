@@ -118,7 +118,7 @@ class DirectRecruitmentServices
         return [
             'id' => 'required',
             'quota_applied' => 'required|regex:/^[0-9]+$/|max:3',
-            'cost_quoted' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'cost_quoted' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
             'person_incharge' => 'required',
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
 

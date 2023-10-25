@@ -45,8 +45,8 @@ class Accommodation extends Model implements Auditable
         'name' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
         'location' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
         'maximum_pax_per_unit' => 'required|regex:/^[0-9]*$/',
-        'deposit' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
-        'rent_per_month' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+        'deposit' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
+        'rent_per_month' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
         'tnb_bill_account_Number' => 'required|regex:/^[0-9]*$/u|max:12',
         'water_bill_account_Number' => 'required|regex:/^[0-9]*$/u|max:13',
     ];
@@ -60,8 +60,8 @@ class Accommodation extends Model implements Auditable
         'name' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
         'location' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
         'maximum_pax_per_unit' => 'required|regex:/^[0-9]*$/',
-        'deposit' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
-        'rent_per_month' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+        'deposit' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
+        'rent_per_month' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
         'tnb_bill_account_Number' => 'required|regex:/^[0-9]*$/u|max:12',
         'water_bill_account_Number' => 'required|regex:/^[0-9]*$/u|max:13',
     ];

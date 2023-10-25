@@ -73,7 +73,7 @@ class DirectRecruitmentRepatriationServices
         return [
             'flight_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'flight_date' => 'required|date|date_format:Y-m-d|after:yesterday',
-            'expenses' => 'required|regex:/^[0-9]*$/',
+            'expenses' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
             'checkout_memo_reference_number' => 'required|regex:/^[0-9]*$/|max:23',
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];

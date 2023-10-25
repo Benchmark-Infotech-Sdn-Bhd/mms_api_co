@@ -72,7 +72,7 @@ class DirectRecruitmentPostArrivalFomemaServices
     {
         return [
             'purchase_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
-            'fomema_total_charge' => 'required|regex:/^(([0-9]{0,3}+)(\.([0-9]{0,2}+))?)$/'
+            'fomema_total_charge' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/'
         ];
     }
     /**
