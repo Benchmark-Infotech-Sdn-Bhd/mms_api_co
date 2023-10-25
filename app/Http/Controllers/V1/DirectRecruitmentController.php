@@ -146,4 +146,26 @@ class DirectRecruitmentController extends Controller
             return $this->sendError(['message' => 'Failed to List Filters'], 400);
         }
     }
+    /** Display list of application in total management.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function totalManagementListing(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['user'] = $user;
+            $response = $this->directRecruitmentServices->totalManagementListing($params);
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess($response);
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List application']);
+        }
+    }
 }

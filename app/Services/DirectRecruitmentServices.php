@@ -13,6 +13,7 @@ use App\Models\CRMProspectAttachment;
 use App\Models\Services;
 use App\Models\Sectors;
 use App\Models\DirectRecruitmentApplicationStatus;
+use App\Models\TotalManagementApplications;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 
@@ -62,6 +63,10 @@ class DirectRecruitmentServices
      * @var DirectRecruitmentApplicationStatus
      */
     private DirectRecruitmentApplicationStatus $directRecruitmentApplicationStatus;
+    /**
+     * @var TotalManagementApplications
+     */
+    private TotalManagementApplications $totalManagementApplications;
 
     /**
      * DirectRecruitmentServices constructor.
@@ -75,12 +80,13 @@ class DirectRecruitmentServices
      * @param Sectors $sectors
      * @param DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices
      * @param ApplicationSummaryServices $applicationSummaryServices;
-     * @param DirectRecruitmentApplicationStatus $directRecruitmentApplicationStatus;
+     * @param DirectRecruitmentApplicationStatus $directRecruitmentApplicationStatus
+     * @param TotalManagementApplications $totalManagementApplications
      */
     public function __construct(DirectrecruitmentApplications $directrecruitmentApplications, DirectrecruitmentApplicationAttachments $directrecruitmentApplicationAttachments, 
     Storage $storage, CRMProspect $crmProspect, CRMProspectService $crmProspectService, 
     CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors,
-    DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices, ApplicationSummaryServices $applicationSummaryServices, DirectRecruitmentApplicationStatus $directRecruitmentApplicationStatus)
+    DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices, ApplicationSummaryServices $applicationSummaryServices, DirectRecruitmentApplicationStatus $directRecruitmentApplicationStatus, TotalManagementApplications $totalManagementApplications)
     {
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->directrecruitmentApplicationAttachments = $directrecruitmentApplicationAttachments;
@@ -93,6 +99,7 @@ class DirectRecruitmentServices
         $this->sectors = $sectors;
         $this->applicationSummaryServices = $applicationSummaryServices;
         $this->directRecruitmentApplicationStatus = $directRecruitmentApplicationStatus;
+        $this->totalManagementApplications = $totalManagementApplications;
     }       
     /**
      * @return array
@@ -373,4 +380,51 @@ class DirectRecruitmentServices
                     ->select('id', 'status_name')
                     ->get();
     }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function totalManagementListing($request): mixed
+    {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
+
+        return $this->totalManagementApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
+        ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'total_management_applications.service_id')
+        ->leftJoin('total_management_project', 'total_management_project.application_id', 'total_management_applications.id')
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.project_id','=','total_management_project.id')
+            ->where('worker_employment.service_type', 'Total Management')
+            ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date');
+        })
+        ->leftJoin('workers', function($query) {
+            $query->on('workers.id','=','worker_employment.worker_id')
+            ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'));
+        })
+        ->whereIn('crm_prospects.company_id', $request['company_id'])
+        ->where(function ($query) use ($request) {
+            if ($request['user']['user_type'] == 'Customer') {
+                $query->where(`e-contract_applications`.`crm_prospect_id`, '=', $request['user']['reference_id']);
+            }
+        })
+        ->where('crm_prospect_services.service_id', 3)
+        ->where('crm_prospect_services.from_existing', 1)
+        ->where('crm_prospect_services.deleted_at', NULL)
+        ->where(function ($query) use ($request) {
+            if(isset($request['search']) && !empty($request['search'])) {
+                $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
+            }
+        })
+        ->selectRaw('total_management_applications.id, crm_prospects.id as prospect_id, crm_prospect_services.id as prospect_service_id, crm_prospects.company_name, crm_prospects.pic_name, crm_prospects.contact_number, crm_prospects.email, crm_prospect_services.sector_id, crm_prospect_services.sector_name, crm_prospect_services.from_existing, total_management_applications.status, count(distinct total_management_project.id) as projects, count(distinct workers.id) as workers')
+        ->groupBy('total_management_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.from_existing', 'total_management_applications.status')
+        ->orderBy('total_management_applications.id', 'desc')
+        ->paginate(Config::get('services.paginate_row'));
+    }        
 }
