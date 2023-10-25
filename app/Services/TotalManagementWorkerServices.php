@@ -130,6 +130,7 @@ class TotalManagementWorkerServices
             ->where('worker_employment.service_type', 'Total Management')
             ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
             ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date')
             ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 if ($request['user']['user_type'] == 'Customer') {
