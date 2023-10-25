@@ -22,7 +22,7 @@ class WorkerEmployment extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['worker_id', 'project_id', 'department', 'sub_department', 'accommodation_provider_id', 'accommodation_unit_id', 'work_start_date', 'work_end_date', 'service_type', 'transfer_flag', 'created_by', 'modified_by', 'status', 'remove_date', 'remarks', 'event_type'];
+    protected $fillable = ['worker_id', 'project_id', 'department', 'sub_department', 'accommodation_provider_id', 'accommodation_unit_id', 'work_start_date', 'work_end_date', 'service_type', 'transfer_flag', 'created_by', 'modified_by', 'status', 'remove_date', 'remarks', 'event_type', 'event_id'];
 
     /**
      * @return BelongsTo
