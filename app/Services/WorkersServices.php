@@ -593,46 +593,41 @@ class WorkersServices
             ];
         }
         return $this->workers
-        ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'workers.crm_prospect_id')
-        ->leftJoin('worker_employment', function($query) {
-            $query->on('worker_employment.worker_id','=','workers.id')
-                ->whereRaw('worker_employment.id IN (select MAX(WORKER_EMP.id) from worker_employment as WORKER_EMP JOIN workers as WORKER ON WORKER.id = WORKER_EMP.worker_id group by WORKER.id)');
-        })
-        ->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
-        ->leftjoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-        ->leftJoin('crm_prospects as total_management_crm', 'total_management_crm.id', '=', 'total_management_applications.crm_prospect_id')
-        ->leftJoin('crm_prospect_services as total_management_service', 'total_management_service.id', 'total_management_applications.service_id')
-        ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
-        ->leftjoin('e-contract_applications', 'e-contract_applications.id', '=', 'econtract_project.application_id')
-        ->leftJoin('crm_prospects as econtract_crm', 'econtract_crm.id', '=', 'e-contract_applications.crm_prospect_id')
-        ->leftJoin('crm_prospect_services as econtract_service', 'econtract_service.id', 'e-contract_applications.service_id')
-        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
-        ->leftjoin('directrecruitment_applications', 'directrecruitment_applications.id', '=', 'directrecruitment_workers.application_id')
-        ->leftJoin('crm_prospects as directrecruitment_crm', 'directrecruitment_crm.id', '=', 'directrecruitment_applications.crm_prospect_id')
-        ->leftJoin('crm_prospect_services as directrecruitment_service', 'directrecruitment_service.id', 'directrecruitment_applications.service_id')
         ->select('workers.id', 'workers.onboarding_country_id','workers.agent_id','workers.application_id','workers.name','workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'workers.passport_valid_until', 'workers.fomema_valid_until','workers.address', 'workers.status', 'workers.cancel_status', 'workers.remarks','workers.city','workers.state', 'workers.special_pass', 'workers.special_pass_submission_date', 'workers.special_pass_valid_until', 'workers.plks_status', 'workers.plks_expiry_date', 'workers.directrecruitment_status', 'workers.created_by','workers.modified_by', 'workers.crm_prospect_id', 'workers.total_management_status', 'workers.econtract_status', 'workers.module_type')
         ->with(['directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails', 'workerFomemaAttachments', 'workerEmployment' => function ($query) {
             $query->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
             ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
             ->leftJoin('workers', 'workers.id', 'worker_employment.worker_id')
             ->leftJoin('total_management_applications', 'total_management_applications.id', 'total_management_project.application_id')
-            ->leftJoin('e-contract_applications as econtrat_applications', 'econtract_project.id', 'econtract_project.application_id')
+            ->leftJoin('e-contract_applications as econtrat_applications', 'econtrat_applications.id', 'econtract_project.application_id')
             ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
             ->leftjoin('directrecruitment_applications', 'directrecruitment_applications.id', '=', 'directrecruitment_workers.application_id')
             ->leftJoin('crm_prospects as crm_prospects_tm', 'crm_prospects_tm.id', 'total_management_applications.crm_prospect_id')
             ->leftJoin('crm_prospects as crm_prospects_econt', 'crm_prospects_econt.id', 'econtrat_applications.crm_prospect_id')
             ->leftJoin('crm_prospects as crm_prospects_dr', 'crm_prospects_dr.id', 'directrecruitment_applications.crm_prospect_id')
-            ->select('worker_employment.project_id', 'worker_employment.worker_id', 'worker_employment.work_start_date', 'worker_employment.work_end_date', 'worker_employment.remove_date')
+            ->leftJoin('crm_prospect_services as crm_prospect_services_tm', 'crm_prospect_services_tm.id', 'total_management_applications.service_id')
+            ->leftJoin('crm_prospect_services as crm_prospect_services_econt', 'crm_prospect_services_econt.id', 'econtrat_applications.service_id')
+            ->leftJoin('crm_prospect_services as crm_prospect_services_dr', 'crm_prospect_services_dr.id', 'directrecruitment_applications.service_id')
+            ->select('worker_employment.project_id', 'worker_employment.worker_id', 'worker_employment.work_start_date', 'worker_employment.work_end_date', 'worker_employment.remove_date', 'worker_employment.service_type')
             ->selectRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospects_tm.company_name 
-        WHEN (worker_employment.service_type = '`e-Contract`') THEN crm_prospects_econt.company_name 
+        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospects_econt.company_name 
         WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.company_name 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' END) as assignment_company_name, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city 
-        WHEN (worker_employment.service_type = '`e-Contract`') THEN econtract_project.city 
+        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' END) as assignment_company_name, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospects_tm.roc_number 
+        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospects_econt.roc_number 
+        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.roc_number 
+        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['roc_number']."' END) as assigned_roc_number, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.name 
+        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.name 
+        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
+        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_project, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city 
+        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.city 
         WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
         ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_city, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.state 
-        WHEN (worker_employment.service_type = '`e-Contract`') THEN econtract_project.state 
+        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.state 
         WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_state")
+        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_state, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospect_services_tm.sector_name 
+        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospect_services_econt.sector_name 
+        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospect_services_dr.sector_name 
+        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_sector")
         ->distinct('worker_employment.worker_id', 'worker_employment.project_id');
         }])->findOrFail($request['id']);
     }
