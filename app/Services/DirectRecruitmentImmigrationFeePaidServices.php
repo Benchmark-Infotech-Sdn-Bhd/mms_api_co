@@ -84,7 +84,7 @@ class DirectRecruitmentImmigrationFeePaidServices
             [
                 'application_id' => 'required',
                 'onboarding_country_id' => 'required',
-                'total_fee' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+                'total_fee' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
                 'immigration_reference_number' => 'required',
                 'payment_date' => 'required|date|date_format:Y-m-d'
             ];

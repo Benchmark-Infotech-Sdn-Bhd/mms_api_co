@@ -105,7 +105,7 @@ class EContractServices
             'sector_id' => 'required',
             'sector_name' => 'required',
             'fomnext_quota' => 'required|regex:/^[0-9]+$/|max:3',
-            'air_ticket_deposit' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/|gte:0|lte:999999.99',
+            'air_ticket_deposit' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
         ];
     }
     /**
@@ -116,7 +116,7 @@ class EContractServices
         return [
             'prospect_service_id' => 'required',
             'fomnext_quota' => 'required|regex:/^[0-9]+$/|max:3',
-            'air_ticket_deposit' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/|gte:0|lte:999999.99',
+            'air_ticket_deposit' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
         ];
     }
     /**

@@ -35,7 +35,7 @@ class DirectRecruitmentExpenses extends Model implements Auditable
         'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9-]*$/',
         'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
         'quantity' => 'required|max:5',
-        'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/'
+        'amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/'
     ];
     /**
      * The function returns array that are required for updation.
@@ -52,7 +52,7 @@ class DirectRecruitmentExpenses extends Model implements Auditable
             'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9-]*$/',
             'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
             'quantity' => 'required|max:5',
-            'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/'
+            'amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/'
         ];
     }
 

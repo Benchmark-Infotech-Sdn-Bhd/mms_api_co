@@ -58,7 +58,7 @@ class EContractExpensesServices
             'type' => 'required',
             'payment_reference_number' => 'regex:/^[a-zA-Z0-9-]*$/',
             'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
-            'amount' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];
     }
@@ -76,7 +76,7 @@ class EContractExpensesServices
             'type' => 'required',
             'payment_reference_number' => 'regex:/^[a-zA-Z0-9-]*$/',
             'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
-            'amount' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];
     }
