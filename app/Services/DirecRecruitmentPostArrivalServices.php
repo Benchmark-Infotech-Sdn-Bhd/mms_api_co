@@ -170,6 +170,7 @@ class DirecRecruitmentPostArrivalServices
                 ->orWhere('worker_arrival.jtk_submitted_on', NULL);
             })
             ->whereNotNull('worker_arrival.arrival_id')
+            ->where('worker_arrival.arrival_status', '!=', 'Postponed')
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
