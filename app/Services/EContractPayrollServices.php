@@ -112,6 +112,8 @@ class EContractPayrollServices
             ->leftJoin('e-contract_project', 'e-contract_project.id', '=', 'worker_employment.project_id')
             ->where('worker_employment.project_id', $request['project_id']) 
             ->where('worker_employment.service_type', 'e-Contract')
+            ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date')
             ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
             ->select(DB::raw('COUNT(DISTINCT workers.id) as workers'), 'worker_employment.project_id', 'e-contract_project.name')
             ->groupBy('worker_employment.project_id', 'e-contract_project.name')
@@ -157,6 +159,7 @@ class EContractPayrollServices
                 if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
                     $query->whereNull('worker_employment.work_end_date');
                     $query->whereNull('worker_employment.remove_date');
+                    $query->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
                 }
             })
             ->select('workers.id', 'workers.name', 'workers.passport_number', 'worker_bank_details.bank_name', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'worker_employment.department', 'e-contract_payroll.id as payroll_id', 'e-contract_payroll.month', 'e-contract_payroll.year', 'e-contract_payroll.basic_salary', 'e-contract_payroll.ot_1_5', 'e-contract_payroll.ot_2_0', 'e-contract_payroll.ot_3_0', 'e-contract_payroll.ph', 'e-contract_payroll.rest_day', 'e-contract_payroll.deduction_advance', 'e-contract_payroll.deduction_accommodation', 'e-contract_payroll.annual_leave', 'e-contract_payroll.medical_leave', 'e-contract_payroll.hospitalisation_leave', 'e-contract_payroll.amount', 'e-contract_payroll.no_of_workingdays', 'e-contract_payroll.normalday_ot_1_5', 'e-contract_payroll.ot_1_5_hrs_amount', 'e-contract_payroll.restday_daily_salary_rate', 'e-contract_payroll.hrs_ot_2_0', 'e-contract_payroll.ot_2_0_hrs_amount', 'e-contract_payroll.public_holiday_ot_3_0', 'e-contract_payroll.deduction_hostel', 'e-contract_payroll.sosco_deduction', 'e-contract_payroll.sosco_contribution')
@@ -203,6 +206,7 @@ class EContractPayrollServices
                 if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
                     $query->whereNull('worker_employment.work_end_date');
                     $query->whereNull('worker_employment.remove_date');
+                    $query->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
                 }
             })
             ->select('workers.id', 'workers.name', 'worker_bank_details.account_number', 'workers.passport_number', 'worker_employment.department', 'e-contract_payroll.month', 'e-contract_payroll.year', 'e-contract_payroll.basic_salary', 'e-contract_payroll.ot_1_5', 'e-contract_payroll.ot_2_0', 'e-contract_payroll.ot_3_0', 'e-contract_payroll.ph', 'e-contract_payroll.rest_day', 'e-contract_payroll.deduction_advance', 'e-contract_payroll.deduction_accommodation', 'e-contract_payroll.annual_leave', 'e-contract_payroll.medical_leave', 'e-contract_payroll.hospitalisation_leave', 'e-contract_payroll.amount', 'e-contract_payroll.no_of_workingdays', 'e-contract_payroll.normalday_ot_1_5', 'e-contract_payroll.ot_1_5_hrs_amount', 'e-contract_payroll.restday_daily_salary_rate', 'e-contract_payroll.hrs_ot_2_0', 'e-contract_payroll.ot_2_0_hrs_amount', 'e-contract_payroll.public_holiday_ot_3_0', 'e-contract_payroll.deduction_hostel', 'e-contract_payroll.sosco_deduction', 'e-contract_payroll.sosco_contribution')
