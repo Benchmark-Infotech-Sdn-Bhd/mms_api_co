@@ -50,7 +50,7 @@ class TotalManagementCostManagement extends Model implements Auditable
             'title' => 'required|max:255',
             'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9-]*$/',
             'payment_date' => 'required|date_format:Y-m-d|before:tomorrow',
-            'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/'
+            'amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/'
         ];
     }
 
