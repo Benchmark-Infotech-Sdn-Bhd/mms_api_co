@@ -146,6 +146,7 @@ class DirectRecruitmentArrivalServices
             ['directrecruitment_arrival.application_id', $request['application_id']],
             ['directrecruitment_arrival.onboarding_country_id', $request['onboarding_country_id']]
         ])
+        ->where('worker_arrival.arrival_status', '!=', 'Postponed')
         ->select('directrecruitment_arrival.id', 'directrecruitment_arrival.application_id', 'directrecruitment_arrival.onboarding_country_id', 'directrecruitment_arrival.item_name', 'directrecruitment_arrival.flight_date', 'directrecruitment_arrival.arrival_time', 'directrecruitment_arrival.flight_number', 'worker_arrival.arrival_status', DB::raw('COUNT(worker_arrival.worker_id) as workers'))
         ->groupBy('directrecruitment_arrival.id', 'directrecruitment_arrival.application_id', 'directrecruitment_arrival.onboarding_country_id', 'directrecruitment_arrival.item_name', 'directrecruitment_arrival.flight_date', 'directrecruitment_arrival.arrival_time', 'directrecruitment_arrival.flight_number', 'worker_arrival.arrival_status')
         ->orderBy('directrecruitment_arrival.id','DESC')
