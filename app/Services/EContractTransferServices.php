@@ -129,8 +129,9 @@ class EContractTransferServices
         } else if($request['service_type'] == 'Total Management') {
             return $this->totalManagementProject
             ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-            ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
-            ->where('crm_prospects.id',$request['crm_prospect_id'])
+            ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'total_management_applications.service_id')
+            ->where('crm_prospect_services.crm_prospect_id',$request['crm_prospect_id'])
+            ->where('crm_prospect_services.from_existing',0)
             ->select('total_management_project.id', 'total_management_project.name')
             ->distinct('total_management_project.id')
             ->orderBy('total_management_project.id', 'desc')
