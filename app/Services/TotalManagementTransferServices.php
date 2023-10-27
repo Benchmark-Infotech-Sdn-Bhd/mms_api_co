@@ -12,6 +12,9 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\Models\EContractProject;
+use App\Models\EContractApplications;
+use App\Models\TotalManagementApplications;
+use App\Models\CRMProspectService;
 
 class TotalManagementTransferServices
 {
@@ -43,7 +46,15 @@ class TotalManagementTransferServices
      * @var EContractProject
      */
     private EContractProject $eContractProject;
-
+    /**
+     * @var EContractApplications
+     */
+    private EContractApplications $eContractApplications;
+    /**
+     * @var CRMProspectService
+     */
+    private CRMProspectService $crmProspectService;
+    
     /**
      * TotalManagementWorkerServices constructor.
      * @param Workers $workers
@@ -53,8 +64,11 @@ class TotalManagementTransferServices
      * @param AuthServices $authServices
      * @param EContractTransferServices $eContractTransferServices
      * @param EContractProject $eContractProject
+     * @param EContractApplications $eContractApplications
+     * @param TotalManagementApplications $totalManagementApplications
+     * @param CRMProspectService $crmProspectService
      */
-    public function __construct(Workers $workers, WorkerEmployment $workerEmployment, CRMProspect $crmProspect, TotalManagementProject $totalManagementProject, AuthServices $authServices, EContractProject $eContractProject)
+    public function __construct(Workers $workers, WorkerEmployment $workerEmployment, CRMProspect $crmProspect, TotalManagementProject $totalManagementProject, AuthServices $authServices, EContractProject $eContractProject, EContractApplications $eContractApplications, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService)
     {
         $this->workers = $workers;
         $this->workerEmployment = $workerEmployment;
@@ -62,6 +76,9 @@ class TotalManagementTransferServices
         $this->totalManagementProject = $totalManagementProject;
         $this->authServices = $authServices;
         $this->eContractProject = $eContractProject;
+        $this->eContractApplications = $eContractApplications;
+        $this->totalManagementApplications = $totalManagementApplications;
+        $this->crmProspectService = $crmProspectService;
     }
     /**
      * @return array
@@ -187,6 +204,113 @@ class TotalManagementTransferServices
             ];
         }
 
+        if($request['service_type'] == 'e-Contract') {
+            $workerDetail = $this->workers->findOrFail($request['worker_id']);
+            if($request['from_existing'] == 1) {
+                return [
+                    'fromExistingError' => true
+                ];
+            } else if ($request['from_existing'] == 0) {
+                if($workerDetail->crm_prospect_id != 0) {
+                    if($workerDetail->crm_prospect_id != $request['new_prospect_id']) {
+                        return [
+                            'otherCompanyError' => true
+                        ];
+                    }
+                }
+                $projectDetails = $this->eContractProject->findOrFail($request['new_project_id']);
+                $applicationDeatils = $this->eContractApplications->findOrFail($projectDetails->application_id);
+                $projectIds = $this->eContractProject->where('application_id', $projectDetails->application_id)
+                                ->select('id')
+                                ->get()
+                                ->toArray();
+                $projectIds = array_column($projectIds, 'id');
+
+                $assignedWorkerCount = $this->workers
+                ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
+                ->whereIn('worker_employment.project_id', $projectIds)
+                ->where('worker_employment.service_type', 'e-Contract')
+                ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
+                ->where('worker_employment.transfer_flag', 0)
+                ->whereNull('worker_employment.work_end_date')
+                ->whereNull('worker_employment.event_type')
+                ->distinct('workers.id')->count('workers.id');
+
+                $assignedWorkerCount++;
+
+                if($assignedWorkerCount > $applicationDeatils->quota_requested) {
+                    return [
+                        'quotaError' => true
+                    ];
+                }
+            }
+        } else if($request['service_type'] == 'Total Management') {
+            $projectDetails = $this->totalManagementProject->findOrFail($request['new_project_id']);
+            $applicationDetails = $this->totalManagementApplications->findOrFail($projectDetails->application_id);
+            $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
+            
+            if($serviceDetails->from_existing == 1) {
+                $workerDetail = $this->workers->findOrFail($request['worker_id']);
+                if($request['from_existing'] == 0) {
+                    return [
+                        'quotaFromExistingError' => true
+                    ];
+                } else if($request['from_existing'] == 1) {
+                    if($workerDetail->crm_prospect_id != $request['new_prospect_id']) {
+                        return [
+                            'otherCompanyError' => true
+                        ];
+                    } else if($workerDetail->crm_prospect_id == $request['new_prospect_id']) {
+                        $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
+                        $workerCountArray['clientWorkersCount']++;
+                        if($workerCountArray['clientWorkersCount'] > $applicationDetails->quota_applied) {
+                            return [
+                                'quotaError' => true
+                            ];
+                        }
+                    }
+                }
+            } else if($serviceDetails->from_existing == 0) {
+                $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
+                $workerDetail = $this->workers->findOrFail($request['worker_id']);
+                if($request['from_existing'] == 1) {
+                    if($workerDetail->crm_prospect_id != $request['new_prospect_id']) {
+                        return [
+                            'otherCompanyError' => true
+                        ];
+                    } /*else if($workerDetail->crm_prospect_id == $request['new_prospect_id']) { // Waiting for confirmation
+                        $workerCountArray['clientWorkersCount']++;
+                        if($workerCountArray['clientWorkersCount'] > $serviceDetails->client_quota) {
+                            return [
+                                'clientQuotaError' => true
+                            ];
+                        }
+                    }*/
+                } else if($request['from_existing'] == 0) {
+                    if($workerDetail->crm_prospect_id == 0) {
+                        $workerCountArray['fomnextWorkersCount']++;
+                        if($workerCountArray['fomnextWorkersCount'] > $serviceDetails->fomnext_quota) {
+                            return [
+                                'fomnextQuotaError' => true
+                            ];
+                        }
+                    } else if($workerDetail->crm_prospect_id != 0) {
+                        if($workerDetail->crm_prospect_id != $request['new_prospect_id']) {
+                            return [
+                                'otherCompanyError' => true
+                            ];
+                        } else if($workerDetail->crm_prospect_id == $request['new_prospect_id']) {
+                            $workerCountArray['clientWorkersCount']++;
+                            if($workerCountArray['clientWorkersCount'] > $serviceDetails->client_quota) {
+                                return [
+                                    'clientQuotaError' => true
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        }
         // UPDATE WORKERS TABLE
         $this->workers->where([
             'id' => $request['worker_id'],
@@ -199,7 +323,7 @@ class TotalManagementTransferServices
             $this->workers->where([
                 'id' => $request['worker_id'],
             ])->update([
-                'crm_prospect_id' => $request['new_prospect_id'], 
+                'crm_prospect_id' => 0, 
                 'updated_at' => Carbon::now(), 
                 'modified_by' => $request['modified_by'],
                 'module_type' => $request['service_type'],
@@ -244,5 +368,52 @@ class TotalManagementTransferServices
         ]);
 
         return true;
+    }
+    /**
+     * @param $applicationId, $prospectId
+     * @return array
+     */
+    public function getWorkerCount($applicationId, $prospectId): array
+    {
+        $projectIds = $this->totalManagementProject->where('application_id', $applicationId)
+                            ->select('id')
+                            ->get()
+                            ->toArray();
+        $projectIds = array_column($projectIds, 'id');
+
+        $clientWorkersCount = $this->workers
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.worker_id','=','workers.id')
+            ->where('worker_employment.service_type', 'Total Management')
+            ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date')
+            ->whereNull('worker_employment.work_end_date')
+            ->whereNull('worker_employment.event_type');
+        })
+        ->where('workers.crm_prospect_id', $prospectId)
+        ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
+        ->whereIn('worker_employment.project_id', $projectIds)
+        ->distinct('workers.id')
+        ->count('workers.id');
+
+        $fomnextWorkersCount = $this->workers
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.worker_id','=','workers.id')
+            ->where('worker_employment.service_type', 'Total Management')
+            ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date')
+            ->whereNull('worker_employment.work_end_date')
+            ->whereNull('worker_employment.event_type');
+        })
+        ->where('workers.crm_prospect_id', 0)
+        ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
+        ->where('worker_employment.project_id', $projectIds)
+        ->distinct('workers.id')
+        ->count('workers.id');
+
+        return [
+            'clientWorkersCount' => $clientWorkersCount,
+            'fomnextWorkersCount' => $fomnextWorkersCount
+        ];
     }
 }

@@ -93,7 +93,7 @@ class EContractWorkerController extends Controller
             if(isset($data['error'])) {
                 return $this->validationError($data['error']);
             } else if(isset($data['quotaError'])) {
-                return $this->sendError(['message' => 'The number of worker cannot exceed the Quota'], 422);
+                return $this->sendError(['message' => 'The number of worker cannot exceed the Applied Quota'], 422);
             }
             return $this->sendSuccess(['message' => 'Workers are Assigned Successfully']);
         } catch (Exception $e) {
