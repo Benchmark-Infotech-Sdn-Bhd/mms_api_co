@@ -256,28 +256,30 @@ class EContractTransferServices
                 }
             }
         }
-
+    
         // UPDATE WORKERS TABLE
         if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[2]){
-            $this->workers->where([
-                'id' => $request['worker_id'],
-            ])->update([
-                'crm_prospect_id' => 0, 
-                'updated_at' => Carbon::now(), 
-                'modified_by' => $request['modified_by'],
-                'module_type' => $request['service_type'],
-                "econtract_status" => "Assigned", 
-            ]);
+            $worker = $this->workers->findOrFail($request['worker_id']);
+            $worker->crm_prospect_id = 0;
+            $worker->updated_at = Carbon::now();
+            $worker->modified_by = $request['modified_by'];
+            $worker->module_type = $request['service_type'];
+            $worker->econtract_status = "Assigned";
+            if(in_array($worker->total_management_status, ['Assigned', 'Counselling'])) {
+                $worker->total_management_status = "On-Bench";
+            }
+            $worker->save();
         } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
-            $this->workers->where([
-                'id' => $request['worker_id'],
-            ])->update([
-                'crm_prospect_id' => $request['new_prospect_id'], 
-                'updated_at' => Carbon::now(), 
-                'modified_by' => $request['modified_by'],
-                'module_type' => $request['service_type'],
-                "total_management_status" => "Assigned",
-            ]);
+            $worker = $this->workers->findOrFail($request['worker_id']);
+            $worker->crm_prospect_id = $request['new_prospect_id'];
+            $worker->updated_at = Carbon::now();
+            $worker->modified_by = $request['modified_by'];
+            $worker->module_type = $request['service_type'];
+            $worker->total_management_status = "Assigned";
+            if(in_array($worker->econtract_status, ['Assigned', 'Counselling'])) {
+                $worker->econtract_status = "On-Bench";
+            }
+            $worker->save();
         }
 
         // UPDATE WORKER EMPLOYMENT TABLE
