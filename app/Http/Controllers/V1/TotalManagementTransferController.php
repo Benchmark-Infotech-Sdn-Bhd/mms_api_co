@@ -96,7 +96,7 @@ class TotalManagementTransferController extends Controller
                 return $this->sendError(['message' => 'Cannot Transfer worker to a From Existing Project'], 422);
             } else if(isset($response['fomnextQuotaError'])) {
                 return $this->sendError(['message' => 'The number of Fomnext worker cannot exceed the Fomnext Quota'], 422);
-            } else if(isset($response['clientWorkersCount'])) {
+            } else if(isset($response['clientQuotaError'])) {
                 return $this->sendError(['message' => 'The number of Client worker cannot exceed the Client Quota'], 422);
             } else if(isset($response['otherCompanyError'])) {
                 return $this->sendError(['message' => 'The selected Client worker cannot be transferred to another Client'], 422);

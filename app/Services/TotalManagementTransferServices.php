@@ -206,7 +206,8 @@ class TotalManagementTransferServices
         // CHECK WORKER EMPLOYMENT DATA - SAME PROJECT ID
         $workerEmployment = $this->workerEmployment->where([
             ['worker_id', $request['worker_id']],
-            ['project_id', $request['new_project_id']]
+            ['project_id', $request['new_project_id']],
+            ['service_type', $request['service_type']]
         ])
         ->where('transfer_flag', 0)
         ->whereNull('remove_date')
@@ -276,7 +277,10 @@ class TotalManagementTransferServices
                         ];
                     } else if($workerDetail->crm_prospect_id == $request['new_prospect_id']) {
                         $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
-                        $workerCountArray['clientWorkersCount']++;
+                        $currentProjectDetails = $this->totalManagementProject->findOrFail($request['current_project_id']);
+                        if($currentProjectDetails->application_id != $projectDetails->application_id) {
+                            $workerCountArray['clientWorkersCount']++;
+                        }
                         if($workerCountArray['clientWorkersCount'] > $applicationDetails->quota_applied) {
                             return [
                                 'quotaError' => true
@@ -346,7 +350,6 @@ class TotalManagementTransferServices
             $worker->save();
         } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
             $worker = $this->workers->findOrFail($request['worker_id']);
-            $worker->crm_prospect_id = $request['new_prospect_id'];
             $worker->updated_at = Carbon::now();
             $worker->modified_by = $request['modified_by'];
             $worker->module_type = $request['service_type'];
