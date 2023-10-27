@@ -288,11 +288,11 @@ class TotalManagementTransferServices
                 $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
                 $workerDetail = $this->workers->findOrFail($request['worker_id']);
                 if($request['from_existing'] == 1) {
-                    if($workerDetail->crm_prospect_id != $request['new_prospect_id']) {
+                    // if($workerDetail->crm_prospect_id != $request['new_prospect_id']) { // Waiting for confirmation
                         return [
-                            'otherCompanyError' => true
+                            'fromExistingWorkerError' => true
                         ];
-                    } /*else if($workerDetail->crm_prospect_id == $request['new_prospect_id']) { // Waiting for confirmation
+                    /*} else if($workerDetail->crm_prospect_id == $request['new_prospect_id']) { // Waiting for confirmation
                         $workerCountArray['clientWorkersCount']++;
                         if($workerCountArray['clientWorkersCount'] > $serviceDetails->client_quota) {
                             return [

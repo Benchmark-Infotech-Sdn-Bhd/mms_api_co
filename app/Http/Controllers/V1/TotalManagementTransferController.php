@@ -102,6 +102,8 @@ class TotalManagementTransferController extends Controller
                 return $this->sendError(['message' => 'The selected Client worker cannot be transferred to another Client'], 422);
             } else if(isset($response['fromExistingError'])) {
                 return $this->sendError(['message' => 'The selected Client worker cannot be transferred to e-Contract Project'], 422);
+            } else if(isset($response['fromExistingWorkerError'])) {
+                return $this->sendError(['message' => 'Cannot Transfer worker to a From Existing Worker'], 422);
             }
             return $this->sendSuccess(['message' => 'Worker Transfered Successfully']);
         } catch (Exception $e) {
