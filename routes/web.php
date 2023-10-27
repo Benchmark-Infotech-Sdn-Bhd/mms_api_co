@@ -387,6 +387,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('updateValidity', 'V1\DirectRecruitmentSpecialPassController@updateValidity');
                         $router->post('workersListExport', 'V1\DirectRecruitmentSpecialPassController@workersListExport');
                     });
+                    $router->group(['prefix' => 'postponed'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentPostponedController@workersList');
+                    });
                 });
             });
         });
