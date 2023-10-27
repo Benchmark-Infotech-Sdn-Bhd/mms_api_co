@@ -52,7 +52,7 @@ class Employee extends Model implements Auditable
         'position' => 'required|max:150',
         'branch_id' => 'required|regex:/^[0-9]+$/',
         'role_id' => 'required|regex:/^[0-9]+$/',
-        'salary' => 'required|regex:/^(([0-9]*)(\.([0-9]{0,2}+))?)$/',
+        'salary' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
         'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
         'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
     ];

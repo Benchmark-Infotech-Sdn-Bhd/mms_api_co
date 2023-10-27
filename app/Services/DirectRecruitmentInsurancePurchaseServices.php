@@ -89,8 +89,8 @@ class DirectRecruitmentInsurancePurchaseServices
                 'ig_policy_number' => 'required', 
                 'hospitalization_policy_number' => 'required', 
                 'insurance_provider_id' => 'required',
-                'ig_amount' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
-                'hospitalization_amount' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+                'ig_amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
+                'hospitalization_amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
                 'insurance_submitted_on' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'insurance_expiry_date' => 'required|date|date_format:Y-m-d'
             ];

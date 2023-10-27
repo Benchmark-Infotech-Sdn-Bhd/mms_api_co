@@ -36,7 +36,7 @@ class Invoice extends Model implements Auditable
         'issue_date' => 'required|date_format:Y-m-d',
         'due_date' => 'required|date_format:Y-m-d',
         'reference_number' => 'required|regex:/^[a-zA-Z0-9-]*$/',
-        'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/'
+        'amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/'
     ];
     /**
      * The function returns array that are required for updation.
@@ -52,7 +52,7 @@ class Invoice extends Model implements Auditable
             'issue_date' => 'required|date_format:Y-m-d|before:tomorrow',
             'due_date' => 'required|date_format:Y-m-d|before:tomorrow',
             'reference_number' => 'required|regex:/^[a-zA-Z0-9-]*$/',
-            'amount' => 'required|max:9|regex:/^[0-9]+(\.[0-9][0-9]?)?$/'
+            'amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/'
         ];
     }
 

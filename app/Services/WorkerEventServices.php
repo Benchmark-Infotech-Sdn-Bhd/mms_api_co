@@ -143,7 +143,8 @@ class WorkerEventServices
                 'work_end_date' => $request['last_working_day'],
                 'updated_at' => Carbon::now(), 
                 'modified_by' => $request['created_by'],
-                'event_type' => $request['event_type']
+                'event_type' => $request['event_type'],
+                'event_id' => $workerEvent->id
             ]);
         } 
         
@@ -220,7 +221,8 @@ class WorkerEventServices
                 'work_end_date' => $request['last_working_day'],
                 'updated_at' => Carbon::now(), 
                 'modified_by' => $request['modified_by'],
-                'event_type' => $request['event_type']
+                'event_type' => $request['event_type'],
+                'event_id' => $workerEvent->id
             ]);
         } 
 

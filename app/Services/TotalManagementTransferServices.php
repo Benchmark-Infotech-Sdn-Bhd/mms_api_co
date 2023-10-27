@@ -123,7 +123,14 @@ class TotalManagementTransferServices
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
         ->leftJoin('sectors', 'sectors.id', 'crm_prospect_services.sector_id')
         ->where('crm_prospects.status', 1)
-        ->where('crm_prospect_services.service_id', '!=', 1)
+        ->where(function ($query) use ($request) {
+            if(isset($request['from_existing']) && $request['from_existing'] == 1) {
+                $query->where('crm_prospect_services.from_existing', 1)
+                ->where('crm_prospect_services.service_id', '=', 3);
+            }else{
+                $query->where('crm_prospect_services.service_id', '!=', 1);
+            }
+        })
         ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where(function ($query) use ($user) {
             if ($user['user_type'] == 'Customer') {
@@ -156,8 +163,15 @@ class TotalManagementTransferServices
         if($request['service_type'] == 'Total Management') {
             return $this->totalManagementProject
             ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-            ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
-            ->where('crm_prospects.id',$request['crm_prospect_id'])
+            ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'total_management_applications.service_id')
+            ->where('crm_prospect_services.crm_prospect_id',$request['crm_prospect_id'])
+            ->where(function ($query) use ($request) {
+                if(isset($request['from_existing']) && $request['from_existing'] == 1) {
+                    $query->where('crm_prospect_services.from_existing', 1);
+                }else{
+                    $query->where('crm_prospect_services.from_existing', 0);
+                }
+            })
             ->select('total_management_project.id', 'total_management_project.name')
             ->distinct('total_management_project.id')
             ->orderBy('total_management_project.id', 'desc')

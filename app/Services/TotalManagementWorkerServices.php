@@ -124,12 +124,15 @@ class TotalManagementWorkerServices
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
             ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
+            ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+            ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'total_management_applications.service_id')
             ->leftJoin('vendors as vendor_transport', 'vendor_transport.id', 'total_management_project.transportation_provider_id')
             ->leftJoin('vendors', 'vendors.id', 'worker_employment.accommodation_provider_id')
             ->where('total_management_project.id', $request['project_id'])
             ->where('worker_employment.service_type', 'Total Management')
             ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
             ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date')
             ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 if ($request['user']['user_type'] == 'Customer') {
@@ -149,7 +152,7 @@ class TotalManagementWorkerServices
                     $query->where('workers.status', $request['filter']);
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'vendors.name as accommodation_provider', 'vendor_transport.name as transportation_provider', 'worker_employment.department', 'workers.status', 'workers.total_management_status', 'worker_employment.status as worker_assign_status', 'worker_employment.remove_date', 'worker_employment.remarks')
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'vendors.name as accommodation_provider', 'vendor_transport.name as transportation_provider', 'worker_employment.department', 'workers.status', 'workers.total_management_status', 'worker_employment.status as worker_assign_status', 'worker_employment.remove_date', 'worker_employment.remarks', 'crm_prospect_services.from_existing', 'total_management_project.application_id')
             ->distinct('workers.id')
             ->orderBy('workers.id','DESC')
             ->paginate(Config::get('services.paginate_row'));

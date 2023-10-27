@@ -33,7 +33,7 @@ class EContractApplications extends Model implements Auditable
             'id' => 'required|regex:/^[0-9]+$/',
             'quota_requested' => 'required|regex:/^[0-9]+$/|max:3',
             'person_incharge' => 'required',
-            'cost_quoted' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+            'cost_quoted' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];
     }
