@@ -51,6 +51,7 @@ class DirectRecruitmentPostponedServices
             ->leftJoin('worker_fomema', 'worker_fomema.worker_id', 'workers.id')
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->leftjoin('worker_arrival', 'worker_arrival.worker_id', '=', 'workers.id')
+            ->leftjoin('directrecruitment_arrival', 'directrecruitment_arrival.id', '=', 'worker_arrival.arrival_id')
             ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 if ($request['user']['user_type'] == 'Customer') {
@@ -69,7 +70,7 @@ class DirectRecruitmentPostponedServices
                     ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%');
                 }
             })
-            ->select('workers.id', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number')
+            ->select('workers.id', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_arrival.flight_number', 'directrecruitment_arrival.flight_date', 'directrecruitment_arrival.arrival_time')
             ->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->paginate(Config::get('services.paginate_worker_row'));
