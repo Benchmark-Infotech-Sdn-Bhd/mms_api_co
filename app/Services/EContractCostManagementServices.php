@@ -210,7 +210,7 @@ class EContractCostManagementServices
         })->select('e-contract_cost_management.id','e-contract_cost_management.project_id','e-contract_cost_management.title','e-contract_cost_management.payment_reference_number','e-contract_cost_management.payment_date','e-contract_cost_management.quantity','e-contract_cost_management.amount','e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management_attachments.file_name','e-contract_cost_management_attachments.file_url','e-contract_cost_management.created_at','e-contract_cost_management.invoice_number',\DB::raw('IF(invoice_items_temp.id is NULL, NULL, 1) as expense_flag'))
         ->distinct()
         ->orderBy('e-contract_cost_management.id','DESC')
-        ->paginate(Config::get('services.paginate_row'));
+        ->paginate(Config::get('services.paginate_worker_row'));
     }
 
     /**

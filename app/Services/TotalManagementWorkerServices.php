@@ -155,7 +155,7 @@ class TotalManagementWorkerServices
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'vendors.name as accommodation_provider', 'vendor_transport.name as transportation_provider', 'worker_employment.department', 'workers.status', 'workers.total_management_status', 'worker_employment.status as worker_assign_status', 'worker_employment.remove_date', 'worker_employment.remarks', 'crm_prospect_services.from_existing', 'total_management_project.application_id')
             ->distinct('workers.id')
             ->orderBy('workers.id','DESC')
-            ->paginate(Config::get('services.paginate_row'));
+            ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
      * @param $request
@@ -215,7 +215,7 @@ class TotalManagementWorkerServices
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', 'workers.econtract_status', 'workers.total_management_status', 'workers.plks_status', 'workers.module_type')
             ->distinct()
             ->orderBy('workers.created_at','DESC')
-            ->paginate(Config::get('services.paginate_row'));
+            ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
      * @param $request

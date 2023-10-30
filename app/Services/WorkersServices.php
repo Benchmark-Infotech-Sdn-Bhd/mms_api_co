@@ -691,7 +691,7 @@ class WorkersServices
         }
         $data = $data->distinct('workers.id')
         ->orderBy('workers.id','DESC')
-        ->paginate(Config::get('services.paginate_row'));
+        ->paginate(Config::get('services.paginate_worker_row'));
         return $data;
     }
 
