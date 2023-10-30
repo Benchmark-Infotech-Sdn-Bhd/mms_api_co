@@ -84,6 +84,24 @@ class Employee extends Model implements Auditable
         ];
     }
     /**
+     * The function returns array that are required for updation.
+     * @param $params
+     * @return array
+     */
+    public function rulesForProfileUpdation($id): array
+    {
+        // Unique name with deleted at
+        return [
+            'id' => 'required|regex:/^[0-9]+$/',
+            'employee_name' => 'required|max:255',
+            'email' => 'required|email|max:150|unique:users,email,'.$id.',reference_id,deleted_at,NULL',
+            'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
+            'address' => 'required',
+            'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
+            'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150'
+        ];
+    }
+    /**
      * @return HasOne
      */
     public function user()

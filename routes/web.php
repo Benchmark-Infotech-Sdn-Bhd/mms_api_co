@@ -735,5 +735,17 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('deleteAll', 'V1\InvoiceItemsTempController@deleteAll');
         });
 
+        /**
+         * Routes for User Profile.
+         */
+        $router->group(['prefix' => 'userProfile'], function () use ($router) {
+            $router->post('adminShow', 'V1\UserProfileController@adminShow');
+            $router->post('adminUpdate', 'V1\UserProfileController@adminUpdate');
+            $router->post('adminResetPassword', 'V1\UserProfileController@adminResetPassword');
+            $router->post('employeeShow', 'V1\UserProfileController@employeeShow');
+            $router->post('employeeUpdate', 'V1\UserProfileController@employeeUpdate');
+            $router->post('employeeResetPassword', 'V1\UserProfileController@employeeResetPassword');
+        });
+
     });
 });
