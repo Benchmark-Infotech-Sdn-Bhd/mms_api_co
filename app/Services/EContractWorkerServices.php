@@ -141,7 +141,7 @@ class EContractWorkerServices
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'worker_employment.department', 'workers.status', 'workers.econtract_status', 'worker_employment.status as worker_assign_status', 'worker_employment.remove_date', 'worker_employment.remarks', 'workers.crm_prospect_id', 'worker_employment.project_id')
             ->distinct('workers.id')
             ->orderBy('workers.id','DESC')
-            ->paginate(Config::get('services.paginate_row'));
+            ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
      * @param $request
@@ -178,7 +178,7 @@ class EContractWorkerServices
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number')
             ->distinct()
             ->orderBy('workers.created_at','DESC')
-            ->paginate(Config::get('services.paginate_row'));
+            ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
      * @param $request

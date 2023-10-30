@@ -187,7 +187,7 @@ class TotalManagementCostManagementServices
         })->select('total_management_cost_management.id','total_management_cost_management.application_id','total_management_cost_management.project_id','total_management_cost_management.title','total_management_cost_management.payment_reference_number','total_management_cost_management.payment_date','total_management_cost_management.quantity','total_management_cost_management.amount','total_management_cost_management.remarks','total_management_cost_management_attachments.file_name','total_management_cost_management_attachments.file_url','total_management_cost_management.created_at','total_management_cost_management.invoice_number',\DB::raw('IF(invoice_items_temp.id is NULL, NULL, 1) as expense_flag'))
         ->distinct()
         ->orderBy('total_management_cost_management.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
+        ->paginate(Config::get('services.paginate_worker_row'));
     }
 
     /**
