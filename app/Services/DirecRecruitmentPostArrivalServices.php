@@ -211,7 +211,7 @@ class DirecRecruitmentPostArrivalServices
             ];
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
-            $this->workerArrival->whereIn('worker_id', $request['workers'])
+            $this->workerArrival->whereIn('worker_id', $request['workers'])->where('arrival_status', '!=', 'Postponed')
                 ->update([
                     'arrival_status' => 'Arrived', 
                     'arrived_date' => $request['arrived_date'], 
