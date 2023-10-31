@@ -42,4 +42,11 @@ class CRMProspect extends Model implements Auditable
     {
         return $this->hasMany(DirectrecruitmentApplications::class, 'crm_prospect_id');
     }
+    /**
+     * @return HasOne
+     */
+    public function user()
+    {
+        return $this->hasOne(User::class, 'reference_id')->where('user_type', 'Customer');
+    }
 }
