@@ -6,6 +6,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItems;
 use App\Models\InvoiceItemsTemp;
 use App\Models\XeroSettings;
+use App\Models\XeroTaxRates;
 use App\Models\DirectRecruitmentExpenses;
 use App\Models\EContractCostManagement;
 use App\Models\TotalManagementCostManagement;
@@ -41,6 +42,10 @@ class InvoiceServices
      * @var XeroSettings
      */
     private XeroSettings $xeroSettings;
+    /**
+     * @var XeroTaxRates
+     */
+    private XeroTaxRates $xeroTaxRates;
     /**
      * @var DirectRecruitmentExpenses
      */
@@ -79,6 +84,7 @@ class InvoiceServices
      * @param TotalManagementCostManagement $totalManagementCostManagement
      * @param CRMProspect $crmProspect
      * @param XeroSettings $xeroSettings
+     * @param XeroTaxRates $xeroTaxRates
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
@@ -92,6 +98,7 @@ class InvoiceServices
             TotalManagementCostManagement $totalManagementCostManagement,
             CRMProspect                 $crmProspect,
             XeroSettings                $xeroSettings,
+            XeroTaxRates                $xeroTaxRates,
             ValidationServices          $validationServices,
             AuthServices                $authServices,
             Storage                     $storage
@@ -101,6 +108,7 @@ class InvoiceServices
         $this->invoiceItems = $invoiceItems;
         $this->invoiceItemsTemp = $invoiceItemsTemp;
         $this->xeroSettings = $xeroSettings;
+        $this->xeroTaxRates = $xeroTaxRates;
         $this->directRecruitmentExpenses = $directRecruitmentExpenses;
         $this->eContractCostManagement = $eContractCostManagement;
         $this->totalManagementCostManagement = $totalManagementCostManagement;
@@ -340,12 +348,73 @@ class InvoiceServices
                 ],
             ]);
             $result = json_decode((string)$response->getBody(), true);
-            
             return response()->json($result);
         } catch (Exception $e) {
             Log::error('Exception in getting Tax details' . $e);
             return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function saveTaxRates() : mixed
+    {
+        $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
+        try {
+            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_TAX_RATES_URL'), [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
+                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Accept' => 'application/json',
+                ],
+                'form_params' => [
+                ],
+            ]);
+            $result = json_decode((string)$response->getBody(), true);
+
+            if(isset($result['TaxRates'])){
+                foreach ($result['TaxRates'] as $row) {
+                    $this->xeroTaxRates->updateOrCreate(
+                        [
+                            'name' => $row['Name'] ?? null, 
+                             'tax_type' => $row['TaxType'] ?? null, 
+                             'report_tax_type' => $row['ReportTaxType'] ?? null, 
+                             'display_tax_rate' => $row['DisplayTaxRate'] ?? 0, 
+                             'effective_rate' => $row['EffectiveRate'] ?? 0, 
+                             'status' => $row['Status'] ?? null
+                        ],
+                        [
+                            'can_applyto_assets' => $row['CanApplyToAssets'] ?? null, 
+                             'can_applyto_equity' => $row['CanApplyToEquity'] ?? null, 
+                             'can_applyto_expenses' => $row['CanApplyToExpenses'] ?? null, 
+                             'can_applyto_liabilities' => $row['CanApplyToLiabilities'] ?? null, 
+                             'can_applyto_revenue' => $row['CanApplyToRevenue'] ?? null
+                        ]
+                    );
+                }
+            }
+            
+            return true;
+        } catch (Exception $e) {
+            Log::error('Exception in getting Tax details' . $e);
+            return false;
+        }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function xeroGetTaxRates($request) : mixed
+    {
+        return $this->xeroTaxRates
+            ->select('id', 'name', 'tax_type', 'report_tax_type', 'can_applyto_assets', 'can_applyto_equity', 'can_applyto_expenses', 'can_applyto_liabilities', 'can_applyto_revenue', 'display_tax_rate', 'effective_rate', 'status')
+            ->distinct('id')
+            ->orderBy('id', 'asc')
+            ->get();
     }
 
     /**
