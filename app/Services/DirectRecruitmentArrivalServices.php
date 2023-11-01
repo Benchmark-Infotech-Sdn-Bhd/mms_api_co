@@ -235,6 +235,7 @@ class DirectRecruitmentArrivalServices
             ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
             ['worker_arrival.arrival_id', $request['arrival_id']]
         ])
+        ->where('worker_arrival.arrival_status', '!=', 'Postponed')
         ->where(function ($query) use ($request) {
             if(isset($request['calling_visa_reference_number']) && !empty($request['calling_visa_reference_number'])) {
                 $query->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number']);
