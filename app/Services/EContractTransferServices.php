@@ -127,7 +127,7 @@ class EContractTransferServices
             }
         })
         ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospect_services.service_id', 'sectors.sector_name')
-        ->selectRaw("(CASE WHEN (crm_prospect_services.service_id = 1) THEN 'Direct Recruitment' WHEN (crm_prospect_services.service_id = 2) THEN 'e-Contract' ELSE 'Total Management' END) as service_type")
+        ->selectRaw("(CASE WHEN (crm_prospect_services.service_id = 1) THEN 'Direct Recruitment' WHEN (crm_prospect_services.service_id = 2) THEN 'e-Contract' ELSE 'Total Management' END) as service_type, crm_prospect_services.id as prospect_service_id")
         ->distinct('crm_prospects.id')
         ->orderBy('crm_prospects.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
@@ -141,8 +141,9 @@ class EContractTransferServices
         if($request['service_type'] == 'e-Contract') {
             return $this->eContractProject
             ->leftJoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
-            ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'e-contract_applications.crm_prospect_id')
-            ->where('crm_prospects.id',$request['crm_prospect_id'])
+            ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'e-contract_applications.service_id')
+            ->where('crm_prospect_services.crm_prospect_id',$request['crm_prospect_id'])
+            ->where('crm_prospect_services.id',$request['prospect_service_id'])
             ->select('e-contract_project.id', 'e-contract_project.name')
             ->distinct('e-contract_project.id')
             ->orderBy('e-contract_project.id', 'desc')
@@ -152,6 +153,7 @@ class EContractTransferServices
             ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
             ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'total_management_applications.service_id')
             ->where('crm_prospect_services.crm_prospect_id',$request['crm_prospect_id'])
+            ->where('crm_prospect_services.id',$request['prospect_service_id'])
             ->where('crm_prospect_services.from_existing',0)
             ->select('total_management_project.id', 'total_management_project.name')
             ->distinct('total_management_project.id')
