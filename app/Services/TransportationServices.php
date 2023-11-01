@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Config;
 use App\Models\TransportationAttachments;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Support\Str;
 
 class TransportationServices
 {
@@ -24,12 +28,27 @@ class TransportationServices
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
+     * @var Role
+     */
+    private Role $role;
+    /**
+     * @var User
+     */
+    private User $user;
 
-    public function __construct(Transportation $transportation, TransportationAttachments $transportationAttachments, Storage $storage)
+    public function __construct(Transportation $transportation, TransportationAttachments $transportationAttachments, Storage $storage, AuthServices $authServices, Role $role, User $user)
     {
         $this->transportation = $transportation;
         $this->transportationAttachments = $transportationAttachments;
         $this->storage = $storage;
+        $this->authServices = $authServices;
+        $this->role = $role;
+        $this->user = $user;
     }
     /**
      * @param $request
@@ -63,10 +82,12 @@ class TransportationServices
         $transportationData = $this->transportation::create([
             'driver_name' => $request["driver_name"],
             'driver_contact_number' => $request["driver_contact_number"],
+            'driver_email' => $request["driver_email"] ?? '',
             'vehicle_type' => $request["vehicle_type"],
             'number_plate' => $request["number_plate"],
             'vehicle_capacity' => $request["vehicle_capacity"],
             'vendor_id' => $request["vendor_id"],
+            'assigned_supervisor' => $request["assigned_supervisor"] ?? 0,
             'created_by' => $request["created_by"],
         ]);
         $transportationId = $transportationData->id;
@@ -85,6 +106,42 @@ class TransportationServices
                     ]);  
             }
         }
+
+        if(isset($request["assigned_supervisor"]) && $request["assigned_supervisor"] == 1){
+            
+            $role = $this->role->where('role_name', Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'))
+                ->where('company_id', $user['company_id'])
+                ->whereNull('deleted_at')
+                ->where('status',1)
+                ->first('id');
+
+            $res = $this->authServices->create(
+                ['name' => $request['driver_name'],
+                'email' => $request['driver_email'],
+                'role_id' => $role->id ?? 0,
+                'user_id' => $user['id'],
+                'status' => 1,
+                'password' => Str::random(8),
+                'reference_id' => $transportationId,
+                'user_type' => Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'),
+                'subsidiary_companies' => array(),
+                'company_id' => $user['company_id']
+            ]);
+
+            if($res){
+                return $transportationData;
+            }
+            
+            $data = $this->transportation::findorfail($transportationData->id);
+            $data->transportationAttachments()->delete();
+            $transportationData->delete();
+
+            return [
+                "isCreated" => false,
+                "message"=> "Transportation data not created"
+            ];
+        }
+
         return $transportationData;
     }
     /**
@@ -148,6 +205,47 @@ class TransportationServices
                 "message" => "Data not found"
             ];
         }
+
+        if(isset($request["assigned_supervisor"]) && $request["assigned_supervisor"] == 1){
+            $userData = $this->user->where('email', $request['driver_email'])->get();
+            if(isset($userData) && (count($userData) > 0)){
+                return  [
+                    "isUpdated" => $data->update($request->all()),
+                    "message" => "Updated Successfully"
+                ];
+            }
+            $role = $this->role->where('role_name', Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'))
+                ->where('company_id', $user['company_id'])
+                ->whereNull('deleted_at')
+                ->where('status',1)
+                ->first('id');
+
+            $res = $this->authServices->create(
+                ['name' => $request['driver_name'],
+                'email' => $request['driver_email'],
+                'role_id' => $role->id ?? 0,
+                'user_id' => $user['id'],
+                'status' => 1,
+                'password' => Str::random(8),
+                'reference_id' => $request['id'],
+                'user_type' => Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'),
+                'subsidiary_companies' => array(),
+                'company_id' => $user['company_id']
+            ]);
+
+            if($res){
+                return  [
+                    "isUpdated" => $data->update($request->all()),
+                    "message" => "Updated Successfully"
+                ];
+            }
+            
+            return [
+                "isCreated" => false,
+                "message"=> "Transportation data not created"
+            ];
+        }
+
         return  [
             "isUpdated" => $data->update($request->all()),
             "message" => "Updated Successfully"
@@ -160,7 +258,8 @@ class TransportationServices
      */    
     public function delete($request): mixed
     {     
-        $data = $this->transportation::findorfail($request['id']);
+        $data = $this->transportation::find($request['id']);
+
         if(is_null($data)){
             return [
                 "isDeleted" => false,
@@ -169,6 +268,13 @@ class TransportationServices
         }
         $data->transportationAttachments()->delete();
         $data->delete();
+
+        $userData = $this->user->where('email', $data['driver_email'])->get();
+        if(isset($userData) && (count($userData) > 0)){
+            $userInfo = $this->user::find($userData[0]['id']);
+            $userInfo->delete();
+        }
+
         return [
             "isDeleted" => true,
             "message" => "Deleted Successfully"

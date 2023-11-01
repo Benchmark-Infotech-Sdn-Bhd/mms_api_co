@@ -27,10 +27,12 @@ class Transportation extends Model implements Auditable
     protected $fillable = [
         'driver_name',
         'driver_contact_number',
+        'driver_email',
         'vehicle_type',
         'number_plate',
         'vehicle_capacity',
         'vendor_id',
+        'assigned_supervisor',
         'created_by',
         'modified_by',
     ];
@@ -42,6 +44,7 @@ class Transportation extends Model implements Auditable
      */
     private $rules = [
         'driver_name' => 'required|regex:/^[a-zA-Z @&$]*$/u|max:150',
+        'driver_email' => 'required|email|unique:transportation,driver_email,NULL,id,deleted_at,NULL',
         'driver_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
         'vehicle_type' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
         'number_plate' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
@@ -55,11 +58,31 @@ class Transportation extends Model implements Auditable
     public $rulesForUpdation = [
         'id' => 'required',
         'driver_name' => 'required|regex:/^[a-zA-Z @&$]*$/u|max:150',
+        'driver_email' => 'required|email|unique:transportation,driver_email,NULL,id,deleted_at,NULL',
         'driver_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
         'vehicle_type' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
         'number_plate' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
         'vehicle_capacity' => 'required|regex:/^[0-9]*$/',
     ];
+
+    /**
+     * The function returns array that are required for updation.
+     * @param $params
+     * @return array
+     */
+    public function rulesForUpdation($id): array
+    {
+        // Unique name with deleted at
+        return [
+            'id' => 'required',
+            'driver_name' => 'required|regex:/^[a-zA-Z @&$]*$/u|max:150',
+            'driver_email' => 'required|email|unique:transportation,driver_email,'.$id.',id,deleted_at,NULL',
+            'driver_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
+            'vehicle_type' => 'required|regex:/^[a-zA-Z ]*$/u|max:150',
+            'number_plate' => 'required|regex:/^[a-zA-Z0-9]*$/u|max:150',
+            'vehicle_capacity' => 'required|regex:/^[0-9]*$/',
+        ];
+    }
     /**
      * The attributes that store validation errors.
      */
@@ -84,7 +107,7 @@ class Transportation extends Model implements Auditable
      */
     public function validateUpdation($input){
         // make a new validator object
-        $validator = Validator::make($input,$this->rulesForUpdation);
+        $validator = Validator::make($input,$this->rulesForUpdation($input['id']));
         // check for failure
         if($validator->fails()){
             // set errors and return false
