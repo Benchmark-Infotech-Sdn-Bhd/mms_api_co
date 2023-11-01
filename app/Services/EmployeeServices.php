@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
 use Illuminate\Support\Str;
 use App\Models\Role;
+use App\Models\Transportation;
 
 class EmployeeServices
 {
@@ -17,6 +18,7 @@ class EmployeeServices
     private AuthServices $authServices;
     private Role $role;
     private User $user;
+    private Transportation $transportation;
 
     /**
      * EmployeeServices constructor.
@@ -27,13 +29,14 @@ class EmployeeServices
      * @param User $user
      */
     public function __construct(Employee $employee,ValidationServices $validationServices,
-    AuthServices $authServices,Role $role, User $user)
+    AuthServices $authServices,Role $role, User $user, Transportation $transportation)
     {
         $this->employee = $employee;
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->role = $role;
         $this->user = $user;
+        $this->transportation = $transportation;
     }
 
     /**
@@ -303,15 +306,31 @@ class EmployeeServices
                 ->whereNull('deleted_at')
                 ->where('status',1)
                 ->first('id');
-        return $this->employee
+        $employee = $this->employee
         ->join('users', 'employee.id', '=', 'users.reference_id')
         ->join('user_role_type','users.id','=','user_role_type.user_id')
         ->join('roles','user_role_type.role_id','=','roles.id')
         ->where('roles.id',$role->id ?? 0)
         ->whereNull('employee.deleted_at')
-        ->select('employee.id','employee.employee_name')
+        ->select('employee.id')
+        ->selectRaw("(CONCAT(employee.employee_name, '( Supervisor - Employee)')) as employee_name")
         ->distinct('employee.id','employee.employee_name')
         ->orderBy('employee.id','DESC')
         ->get();
+
+        $transportation = $this->transportation
+        ->join('users', 'transportation.id', '=', 'users.reference_id')
+        ->join('user_role_type','users.id','=','user_role_type.user_id')
+        ->join('roles','user_role_type.role_id','=','roles.id')
+        ->where('roles.id',$role->id ?? 0)
+        ->whereNull('transportation.deleted_at')
+        ->select('transportation.id')
+        ->selectRaw("(CONCAT(transportation.driver_name, '( Supervisor - Transportation)')) as employee_name")
+        ->distinct('transportation.id','transportation.driver_name')
+        ->orderBy('transportation.id','DESC')
+        ->get();
+        
+        $employee = array_merge($employee->toArray(),$transportation->toArray());
+        return $employee;
     }
 }
