@@ -71,4 +71,18 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         return $this->belongsToMany(Company::class, 'user_company');
     }
+    /**
+     * @return HasMany
+     */
+    public function employee()
+    {
+        return $this->hasMany(Employee::class, 'id', 'reference_id');
+    }
+    /**
+     * @return HasMany
+     */
+    public function customer()
+    {
+        return $this->hasMany(CRMProspect::class, 'id', 'reference_id');
+    }
 }
