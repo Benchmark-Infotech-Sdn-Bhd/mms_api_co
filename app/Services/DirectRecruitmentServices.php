@@ -132,6 +132,15 @@ class DirectRecruitmentServices
         ];
     }
     /**
+     * @return array
+     */
+    public function searchValidation(): array
+    {
+        return [
+            'search' => 'required|min:3'
+        ];
+    }
+    /**
      * @param $request
      * @return bool|array
      */
