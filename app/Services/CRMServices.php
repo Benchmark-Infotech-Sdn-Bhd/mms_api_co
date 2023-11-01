@@ -11,6 +11,7 @@ use App\Models\SystemType;
 use App\Models\DirectrecruitmentApplications;
 use App\Models\TotalManagementApplications;
 use App\Models\EContractApplications;
+use App\Models\User;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -68,6 +69,10 @@ class CRMServices
      * @var AuthServices
      */
     private AuthServices $authServices;
+    /**
+     * @var User
+     */
+    private User $user;
 
     /**
      * RolesServices constructor.
@@ -83,8 +88,9 @@ class CRMServices
      * @param EContractApplications $eContractApplications
      * @param InvoiceServices $invoiceServices
      * @param AuthServices $authServices
+     * @param User $user
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices, AuthServices $authServices)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices, AuthServices $authServices, User $user)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -98,6 +104,7 @@ class CRMServices
         $this->eContractApplications = $eContractApplications;
         $this->invoiceServices = $invoiceServices;
         $this->authServices = $authServices;
+        $this->user = $user;
     }
     /**
      * @return array
@@ -401,6 +408,13 @@ class CRMServices
             }
         }
 
+        if(isset($request['pic_name']) && !empty($request['pic_name'])) {
+            $this->user->where('user_type', 'Customer')
+                ->where('reference_id', $request['id'])
+                ->update([
+                    'name' => $request['pic_name']
+                ]);
+        }        
         $request['ContactID'] = $prospect['xero_contact_id'];
         $createContactXero = $this->invoiceServices->createContacts($request);
         $prospect->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];

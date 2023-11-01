@@ -72,9 +72,7 @@ class UserServices
     {
         return [
             'id' => 'required',
-            'name' => 'required|regex:/^[a-zA-Z ]*$/',
-            'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
-            'address' => 'required'
+            'contact_number' => 'required|regex:/^[0-9]+$/|max:11'
         ];
     }
      /**
@@ -234,9 +232,7 @@ class UserServices
                 ];
             }
             $customerDetails = $this->crmProspect->findOrFail($userDetails->reference_id);
-            $customerDetails->pic_name = $request['name'] ?? $customerDetails->pic_name;
             $customerDetails->pic_contact_number = $request['contact_number'] ?? $customerDetails->pic_contact_number;
-            $customerDetails->address = $request['address'] ?? $customerDetails->address;
             $customerDetails->modified_by = $request['modified_by'];
             $customerDetails->save();
         } else if($userDetails->user_type == 'Admin') {
