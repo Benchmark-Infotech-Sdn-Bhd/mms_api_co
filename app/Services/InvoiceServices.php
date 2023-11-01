@@ -7,6 +7,8 @@ use App\Models\InvoiceItems;
 use App\Models\InvoiceItemsTemp;
 use App\Models\XeroSettings;
 use App\Models\XeroTaxRates;
+use App\Models\XeroAccounts;
+use App\Models\XeroItems;
 use App\Models\DirectRecruitmentExpenses;
 use App\Models\EContractCostManagement;
 use App\Models\TotalManagementCostManagement;
@@ -47,6 +49,14 @@ class InvoiceServices
      */
     private XeroTaxRates $xeroTaxRates;
     /**
+     * @var XeroAccounts
+     */
+    private XeroAccounts $xeroAccounts;
+    /**
+     * @var XeroItems
+     */
+    private XeroItems $xeroItems;
+    /**
      * @var DirectRecruitmentExpenses
      */
     private DirectRecruitmentExpenses $directRecruitmentExpenses;
@@ -85,6 +95,8 @@ class InvoiceServices
      * @param CRMProspect $crmProspect
      * @param XeroSettings $xeroSettings
      * @param XeroTaxRates $xeroTaxRates
+     * @param XeroAccounts $xeroAccounts
+     * @param XeroItems $xeroItems
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
@@ -99,6 +111,8 @@ class InvoiceServices
             CRMProspect                 $crmProspect,
             XeroSettings                $xeroSettings,
             XeroTaxRates                $xeroTaxRates,
+            XeroAccounts                $xeroAccounts,
+            XeroItems                   $xeroItems,
             ValidationServices          $validationServices,
             AuthServices                $authServices,
             Storage                     $storage
@@ -109,6 +123,8 @@ class InvoiceServices
         $this->invoiceItemsTemp = $invoiceItemsTemp;
         $this->xeroSettings = $xeroSettings;
         $this->xeroTaxRates = $xeroTaxRates;
+        $this->xeroAccounts = $xeroAccounts;
+        $this->xeroItems = $xeroItems;
         $this->directRecruitmentExpenses = $directRecruitmentExpenses;
         $this->eContractCostManagement = $eContractCostManagement;
         $this->totalManagementCostManagement = $totalManagementCostManagement;
@@ -436,12 +452,71 @@ class InvoiceServices
                 ],
             ]);
             $result = json_decode((string)$response->getBody(), true);
-            
+
             return response()->json($result);
         } catch (Exception $e) {
             Log::error('Exception in getting Items details' . $e);
             return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function saveItems() : mixed
+    {
+        $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
+        try {
+            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ITEMS_URL'), [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
+                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Accept' => 'application/json',
+                ],
+                'form_params' => [
+                ],
+            ]);
+            $result = json_decode((string)$response->getBody(), true);
+
+            if(isset($result['Items'])){
+                foreach ($result['Items'] as $row) {
+                    $this->xeroItems->updateOrCreate(
+                        [
+                            'item_id' => $row['ItemID'] ?? null, 
+                             'code' => $row['Code'] ?? null
+                        ],
+                        [
+                            'description' => $row['Description'] ?? null, 
+                             'purchase_description' => $row['PurchaseDescription'] ?? null, 
+                             'name' => $row['Name'] ?? null, 
+                             'is_tracked_as_inventory' => $row['IsTrackedAsInventory'] ?? null, 
+                             'is_sold' => $row['IsSold'] ?? null,
+                             'is_purchased' => $row['IsPurchased'] ?? null,
+                        ]
+                    );
+                }
+            }
+
+            return true;
+        } catch (Exception $e) {
+            Log::error('Exception in getting Items details' . $e);
+            return false;
+        }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function xeroGetItems($request) : mixed
+    {
+        return $this->xeroItems
+            ->select('id', 'item_id', 'code', 'description', 'purchase_description', 'name', 'is_tracked_as_inventory', 'is_sold', 'is_purchased')
+            ->distinct('id')
+            ->orderBy('id', 'asc')
+            ->get();
     }
 
     /**
@@ -469,6 +544,71 @@ class InvoiceServices
             Log::error('Exception in getting Account details' . $e);
             return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function saveAccounts() : mixed
+    {
+        $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
+        try {
+            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ACCOUNTS_URL'), [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
+                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Accept' => 'application/json',
+                ],
+                'form_params' => [
+                ],
+            ]);
+            $result = json_decode((string)$response->getBody(), true);
+            
+            if(isset($result['Accounts'])){
+                foreach ($result['Accounts'] as $row) {
+                    $this->xeroAccounts->updateOrCreate(
+                        [
+                            'account_id' => $row['AccountID'] ?? null, 
+                             'code' => $row['Code'] ?? null
+                        ],
+                        [
+                            'name' => $row['Name'] ?? null, 
+                             'status' => $row['Status'] ?? null, 
+                             'type' => $row['Type'] ?? null, 
+                             'tax_type' => $row['TaxType'] ?? null, 
+                             'class' => $row['Class'] ?? null,
+                             'enable_payments_to_account' => $row['EnablePaymentsToAccount'] ?? null,
+                             'show_in_expense_claims' => $row['ShowInExpenseClaims'] ?? null,
+                             'bank_account_number' => $row['BankAccountNumber'] ?? null,
+                             'bank_account_type' => $row['BankAccountType'] ?? null,
+                             'currency_code' => $row['CurrencyCode'] ?? null,
+                             'reporting_code' => $row['ReportingCode'] ?? null,
+                             'reporting_code_name' => $row['ReportingCodeName'] ?? null,
+                        ]
+                    );
+                }
+            }
+
+            return true;
+        } catch (Exception $e) {
+            Log::error('Exception in getting Account details' . $e);
+            return false;
+        }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function xeroGetaccounts($request) : mixed
+    {
+        return $this->xeroAccounts
+            ->select('id', 'account_id', 'code', 'name', 'status', 'type', 'tax_type','class','enable_payments_to_account','show_in_expense_claims', 'bank_account_number','bank_account_type', 'currency_code', 'reporting_code', 'reporting_code_name')
+            ->distinct('id')
+            ->orderBy('id', 'asc')
+            ->get();
     }
 
     /**

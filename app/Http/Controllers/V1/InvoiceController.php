@@ -172,6 +172,25 @@ class InvoiceController extends Controller
     } 
 
     /**
+     * get items.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function xeroGetItems(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->invoiceServices->xeroGetItems($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    } 
+
+    /**
      * Search & Retrieve all the Invoice.
      *
      * @param Request $request
@@ -184,6 +203,25 @@ class InvoiceController extends Controller
             $data = $this->invoiceServices->getAccounts($params);
             
             return $this->sendSuccess($data->original);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    } 
+
+    /**
+     * get items.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function xeroGetAccounts(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->invoiceServices->xeroGetAccounts($params);
+            return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Retrieve failed. Please retry.';
