@@ -242,10 +242,10 @@ class UserServices
                     'error' => $validator->errors()
                 ];
             }
-            $userDetails->name = $request['name'] ?? $userDetails->name;
-            $userDetails->modified_by = $request['modified_by'];
-            $userDetails->save();
         }
+        $userDetails->name = $request['name'] ?? $userDetails->name;
+        $userDetails->modified_by = $request['modified_by'];
+        $userDetails->save();
         return true;
     }
     /**
