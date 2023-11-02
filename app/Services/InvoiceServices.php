@@ -276,7 +276,7 @@ class InvoiceServices
         if(isset($invoiceData) && !empty($invoiceData)){
             $invoiceXeroData = $this->getInvoices($invoiceData);
             $invoiceData->due_amount = $invoiceXeroData->original['Invoices'][0]['AmountDue'];
-            $invoiceData->due_date = $invoiceXeroData->original['Invoices'][0]['DueDate'];
+            $invoiceData->due_date = Carbon::parse($invoiceXeroData->original['Invoices'][0]['DueDateString'])->format('Y-m-d');
             $invoiceData->invoice_status = $invoiceXeroData->original['Invoices'][0]['Status'];
             $invoiceData->save();
         }
