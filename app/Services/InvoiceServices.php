@@ -270,6 +270,17 @@ class InvoiceServices
                 'validate' => $this->validationServices->errors()
             ];
         }
+
+        $invoiceData = $this->invoice->find($request['id']);
+        
+        if(isset($invoiceData) && !empty($invoiceData)){
+            $invoiceXeroData = $this->getInvoices($invoiceData);
+            $invoiceData->due_amount = $invoiceXeroData->original['Invoices'][0]['AmountDue'];
+            $invoiceData->due_date = $invoiceXeroData->original['Invoices'][0]['DueDate'];
+            $invoiceData->invoice_status = $invoiceXeroData->original['Invoices'][0]['Status'];
+            $invoiceData->save();
+        }
+
         $data = $this->invoice->with('invoiceItems')->find($request['id']);
 
         if(is_null($data)){
@@ -410,8 +421,13 @@ class InvoiceServices
     {
         $http = new Client();
         $xeroConfig = $this->getXeroSettings();
+        $rawUrl = '';
+        if(isset($request['invoice_number']) && !empty($request['invoice_number'])){
+            $rawUrl = "/".$request['invoice_number'];
+        }
+
         try {
-            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'), [
+            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'). $rawUrl, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                     'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
