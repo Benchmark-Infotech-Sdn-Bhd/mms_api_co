@@ -18,7 +18,7 @@ class TotalManagementProject extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'application_id', 'name', 'state', 'city', 'address', 'employee_id', 'transportation_provider_id', 'driver_id', 'assign_as_supervisor', 'annual_leave', 'medical_leave', 'hospitalization_leave', 'created_by', 'modified_by'
+        'application_id', 'name', 'state', 'city', 'address', 'supervisor_id', 'supervisor_type', 'employee_id', 'transportation_provider_id', 'driver_id', 'assign_as_supervisor', 'annual_leave', 'medical_leave', 'hospitalization_leave', 'created_by', 'modified_by'
     ];
     /**
      * @return BelongsTo

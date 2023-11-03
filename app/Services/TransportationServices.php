@@ -10,6 +10,7 @@ use App\Models\TransportationAttachments;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Services\AuthServices;
+use App\Services\RolesServices;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Str;
@@ -40,8 +41,12 @@ class TransportationServices
      * @var User
      */
     private User $user;
+    /**
+     * @var RolesServices
+     */
+    private RolesServices $rolesServices;
 
-    public function __construct(Transportation $transportation, TransportationAttachments $transportationAttachments, Storage $storage, AuthServices $authServices, Role $role, User $user)
+    public function __construct(Transportation $transportation, TransportationAttachments $transportationAttachments, Storage $storage, AuthServices $authServices, Role $role, User $user, RolesServices $rolesServices)
     {
         $this->transportation = $transportation;
         $this->transportationAttachments = $transportationAttachments;
@@ -49,6 +54,7 @@ class TransportationServices
         $this->authServices = $authServices;
         $this->role = $role;
         $this->user = $user;
+        $this->rolesServices = $rolesServices;
     }
     /**
      * @param $request
@@ -113,7 +119,24 @@ class TransportationServices
                 ->where('company_id', $user['company_id'])
                 ->whereNull('deleted_at')
                 ->where('status',1)
-                ->first('id');
+                ->first('id'); 
+
+            if(empty($role)){
+
+                $addRole['name'] = Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR');
+                $addRole['company_id'] = $user['company_id'];
+                $addRole['special_permission'] = 0;
+                $addRole['created_by'] = $user['id'];
+
+                $this->rolesServices->create($addRole);
+
+                $role = $this->role->where('role_name', Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'))
+                ->where('company_id', $user['company_id'])
+                ->whereNull('deleted_at')
+                ->where('status',1)
+                ->first('id'); 
+                
+            }
 
             $res = $this->authServices->create(
                 ['name' => $request['driver_name'],
@@ -219,6 +242,23 @@ class TransportationServices
                 ->whereNull('deleted_at')
                 ->where('status',1)
                 ->first('id');
+
+            if(empty($role)){
+
+                $addRole['name'] = Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR');
+                $addRole['company_id'] = $user['company_id'];
+                $addRole['special_permission'] = 0;
+                $addRole['created_by'] = $user['id'];
+
+                $this->rolesServices->create($addRole);
+
+                $role = $this->role->where('role_name', Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'))
+                ->where('company_id', $user['company_id'])
+                ->whereNull('deleted_at')
+                ->where('status',1)
+                ->first('id'); 
+                
+            }
 
             $res = $this->authServices->create(
                 ['name' => $request['driver_name'],
