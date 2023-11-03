@@ -312,26 +312,26 @@ class EmployeeServices
         ->join('roles','user_role_type.role_id','=','roles.id')
         ->where('roles.id',$role->id ?? 0)
         ->whereNull('employee.deleted_at')
-        ->select('employee.id')
-        ->selectRaw("(CONCAT(employee.employee_name, '( Supervisor - Employee)')) as employee_name")
+        ->select('employee.id', 'employee.employee_name')
+        ->selectRaw("'employee' as supervisor_type")
         ->distinct('employee.id','employee.employee_name')
         ->orderBy('employee.id','DESC')
         ->get();
 
-        /*$transportation = $this->transportation
+        $transportation = $this->transportation
         ->join('users', 'transportation.id', '=', 'users.reference_id')
         ->join('user_role_type','users.id','=','user_role_type.user_id')
         ->join('roles','user_role_type.role_id','=','roles.id')
         ->where('roles.id',$role->id ?? 0)
         ->where('transportation.assigned_supervisor', 1)
         ->whereNull('transportation.deleted_at')
-        ->select('transportation.id')
-        ->selectRaw("(CONCAT(transportation.driver_name, '( Supervisor - Transportation)')) as employee_name")
+        ->select('transportation.id', 'transportation.driver_name as employee_name')
+        ->selectRaw("'driver' as supervisor_type")
         ->distinct('transportation.id','transportation.driver_name')
         ->orderBy('transportation.id','DESC')
         ->get();
         
-        $employee = array_merge($employee->toArray(),$transportation->toArray());*/
+        $employee = array_merge($employee->toArray(),$transportation->toArray());
         return $employee;
     }
 }

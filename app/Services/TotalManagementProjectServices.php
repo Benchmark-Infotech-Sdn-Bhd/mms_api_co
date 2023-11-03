@@ -33,7 +33,9 @@ class TotalManagementProjectServices
             'state' => 'required',
             'city' => 'required',
             'address' => 'required',
-            'employee_id' => 'required',
+            'supervisor_id' => 'required',
+            'supervisor_type' => 'required',
+            /* 'employee_id' => 'required', */
             'transportation_provider_id' => 'required',
             'driver_id' => 'required',
             'annual_leave' => 'required|regex:/^[0-9]+$/|max:2',
@@ -52,7 +54,9 @@ class TotalManagementProjectServices
             'state' => 'required',
             'city' => 'required',
             'address' => 'required',
-            'employee_id' => 'required',
+            'supervisor_id' => 'required',
+            'supervisor_type' => 'required',
+            /* 'employee_id' => 'required', */
             'transportation_provider_id' => 'required',
             'driver_id' => 'required',
             'annual_leave' => 'required|regex:/^[0-9]+$/|max:2',
@@ -67,7 +71,9 @@ class TotalManagementProjectServices
     public function list($request): mixed
     {
         return $this->totalManagementProject
-        ->leftJoin('employee', 'employee.id', '=', 'total_management_project.employee_id')
+        //->leftJoin('employee', 'employee.id', '=', 'total_management_project.employee_id')
+        ->leftJoin('employee', 'employee.id', '=', 'total_management_project.supervisor_id')
+        ->leftJoin('transportation as supervisorTransportation', 'supervisorTransportation.id', '=', 'total_management_project.supervisor_id')
         ->leftJoin('vendors', 'vendors.id', '=', 'total_management_project.transportation_provider_id')
         ->leftJoin('transportation', 'transportation.id', '=', 'total_management_project.driver_id')
         ->leftJoin('worker_employment', function($query) {
@@ -89,9 +95,9 @@ class TotalManagementProjectServices
                 ->orWhere('employee.employee_name', 'like', '%'.$request['search'].'%');
             }
         })
-        ->select('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name as vendor_name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.created_at', 'total_management_project.updated_at')
-        ->selectRaw('count(distinct workers.id) as workers, count(distinct worker_employment.id) as worker_employments')
-        ->groupBy('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.created_at', 'total_management_project.updated_at')
+        ->select('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.supervisor_id', 'total_management_project.supervisor_type', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name as vendor_name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.created_at', 'total_management_project.updated_at')
+        ->selectRaw('count(distinct workers.id) as workers, count(distinct worker_employment.id) as worker_employments, IF(total_management_project.supervisor_type = "employee", employee.employee_name, supervisorTransportation.driver_name) as supervisor_name')
+        ->groupBy('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.supervisor_id', 'total_management_project.supervisor_type', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.created_at', 'total_management_project.updated_at', 'supervisorTransportation.driver_name')
         ->orderBy('total_management_project.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -121,10 +127,12 @@ class TotalManagementProjectServices
             'state' => $request['state'] ?? '',
             'city' => $request['city'] ?? '',
             'address' => $request['address'] ?? '',
-            'employee_id' => $request['employee_id'] ?? 0,
+            'supervisor_id' => $request['supervisor_id'] ?? 0,
+            'supervisor_type' => $request['supervisor_type'] ?? 0,
+            //'employee_id' => $request['employee_id'] ?? 0,
             'transportation_provider_id' => $request['transportation_provider_id'] ?? 0,
             'driver_id' => $request['driver_id'] ?? 0,
-            'assign_as_supervisor' => $request['assign_as_supervisor'] ?? 0,
+            //'assign_as_supervisor' => $request['assign_as_supervisor'] ?? 0,
             'annual_leave' => $request['annual_leave'] ?? 0,
             'medical_leave' => $request['medical_leave'] ?? 0,
             'hospitalization_leave' => $request['hospitalization_leave'] ?? 0,
@@ -152,10 +160,12 @@ class TotalManagementProjectServices
         $totalManagementProject->state =  $request['state'] ?? $totalManagementProject->state;
         $totalManagementProject->city =  $request['city'] ?? $totalManagementProject->city;
         $totalManagementProject->address =  $request['address'] ?? $totalManagementProject->address;
-        $totalManagementProject->employee_id =  $request['employee_id'] ?? $totalManagementProject->employee_id;
+        $totalManagementProject->supervisor_id =  $request['supervisor_id'] ?? $totalManagementProject->supervisor_id;
+        $totalManagementProject->supervisor_type =  $request['supervisor_type'] ?? $totalManagementProject->supervisor_type;
+        //$totalManagementProject->employee_id =  $request['employee_id'] ?? $totalManagementProject->employee_id;
         $totalManagementProject->transportation_provider_id =  $request['transportation_provider_id'] ?? $totalManagementProject->transportation_provider_id;
         $totalManagementProject->driver_id =  $request['driver_id'] ?? $totalManagementProject->driver_id;
-        $totalManagementProject->assign_as_supervisor =  $request['assign_as_supervisor'] ?? $totalManagementProject->assign_as_supervisor;
+        //$totalManagementProject->assign_as_supervisor =  $request['assign_as_supervisor'] ?? $totalManagementProject->assign_as_supervisor;
         $totalManagementProject->annual_leave =  $request['annual_leave'] ?? $totalManagementProject->annual_leave;
         $totalManagementProject->medical_leave =  $request['medical_leave'] ?? $totalManagementProject->medical_leave;
         $totalManagementProject->hospitalization_leave =  $request['hospitalization_leave'] ?? $totalManagementProject->hospitalization_leave;
