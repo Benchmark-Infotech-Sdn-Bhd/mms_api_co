@@ -3,11 +3,13 @@
 namespace App\Services;
 
 use App\Models\Company;
+use App\Models\CompanyAttachments;
 use App\Models\UserCompany;
 use App\Models\User;
 use App\Models\FeeRegistration;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class CompanyServices
 {
@@ -15,6 +17,10 @@ class CompanyServices
      * @var Company
      */
     private Company $company;
+    /**
+     * @var CompanyAttachments
+     */
+    private CompanyAttachments $companyAttachments;
     /**
      * @var UserCompany
      */
@@ -27,20 +33,28 @@ class CompanyServices
      * @var feeRegistration
      */
     private FeeRegistration $feeRegistration;
+    /**
+     * @var Storage
+     */
+    private Storage $storage;
 
     /**
      * CompanyServices constructor
      * @param Company $company
+     * @param CompanyAttachments $companyAttachments
      * @param UserCompany $userCompany
      * @param User $user
      * @param FeeRegistration $feeRegistration
+     * @param Storage $storage
      */
-    public function __construct(Company $company, UserCompany $userCompany, User $user, FeeRegistration $feeRegistration) 
+    public function __construct(Company $company, CompanyAttachments $companyAttachments, UserCompany $userCompany, User $user, FeeRegistration $feeRegistration, Storage $storage) 
     {
         $this->company = $company;
+        $this->companyAttachments = $companyAttachments;
         $this->userCompany = $userCompany;
         $this->user = $user;
         $this->feeRegistration = $feeRegistration;
+        $this->storage = $storage;
     }
     /**
      * @param $request
@@ -64,7 +78,7 @@ class CompanyServices
      */
     public function show($request): mixed
     {
-        return $this->company->findOrFail($request['id']);
+        return $this->company->with('attachments')->findOrFail($request['id']);
     }
     /**
      * @param $request
@@ -72,7 +86,7 @@ class CompanyServices
      */
     public function create($request): bool|array
     {
-        $validator = Validator::make($request, $this->company->rules);
+        $validator = Validator::make($request->toArray(), $this->company->rules);
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
@@ -87,6 +101,7 @@ class CompanyServices
             'role' => $request['role'] ?? 'Admin',
             'status' => $request['status'] ?? 1,
             'parent_id' => $request['parent_id'] ?? 0,
+            'system_color' => $request['system_color'] ?? '',
             'created_by' => $request['created_by'] ?? 0,
             'modified_by' => $request['created_by'] ?? 0
         ]);
@@ -102,6 +117,27 @@ class CompanyServices
                 'company_id' => $companyDetails->id
             ]);
         }
+        if (request()->hasFile('attachment') && isset($companyDetails->id)) {
+            foreach($request->file('attachment') as $file) {                
+                $fileName = $file->getClientOriginalName();                 
+                $filePath = '/company/logo/' . $companyDetails->id. '/'. $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+
+                $this->companyAttachments->updateOrCreate(
+                    [
+                        "file_id" => $companyDetails->id
+                    ],
+                    [
+                    "file_name" => $fileName,
+                    "file_type" => 'Logo',
+                    "file_url" =>  $fileUrl,
+                    'created_by' => $request['created_by'] ?? 0,
+                    'modified_by' => $request['created_by'] ?? 0
+                ]);
+            }
+        }
         return true;
     }
     /**
@@ -110,7 +146,7 @@ class CompanyServices
      */
     public function update($request): bool|array
     {
-        $validator = Validator::make($request, $this->company->updationRules($request['id']));
+        $validator = Validator::make($request->toArray(), $this->company->updationRules($request['id']));
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
@@ -123,8 +159,31 @@ class CompanyServices
         $company->state = $request['state'] ?? $company->state;
         $company->pic_name = $request['pic_name'] ?? $company->pic_name;
         $company->status = $request['status'] ?? $company->status;
+        $company->system_color = $request['system_color'] ?? $company->system_color;
         $company->modified_by = $request['modified_by'] ?? $company->modified_by;
         $company->save();
+
+        if (request()->hasFile('attachment') && isset($company->id)) {
+            foreach($request->file('attachment') as $file) {                
+                $fileName = $file->getClientOriginalName();                 
+                $filePath = '/company/logo/' . $company->id. '/'. $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+
+                $this->companyAttachments->updateOrCreate(
+                    [
+                        "file_id" => $company->id
+                    ],
+                    [
+                    "file_name" => $fileName,
+                    "file_type" => 'Logo',
+                    "file_url" =>  $fileUrl,
+                    'modified_by' => $request['modified_by'] ?? 0
+                ]);
+            }
+        }
+
         return true;
     }
     /**
