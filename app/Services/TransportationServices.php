@@ -141,7 +141,7 @@ class TransportationServices
             $res = $this->authServices->create(
                 ['name' => $request['driver_name'],
                 'email' => $request['driver_email'],
-                'role_id' => $role->id ?? 0,
+                'role_id' => array($role->id) ?? [],
                 'user_id' => $user['id'],
                 'status' => 1,
                 'password' => Str::random(8),
@@ -263,7 +263,7 @@ class TransportationServices
             $res = $this->authServices->create(
                 ['name' => $request['driver_name'],
                 'email' => $request['driver_email'],
-                'role_id' => $role->id ?? 0,
+                'role_id' => array($role->id) ?? [],
                 'user_id' => $user['id'],
                 'status' => 1,
                 'password' => Str::random(8),
