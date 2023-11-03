@@ -23,20 +23,6 @@ abstract class TestCase extends BaseTestCase
         return require __DIR__.'/../bootstrap/app.php';
     }
 
-    //Helper Methods
-
-    /**
-     * Creates the email.
-     *
-     * @return string
-     */
-    protected function createEmail(): string
-    {
-        $this->faker = Factory::create();
-        $this->faker->seed(1234);
-        return $this->faker->email;
-    }
-
     /**
      * @param bool $artisan
      * @return array
@@ -57,8 +43,10 @@ abstract class TestCase extends BaseTestCase
     {
         if($artisan === true) {
             $this->artisan("db:seed --class=unit_testing_user");
+            $this->artisan("db:seed --class=unit_testing_company");
+            $this->artisan("db:seed --class=unit_testing_admin_user");
         }
-        $response = $this->call('POST', 'api/v1/login', ['email' => 'unittest@gmail.com', 'password' => 'Welcome@123']);
+        $response = $this->call('POST', 'api/v1/login', ['email' => 'unittestadmin@gmail.com', 'password' => 'Welcome@123']);
         $this->assertEquals(200, $response->status());
         return $response['data']['token'];
     }

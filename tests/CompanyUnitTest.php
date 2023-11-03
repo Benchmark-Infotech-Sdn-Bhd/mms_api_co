@@ -371,13 +371,13 @@ class CompanyUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['company_name' => 'Test Company', 'register_number' => 'APS646-46876', 'country' => 'India', 'state' => 'TamilNadu', 'pic_name' => 'TestPIC', 'role' => 'Admin'];
+        return ['company_name' => 'Test Company', 'register_number' => 'APS646-46876', 'country' => 'India', 'state' => 'TamilNadu', 'pic_name' => '', 'role' => 'Admin'];
     }
     /**
      * @return array
      */
     public function updationData(): array
     {
-        return ['id' => 1, 'company_name' => 'Test Company', 'register_number' => 'APS646-46876', 'country' => 'India', 'state' => 'TamilNadu', 'pic_name' => 'TestPIC', 'role' => 'Admin'];
+        return ['id' => 1, 'company_name' => 'Test Company', 'register_number' => 'APS646-46876', 'country' => 'India', 'state' => 'TamilNadu'];
     }
 }

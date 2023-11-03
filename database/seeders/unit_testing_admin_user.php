@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
-class unit_testing_user extends Seeder
+class unit_testing_admin_user extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,11 +15,11 @@ class unit_testing_user extends Seeder
     public function run()
     {
         User::create([
-            'name' => 'unittest',
-            'email' => 'unittest@gmail.com',
+            'name' => 'unittestadmin',
+            'email' => 'unittestadmin@gmail.com',
             'password' => '$2y$10$NV8KnNP9pHVcHF9k5V8yC.xLr4PKHsv/DNcL0G0dnrEoVIPRJbvdm',
-            'user_type' => 'Super Admin',
-            'company_id' => 0
+            'user_type' => 'Admin',
+            'company_id' => 1
         ]);
     }
 }
