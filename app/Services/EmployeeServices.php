@@ -72,7 +72,7 @@ class EmployeeServices
         $res = $this->authServices->create(
             ['name' => $request['employee_name'],
             'email' => $request['email'],
-            'role_id' => (int)$request['role_id'],
+            'role_id' => $request['role_id'],
             'user_id' => $request['created_by'],
             'status' => 1,
             'password' => Str::random(8),
@@ -111,7 +111,7 @@ class EmployeeServices
         $res = $this->authServices->update(
             ['name' => $request['employee_name'] ?? $employee['employee_name'],
             'email' => $request['email'],
-            'role_id' => (int)$request['role_id'],
+            'role_id' => $request['role_id'],
             'user_id' => $request['modified_by'],
             'reference_id' => $request['id']
         ]);

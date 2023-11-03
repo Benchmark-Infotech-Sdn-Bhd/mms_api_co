@@ -144,20 +144,23 @@ class AuthServices extends Controller
             'company_id' => $request['company_id'] ?? 0,
             'pic_flag' => isset($request['pic_flag']) ?? 0
         ]);
-        if($request['user_type'] != 'Admin' && $request['user_type'] != 'Customer') {
-            $this->uesrRoleType->create([
-                'user_id' => $response->id,
-                'role_id' => $request['role_id'],
-                'status'  => $request['status'] ?? 1,
-                'created_by' => $request['user_id'] ?? 0,
-                'modified_by' => $request['user_id'] ?? 0
-            ]);
+        if($request['user_type'] != 'Admin') {
+            if(isset($request['role_id']) && !empty($request['role_id'])) {
+                foreach ($request['role_id'] as $role) {
+                    $this->uesrRoleType->create([
+                        'user_id' => $response->id,
+                        'role_id' => $role,
+                        'status'  => $request['status'] ?? 1,
+                        'created_by' => $request['user_id'] ?? 0,
+                        'modified_by' => $request['user_id'] ?? 0
+                    ]);
+                }
+            }
             array_push($request['subsidiary_companies'], $request['company_id']);
             foreach ($request['subsidiary_companies'] as $subsidiaryCompany) {
                 $this->userCompany->create([
                     'user_id' => $response->id,
                     'company_id' => $subsidiaryCompany ?? 0,
-                    'role_id' => $request['role_id'] ?? '',
                     'created_by' => $request['user_id'] ?? 0,
                     'modified_by' => $request['user_id'] ?? 0
                 ]);
@@ -186,19 +189,23 @@ class AuthServices extends Controller
         if(is_null($user)){
             return false;
         }
-        $userRole = $this->uesrRoleType->where('user_id',$user['id'])->first();
-        if(is_null($userRole)){
-            return false;
-        }
+        $this->uesrRoleType->where('user_id', $user['id'])->delete();
         $user->update([
             'name' => $request['name'] ?? $user['name'],
             'email' => $request['email'] ?? $user['email'],
             'modified_by' => $request['user_id'] ?? $user['modified_by']
         ]);
-        $userRole->update([
-            'role_id' => $request['role_id'] ?? $userRole['role_id'],
-            'modified_by' => $request['user_id'] ?? $userRole['modified_by']
-        ]);
+        if(isset($request['role_id']) && !empty($request['role_id'])) {
+            foreach ($request['role_id'] as $role) {
+                $this->uesrRoleType->create([
+                    'user_id' => $user['id'],
+                    'role_id' => $role,
+                    'status'  => $request['status'] ?? 1,
+                    'created_by' => $request['user_id'] ?? 0,
+                    'modified_by' => $request['user_id'] ?? 0
+                ]);
+            }
+        }
         return true;
     }
     /**
@@ -225,9 +232,11 @@ class AuthServices extends Controller
      */
     public function show($request) : mixed
     {
-        $user = $this->user->find($request['id']);
+        $user = $this->user->with(['userRoles' => function($query) {
+            $query->select('user_id', 'role_id');
+        }])->find($request['id']);
         if($user['id']){
-            $user = $this->userWithRoles($user);
+            // $user = $this->userWithRoles($user);
             $user = $this->userWithCompany($user);
         }
         return $user;

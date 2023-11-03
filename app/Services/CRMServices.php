@@ -12,6 +12,7 @@ use App\Models\DirectrecruitmentApplications;
 use App\Models\TotalManagementApplications;
 use App\Models\EContractApplications;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -73,6 +74,10 @@ class CRMServices
      * @var User
      */
     private User $user;
+    /**
+     * @var Role
+     */
+    private Role $role;
 
     /**
      * RolesServices constructor.
@@ -89,8 +94,9 @@ class CRMServices
      * @param InvoiceServices $invoiceServices
      * @param AuthServices $authServices
      * @param User $user
+     * @param Role $role
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices, AuthServices $authServices, User $user)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices, AuthServices $authServices, User $user, Role $role)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -105,6 +111,7 @@ class CRMServices
         $this->invoiceServices = $invoiceServices;
         $this->authServices = $authServices;
         $this->user = $user;
+        $this->role = $role;
     }
     /**
      * @return array
@@ -250,16 +257,33 @@ class CRMServices
             'company_id'                    => $request['company_id'] ?? 0
         ]);
 
+        $role = $this->role->where('role_name', 'Customer')
+                ->where('company_id', $request['company_id'])
+                ->whereNull('deleted_at')
+                ->where('status',1)
+                ->first('id');
+        if(is_null($role)) { 
+            $role = $this->role->create([
+                'role_name'     => 'Customer',
+                'system_role'   => $request['system_role'] ?? 0,
+                'status'        => $request['status'] ?? 1,
+                'parent_id'     => $request['parent_id'] ?? 0,
+                'created_by'    => $request['created_by'] ?? 0,
+                'modified_by'   => $request['created_by'] ?? 0,
+                'company_id'   => $request['company_id'] ?? 0,
+                'special_permission' => $request['special_permission'] ?? 0
+            ]);
+        }
         $res = $this->authServices->create(
             ['name' => $request['pic_name'],
             'email' => $request['email'],
-            'role_id' => 0,
+            'role_id' => array($role->id) ?? [],
             'user_id' => $request['created_by'],
             'status' => 1,
             'password' => Str::random(8),
             'reference_id' => $prospect['id'],
             'user_type' => "Customer",
-            //'subsidiary_companies' => $request['subsidiary_companies'],
+            'subsidiary_companies' => $request['subsidiary_companies'] ?? [],
             'company_id' => $request['company_id']
         ]);
 
@@ -267,7 +291,7 @@ class CRMServices
             $prospect->delete();
             return [
                 "isCreated" => false,
-                "message"=> "Employee not created"
+                "message"=> "Customer not created"
             ];
         }
 
