@@ -283,4 +283,18 @@ class CompanyServices
             ->select('id', 'company_name')
             ->get();
     }
+    /**
+     *
+     * @param $request
+     * @return bool
+     */    
+    public function deleteAttachment($request): bool
+    {   
+        $data = $this->companyAttachments->find($request['attachment_id']);
+        if(is_null($data)) {
+            return false;
+        }
+        $data->delete();
+        return true;
+    }
 }
