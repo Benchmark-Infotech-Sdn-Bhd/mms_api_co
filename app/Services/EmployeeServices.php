@@ -312,10 +312,10 @@ class EmployeeServices
         ->join('roles','user_role_type.role_id','=','roles.id')
         ->where('roles.id',$role->id ?? 0)
         ->whereNull('employee.deleted_at')
-        ->select('employee.id', 'employee.employee_name')
+        ->select('users.id', 'employee.employee_name')
         ->selectRaw("'employee' as supervisor_type")
-        ->distinct('employee.id','employee.employee_name')
-        ->orderBy('employee.id','DESC')
+        ->distinct('users.id','employee.employee_name')
+        ->orderBy('users.id','DESC')
         ->get();
 
         $transportation = $this->transportation
@@ -325,10 +325,10 @@ class EmployeeServices
         ->where('roles.id',$role->id ?? 0)
         ->where('transportation.assigned_supervisor', 1)
         ->whereNull('transportation.deleted_at')
-        ->select('transportation.id', 'transportation.driver_name as employee_name')
+        ->select('users.id', 'transportation.driver_name as employee_name')
         ->selectRaw("'driver' as supervisor_type")
-        ->distinct('transportation.id','transportation.driver_name')
-        ->orderBy('transportation.id','DESC')
+        ->distinct('users.id','transportation.driver_name')
+        ->orderBy('users.id','DESC')
         ->get();
         
         $employee = array_merge($employee->toArray(),$transportation->toArray());

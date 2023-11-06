@@ -30,10 +30,11 @@ class TotalManagementSupervisorServices
     public function list($request): mixed
     {
         return $this->totalManagementProject
+        ->leftJoin('users as supervisorUsers', 'supervisorUsers.id', '=', 'total_management_project.supervisor_id')
         ->leftJoin('employee', function ($join) {
-            $join->on('employee.id', '=', 'total_management_project.supervisor_id');
+            $join->on('employee.id', '=', 'supervisorUsers.reference_id');
         })
-        ->leftJoin('transportation as supervisorTransportation', 'supervisorTransportation.id', '=', 'total_management_project.supervisor_id')
+        ->leftJoin('transportation as supervisorTransportation', 'supervisorTransportation.id', '=', 'supervisorUsers.reference_id')
         ->leftJoin('users', 'employee.id', '=', 'users.reference_id')
         ->leftJoin('users as usersTransportation', 'supervisorTransportation.id', '=', 'usersTransportation.reference_id')
         ->leftJoin('transportation', function ($join) {
@@ -61,8 +62,9 @@ class TotalManagementSupervisorServices
         return $this->totalManagementProject
         ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
         ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
-        ->leftJoin('employee', 'employee.id', '=', 'total_management_project.supervisor_id')
-        ->leftJoin('transportation as supervisorTransportation', 'supervisorTransportation.id', '=', 'total_management_project.supervisor_id')
+        ->leftJoin('users as supervisorUsers', 'supervisorUsers.id', '=', 'total_management_project.supervisor_id')
+        ->leftJoin('employee', 'employee.id', '=', 'supervisorUsers.reference_id')
+        ->leftJoin('transportation as supervisorTransportation', 'supervisorTransportation.id', '=', 'supervisorUsers.reference_id')
         ->leftJoin('vendors', 'vendors.id', '=', 'total_management_project.transportation_provider_id')
         ->leftJoin('transportation', 'transportation.id', '=', 'total_management_project.driver_id')
         ->where(function ($query) use ($request) {
