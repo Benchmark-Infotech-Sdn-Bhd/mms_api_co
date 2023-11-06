@@ -255,4 +255,25 @@ class CompanyController extends Controller
             return $this->sendError(['message' => 'Failed to List Companies'], 400);
         }
     }
+    /**
+     * Delete attachment.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteAttachment(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->deleteAttachment($params);
+            if ($response == true) {
+                return $this->sendSuccess(['message' => 'Attachment Deleted Sussessfully']);
+            } else {
+                return $this->sendError(['message' => 'Data Not Found'], 400);
+            }
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Delete Attachment'], 400);
+        }
+    }
 }
