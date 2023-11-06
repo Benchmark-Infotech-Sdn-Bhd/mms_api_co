@@ -455,7 +455,9 @@ class TotalManagementWorkerServices
             $query->on('worker_employment.worker_id','=','workers.id')
             ->where('worker_employment.service_type', 'Total Management')
             ->where('worker_employment.transfer_flag', 0)
-            ->whereNull('worker_employment.remove_date');
+            ->whereNull('worker_employment.remove_date')
+            ->whereNull('worker_employment.work_end_date')
+            ->whereNull('worker_employment.event_type');
         })
         ->where('workers.crm_prospect_id', $prospectId)
         ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
@@ -468,7 +470,9 @@ class TotalManagementWorkerServices
             $query->on('worker_employment.worker_id','=','workers.id')
             ->where('worker_employment.service_type', 'Total Management')
             ->where('worker_employment.transfer_flag', 0)
-            ->whereNull('worker_employment.remove_date');
+            ->whereNull('worker_employment.remove_date')
+            ->whereNull('worker_employment.work_end_date')
+            ->whereNull('worker_employment.event_type');
         })
         ->where('workers.crm_prospect_id', 0)
         ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))

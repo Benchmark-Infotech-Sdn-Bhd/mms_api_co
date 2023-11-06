@@ -90,6 +90,14 @@ class EContractTransferController extends Controller
                 return $this->validationError($response['error']);
             } else if(isset($response['projectExist'])){
                 return $this->sendError(['message' => 'Selected Worker is already working in this project'], 422);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of worker cannot exceed the Applied Quota'], 422);
+            } else if(isset($response['quotaFromExistingError'])) {
+                return $this->sendError(['message' => 'Cannot Transfer worker to a From Existing Project'], 422);
+            } else if(isset($response['fomnextQuotaError'])) {
+                return $this->sendError(['message' => 'The number of Fomnext worker cannot exceed the Fomnext Quota'], 422);
+            } else if(isset($response['otherCompanyError'])) {
+                return $this->sendError(['message' => 'The selected Client worker cannot be transferred to another Client'], 422);
             }
             return $this->sendSuccess(['message' => 'Worker Transfered Successfully']);
         } catch (Exception $e) {

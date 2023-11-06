@@ -33,6 +33,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('adminShow', 'V1\UserController@adminShow');
             $router->post('adminUpdate', 'V1\UserController@adminUpdate');
             $router->post('adminUpdateStatus', 'V1\UserController@adminUpdateStatus');
+            $router->post('resetPassword', 'V1\UserController@resetPassword');
+            $router->post('showUser', 'V1\UserController@showUser');
+            $router->post('updateUser', 'V1\UserController@updateUser');
         });
         /**
          * Routes for Company.
@@ -386,6 +389,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('updateSubmission', 'V1\DirectRecruitmentSpecialPassController@updateSubmission');
                         $router->post('updateValidity', 'V1\DirectRecruitmentSpecialPassController@updateValidity');
                         $router->post('workersListExport', 'V1\DirectRecruitmentSpecialPassController@workersListExport');
+                    });
+                    $router->group(['prefix' => 'postponed'], function () use ($router) {
+                        $router->post('workersList', 'V1\DirectRecruitmentPostponedController@workersList');
                     });
                 });
             });

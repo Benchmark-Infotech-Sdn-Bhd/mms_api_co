@@ -228,6 +228,7 @@ class AuthServices extends Controller
         $user = $this->user->find($request['id']);
         if($user['id']){
             $user = $this->userWithRoles($user);
+            $user = $this->userWithCompany($user);
         }
         return $user;
     }
@@ -258,6 +259,26 @@ class AuthServices extends Controller
             $user['role_id'] = null;
         } else {
             $user['role_id'] = $roles['role_id'];
+        }
+        return $user;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function userWithCompany($user) : mixed
+    {
+        $company = $this->company
+        ->leftJoin('company_attachments', 'company_attachments.file_id', 'company.id')
+        ->where('company.id',$user['company_id'])
+        ->select('company.system_color', 'company_attachments.file_url')
+        ->first();
+        if(is_null($company)){
+            $user['system_color'] = null;
+            $user['logo_url'] = null;
+        } else {
+            $user['system_color'] = $company['system_color'];
+            $user['logo_url'] = $company['file_url'];
         }
         return $user;
     }

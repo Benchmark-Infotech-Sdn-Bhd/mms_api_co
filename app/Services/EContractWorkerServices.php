@@ -197,17 +197,17 @@ class EContractWorkerServices
 
         if(isset($request['workers']) && !empty($request['workers'])) {
 
-            $applicationQuotaRequested = $this->eContractProject
-            ->leftJoin('e-contract_applications', 'e-contract_applications.id', 'e-contract_project.application_id')
-            ->where('e-contract_project.id',$request['project_id'])
-            ->select('e-contract_applications.quota_requested')->get();
-
-            $quotaRequested = isset($applicationQuotaRequested[0]['quota_requested']) ?$applicationQuotaRequested[0]['quota_requested'] : 0;
+            $projectDetails = $this->eContractProject->findOrFail($request['project_id']);
+            $applicationDeatils = $this->eContractApplications->findOrFail($projectDetails->application_id);
+            $projectIds = $this->eContractProject->where('application_id', $projectDetails->application_id)
+                            ->select('id')
+                            ->get()
+                            ->toArray();
+            $projectIds = array_column($projectIds, 'id');
 
             $assignedWorkerCount = $this->workers
-            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
-            ->where('worker_employment.project_id', $request['project_id'])
+            ->whereIn('worker_employment.project_id', $projectIds)
             ->where('worker_employment.service_type', 'e-Contract')
             ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
             ->where('worker_employment.transfer_flag', 0)
@@ -217,7 +217,7 @@ class EContractWorkerServices
 
             $assignedWorkerCount += count($request['workers']);
 
-            if($assignedWorkerCount > $quotaRequested) {
+            if($assignedWorkerCount > $applicationDeatils->quota_requested) {
                 return [
                     'quotaError' => true
                 ];

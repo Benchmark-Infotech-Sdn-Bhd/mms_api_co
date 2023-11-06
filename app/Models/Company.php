@@ -22,7 +22,7 @@ class Company extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['company_name', 'register_number', 'country', 'state', 'pic_name', 'role', 'status', 'parent_id', 'parent_flag', 'created_by', 'modified_by'];
+    protected $fillable = ['company_name', 'register_number', 'country', 'state', 'pic_name', 'role', 'status', 'parent_id', 'parent_flag', 'created_by', 'modified_by', 'system_color'];
     /**
      * The attributes that are required.
      *
@@ -32,7 +32,8 @@ class Company extends Model implements Auditable
         'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
         'register_number' => 'required|regex:/^[a-zA-Z0-9\-]*$/|unique:company,register_number,NULL,id,deleted_at,NULL',
         'country' => 'required|regex:/^[a-zA-Z ]*$/',
-        'state' => 'required|regex:/^[a-zA-Z ]*$/'
+        'state' => 'required|regex:/^[a-zA-Z ]*$/',
+        'attachment.*' => 'mimes:png|max:2048'
     ];
     /**
      * The function returns array that are required for updation.
@@ -47,7 +48,8 @@ class Company extends Model implements Auditable
             'company_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'register_number' => 'required|regex:/^[a-zA-Z0-9\-]*$/|unique:company,register_number,'.$id.',id,deleted_at,NULL',
             'country' => 'required|regex:/^[a-zA-Z]*$/',
-            'state' => 'required|regex:/^[a-zA-Z ]*$/'
+            'state' => 'required|regex:/^[a-zA-Z ]*$/',
+            'attachment.*' => 'mimes:png|max:2048'
         ];
     }
     /**
@@ -63,5 +65,12 @@ class Company extends Model implements Auditable
     public function users()
     {
         return $this->belongsToMany(User::class, 'user_company');
+    }
+    /**
+     * @return HasOne
+     */
+    public function attachments()
+    {
+        return $this->hasOne(CompanyAttachments::class, 'file_id');
     }
 }

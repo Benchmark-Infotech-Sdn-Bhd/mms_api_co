@@ -116,5 +116,71 @@ class UserController extends Controller
             return $this->sendError(['message' => $data['error']]);
         }
     }
-    
+    /**
+     * user reset password.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $data = $this->userServices->resetPassword($params);
+            if(isset($data['error'])){
+                return $this->validationError($data['error']);
+            } else if(isset($data['currentPasswordError'])) {
+                return $this->sendError(['message' => 'Current password keyed in is incorrect']);
+            }
+            return $this->sendSuccess(['message' => 'Password Updated Successfully'], 200);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'reset password failed. Please retry.'], 400);
+        }
+    }
+    /**
+     * Retrieve the user data.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function showUser(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->userServices->showUser($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Retrieve failed. Please retry.'], 400);
+        }
+    }
+
+    /**
+     * Update the user.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateUser(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $data = $this->userServices->updateUser($params);
+            if(isset($data['error'])){
+                return $this->validationError($data['error']);
+            }
+            return $this->sendSuccess(['message' => 'User Profile Updated Successfully'], 200);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'updation failed. Please retry.'], 400);
+        }
+    }
 }

@@ -75,10 +75,9 @@ class CompanyController extends Controller
     public function create(Request $request): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['created_by'] = $user['id'];
-            $response = $this->companyServices->create($params);
+            $request['created_by'] = $user['id'];
+            $response = $this->companyServices->create($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -97,10 +96,9 @@ class CompanyController extends Controller
     public function update(Request $request): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['modified'] = $user['id'];
-            $response = $this->companyServices->update($params);
+            $request['modified'] = $user['id'];
+            $response = $this->companyServices->update($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
