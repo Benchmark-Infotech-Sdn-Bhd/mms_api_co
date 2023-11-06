@@ -72,8 +72,9 @@ class TotalManagementProjectServices
     {
         return $this->totalManagementProject
         //->leftJoin('employee', 'employee.id', '=', 'total_management_project.employee_id')
-        ->leftJoin('employee', 'employee.id', '=', 'total_management_project.supervisor_id')
-        ->leftJoin('transportation as supervisorTransportation', 'supervisorTransportation.id', '=', 'total_management_project.supervisor_id')
+        ->leftJoin('users', 'users.id', '=', 'total_management_project.supervisor_id')
+        ->leftJoin('employee', 'employee.id', '=', 'users.reference_id')
+        ->leftJoin('transportation as supervisorTransportation', 'supervisorTransportation.id', '=', 'users.reference_id')
         ->leftJoin('vendors', 'vendors.id', '=', 'total_management_project.transportation_provider_id')
         ->leftJoin('transportation', 'transportation.id', '=', 'total_management_project.driver_id')
         ->leftJoin('worker_employment', function($query) {
