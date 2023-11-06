@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\EContractProject;
+use App\Models\EContractApplications;
 
 class EContractWorkerServices
 {
@@ -49,6 +50,10 @@ class EContractWorkerServices
      */
     private EContractProject $eContractProject;
     /**
+     * @var EContractApplications
+     */
+    private EContractApplications $eContractApplications;
+    /**
      * TotalManagementWorkerServices constructor.
      * @param Workers $workers
      * @param Vendor $vendor
@@ -58,8 +63,9 @@ class EContractWorkerServices
      * @param CRMProspectService $crmProspectService
      * @param DirectrecruitmentApplications $directrecruitmentApplications
      * @param EContractProject $eContractProject
+     * @param EContractApplications $eContractApplications
      */
-    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, EContractProject $eContractProject)
+    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, EContractProject $eContractProject, EContractApplications $eContractApplications)
     {
         $this->workers = $workers;
         $this->vendor = $vendor;
@@ -69,6 +75,7 @@ class EContractWorkerServices
         $this->crmProspectService = $crmProspectService;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->eContractProject = $eContractProject;
+        $this->eContractApplications = $eContractApplications;
     }
     /**
      * @return array
