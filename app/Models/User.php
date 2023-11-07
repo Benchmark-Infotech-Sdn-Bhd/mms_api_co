@@ -58,18 +58,18 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         return [];
     }
     /**
-     * @return HasOne
+     * @return HasMany
      */
-    public function userRoleType()
+    public function userRoles()
     {
-        return $this->hasOne(UserRoleType::class,'user_id');
+        return $this->hasMany(UserRoleType::class,'user_id');
     }
     /**
-     * @return BelongsToMany
+     * @return HasMany
      */
     public function companies()
     {
-        return $this->belongsToMany(Company::class, 'user_company');
+        return $this->hasMany(UserCompany::class, 'user_id');
     }
     /**
      * @return HasMany

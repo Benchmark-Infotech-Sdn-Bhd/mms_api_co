@@ -28,4 +28,18 @@ class UserCompany extends Model implements Auditable
     {
         return $this->belongsTo(Company::class, 'company_id');
     }
+    /**
+     * @return BelongsTo
+    */
+    public function users()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+     /**
+     * @return HasOne
+     */
+    public function attachments()
+    {
+        return $this->hasOne(CompanyAttachments::class, 'file_id', 'company_id');
+    }
 }
