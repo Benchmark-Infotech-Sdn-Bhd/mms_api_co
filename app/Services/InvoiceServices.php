@@ -383,7 +383,7 @@ class InvoiceServices
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_TAX_RATES_URL'), [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
                     'Accept' => 'application/json',
                 ],
                 'form_params' => [
@@ -445,7 +445,7 @@ class InvoiceServices
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ITEMS_URL'), [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
                     'Accept' => 'application/json',
                 ],
                 'form_params' => [
@@ -472,7 +472,7 @@ class InvoiceServices
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ITEMS_URL'), [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
                     'Accept' => 'application/json',
                 ],
                 'form_params' => [
@@ -531,7 +531,7 @@ class InvoiceServices
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ACCOUNTS_URL'), [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
                     'Accept' => 'application/json',
                 ],
                 'form_params' => [
@@ -558,7 +558,7 @@ class InvoiceServices
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ACCOUNTS_URL'), [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
                     'Accept' => 'application/json',
                 ],
                 'form_params' => [

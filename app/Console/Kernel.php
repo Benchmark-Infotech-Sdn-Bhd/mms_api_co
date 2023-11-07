@@ -28,8 +28,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('command:XeroRefreshToken')->everyFifteenMinutes();
-        $schedule->command('command:XeroGetTaxRates')->twiceDaily(1, 13);
-        $schedule->command('command:XeroGetAccounts')->twiceDaily(1, 13);
-        $schedule->command('command:XeroGetItems')->twiceDaily(1, 13);
+        $schedule->command('command:XeroGetTaxRates')->cron('0 */6 * * *');
+        $schedule->command('command:XeroGetAccounts')->cron('0 */6 * * *');
+        $schedule->command('command:XeroGetItems')->cron('0 */6 * * *');
     }
 }
