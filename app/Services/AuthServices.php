@@ -144,7 +144,7 @@ class AuthServices extends Controller
             'company_id' => $request['company_id'] ?? 0,
             'pic_flag' => isset($request['pic_flag']) ?? 0
         ]);
-        if($request['user_type'] != 'Admin' && $request['user_type'] != 'Customer') {
+        if($request['user_type'] != 'Admin') {
             $this->uesrRoleType->create([
                 'user_id' => $response->id,
                 'role_id' => $request['role_id'],
@@ -157,7 +157,6 @@ class AuthServices extends Controller
                 $this->userCompany->create([
                     'user_id' => $response->id,
                     'company_id' => $subsidiaryCompany ?? 0,
-                    'role_id' => $request['role_id'] ?? '',
                     'created_by' => $request['user_id'] ?? 0,
                     'modified_by' => $request['user_id'] ?? 0
                 ]);
