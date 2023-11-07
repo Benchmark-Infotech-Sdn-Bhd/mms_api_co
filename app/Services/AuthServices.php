@@ -225,11 +225,13 @@ class AuthServices extends Controller
      */
     public function show($request) : mixed
     {
-        $user = $this->user->find($request['id']);
-        if($user['id']){
-            $user = $this->userWithRoles($user);
-            $user = $this->userWithCompany($user);
-        }
+        $user = $this->user->with(['userRoles' => function($query) {
+            $query->select('user_id', 'role_id');
+        }, 'companies' => function($query) {
+            $query->select('company_id', 'user_id');
+        }, 'companies.attachments' => function($query) {
+            $query->select('file_id', 'file_url');
+        }])->find($request['id']);
         return $user;
     }
     /**
@@ -259,26 +261,6 @@ class AuthServices extends Controller
             $user['role_id'] = null;
         } else {
             $user['role_id'] = $roles['role_id'];
-        }
-        return $user;
-    }
-    /**
-     * @param $request
-     * @return mixed
-     */
-    public function userWithCompany($user) : mixed
-    {
-        $company = $this->company
-        ->leftJoin('company_attachments', 'company_attachments.file_id', 'company.id')
-        ->where('company.id',$user['company_id'])
-        ->select('company.system_color', 'company_attachments.file_url')
-        ->first();
-        if(is_null($company)){
-            $user['system_color'] = null;
-            $user['logo_url'] = null;
-        } else {
-            $user['system_color'] = $company['system_color'];
-            $user['logo_url'] = $company['file_url'];
         }
         return $user;
     }
@@ -342,16 +324,5 @@ class AuthServices extends Controller
         // }
         array_push($companyIds, $user['company_id']);
         return $companyIds;
-    }
-
-    /**
-     * @param $user
-     * @return array
-     */
-    public function isCustomer($user): array
-    {
-        if($companyDetails->parent_id == 0 && $user->user_type == 'Customer') {
-            return $customer = ' where created_by = '.$user->id;
-        }
     }
 }
