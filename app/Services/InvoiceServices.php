@@ -139,10 +139,12 @@ class InvoiceServices
         ]);
 
         $generateInvoice['Type'] = 'ACCREC';
-        $generateInvoice['Date'] = '/Date(1518685950940+0000)/';
-        $generateInvoice['DueDate'] = '/Date(1518685950940+0000)/';
-        $generateInvoice['DateString'] = '2023-09-13T00:00:00';
-        $generateInvoice['DueDateString'] = '2023-09-15T00:00:00';
+        $issuedateConverted = (Carbon::parse($params['due_date'])->timestamp * 1000)."+0000";
+        $generateInvoice['Date'] = '/Date('.$issuedateConverted.')/';
+        $duedateConverted = (Carbon::parse($params['due_date'])->timestamp * 1000)."+0000";
+        $generateInvoice['DueDate'] = '/Date('.$duedateConverted.')/';
+        $generateInvoice['DateString'] = $params['issue_date']."T00:00:00";
+        $generateInvoice['DueDateString'] = $params['due_date']."T00:00:00";
         $generateInvoice['LineAmountTypes'] = 'Exclusive';
 
         $crmProspect = $this->crmProspect->findOrFail($request['crm_prospect_id']);
@@ -465,10 +467,10 @@ class InvoiceServices
                 'json' => [
                     'Type'=>'ACCREC',
                     'Contact'=> $request['Contact'],
-                    /*'Date' => $request['Date'],
+                    'Date' => $request['Date'],
                     'DueDate' => $request['DueDate'],
                     'DateString' => $request['DateString'],
-                    'DueDateString' => $request['DueDateString'],*/
+                    'DueDateString' => $request['DueDateString'],
                     'LineAmountTypes' => $request['LineAmountTypes'],
                     'LineItems' => $request['LineItems']
                 ],
