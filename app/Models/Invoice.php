@@ -24,7 +24,7 @@ class Invoice extends Model implements Auditable
      * @var array
      */
 
-    protected $fillable = ['crm_prospect_id','issue_date','due_date','reference_number','account','tax','amount','due_amount','created_by','modified_by','company_id'];
+    protected $fillable = ['crm_prospect_id','issue_date','due_date','reference_number','account','tax','amount','due_amount','created_by','modified_by','company_id', 'remarks'];
    
     /**
      * The attributes that are required.
