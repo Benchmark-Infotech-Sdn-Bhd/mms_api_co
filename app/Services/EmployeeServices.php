@@ -318,8 +318,8 @@ class EmployeeServices
         ->where('roles.id',$role->id ?? 0)
         ->whereNull('employee.deleted_at')
         ->whereNull('supervisorTransportation.deleted_at')
-        ->select('users.id', 'users.user_type as supervisor_type')
-        ->selectRaw('IF(users.user_type = "Employee", employee.employee_name, supervisorTransportation.driver_name) as supervisor_name')
+        ->select('users.id')
+        ->selectRaw('IF(users.user_type = "Employee", employee.employee_name, supervisorTransportation.driver_name) as supervisor_name, IF(users.user_type = "Employee", "employee", "driver") as supervisor_type')
         ->distinct('users.id', 'users.user_type', 'employee.employee_name', 'supervisorTransportation.driver_name')
         ->orderBy('users.id','DESC')
         ->get();
