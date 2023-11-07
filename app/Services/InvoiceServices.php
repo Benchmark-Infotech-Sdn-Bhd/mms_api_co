@@ -134,7 +134,8 @@ class InvoiceServices
             'due_amount' => $request['due_amount'] ?? 0,
             'created_by'    => $params['created_by'] ?? 0,
             'modified_by'   => $params['created_by'] ?? 0,
-            'company_id' => $user['company_id']
+            'company_id' => $user['company_id'],
+            'remarks' => $request['remarks'] ?? ''
         ]);
 
         $generateInvoice['Type'] = 'ACCREC';
@@ -232,6 +233,7 @@ class InvoiceServices
         $invoice->reference_number = ((isset($request['reference_number']) && !empty($request['reference_number'])) ? $request['reference_number'] : $invoice->reference_number);
         $invoice->amount = $request['amount'] ?? $invoice->amount;
         $invoice->due_amount = $request['amount'] ?? $invoice->due_amount;
+        $invoice->remarks = $request['remarks'] ?? $invoice->remarks;
         $invoice->created_by = $request['created_by'] ?? $invoice->created_by;
         $invoice->modified_by = $params['modified_by'];
         $invoice->save();
