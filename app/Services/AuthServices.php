@@ -144,7 +144,7 @@ class AuthServices extends Controller
             'company_id' => $request['company_id'] ?? 0,
             'pic_flag' => isset($request['pic_flag']) ?? 0
         ]);
-        if($request['user_type'] != 'Admin' && $request['user_type'] != 'Customer') {
+        if($request['user_type'] != 'Admin') {
             $this->uesrRoleType->create([
                 'user_id' => $response->id,
                 'role_id' => $request['role_id'],
@@ -157,7 +157,6 @@ class AuthServices extends Controller
                 $this->userCompany->create([
                     'user_id' => $response->id,
                     'company_id' => $subsidiaryCompany ?? 0,
-                    'role_id' => $request['role_id'] ?? '',
                     'created_by' => $request['user_id'] ?? 0,
                     'modified_by' => $request['user_id'] ?? 0
                 ]);
@@ -225,9 +224,11 @@ class AuthServices extends Controller
      */
     public function show($request) : mixed
     {
-        $user = $this->user->find($request['id']);
+        $user = $this->user->with(['userRoles' => function($query) {
+            $query->select('user_id', 'role_id');
+        }])->find($request['id']);
         if($user['id']){
-            $user = $this->userWithRoles($user);
+            $user = $this->userWithCompany($user);
         }
         return $user;
     }
@@ -261,7 +262,24 @@ class AuthServices extends Controller
         }
         return $user;
     }
-
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function userWithCompany($user) : mixed
+    {
+        $company = $this->company->with(['attachments' => function ($query){
+            $query->select('file_id', 'file_url');
+        }])->findOrFail($user['company_id']);
+        if(is_null($company)){
+            $user['system_color'] = null;
+            $user['logo_url'] = null;
+        } else {
+            $user['system_color'] = $company['system_color'];
+            $user['logo_url'] = $company['attachments']['file_url'];
+        }
+        return $user;
+    }
     /**
      * @param $request
      * @return bool
@@ -321,16 +339,5 @@ class AuthServices extends Controller
         // }
         array_push($companyIds, $user['company_id']);
         return $companyIds;
-    }
-
-    /**
-     * @param $user
-     * @return array
-     */
-    public function isCustomer($user): array
-    {
-        if($companyDetails->parent_id == 0 && $user->user_type == 'Customer') {
-            return $customer = ' where created_by = '.$user->id;
-        }
     }
 }

@@ -75,10 +75,9 @@ class CompanyController extends Controller
     public function create(Request $request): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['created_by'] = $user['id'];
-            $response = $this->companyServices->create($params);
+            $request['created_by'] = $user['id'];
+            $response = $this->companyServices->create($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -97,10 +96,9 @@ class CompanyController extends Controller
     public function update(Request $request): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['modified'] = $user['id'];
-            $response = $this->companyServices->update($params);
+            $request['modified'] = $user['id'];
+            $response = $this->companyServices->update($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -255,6 +253,27 @@ class CompanyController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
+    /**
+     * Delete attachment.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteAttachment(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->deleteAttachment($params);
+            if ($response == true) {
+                return $this->sendSuccess(['message' => 'Attachment Deleted Sussessfully']);
+            } else {
+                return $this->sendError(['message' => 'Data Not Found'], 400);
+            }
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Delete Attachment'], 400);
         }
     }
 }

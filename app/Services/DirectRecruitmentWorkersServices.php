@@ -330,7 +330,7 @@ class DirectRecruitmentWorkersServices
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
 
-        })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as visa_status', 'workers.cancel_status as cancellation_status', 'workers.created_at', 'workers.directrecruitment_status')
+        })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as visa_status', 'workers.cancel_status as cancellation_status', 'workers.created_at', 'workers.directrecruitment_status', 'workers.replace_worker_id')
         ->selectRaw("(CASE WHEN (workers.directrecruitment_status = 'Repatriated') THEN workers.directrecruitment_status 
         WHEN (workers.cancel_status = 1) THEN 'Cancelled' 
         WHEN (workers.cancel_status = 2) THEN 'Cancelled' 

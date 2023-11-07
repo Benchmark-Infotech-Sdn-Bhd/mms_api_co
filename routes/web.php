@@ -53,6 +53,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
             $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');
             $router->post('dropdown', 'V1\CompanyController@dropdown');
+            $router->post('deleteAttachment', 'V1\CompanyController@deleteAttachment');
         });
          /**
          * Routes for Roles.

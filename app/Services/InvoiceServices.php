@@ -134,7 +134,8 @@ class InvoiceServices
             'due_amount' => $request['due_amount'] ?? 0,
             'created_by'    => $params['created_by'] ?? 0,
             'modified_by'   => $params['created_by'] ?? 0,
-            'company_id' => $user['company_id']
+            'company_id' => $user['company_id'],
+            'remarks' => $request['remarks'] ?? ''
         ]);
 
         $generateInvoice['Type'] = 'ACCREC';
@@ -232,6 +233,7 @@ class InvoiceServices
         $invoice->reference_number = ((isset($request['reference_number']) && !empty($request['reference_number'])) ? $request['reference_number'] : $invoice->reference_number);
         $invoice->amount = $request['amount'] ?? $invoice->amount;
         $invoice->due_amount = $request['amount'] ?? $invoice->due_amount;
+        $invoice->remarks = $request['remarks'] ?? $invoice->remarks;
         $invoice->created_by = $request['created_by'] ?? $invoice->created_by;
         $invoice->modified_by = $params['modified_by'];
         $invoice->save();
@@ -270,6 +272,17 @@ class InvoiceServices
                 'validate' => $this->validationServices->errors()
             ];
         }
+
+        $invoiceData = $this->invoice->find($request['id']);
+        
+        if(isset($invoiceData) && !empty($invoiceData)){
+            $invoiceXeroData = $this->getInvoices($invoiceData);
+            $invoiceData->due_amount = $invoiceXeroData->original['Invoices'][0]['AmountDue'];
+            $invoiceData->due_date = Carbon::parse($invoiceXeroData->original['Invoices'][0]['DueDateString'])->format('Y-m-d');
+            $invoiceData->invoice_status = $invoiceXeroData->original['Invoices'][0]['Status'];
+            $invoiceData->save();
+        }
+
         $data = $this->invoice->with('invoiceItems')->find($request['id']);
 
         if(is_null($data)){
@@ -333,7 +346,7 @@ class InvoiceServices
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_TAX_RATES_URL'), [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
                     'Accept' => 'application/json',
                 ],
                 'form_params' => [
@@ -360,7 +373,7 @@ class InvoiceServices
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ITEMS_URL'), [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
                     'Accept' => 'application/json',
                 ],
                 'form_params' => [
@@ -387,7 +400,7 @@ class InvoiceServices
             $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ACCOUNTS_URL'), [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
                     'Accept' => 'application/json',
                 ],
                 'form_params' => [
@@ -410,11 +423,16 @@ class InvoiceServices
     {
         $http = new Client();
         $xeroConfig = $this->getXeroSettings();
+        $rawUrl = '';
+        if(isset($request['invoice_number']) && !empty($request['invoice_number'])){
+            $rawUrl = "/".$request['invoice_number'];
+        }
+
         try {
-            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'), [
+            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'). $rawUrl, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
                     'Accept' => 'application/json',
                 ],
                 'form_params' => [
@@ -441,7 +459,7 @@ class InvoiceServices
             $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_INVOICES_URL'), [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
                     'Accept' => 'application/json',
                 ],
                 'json' => [
@@ -500,7 +518,7 @@ class InvoiceServices
             $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_CONTACTS_URL'), [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => Config::get('services.XERO_TENANT_ID'),
+                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
                     'Accept' => 'application/json',
                 ],
                 'json' => $data,
@@ -525,13 +543,13 @@ class InvoiceServices
         try {
             $response = $http->request('POST', Config::get('services.XERO_TOKEN_URL'), [
                 'headers' => [
-                    'Authorization' => 'Basic ' . base64_encode(Config::get('services.XERO_CLIENT_ID') . ":" . Config::get('services.XERO_CLIENT_SECRET')),
+                    'Authorization' => 'Basic ' . base64_encode($xeroConfig['client_id'] . ":" . $xeroConfig['client_secret']),
                     'Content-Type' => 'application/x-www-form-urlencoded',
                     'Accept' => 'application/json',
                 ], 
                 'form_params' => [
                     'grant_type' => 'refresh_token',
-                    'client_id' => Config::get('services.XERO_CLIENT_ID'),
+                    'client_id' => $xeroConfig['client_id'],
                     'refresh_token' => $xeroConfig['refresh_token'],
                 ],
             ]);
