@@ -227,11 +227,10 @@ class AuthServices extends Controller
     {
         $user = $this->user->with(['userRoles' => function($query) {
             $query->select('user_id', 'role_id');
-        }, 'companies' => function($query) {
-            $query->select('company_id', 'user_id');
-        }, 'companies.attachments' => function($query) {
-            $query->select('file_id', 'file_url');
         }])->find($request['id']);
+        if($user['id']){
+            $user = $this->userWithCompany($user);
+        }
         return $user;
     }
     /**
@@ -264,7 +263,24 @@ class AuthServices extends Controller
         }
         return $user;
     }
-
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function userWithCompany($user) : mixed
+    {
+        $company = $this->company->with(['attachments' => function ($query){
+            $query->select('file_id', 'file_url');
+        }])->findOrFail($user['company_id']);
+        if(is_null($company)){
+            $user['system_color'] = null;
+            $user['logo_url'] = null;
+        } else {
+            $user['system_color'] = $company['system_color'];
+            $user['logo_url'] = $company['attachments']['file_url'];
+        }
+        return $user;
+    }
     /**
      * @param $request
      * @return bool
