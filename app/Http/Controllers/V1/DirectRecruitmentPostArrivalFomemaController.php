@@ -161,4 +161,26 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
             return $this->sendError(['message' => 'Failed to List Workers'], 400);
         }
     }
+
+    /**
+     * Dispaly FOMEMA PLKS Show.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function plksShow(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $response = $this->directRecruitmentPostArrivalFomemaServices->plksShow($params);
+            if(isset($response['error']) && !empty($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to show Fomema PLKS details'], 400);
+        }
+    }
 }

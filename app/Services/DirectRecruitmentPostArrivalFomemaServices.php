@@ -68,6 +68,15 @@ class DirectRecruitmentPostArrivalFomemaServices
     /**
      * @return array
      */
+    public function plksShowValidation(): array
+    {
+        return [
+            'id' => 'required'
+        ];
+    }    
+    /**
+     * @return array
+     */
     public function purchaseValidation(): array
     {
         return [
@@ -340,5 +349,23 @@ class DirectRecruitmentPostArrivalFomemaServices
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'workers.special_pass_valid_until', 'worker_fomema.purchase_date', 'worker_fomema.fomema_status')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->get();
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function plksShow($request): mixed
+    {
+        $validator = Validator::make($request, $this->plksShowValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        return $this->workers->with('workerFomema')
+            ->with(['workerFomema' => function($query) {
+                $query->select('id', 'worker_id', 'fomema_total_charge', 'clinic_name', 'doctor_code', 'allocated_xray', 'xray_code');
+            }])->select('id','name', 'fomema_valid_until')->findOrFail($request['id']);
     }
 }

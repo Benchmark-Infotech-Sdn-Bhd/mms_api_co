@@ -373,6 +373,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('fomemaUnfit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaUnfit');
                         $router->post('updateSpecialPass', 'V1\DirectRecruitmentPostArrivalFomemaController@updateSpecialPass');
                         $router->post('workersListExport', 'V1\DirectRecruitmentPostArrivalFomemaController@workersListExport');
+                        $router->post('plksShow', 'V1\DirectRecruitmentPostArrivalFomemaController@plksShow');
                     });
                     $router->group(['prefix' => 'plks'], function () use ($router) {
                         $router->post('workersList', 'V1\DirectRecruitmentPostArrivalPLKSController@workersList');
