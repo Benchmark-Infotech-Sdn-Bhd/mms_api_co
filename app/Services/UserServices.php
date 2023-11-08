@@ -60,7 +60,7 @@ class UserServices
             'id' => 'required',
             'name' => 'required|regex:/^[a-zA-Z ]*$/',
             'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
-            'city' => 'regex:/^[a-zA-Z ]*$/|max:150',
+            'city' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
             'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
             'address' => 'required'
         ];

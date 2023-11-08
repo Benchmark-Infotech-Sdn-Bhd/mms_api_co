@@ -42,14 +42,11 @@ abstract class TestCase extends BaseTestCase
     public function getToken(bool $artisan = true): mixed
     {
         if($artisan === true) {
-            $this->artisan("db:seed --class=unit_testing_user");
             $this->artisan("db:seed --class=unit_testing_company");
-            $this->artisan("db:seed --class=unit_testing_admin_user");
+            $this->artisan("db:seed --class=unit_testing_user");
         }
-        $response = $this->call('POST', 'api/v1/login', ['email' => 'unittestadmin@gmail.com', 'password' => 'Welcome@123']);
+        $response = $this->call('POST', 'api/v1/login', ['email' => 'unittest@gmail.com', 'password' => 'Welcome@123']);
         $this->assertEquals(200, $response->status());
         return $response['data']['token'];
     }
-
-
 }

@@ -276,7 +276,9 @@ class AuthServices extends Controller
             $user['logo_url'] = null;
         } else {
             $user['system_color'] = $company['system_color'];
-            $user['logo_url'] = $company['attachments']['file_url'];
+            if(\DB::getDriverName() !== 'sqlite') {
+                $user['logo_url'] = $company['attachments']['file_url'];
+            }
         }
         return $user;
     }

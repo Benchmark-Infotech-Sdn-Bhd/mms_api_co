@@ -18,8 +18,8 @@ class unit_testing_user extends Seeder
             'name' => 'unittest',
             'email' => 'unittest@gmail.com',
             'password' => '$2y$10$NV8KnNP9pHVcHF9k5V8yC.xLr4PKHsv/DNcL0G0dnrEoVIPRJbvdm',
-            'user_type' => 'Super Admin',
-            'company_id' => 0
+            'user_type' => 'Admin',
+            'company_id' => 1
         ]);
     }
 }
