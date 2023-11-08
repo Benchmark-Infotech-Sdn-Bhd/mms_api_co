@@ -363,12 +363,9 @@ class DirectRecruitmentPostArrivalFomemaServices
                 'error' => $validator->errors()
             ];
         }
-        return $this->workers
-            ->leftJoin('worker_fomema', 'worker_fomema.worker_id', 'workers.id')
-            ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
-            ->select('workers.id', 'workers.name', 'workers.fomema_valid_until', 'worker_fomema.fomema_total_charge', 'worker_fomema.clinic_name', 'worker_fomema.doctor_code', 'worker_fomema.allocated_xray', 'worker_fomema.xray_code')->distinct('workers.id')
-            ->where('workers.id', $request['id'])
-            ->orderBy('workers.id', 'desc')
-            ->get();
+        return $this->workers->with('workerFomema')
+            ->with(['workerFomema' => function($query) {
+                $query->select('id', 'worker_id', 'fomema_total_charge', 'clinic_name', 'doctor_code', 'allocated_xray', 'xray_code');
+            }])->select('id','name', 'fomema_valid_until')->findOrFail($request['id']);
     }
 }

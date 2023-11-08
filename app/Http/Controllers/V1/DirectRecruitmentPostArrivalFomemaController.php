@@ -180,7 +180,7 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to List Workers'], 400);
+            return $this->sendError(['message' => 'Failed to show Fomema PLKS details'], 400);
         }
     }
 }
