@@ -177,7 +177,12 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken($this->guard()->refresh(), Auth::user());
+        $user = Auth::user();
+        if(is_null($user)){
+            return $this->sendError(['message' => 'User not found'], 400);
+        }
+        $user = $this->authServices->show(['id' => $user['id']]);
+        return $this->respondWithToken($this->guard()->refresh(), $user);
     }
 
     /**
