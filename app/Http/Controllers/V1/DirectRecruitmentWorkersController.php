@@ -40,10 +40,12 @@ class DirectRecruitmentWorkersController extends Controller
             } else if(isset($data['ksmError'])) {
                 return $this->sendError(['message' => 'KSM reference number does not matched.'], 422);
             } else if(isset($data['workerCountError'])) {
-                return $this->validationError(['message' => 'The number of worker should not exceed to Approved Quota'], 422);
+                return $this->sendError(['message' => 'The number of worker should not exceed to Approved Quota'], 422);
             } else if(isset($data['ksmCountError'])) {
-                return $this->validationError(['message' => 'The number of worker should not exceed to KSM Reference Number Approved Quota'], 422);
-            }else if($data == false) {
+                return $this->sendError(['message' => 'The number of worker should not exceed to KSM Reference Number Approved Quota'], 422);
+            } else if(isset($data['agentQuotaError'])) {
+                return $this->sendError(['message' => 'The number of worker should not exceed to the Approved Quota of Agent'], 422);
+            } else if($data == false) {
                 return $this->sendError(['message' => 'Creation failed. Please retry.'], 422);
             }
             return $this->sendSuccess(['message' => 'Worker Created Successfully']);
