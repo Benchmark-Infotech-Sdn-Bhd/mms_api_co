@@ -227,8 +227,11 @@ class AuthServices extends Controller
         $user = $this->user->with(['userRoles' => function($query) {
             $query->select('user_id', 'role_id');
         }])->find($request['id']);
-        if($user['id']){
+        if($user['id'] && $user['user_type'] != 'Super Admin'){
             $user = $this->userWithCompany($user);
+        } else {
+            $user['system_color'] = null;
+            $user['logo_url'] = null;
         }
         return $user;
     }
