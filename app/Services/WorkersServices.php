@@ -708,7 +708,6 @@ class WorkersServices
                 ];
             }
         }
-
         $user = JWTAuth::parseToken()->authenticate();
         $request['company_id'] = $this->authServices->getCompanyIds($user);
 
@@ -716,42 +715,35 @@ class WorkersServices
         ->join('worker_kin', 'workers.id', '=', 'worker_kin.worker_id')
         ->join('kin_relationship', 'kin_relationship.id', '=', 'worker_kin.kin_relationship_id')
         ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
-        ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
-        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
-        ->where('directrecruitment_workers.application_id', $request['application_id'])
-        ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
-        ->whereIn('workers.company_id', $request['company_id'])
-        //->where('directrecruitment_workers.agent_id', $request['agent_id'])
-        ->where(function ($query) use ($user) {
-            if ($user['user_type'] == 'Customer') {
-                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
-            }
+        ->leftJoin('crm_prospects', 'crm_prospects.id', '=', 'workers.crm_prospect_id')
+        ->leftJoin('worker_employment', function ($join) {
+            $join->on('workers.id', '=', 'worker_employment.worker_id')
+                 ->where('worker_employment.transfer_flag', 0)
+                 ->whereNull('worker_employment.remove_date');
         })
+        ->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
+        ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
+        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
         ->where(function ($query) use ($request) {
-
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
-                $query->where('worker_visa.status','Processed');
+            if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
+                $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
             }
-
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'arrival') {
-                $query->where('worker_arrival.arrival_status','Not Arrived');
-            }
-
-            if (isset($request['stage_filter']) && $request['stage_filter'] == 'post_arrival') {
-                $query->where('worker_arrival.arrival_status','Arrived');
-            }
-            
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('workers.name', 'like', "%{$request['search_param']}%")
                 ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
                 ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
-            if (isset($request['status'])) {
-                $query->where('workers.status',$request['status']);
+            
+        })
+        ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
             }
-        })->select('workers.id','workers.name','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','workers.address','workers.state','worker_kin.kin_name','kin_relationship.name as kin_relationship_name','worker_kin.kin_contact_number','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_reference_number','worker_bio_medical.bio_medical_valid_until')
-        ->distinct()
-        ->orderBy('workers.created_at','DESC')->get();
+        })
+         ->select('workers.id','workers.name','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','workers.address','workers.state','worker_kin.kin_name','kin_relationship.name as kin_relationship_name','worker_kin.kin_contact_number','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_reference_number','worker_bio_medical.bio_medical_valid_until')
+         ->distinct('workers.id')
+         ->orderBy('workers.id','DESC')->get();
     }
 
     /**
