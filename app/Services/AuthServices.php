@@ -274,7 +274,7 @@ class AuthServices extends Controller
         $company = $this->company->with(['attachments' => function ($query){
             $query->select('file_id', 'file_url');
         }])->findOrFail($user['company_id']);
-        if(is_null($company)){
+        if(is_null($company) || is_null($company['attachments'])){
             $user['system_color'] = null;
             $user['logo_url'] = null;
         } else {
