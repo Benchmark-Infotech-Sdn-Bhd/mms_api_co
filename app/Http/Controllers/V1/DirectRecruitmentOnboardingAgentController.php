@@ -39,7 +39,7 @@ class DirectRecruitmentOnboardingAgentController extends Controller
             $response = $this->directRecruitmentOnboardingAgentServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
-            Log::error('Error = ' . print_r($e-getMessage(), true));
+            Log::error('Error = ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Onboarding Agent'], 400);
         }
     }
