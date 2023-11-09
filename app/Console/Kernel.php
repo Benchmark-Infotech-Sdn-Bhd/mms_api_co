@@ -13,7 +13,10 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        Commands\XeroRefreshToken::class
+        Commands\XeroRefreshToken::class,
+        Commands\XeroGetTaxRates::class,
+        Commands\XeroGetAccounts::class,
+        Commands\XeroGetItems::class
     ];
 
     /**
@@ -25,5 +28,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('command:XeroRefreshToken')->everyFifteenMinutes();
+        $schedule->command('command:XeroGetTaxRates')->cron('0 */6 * * *');
+        $schedule->command('command:XeroGetAccounts')->cron('0 */6 * * *');
+        $schedule->command('command:XeroGetItems')->cron('0 */6 * * *');
     }
 }

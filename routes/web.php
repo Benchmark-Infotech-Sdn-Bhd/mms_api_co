@@ -373,6 +373,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('fomemaUnfit', 'V1\DirectRecruitmentPostArrivalFomemaController@fomemaUnfit');
                         $router->post('updateSpecialPass', 'V1\DirectRecruitmentPostArrivalFomemaController@updateSpecialPass');
                         $router->post('workersListExport', 'V1\DirectRecruitmentPostArrivalFomemaController@workersListExport');
+                        $router->post('plksShow', 'V1\DirectRecruitmentPostArrivalFomemaController@plksShow');
                     });
                     $router->group(['prefix' => 'plks'], function () use ($router) {
                         $router->post('workersList', 'V1\DirectRecruitmentPostArrivalPLKSController@workersList');
@@ -725,6 +726,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('getAccounts', 'V1\InvoiceController@getAccounts');
             $router->post('getInvoices', 'V1\InvoiceController@getInvoices');
             $router->post('getAccessToken', 'V1\InvoiceController@getAccessToken');
+            $router->post('xeroGetTaxRates', 'V1\InvoiceController@xeroGetTaxRates');
+            $router->post('xeroGetAccounts', 'V1\InvoiceController@xeroGetAccounts');
+            $router->post('xeroGetItems', 'V1\InvoiceController@xeroGetItems');
         });
 
         /**

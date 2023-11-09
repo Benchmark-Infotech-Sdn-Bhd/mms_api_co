@@ -8,7 +8,10 @@ use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Models\DirectRecruitmentApplicationApproval;
 use App\Models\ApplicationInterviews;
 use App\Models\OnboardingAttestation;
+use App\Models\Workers;
+use App\Models\Levy;
 use App\Services\ValidationServices;
+use Illuminate\Support\Facades\DB;
 
 class DirectRecruitmentOnboardingCountryServices
 {
@@ -32,6 +35,14 @@ class DirectRecruitmentOnboardingCountryServices
      * @var OnboardingAttestation
      */
     private OnboardingAttestation $onboardingAttestation;
+    /**
+     * @var Workers
+     */
+    private Workers $workers;
+    /**
+     * @var Levy
+     */
+    private Levy $levy;
 
     /**
      * DirectRecruitmentOnboardingCountryServices constructor.
@@ -40,14 +51,18 @@ class DirectRecruitmentOnboardingCountryServices
      * @param ApplicationInterviews $applicationInterviews
      * @param ValidationServices $validationServices;
      * @param OnboardingAttestation $onboardingAttestation;
+     * @param Workers $workers
+     * @param Levy $levy
      */
-    public function __construct(DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApplicationInterviews $applicationInterviews, ValidationServices $validationServices, OnboardingAttestation $onboardingAttestation)
+    public function __construct(DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApplicationInterviews $applicationInterviews, ValidationServices $validationServices, OnboardingAttestation $onboardingAttestation, Workers $workers, Levy $levy)
     {
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->directRecruitmentApplicationApproval = $directRecruitmentApplicationApproval;
         $this->applicationInterviews = $applicationInterviews;
         $this->validationServices = $validationServices;
         $this->onboardingAttestation = $onboardingAttestation;
+        $this->workers = $workers;
+        $this->levy = $levy;
     }
     /**
      * @return array
@@ -190,18 +205,31 @@ class DirectRecruitmentOnboardingCountryServices
      */   
     public function ksmReferenceNumberList($request): mixed
     {
-        return $this->directRecruitmentApplicationApproval
-        ->leftJoin('levy', function($join) use ($request){
-            $join->on('levy.application_id', '=', 'directrecruitment_application_approval.application_id')
-            ->on('levy.new_ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
-            })
-        ->leftJoin('directrecruitment_onboarding_countries', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_application_approval.application_id')
-        ->where('directrecruitment_application_approval.application_id', $request['application_id'])
-        ->select('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota')
-        ->selectRaw('sum(directrecruitment_onboarding_countries.utilised_quota) as utilised_quota')
-        ->groupBy('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota')
-        ->distinct()
-        ->get();
+        $ksmReferenceNumbers = $this->levy->where('application_id', $request['application_id'])
+                            ->whereIn('status', Config::get('services.APPLICATION_LEVY_KSM_REFERENCE_STATUS'))
+                            ->select('id','new_ksm_reference_number as ksm_reference_number', 'approved_quota')
+                            ->orderBy('created_at','DESC')
+                            ->get()->toArray();
+                        
+        $utilisedQuota = $this->workers
+        ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+        ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
+        ->where('workers.directrecruitment_status', 'Processed')
+        ->where('directrecruitment_workers.application_id', $request['application_id'])
+        ->select('worker_visa.ksm_reference_number', DB::raw('COUNT(workers.id) as utilised_quota'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
+        ->groupBy('worker_visa.ksm_reference_number')
+        ->orderBy('worker_visa.ksm_reference_number','DESC')
+        ->get()->toArray();
+
+        foreach($ksmReferenceNumbers as $key => $value) {
+            $ksmReferenceNumbers[$key]['utilised_quota'] = 0;
+            foreach($utilisedQuota as $utilisedKey => $utilisedValue) {
+                if($utilisedQuota[$utilisedKey]['ksm_reference_number'] == $ksmReferenceNumbers[$key]['ksm_reference_number']) {
+                    $ksmReferenceNumbers[$key]['utilised_quota'] = $utilisedQuota[$utilisedKey]['utilised_quota'];
+                }
+            }
+        }
+        return $ksmReferenceNumbers;
     }
 
     /**

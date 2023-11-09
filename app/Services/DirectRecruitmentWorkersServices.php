@@ -189,7 +189,6 @@ class DirectRecruitmentWorkersServices
         ->leftjoin('workers', 'workers.id', '=', 'worker_visa.worker_id')
         ->where([
             ['directrecruitment_workers.application_id', $request['application_id']],
-            ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
             ['workers.cancel_status', 0],
             ['worker_visa.ksm_reference_number', $request['ksm_reference_number']],
         ])
@@ -199,6 +198,26 @@ class DirectRecruitmentWorkersServices
         if(isset($approvedCount) && ($ksmReferenceNumberCount >= $approvedCount['approved_quota'])) {
             return [
                 'ksmCountError' => true
+            ]; 
+        }
+
+        $agentDetails = $this->directRecruitmentOnboardingAgent->findOrFail($request['agent_id']);
+
+        $agentWorkerCount = $this->directrecruitmentWorkers
+        ->leftjoin('worker_visa', 'directrecruitment_workers.worker_id', '=', 'worker_visa.worker_id')
+        ->leftjoin('workers', 'workers.id', '=', 'worker_visa.worker_id')
+        ->where([
+            ['directrecruitment_workers.application_id', $request['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
+            ['directrecruitment_workers.agent_id', $request['agent_id']],
+            ['workers.cancel_status', 0]
+        ])
+        ->whereIn('workers.directrecruitment_status', Config::get('services.DIRECT_RECRUITMENT_WORKER_STATUS'))
+        ->count('directrecruitment_workers.worker_id');
+       
+        if($agentWorkerCount >= $agentDetails->quota) {
+            return [
+                'agentQuotaError' => true
             ]; 
         }
 

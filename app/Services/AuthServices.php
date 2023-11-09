@@ -227,8 +227,11 @@ class AuthServices extends Controller
         $user = $this->user->with(['userRoles' => function($query) {
             $query->select('user_id', 'role_id');
         }])->find($request['id']);
-        if($user['id']){
+        if($user['id'] && $user['user_type'] != 'Super Admin'){
             $user = $this->userWithCompany($user);
+        } else {
+            $user['system_color'] = null;
+            $user['logo_url'] = null;
         }
         return $user;
     }
@@ -271,7 +274,7 @@ class AuthServices extends Controller
         $company = $this->company->with(['attachments' => function ($query){
             $query->select('file_id', 'file_url');
         }])->findOrFail($user['company_id']);
-        if(is_null($company)){
+        if(is_null($company) || is_null($company['attachments'])){
             $user['system_color'] = null;
             $user['logo_url'] = null;
         } else {
