@@ -595,7 +595,6 @@ class DirectRecruitmentWorkersServices
                 'module_type' => 'Direct Recruitment'
             ]
         );
-        //echo "<pre>"; print_r($workerBulkUpload); exit;
 
         Excel::import(new WorkerImport($params, $workerBulkUpload), $file);
         return true;
