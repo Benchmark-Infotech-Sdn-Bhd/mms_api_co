@@ -205,71 +205,31 @@ class DirectRecruitmentOnboardingCountryServices
      */   
     public function ksmReferenceNumberList($request): mixed
     {
-        // return $this->directRecruitmentApplicationApproval
-        // ->leftJoin('levy', function($join) use ($request){
-        //     $join->on('levy.application_id', '=', 'directrecruitment_application_approval.application_id')
-        //     ->on('levy.new_ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
-        //     })
-        // ->leftJoin('directrecruitment_onboarding_countries', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_application_approval.application_id')
-        // ->where('directrecruitment_application_approval.application_id', $request['application_id'])
-        // ->select('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota')
-        // ->selectRaw('sum(directrecruitment_onboarding_countries.utilised_quota) as utilised_quota')
-        // ->groupBy('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota')
-        // ->distinct()
-        // ->get();
-
-        // return $this->directRecruitmentApplicationApproval
-        // ->leftJoin('levy', function($join) use ($request){
-        //     $join->on('levy.application_id', '=', 'directrecruitment_application_approval.application_id')
-        //     ->on('levy.new_ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
-        //     })
-        // ->leftJoin('directrecruitment_workers', 'directrecruitment_workers.application_id', 'directrecruitment_application_approval.application_id')
-        // ->leftJoin('workers', function ($join) {
-        //     $join->on('workers.id', '=', 'directrecruitment_workers.worker_id')
-        //          ->where('workers.directrecruitment_status', 'Processed');
-        // })
-        // // ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-        // ->where('directrecruitment_application_approval.application_id', $request['application_id'])
-        // ->select('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota', DB::raw('COUNT(workers.id) as utilised_quota'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
-        // // ->selectRaw('count(workers.id) as utilised_quota')
-        // ->groupBy('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota')
-        // ->distinct()
-        // ->get();
-
-        // return $this->workers->leftJoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', 'workers.id')
-        //     ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.application_id', 'directrecruitment_workers.application_id')
-        //     ->leftJoin('levy', function($join) use ($request) {
-        //             $join->on('levy.application_id', '=', 'directrecruitment_application_approval.application_id')
-        //             ->on('levy.new_ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
-        //             })
-        //     ->where('workers.directrecruitment_status', 'Processed')
-        //     ->where('directrecruitment_application_approval.application_id', $request['application_id'])
-        //     ->select('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota', DB::raw('COUNT(workers.id) as utilised_quota'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
-        //     ->groupBy('directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota')
-        //     ->distinct()
-        //     ->get();
-
         $ksmReferenceNumbers = $this->levy->where('application_id', $request['application_id'])
                             ->whereIn('status', Config::get('services.APPLICATION_LEVY_KSM_REFERENCE_STATUS'))
                             ->select('id','new_ksm_reference_number as ksm_reference_number', 'approved_quota')
                             ->orderBy('created_at','DESC')
-                            ->get();
-// return $ksmReferenceNumbers;
-        return $this->workers
+                            ->get()->toArray();
+                        
+        $utilisedQuota = $this->workers
         ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
         ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
-        // ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.ksm_reference_number', 'worker_visa.ksm_reference_number')
-        // ->leftJoin('levy', 'levy.application_id', 'directrecruitment_application_approval.application_id')
-        // ->leftJoin('levy', function($join) use ($request) {
-        //                 $join->on('levy.application_id', '=', 'directrecruitment_application_approval.application_id')
-        //                 ->on('levy.new_ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
-        //                 })
         ->where('workers.directrecruitment_status', 'Processed')
         ->where('directrecruitment_workers.application_id', $request['application_id'])
         ->select('worker_visa.ksm_reference_number', DB::raw('COUNT(workers.id) as utilised_quota'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
         ->groupBy('worker_visa.ksm_reference_number')
         ->orderBy('worker_visa.ksm_reference_number','DESC')
-        ->get();
+        ->get()->toArray();
+
+        foreach($ksmReferenceNumbers as $key => $value) {
+            $ksmReferenceNumbers[$key]['utilised_quota'] = 0;
+            foreach($utilisedQuota as $utilisedKey => $utilisedValue) {
+                if($utilisedQuota[$utilisedKey]['ksm_reference_number'] == $ksmReferenceNumbers[$key]['ksm_reference_number']) {
+                    $ksmReferenceNumbers[$key]['utilised_quota'] = $utilisedQuota[$utilisedKey]['utilised_quota'];
+                }
+            }
+        }
+        return $ksmReferenceNumbers;
     }
 
     /**
