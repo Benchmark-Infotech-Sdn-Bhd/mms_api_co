@@ -43,11 +43,11 @@ class CommonWorkerImport implements ToModel, WithChunkReading, WithHeadingRow
     public function model(array $row)
     {
         try {
-                Log::info('Row Data' . print_r($row, true));
+                // Log::info('Row Data' . print_r($row, true));
                 
                 $workerParameter = [
                     'name' => $row['name'] ?? '',
-                    'date_of_birth' => $this->dateConvert($row['date_of_birth']),
+                    'date_of_birth' => $row['date_of_birth'] ? $this->dateConvert($row['date_of_birth']) : '',
                     'gender' => $row['gender'] ?? '',                        
                     'passport_number' => isset($row['passport_number']) ? (string)$row['passport_number'] : '',
                     'passport_valid_until' => $this->dateConvert($row['passport_valid_until']),
@@ -79,6 +79,7 @@ class CommonWorkerImport implements ToModel, WithChunkReading, WithHeadingRow
                     'account_number' => $row['account_number'] ?? '',
                     'socso_number' => $row['socso_number'] ?? '',
                 ];
+                Log::info('Row Data' . print_r($workerParameter, true));
                 
                 DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
                 dispatch(new CommonWorkersImport($workerParameter, $this->bulkUpload, $workerNonMandatory))/*->onQueue('common_worker_import')->onConnection('database')*/;
