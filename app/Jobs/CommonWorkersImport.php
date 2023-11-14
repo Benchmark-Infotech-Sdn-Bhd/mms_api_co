@@ -43,10 +43,11 @@ class CommonWorkersImport extends Job
     public function handle(): void
     {
         Log::info('Worker instert - started ');
-        
+
         $comments = '';
+        $successFlag = 0;
         $validationCheck = $this->createValidation($this->workerParameter);
-        if(isset($validationCheck) && !empty($validationCheck)) {
+        if(empty($validationCheck)) {
 
             $workerRelationship = DB::table('kin_relationship')
                                     ->where('name', $this->workerParameter['kin_relationship'])
@@ -147,42 +148,47 @@ class CommonWorkersImport extends Job
 
                     Log::info('Worker inserted -  '.$worker['id']);
                     DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_success');
+                    $successFlag = 1;
                     $comments .= ' SUCCESS - worker imported';
                 }
             }
         } else {
             DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
             Log::info('ERROR - required params are empty');
-            $comments .= ' ERROR - required params are empty';
+            $comments .= ' ERROR - required params are empty'. join($validationCheck);
         }
-        $this->insertRecord($comments);
+        $this->insertRecord($comments, 1, $successFlag);
     }
     /**
      * @param $workers
-     * @return bool
+     * @return array
      */
-    public function createValidation($workers): bool
+    public function createValidation($workers): array
     {
+        $emptyFields = [];
+        $i=0;
         foreach($workers as $key => $worker) {
-            Log::info($key);
+            // Log::info($key);
             if(empty($worker)) {
-                return false;
+                $emptyFields[$i++] = " " . $key . " is required";
             }
         }
-        return true;
+        return $emptyFields;
     }
     /**
      * @param string $comments
      * @param int $status
+     * @param int $successFlag
      */
-    public function insertRecord($comments = '', $status = 1): void
+    public function insertRecord($comments = '', $status = 1, $successFlag): void
     {
         BulkUploadRecords::create(
             [
                 'bulk_upload_id' => $this->bulkUpload->id,
                 'parameter' => json_encode($this->workerParameter),
                 'comments' => $comments,
-                'status' => $status
+                'status' => $status,
+                'success_flag' => $successFlag
             ]
         );
     }
