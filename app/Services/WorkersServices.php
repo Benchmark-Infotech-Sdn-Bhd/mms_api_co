@@ -1133,11 +1133,46 @@ class WorkersServices
         $workerBulkUpload = $this->workerBulkUpload->create([
                 'name' => 'Worker Bulk Upload',
                 'type' => 'Worker bulk upload',
-                'module_type' => 'Workers'
+                'module_type' => 'Workers',
+                'company_id' => $user['company_id']
             ]
         );
 
         Excel::import(new CommonWorkerImport($params, $workerBulkUpload), $file);
         return true;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function importHistory($request) : mixed
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $this->workerBulkUpload
+        ->select('id', 'total_records', 'total_success', 'total_failure', 'created_at')
+        ->where('module_type', 'Workers')
+        ->whereIn('company_id', $request['company_id'])
+        ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function failureList($request) : mixed
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $this->workerBulkUpload
+        ->with(['records' => function ($query) {
+            $query->where('success_flag', 0);
+        }])
+        ->select('id', 'total_records', 'total_success', 'total_failure', 'created_at')
+        ->where('module_type', 'Workers')
+        ->where('id', $request['bulk_upload_id'])
+        ->whereIn('company_id', $request['company_id'])
+        ->paginate(Config::get('services.paginate_row'));
     }
 }

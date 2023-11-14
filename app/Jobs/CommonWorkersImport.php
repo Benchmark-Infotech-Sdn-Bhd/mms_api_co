@@ -45,6 +45,7 @@ class CommonWorkersImport extends Job
         Log::info('Worker instert - started ');
 
         $comments = '';
+        $successFlag = 0;
         $validationCheck = $this->createValidation($this->workerParameter);
         if(empty($validationCheck)) {
 
@@ -147,6 +148,7 @@ class CommonWorkersImport extends Job
 
                     Log::info('Worker inserted -  '.$worker['id']);
                     DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_success');
+                    $successFlag = 1;
                     $comments .= ' SUCCESS - worker imported';
                 }
             }
@@ -155,7 +157,7 @@ class CommonWorkersImport extends Job
             Log::info('ERROR - required params are empty');
             $comments .= ' ERROR - required params are empty'. join($validationCheck);
         }
-        $this->insertRecord($comments);
+        $this->insertRecord($comments, 1, $successFlag);
     }
     /**
      * @param $workers
@@ -168,7 +170,7 @@ class CommonWorkersImport extends Job
         foreach($workers as $key => $worker) {
             // Log::info($key);
             if(empty($worker)) {
-                $emptyFields[$i++] = $key . " is required";
+                $emptyFields[$i++] = " " . $key . " is required";
             }
         }
         return $emptyFields;
@@ -176,15 +178,17 @@ class CommonWorkersImport extends Job
     /**
      * @param string $comments
      * @param int $status
+     * @param int $successFlag
      */
-    public function insertRecord($comments = '', $status = 1): void
+    public function insertRecord($comments = '', $status = 1, $successFlag): void
     {
         BulkUploadRecords::create(
             [
                 'bulk_upload_id' => $this->bulkUpload->id,
                 'parameter' => json_encode($this->workerParameter),
                 'comments' => $comments,
-                'status' => $status
+                'status' => $status,
+                'success_flag' => $successFlag
             ]
         );
     }
