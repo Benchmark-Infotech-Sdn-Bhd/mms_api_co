@@ -274,5 +274,49 @@ class DirectRecruitmentWorkersController extends Controller
             return $this->sendError(['message' => $data['error']], 400);
         }
     }
+
+    /**
+     * Search & Retrieve Worker StatusList.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function importSummaryList(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->directRecruitmentWorkersServices->importSummaryList($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+
+    /**
+     * Search & Retrieve Worker StatusList.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function failureList(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->directRecruitmentWorkersServices->failureList($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
     
 }
