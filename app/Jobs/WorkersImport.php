@@ -29,6 +29,7 @@ class WorkersImport extends Job
     private $parameters;
     private $bulkUpload;
     private $workerParameter;
+    Private $workerNonMandatory;
 
     /**
      * Create a new job instance.
@@ -36,11 +37,13 @@ class WorkersImport extends Job
      * @param $workerParameter
      * @param $parameters
      * @param $bulkUpload
+     * @param $workerNonMandatory
      */
-    public function __construct($workerParameter, $bulkUpload)
+    public function __construct($workerParameter, $bulkUpload, $workerNonMandatory)
     {
         $this->workerParameter = $workerParameter;
         $this->bulkUpload = $bulkUpload;
+        $this->workerNonMandatory = $workerNonMandatory;
     }
 
     /**
@@ -53,14 +56,15 @@ class WorkersImport extends Job
     public function handle(ManageWorkersServices $manageWorkersServices): void
     { 
 
-        Log::info('Worker instert - started ');
+        Log::info('Worker insert - started ');
 
         $comments = '';
         $countryQuotaError = 0;
         $ksmReferenceNumberQuotaError = 0;
         $agentWorkerCountError = 0;
-
-        if( !empty($this->workerParameter['name']) && !empty($this->workerParameter['date_of_birth']) && !empty($this->workerParameter['gender']) && !empty($this->workerParameter['passport_number']) && !empty($this->workerParameter['passport_valid_until']) && !empty($this->workerParameter['address']) && !empty($this->workerParameter['state']) && !empty($this->workerParameter['kin_name']) && !empty($this->workerParameter['kin_relationship']) && !empty($this->workerParameter['kin_contact_number']) && !empty($this->workerParameter['ksm_reference_number']) && !empty($this->workerParameter['bio_medical_reference_number']) && !empty($this->workerParameter['bio_medical_valid_until'])){
+        $successFlag = 0;
+        $validationCheck = $this->createValidation($this->workerParameter);
+        if(empty($validationCheck)) {
 
             $workerRelationship = DB::table('kin_relationship')->where('name', $this->workerParameter['kin_relationship'])->first('id');
 
@@ -185,14 +189,14 @@ class WorkersImport extends Job
                     'fomema_valid_until' => null,
                     'status' => 1,
                     'address' => $this->workerParameter['address'] ?? '',
-                    'city' => $this->workerParameter['city'] ?? '',
+                    'city' => $this->workerNonMandatory['city'] ?? '',
                     'state' => $this->workerParameter['state'] ?? '',
                     'crm_prospect_id' => $prospect_id ?? NULL,
                     'created_by'    => $this->workerParameter['created_by'] ?? 0,
                     'modified_by'   => $this->workerParameter['created_by'] ?? 0,
                     'company_id'    => $applicationDetails->company_id,
-                    'created_at'    => null,
-                    'updated_at'    => null
+                    'created_at'    => Carbon::now()->toDateTimeString(),
+                    'updated_at'    => Carbon::now()->toDateTimeString()
                 ]);
 
                 Workers::where('id', $worker['id'])
@@ -207,8 +211,8 @@ class WorkersImport extends Job
                     'application_id' => $this->workerParameter['application_id'] ?? 0,
                     'created_by'    => $this->workerParameter['created_by'] ?? 0,
                     'modified_by'   => $this->workerParameter['created_by'] ?? 0 ,
-                    'created_at'    => null,
-                    'updated_at'    => null         
+                    'created_at'    => Carbon::now()->toDateTimeString(),
+                    'updated_at'    => Carbon::now()->toDateTimeString()         
                 ]);
     
                 WorkerKin::create([
@@ -216,8 +220,8 @@ class WorkersImport extends Job
                     "kin_name" => $this->workerParameter['kin_name'] ?? '',
                     "kin_relationship_id" => $workerRelationship->id ?? 0,
                     "kin_contact_number" =>  $this->workerParameter['kin_contact_number'] ?? '',
-                    'created_at'    => null,
-                    'updated_at'    => null         
+                    'created_at'    => Carbon::now()->toDateTimeString(),
+                    'updated_at'    => Carbon::now()->toDateTimeString()         
                 ]);
     
                 WorkerVisa::create([
@@ -301,6 +305,7 @@ class WorkersImport extends Job
     
                 Log::info('Worker inserted -  '.$worker['id']);
                 DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_success');
+                $successFlag = 1;
                 $comments .= ' SUCCESS - worker imported';
             }else{
                 DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
@@ -309,24 +314,41 @@ class WorkersImport extends Job
         }else{
             DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
             Log::info('ERROR - required params are empty');
-            $comments .= ' ERROR - required params are empty';
+            $comments .= ' ERROR - required params are empty'. join($validationCheck);
         }
         
-        $this->insertRecord($comments);
+        $this->insertRecord($comments, 1, $successFlag);
     }
-
+    /**
+     * @param $workers
+     * @return array
+     */
+    public function createValidation($workers): array
+    {
+        $emptyFields = [];
+        $i=0;
+        foreach($workers as $key => $worker) {
+            // Log::info($key);
+            if(empty($worker)) {
+                $emptyFields[$i++] = " " . $key . " is required";
+            }
+        }
+        return $emptyFields;
+    }
     /**
      * @param string $comments
      * @param int $status
+     * @param int $successFlag
      */
-    public function insertRecord($comments = '', $status = 1): void
+    public function insertRecord($comments = '', $status = 1, $successFlag): void
     {
         BulkUploadRecords::create(
             [
                 'bulk_upload_id' => $this->bulkUpload->id,
                 'parameter' => json_encode($this->workerParameter),
                 'comments' => $comments,
-                'status' => $status
+                'status' => $status,
+                'success_flag' => $successFlag
             ]
         );
     }

@@ -276,16 +276,16 @@ class DirectRecruitmentWorkersController extends Controller
     }
 
     /**
-     * Search & Retrieve Worker StatusList.
+     * list Import details
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function importSummaryList(Request $request): JsonResponse
+    public function importHistory(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $data = $this->directRecruitmentWorkersServices->importSummaryList($params);
+            $data = $this->directRecruitmentWorkersServices->importHistory($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -298,7 +298,7 @@ class DirectRecruitmentWorkersController extends Controller
     }
 
     /**
-     * Search & Retrieve Worker StatusList.
+     * list failure cases
      *
      * @param Request $request
      * @return JsonResponse

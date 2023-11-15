@@ -592,7 +592,8 @@ class DirectRecruitmentWorkersServices
                 'application_id' => $request['application_id'] ?? '',
                 'name' => 'Worker Bulk Upload',
                 'type' => 'Worker bulk upload',
-                'module_type' => 'Direct Recruitment'
+                'module_type' => 'WorkerBioData',
+                'company_id' => $user['company_id']
             ]
         );
 
@@ -633,7 +634,7 @@ class DirectRecruitmentWorkersServices
      * @param $request
      * @return mixed
      */
-    public function importSummaryList($request): mixed
+    public function importHistory($request): mixed
     {
         $user = JWTAuth::parseToken()->authenticate();
         $request['company_id'] = $this->authServices->getCompanyIds($user);
