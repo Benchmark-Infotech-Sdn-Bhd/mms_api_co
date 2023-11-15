@@ -743,5 +743,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('deleteAll', 'V1\InvoiceItemsTempController@deleteAll');
         });
 
+        /**
+        * Routes for Audits.
+        */
+        $router->group(['prefix' => 'audits'], function () use ($router) {
+            $router->post('list', 'V1\AuditsController@list');
+        });
+
     });
 });
