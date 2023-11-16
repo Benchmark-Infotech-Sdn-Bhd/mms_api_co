@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Validator;
 
 
 class WorkersImport extends Job
@@ -47,6 +48,31 @@ class WorkersImport extends Job
     }
 
     /**
+     * @return array
+     */
+    public function formatValidation(): array
+    {
+        return [
+            'onboarding_country_id' => 'required',
+            'agent_id' => 'required',
+            'application_id' => 'required',
+            'name' => 'required',
+            'date_of_birth' => 'required|date|date_format:Y-m-d',
+            'gender' => 'required',                        
+            'passport_number' => 'required',
+            'passport_valid_until' => 'required|date|date_format:Y-m-d',
+            'address' => 'required',
+            'state' => 'required',
+            'kin_name' => 'required',
+            'kin_relationship' => 'required',
+            'kin_contact_number' => 'required',
+            'ksm_reference_number' => 'required',
+            'bio_medical_reference_number' => 'required',
+            'bio_medical_valid_until' => 'required|date|date_format:Y-m-d'
+        ];
+    }
+
+    /**
      * Execute the job.
      *
      * @param ManageWorkersServices $manageWorkersServices
@@ -64,7 +90,14 @@ class WorkersImport extends Job
         $agentWorkerCountError = 0;
         $successFlag = 0;
         $validationCheck = $this->createValidation($this->workerParameter);
-        if(empty($validationCheck)) {
+
+        $validationError = [];
+        $validator = Validator::make($this->workerParameter, $this->formatValidation());
+        if($validator->fails()) {
+            $validationError = implode(",",$validator->messages()->all());
+        }
+
+        if(empty($validationCheck) && empty($validationError)) {
 
             $workerRelationship = DB::table('kin_relationship')->where('name', $this->workerParameter['kin_relationship'])->first('id');
 
@@ -314,7 +347,7 @@ class WorkersImport extends Job
         }else{
             DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
             Log::info('ERROR - required params are empty');
-            $comments .= ' ERROR - required params are empty'. join($validationCheck);
+            $comments .= ' ERROR - required params are empty'. join($validationCheck) . $validationError;
         }
         
         $this->insertRecord($comments, 1, $successFlag);
