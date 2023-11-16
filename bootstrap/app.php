@@ -66,6 +66,7 @@ $app->configure('app');
 $app->configure('jwt');
 $app->configure('services');
 $app->configure('mail');
+$app->configure('filesystems');
 
 /*
 |--------------------------------------------------------------------------
@@ -98,6 +99,9 @@ $app->middleware([
 | totally optional, so you are not required to uncomment this line.
 |
 */
+$app->bind(\Illuminate\Queue\QueueManager::class, function ($app) {
+    return new \Illuminate\Queue\QueueManager($app);
+});
 
  $app->register(App\Providers\AppServiceProvider::class);
  $app->register(App\Providers\AuthServiceProvider::class);
@@ -106,6 +110,8 @@ $app->middleware([
  $app->register(OwenIt\Auditing\AuditingServiceProvider::class);
  $app->register(Illuminate\Mail\MailServiceProvider::class);
  $app->register(Maatwebsite\Excel\ExcelServiceProvider::class);
+ $app->register(Imtigger\LaravelJobStatus\LaravelJobStatusServiceProvider::class);
+ $app->register(Imtigger\LaravelJobStatus\LaravelJobStatusBusServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------

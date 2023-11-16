@@ -76,6 +76,13 @@ return [
             'visibility' => 'public',
          ],
 
+         'custom_storage' => [
+            'driver' => 'local',
+            'root' => storage_path('failure_cases'),
+            'url' => env('APP_URL').'/storage',
+            'visibility' => 'public',
+        ],
+
     ],
 
 ];

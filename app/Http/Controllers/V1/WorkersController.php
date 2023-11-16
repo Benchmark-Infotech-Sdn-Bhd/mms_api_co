@@ -492,6 +492,9 @@ class WorkersController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->workersServices->failureList($params);
+            if (isset($data['queueError'])) {
+                return $this->sendError(['message' => 'Import is in Progress'], 400);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

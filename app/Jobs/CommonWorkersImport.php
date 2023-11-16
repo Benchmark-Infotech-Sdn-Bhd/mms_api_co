@@ -14,9 +14,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Bus\Queueable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Imtigger\LaravelJobStatus\Trackable;
 
-class CommonWorkersImport extends Job
+
+class CommonWorkersImport extends Job implements ShouldQueue
 {
+
+    use InteractsWithQueue, Queueable, SerializesModels, Trackable;
+
     private $bulkUpload;
     private $workerParameter;
     private $workerNonMandatory;
@@ -30,6 +39,7 @@ class CommonWorkersImport extends Job
      */
     public function __construct($workerParameter, $bulkUpload, $workerNonMandatory)
     {
+        $this->prepareStatus();
         $this->workerParameter = $workerParameter;
         $this->bulkUpload = $bulkUpload;
         $this->workerNonMandatory = $workerNonMandatory;
@@ -157,7 +167,7 @@ class CommonWorkersImport extends Job
             Log::info('ERROR - required params are empty');
             $comments .= ' ERROR - required params are empty'. join($validationCheck);
         }
-        $this->insertRecord($comments, 1, $successFlag);
+        $this->insertRecord($comments, 1, $successFlag, $this->workerParameter['company_id']);
     }
     /**
      * @param $workers
@@ -179,8 +189,9 @@ class CommonWorkersImport extends Job
      * @param string $comments
      * @param int $status
      * @param int $successFlag
+     * @param int $companyId
      */
-    public function insertRecord($comments = '', $status = 1, $successFlag): void
+    public function insertRecord($comments = '', $status = 1, $successFlag, $companyId): void
     {
         BulkUploadRecords::create(
             [
@@ -188,7 +199,8 @@ class CommonWorkersImport extends Job
                 'parameter' => json_encode($this->workerParameter),
                 'comments' => $comments,
                 'status' => $status,
-                'success_flag' => $successFlag
+                'success_flag' => $successFlag,
+                'company_id' => $companyId
             ]
         );
     }

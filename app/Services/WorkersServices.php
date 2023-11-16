@@ -18,6 +18,7 @@ use App\Models\DirectRecruitmentOnboardingAgent;
 use App\Models\WorkerStatus;
 use App\Models\WorkerBulkUpload;
 use App\Models\DirectrecruitmentWorkers;
+use App\Models\BulkUploadRecords;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
@@ -30,9 +31,15 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Imports\CommonWorkerImport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\FailureExport;
+use Illuminate\Support\Facades\Log;
+use App\Models\JobStatus;
+// use Illuminate\Foundation\Bus\DispatchesJobs;
+
 
 class WorkersServices
 {
+    // use DispatchesJobs;
     private Workers $workers;
     private WorkerAttachments $workerAttachments;
     private WorkerKin $workerKin;
@@ -53,6 +60,7 @@ class WorkersServices
     private Storage $storage;
     private DirectrecruitmentWorkers $directrecruitmentWorkers;
     private WorkerBulkUpload $workerBulkUpload;
+    private BulkUploadRecords $bulkUploadRecords;
 
     /**
      * WorkersServices constructor.
@@ -76,6 +84,7 @@ class WorkersServices
      * @param Storage $storage
      * @param DirectrecruitmentWorkers $directrecruitmentWorkers;
      * @param WorkerBulkUpload $workerBulkUpload
+     * @param BulkUploadRecords $bulkUploadRecords
      */
     public function __construct(
             Workers                                     $workers,
@@ -97,7 +106,8 @@ class WorkersServices
             AuthServices                                $authServices,
             Storage                                     $storage,
             DirectrecruitmentWorkers                    $directrecruitmentWorkers,
-            WorkerBulkUpload                            $workerBulkUpload
+            WorkerBulkUpload                            $workerBulkUpload,
+            BulkUploadRecords                           $bulkUploadRecords
     )
     {
         $this->workers = $workers;
@@ -120,6 +130,7 @@ class WorkersServices
         $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
         $this->directrecruitmentWorkers = $directrecruitmentWorkers;
         $this->workerBulkUpload = $workerBulkUpload;
+        $this->bulkUploadRecords = $bulkUploadRecords;
     }
     /**
      * @return array
@@ -1158,21 +1169,87 @@ class WorkersServices
     }
     /**
      * @param $request
-     * @return mixed
+     * @return array
      */
-    public function failureList($request) : mixed
+    public function failureList($request): array
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['company_id'] = $this->authServices->getCompanyIds($user);
+        $job = new FailureExport();
+        // $jobStatusId = $job->getJobStatusId();
+        $jobStatus = JobStatus::find(1);
+        print_r($jobStatus);exit;
+        $queue = app('queue.connection');
+        $size = $queue->size('CommonWorkersImport');
+        Log::info('Queue Size:' . $size);
+        if($size > 0) {
+            return [
+                'queueError' => true
+            ];
+        }
 
-        return $this->workerBulkUpload
-        ->with(['records' => function ($query) {
-            $query->where('success_flag', 0);
-        }])
-        ->select('id', 'total_records', 'total_success', 'total_failure', 'created_at')
-        ->where('module_type', 'Workers')
-        ->where('id', $request['bulk_upload_id'])
-        ->whereIn('company_id', $request['company_id'])
-        ->paginate(Config::get('services.paginate_row'));
+        $workerBulkUpload = $this->workerBulkUpload->findOrFail($request['bulk_upload_id']);
+        if(is_null($workerBulkUpload->failure_case_url)) {
+            $fileName = "FailureCases" . $request['bulk_upload_id'] . ".xlsx";
+            $filePath = '/FailureCases/Workers/' . $fileName; 
+            Excel::store(new FailureExport($request['bulk_upload_id']), $filePath, 'linode');
+            $fileUrl = $this->storage::disk('linode')->url($filePath);
+            $workerBulkUpload->failure_case_url = $fileUrl ?? NULL;
+            $workerBulkUpload->save();
+        }
+        return [
+            'file_url' => $workerBulkUpload->failure_case_url
+        ];
+        // $fileFolder = storage_path('failure_cases');
+        // // echo $fileFolder;exit;
+        // if (!is_dir($fileFolder)) {
+        //     mkdir($fileFolder, 0755, true);
+        // }
+        // $filelocation = $fileFolder.'/'.$request['bulk_upload_id'];
+        // if (!is_dir($filelocation)) {
+        //     mkdir($filelocation);
+        // }
+        // $filePath = $filelocation. "/". $fileName;
+
+
+         //         $filePath = '/FailureList/'.$request['bulk_upload_id']. $fileName; 
+        //         $linode = $this->storage::disk('linode');
+        //         $linode->put($filePath, file_get_contents($file));
+        //         $fileUrl = $this->storage::disk('linode')->url($filePath);
+        
+
+        // Excel::store(new UsersExport($request['bulk_upload_id']), $fileName, 'custom_storage');
+        
+
+        // UserExport($request['bulk_upload_id'])->store('users.xlxs', 'public', Excel::XLSX);
+        return true;
+
+
+        // $user = JWTAuth::parseToken()->authenticate();
+        // $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        // return $this->workerBulkUpload
+        // ->with(['records' => function ($query) {
+        //     $query->where('success_flag', 0);
+        // }])
+        // ->select('id', 'total_records', 'total_success', 'total_failure', 'created_at')
+        // ->where('module_type', 'Workers')
+        // ->where('id', $request['bulk_upload_id'])
+        // ->whereIn('company_id', $request['company_id'])
+        // ->paginate(Config::get('services.paginate_row'));
+
+        // $test = $this->bulkUploadRecords
+        // ->where('success_flag', 0)
+        // ->where('bulk_upload_id', $request['bulk_upload_id'])
+        // ->select('id', 'bulk_upload_id', 'parameter', 'comments', 'status', 'success_flag', 'created_at')
+        // ->get()->toArray();
+
+        //         $filePath = '/FailureList/'.$request['bulk_upload_id']. $fileName; 
+        //         $linode = $this->storage::disk('linode');
+        //         $linode->put($filePath, file_get_contents($file));
+        //         $fileUrl = $this->storage::disk('linode')->url($filePath);
+        
+        // foreach($test as $tes) {
+        //     $arrayVal = json_decode($tes['parameter']);
+        //     echo $arrayVal->date_of_birth."****";
+        // }exit;
     }
 }

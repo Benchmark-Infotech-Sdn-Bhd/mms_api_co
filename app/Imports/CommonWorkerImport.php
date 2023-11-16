@@ -13,7 +13,6 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-
 class CommonWorkerImport implements ToModel, WithChunkReading, WithHeadingRow
 {
     protected const CHUNK_ROW = 250;
