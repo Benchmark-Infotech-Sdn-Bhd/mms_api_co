@@ -42,7 +42,7 @@ class TotalManagementSupervisorServices
         ->whereIn('employee.company_id', $request['company_id'])
         ->where('total_management_project.supervisor_id', '!=', 0)
         ->select('total_management_project.driver_id', 'total_management_project.supervisor_id', 'total_management_project.supervisor_type')
-        ->selectRaw('IF(total_management_project.supervisor_type = "employee", employee.employee_name, supervisorTransportation.driver_name) as supervisor_name, IF(total_management_project.supervisor_type = "employee", users.email, supervisorTransportation.driver_email) as email, IF(total_management_project.supervisor_type = "employee", employee.contact_number, supervisorTransportation.driver_contact_number) as contect_number')
+        ->selectRaw('IF(total_management_project.supervisor_type = "employee", employee.employee_name, supervisorTransportation.driver_name) as supervisor_name, IF(total_management_project.supervisor_type = "employee", users.email, supervisorTransportation.driver_email) as email, IF(total_management_project.supervisor_type = "employee", employee.contact_number, supervisorTransportation.driver_contact_number) as contact_number')
         ->distinct('total_management_project.supervisor_id')
         ->paginate(Config::get('services.paginate_row'));
     }
