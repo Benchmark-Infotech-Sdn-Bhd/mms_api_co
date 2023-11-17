@@ -29,7 +29,7 @@ class TotalManagementSupervisorServices
      */   
     public function list($request): mixed
     {
-        $this->totalManagementProject
+        return $this->totalManagementProject
         ->leftJoin('users', 'users.id', '=', 'total_management_project.supervisor_id')
         ->leftJoin('employee', 'employee.id', '=', 'users.reference_id')
         ->leftJoin('transportation as supervisorTransportation', 'supervisorTransportation.id', '=', 'users.reference_id')
