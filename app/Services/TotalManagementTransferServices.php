@@ -128,7 +128,8 @@ class TotalManagementTransferServices
                 $query->where('crm_prospect_services.from_existing', 1)
                 ->where('crm_prospect_services.service_id', '=', 3);
             }else{
-                $query->where('crm_prospect_services.service_id', '!=', 1);
+                $query->where('crm_prospect_services.service_id', '!=', 1)
+                ->where('crm_prospect_services.from_existing', '!=', 1);
             }
         })
         ->whereIn('crm_prospects.company_id', $request['company_id'])
@@ -148,9 +149,9 @@ class TotalManagementTransferServices
                 ->where('crm_prospect_services.deleted_at', NULL);
             }
         })
-        ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospect_services.service_id', 'sectors.sector_name')
+        ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospect_services.service_id', 'sectors.sector_name', 'crm_prospect_services.from_existing')
         ->selectRaw("(CASE WHEN (crm_prospect_services.service_id = 1) THEN 'Direct Recruitment' WHEN (crm_prospect_services.service_id = 2) THEN 'e-Contract' ELSE 'Total Management' END) as service_type, crm_prospect_services.id as prospect_service_id")
-        ->distinct('crm_prospects.id')
+        ->distinct('crm_prospect_services.id')
         ->orderBy('crm_prospects.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
