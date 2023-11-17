@@ -56,18 +56,18 @@ class WorkersImport extends Job
             'onboarding_country_id' => 'required',
             'agent_id' => 'required',
             'application_id' => 'required',
-            'name' => 'required',
+            'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
             'date_of_birth' => 'required|date|date_format:Y-m-d',
-            'gender' => 'required',                        
-            'passport_number' => 'required',
+            'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',                        
+            'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/|unique:workers',
             'passport_valid_until' => 'required|date|date_format:Y-m-d',
             'address' => 'required',
-            'state' => 'required',
-            'kin_name' => 'required',
+            'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
+            'kin_name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
             'kin_relationship' => 'required',
-            'kin_contact_number' => 'required',
+            'kin_contact_number' => 'required|regex:/^[0-9]+$/',
             'ksm_reference_number' => 'required',
-            'bio_medical_reference_number' => 'required',
+            'bio_medical_reference_number' => 'required|regex:/^[a-zA-Z]*$/|max:255',
             'bio_medical_valid_until' => 'required|date|date_format:Y-m-d'
         ];
     }
@@ -89,15 +89,19 @@ class WorkersImport extends Job
         $ksmReferenceNumberQuotaError = 0;
         $agentWorkerCountError = 0;
         $successFlag = 0;
-        $validationCheck = $this->createValidation($this->workerParameter);
+        //$validationCheck = $this->createValidation($this->workerParameter);
 
         $validationError = [];
         $validator = Validator::make($this->workerParameter, $this->formatValidation());
         if($validator->fails()) {
+            
             $validationError = implode(",",$validator->messages()->all());
+
+            //Log::info('validationError' . print_r($validator->errors(), true));
+
         }
 
-        if(empty($validationCheck) && empty($validationError)) {
+        if(empty($validationError)) {
 
             $workerRelationship = DB::table('kin_relationship')->where('name', $this->workerParameter['kin_relationship'])->first('id');
 
@@ -347,7 +351,7 @@ class WorkersImport extends Job
         }else{
             DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
             Log::info('ERROR - required params are empty');
-            $comments .= ' ERROR - required params are empty'. join($validationCheck) . $validationError;
+            $comments .= ' ERROR - required params are empty ' . $validationError;
         }
         
         $this->insertRecord($comments, 1, $successFlag);
