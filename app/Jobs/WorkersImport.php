@@ -67,7 +67,7 @@ class WorkersImport extends Job
             'kin_relationship' => 'required',
             'kin_contact_number' => 'required|regex:/^[0-9]+$/',
             'ksm_reference_number' => 'required',
-            'bio_medical_reference_number' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+            'bio_medical_reference_number' => 'required|max:255',
             'bio_medical_valid_until' => 'required|date|date_format:Y-m-d'
         ];
     }
@@ -95,9 +95,11 @@ class WorkersImport extends Job
         $validator = Validator::make($this->workerParameter, $this->formatValidation());
         if($validator->fails()) {
             
-            $validationError = implode(",",$validator->messages()->all());
-
+            $validationError = str_replace(".","", implode(",",$validator->messages()->all()));
+            
             //Log::info('validationError' . print_r($validator->errors(), true));
+
+            //Log::info('error' . print_r($validationError, true));
 
         }
 
@@ -351,7 +353,7 @@ class WorkersImport extends Job
         }else{
             DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
             Log::info('ERROR - required params are empty');
-            $comments .= ' ERROR - required params are empty ' . $validationError;
+            $comments .= ' ERROR - ' . $validationError;
         }
         
         $this->insertRecord($comments, 1, $successFlag);
