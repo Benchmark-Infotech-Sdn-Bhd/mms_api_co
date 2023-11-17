@@ -36,12 +36,12 @@ class TotalManagementSupervisorServices
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('employee.employee_name', 'like', '%'.$request['search'].'%')
-                ->orWhere('transportation.driver_name', 'like', '%'.$request['search'].'%');
+                ->orWhere('supervisorTransportation.driver_name', 'like', '%'.$request['search'].'%');
             }
         })
         ->whereIn('employee.company_id', $request['company_id'])
         ->where('total_management_project.supervisor_id', '!=', 0)
-        ->select('total_management_project.driver_id', 'total_management_project.supervisor_id', 'total_management_project.supervisor_type')
+        ->select('total_management_project.supervisor_id', 'total_management_project.supervisor_type')
         ->selectRaw('IF(total_management_project.supervisor_type = "employee", employee.employee_name, supervisorTransportation.driver_name) as supervisor_name, IF(total_management_project.supervisor_type = "employee", users.email, supervisorTransportation.driver_email) as email, IF(total_management_project.supervisor_type = "employee", employee.contact_number, supervisorTransportation.driver_contact_number) as contact_number')
         ->distinct('total_management_project.supervisor_id')
         ->paginate(Config::get('services.paginate_row'));
@@ -67,6 +67,9 @@ class TotalManagementSupervisorServices
             if(isset($request['driver_id']) && !empty($request['driver_id'])) {
                 $query->where('total_management_project.driver_id', $request['driver_id']);
                 //$query->where('total_management_project.assign_as_supervisor', '=', 1);
+            }
+            if(isset($request['supervisor_id']) && !empty($request['supervisor_id'])) {
+                $query->where('total_management_project.supervisor_id', $request['supervisor_id']);
             }
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%')
