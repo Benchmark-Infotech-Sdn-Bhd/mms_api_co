@@ -1166,6 +1166,7 @@ class WorkersServices
         ->where('process_status', 'Processed')
         ->whereNotNull('failure_case_url')
         ->whereIn('company_id', $request['company_id'])
+        ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
