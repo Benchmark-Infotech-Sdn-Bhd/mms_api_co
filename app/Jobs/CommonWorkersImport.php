@@ -14,18 +14,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Imtigger\LaravelJobStatus\Trackable;
 
-
-class CommonWorkersImport extends Job implements ShouldQueue
+class CommonWorkersImport extends Job
 {
-
-    use InteractsWithQueue, Queueable, SerializesModels, Trackable;
-
     private $bulkUpload;
     private $workerParameter;
     private $workerNonMandatory;
@@ -39,7 +30,6 @@ class CommonWorkersImport extends Job implements ShouldQueue
      */
     public function __construct($workerParameter, $bulkUpload, $workerNonMandatory)
     {
-        $this->prepareStatus();
         $this->workerParameter = $workerParameter;
         $this->bulkUpload = $bulkUpload;
         $this->workerNonMandatory = $workerNonMandatory;
@@ -178,7 +168,6 @@ class CommonWorkersImport extends Job implements ShouldQueue
         $emptyFields = [];
         $i=0;
         foreach($workers as $key => $worker) {
-            // Log::info($key);
             if(empty($worker)) {
                 $emptyFields[$i++] = " " . $key . " is required";
             }

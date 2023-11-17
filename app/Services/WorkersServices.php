@@ -32,14 +32,9 @@ use Illuminate\Support\Facades\DB;
 use App\Imports\CommonWorkerImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\FailureExport;
-use Illuminate\Support\Facades\Log;
-use App\Models\JobStatus;
-// use Illuminate\Foundation\Bus\DispatchesJobs;
-
 
 class WorkersServices
 {
-    // use DispatchesJobs;
     private Workers $workers;
     private WorkerAttachments $workerAttachments;
     private WorkerKin $workerKin;
@@ -1148,7 +1143,8 @@ class WorkersServices
                 'company_id' => $user['company_id']
             ]
         );
-
+        $rows = Excel::toArray(new CommonWorkerImport($params, $workerBulkUpload), $file);
+        $this->workerBulkUpload->where('id', $workerBulkUpload->id)->update(['actual_row_count' => count($rows[0])]);
         Excel::import(new CommonWorkerImport($params, $workerBulkUpload), $file);
         return true;
     }
@@ -1162,8 +1158,10 @@ class WorkersServices
         $request['company_id'] = $this->authServices->getCompanyIds($user);
 
         return $this->workerBulkUpload
-        ->select('id', 'total_records', 'total_success', 'total_failure', 'created_at')
+        ->select('id', 'actual_row_count', 'total_success', 'total_failure', 'process_status', 'created_at')
         ->where('module_type', 'Workers')
+        ->where('process_status', 'Processed')
+        ->whereNotNull('failure_case_url')
         ->whereIn('company_id', $request['company_id'])
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -1171,85 +1169,45 @@ class WorkersServices
      * @param $request
      * @return array
      */
-    public function failureList($request): array
-    {
-        $job = new FailureExport();
-        // $jobStatusId = $job->getJobStatusId();
-        $jobStatus = JobStatus::find(1);
-        print_r($jobStatus);exit;
-        $queue = app('queue.connection');
-        $size = $queue->size('CommonWorkersImport');
-        Log::info('Queue Size:' . $size);
-        if($size > 0) {
+    public function failureExport($request): array
+    {        
+        $workerBulkUpload = $this->workerBulkUpload->findOrFail($request['bulk_upload_id']);
+        if($workerBulkUpload->process_status != 'Processed' || is_null($workerBulkUpload->failure_case_url)) {
             return [
                 'queueError' => true
             ];
         }
-
-        $workerBulkUpload = $this->workerBulkUpload->findOrFail($request['bulk_upload_id']);
-        if(is_null($workerBulkUpload->failure_case_url)) {
-            $fileName = "FailureCases" . $request['bulk_upload_id'] . ".xlsx";
-            $filePath = '/FailureCases/Workers/' . $fileName; 
-            Excel::store(new FailureExport($request['bulk_upload_id']), $filePath, 'linode');
-            $fileUrl = $this->storage::disk('linode')->url($filePath);
-            $workerBulkUpload->failure_case_url = $fileUrl ?? NULL;
-            $workerBulkUpload->save();
-        }
         return [
             'file_url' => $workerBulkUpload->failure_case_url
         ];
-        // $fileFolder = storage_path('failure_cases');
-        // // echo $fileFolder;exit;
-        // if (!is_dir($fileFolder)) {
-        //     mkdir($fileFolder, 0755, true);
-        // }
-        // $filelocation = $fileFolder.'/'.$request['bulk_upload_id'];
-        // if (!is_dir($filelocation)) {
-        //     mkdir($filelocation);
-        // }
-        // $filePath = $filelocation. "/". $fileName;
+    }
+    /**
+     * @return bool
+     */
+    public function prepareExcelForFailureCases(): bool
+    {
+        $ids = [];
+        $bulkUploads = $this->workerBulkUpload
+        ->where( function ($query) {
+            $query->whereNull('process_status')
+            ->orWhereNull('failure_case_url');
+        })
+        ->select('id', 'total_records', 'total_success', 'total_failure', 'actual_row_count')
+        ->get()->toArray();
 
-
-         //         $filePath = '/FailureList/'.$request['bulk_upload_id']. $fileName; 
-        //         $linode = $this->storage::disk('linode');
-        //         $linode->put($filePath, file_get_contents($file));
-        //         $fileUrl = $this->storage::disk('linode')->url($filePath);
-        
-
-        // Excel::store(new UsersExport($request['bulk_upload_id']), $fileName, 'custom_storage');
-        
-
-        // UserExport($request['bulk_upload_id'])->store('users.xlxs', 'public', Excel::XLSX);
+        foreach($bulkUploads as $bulkUpload) {
+            if($bulkUpload['actual_row_count'] == ($bulkUpload['total_success'] + $bulkUpload['total_failure'])) {
+                array_push($ids, $bulkUpload['id']);
+            }
+        }
+        $this->workerBulkUpload->whereIn('id', $ids)->update(['process_status' => 'Processed']);
+        foreach($ids as $id) {
+            $fileName = "FailureCases" . $id . ".xlsx";
+            $filePath = '/FailureCases/Workers/' . $fileName; 
+            Excel::store(new FailureExport($id), $filePath, 'linode');
+            $fileUrl = $this->storage::disk('linode')->url($filePath);
+            $this->workerBulkUpload->where('id', $id)->update(['failure_case_url' => $fileUrl]);
+        }
         return true;
-
-
-        // $user = JWTAuth::parseToken()->authenticate();
-        // $request['company_id'] = $this->authServices->getCompanyIds($user);
-
-        // return $this->workerBulkUpload
-        // ->with(['records' => function ($query) {
-        //     $query->where('success_flag', 0);
-        // }])
-        // ->select('id', 'total_records', 'total_success', 'total_failure', 'created_at')
-        // ->where('module_type', 'Workers')
-        // ->where('id', $request['bulk_upload_id'])
-        // ->whereIn('company_id', $request['company_id'])
-        // ->paginate(Config::get('services.paginate_row'));
-
-        // $test = $this->bulkUploadRecords
-        // ->where('success_flag', 0)
-        // ->where('bulk_upload_id', $request['bulk_upload_id'])
-        // ->select('id', 'bulk_upload_id', 'parameter', 'comments', 'status', 'success_flag', 'created_at')
-        // ->get()->toArray();
-
-        //         $filePath = '/FailureList/'.$request['bulk_upload_id']. $fileName; 
-        //         $linode = $this->storage::disk('linode');
-        //         $linode->put($filePath, file_get_contents($file));
-        //         $fileUrl = $this->storage::disk('linode')->url($filePath);
-        
-        // foreach($test as $tes) {
-        //     $arrayVal = json_decode($tes['parameter']);
-        //     echo $arrayVal->date_of_birth."****";
-        // }exit;
     }
 }
