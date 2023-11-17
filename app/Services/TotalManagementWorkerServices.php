@@ -189,6 +189,12 @@ class TotalManagementWorkerServices
             ->where('workers.econtract_status', 'On-Bench')
             ->where('workers.total_management_status', 'On-Bench')
             ->whereIn('workers.crm_prospect_id', $request['company_ids'])
+            ->whereIn('workers.company_id', $request['company_id'])
+            ->where(function ($query) use ($request) {
+                if ($request['user']['user_type'] == 'Customer') {
+                    $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
+                }
+            })
         ->where(function ($query) use ($request) {
             if(isset($request['from_existing']) && $request['from_existing'] == 1){
                 $query->where([
