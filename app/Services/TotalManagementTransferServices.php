@@ -123,6 +123,7 @@ class TotalManagementTransferServices
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
         ->leftJoin('sectors', 'sectors.id', 'crm_prospect_services.sector_id')
         ->where('crm_prospects.status', 1)
+        ->where('crm_prospect_services.deleted_at', NULL)
         ->where(function ($query) use ($request) {
             if(isset($request['from_existing']) && $request['from_existing'] == 1) {
                 $query->where('crm_prospect_services.from_existing', 1)
@@ -145,8 +146,7 @@ class TotalManagementTransferServices
         })
         ->where(function ($query) use ($request) {
             if(isset($request['filter']) && !empty($request['filter'])) {
-                $query->where('crm_prospect_services.service_id', $request['filter'])
-                ->where('crm_prospect_services.deleted_at', NULL);
+                $query->where('crm_prospect_services.service_id', $request['filter']);
             }
         })
         ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospect_services.service_id', 'sectors.sector_name', 'crm_prospect_services.from_existing')
