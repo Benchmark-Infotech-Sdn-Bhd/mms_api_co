@@ -22,8 +22,12 @@ return new class extends Migration
             $table->string('process_status')->nullable()->after('actual_row_count');
             // Column for failure case url
             $table->text('failure_case_url')->nullable()->after('process_status');
-             
-             
+            // Column for user type
+            $table->string('user_type')->nullable()->after('failure_case_url'); 
+            // Column for user id who created the bulk upload
+            $table->integer('created_by')->default(0)->after('user_type');
+            // Column for user id who updated the bulk upload
+            $table->integer('modified_by')->default(0)->after('created_by'); 
         });
     }
 

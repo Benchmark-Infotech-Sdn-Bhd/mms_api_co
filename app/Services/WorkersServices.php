@@ -1140,7 +1140,10 @@ class WorkersServices
                 'name' => 'Worker Bulk Upload',
                 'type' => 'Worker bulk upload',
                 'module_type' => 'Workers',
-                'company_id' => $user['company_id']
+                'company_id' => $user['company_id'],
+                'created_by' => $params['created_by'],
+                'modified_by' => $params['created_by'],
+                'user_type' => $user['user_type']
             ]
         );
         $rows = Excel::toArray(new CommonWorkerImport($params, $workerBulkUpload), $file);
