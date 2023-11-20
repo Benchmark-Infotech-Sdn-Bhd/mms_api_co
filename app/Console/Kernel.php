@@ -16,7 +16,8 @@ class Kernel extends ConsoleKernel
         Commands\XeroRefreshToken::class,
         Commands\XeroGetTaxRates::class,
         Commands\XeroGetAccounts::class,
-        Commands\XeroGetItems::class
+        Commands\XeroGetItems::class,
+        Commands\RenewalNotifications::class
     ];
 
     /**
@@ -31,5 +32,6 @@ class Kernel extends ConsoleKernel
         $schedule->command('command:XeroGetTaxRates')->cron('0 */6 * * *');
         $schedule->command('command:XeroGetAccounts')->cron('0 */6 * * *');
         $schedule->command('command:XeroGetItems')->cron('0 */6 * * *');
+        $schedule->command('command:RenewalNotifications')->cron('0 0 * * *');
     }
 }
