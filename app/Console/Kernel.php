@@ -17,11 +17,8 @@ class Kernel extends ConsoleKernel
         Commands\XeroGetTaxRates::class,
         Commands\XeroGetAccounts::class,
         Commands\XeroGetItems::class,
-<<<<<<< HEAD
+        Commands\WorkerImportFailure::class,
         Commands\RenewalNotifications::class
-=======
-        Commands\WorkerImportFailure::class
->>>>>>> cfb9c4104960c4b1b984f7bd6c03a785d1d6ec4c
     ];
 
     /**
