@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Validator;
 
 class CommonWorkersImport extends Job
 {
@@ -46,15 +47,20 @@ class CommonWorkersImport extends Job
 
         $comments = '';
         $successFlag = 0;
-        $validationCheck = $this->createValidation($this->workerParameter);
-        if(empty($validationCheck)) {
+        $validationError = [];
+        $validator = Validator::make($this->workerParameter, $this->createValidation());
+        if($validator->fails()) {            
+            $validationError = str_replace(".,",", ", implode(",",$validator->messages()->all()));
+        }
+
+        if(empty($validationError)) {
 
             $workerRelationship = DB::table('kin_relationship')
                                     ->where('name', $this->workerParameter['kin_relationship'])
                                     ->first('id');
 
             if(is_null($workerRelationship)) {
-                $comments .= ' ERROR - Invalid Kin Relationship';
+                $comments .= 'ERROR - Invalid Kin Relationship';
                 DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
                 Log::info('ERROR - worker import failed  due to '.$comments);
             } else {
@@ -155,24 +161,34 @@ class CommonWorkersImport extends Job
         } else {
             DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
             Log::info('ERROR - required params are empty');
-            $comments .= ' ERROR - required params are empty'. join($validationCheck);
+            $comments .= 'ERROR - ' . $validationError;
         }
         $this->insertRecord($comments, 1, $successFlag, $this->workerParameter['company_id']);
     }
     /**
-     * @param $workers
      * @return array
      */
-    public function createValidation($workers): array
+    public function createValidation(): array
     {
-        $emptyFields = [];
-        $i=0;
-        foreach($workers as $key => $worker) {
-            if(empty($worker)) {
-                $emptyFields[$i++] = " " . $key . " is required";
-            }
-        }
-        return $emptyFields;
+        return [
+            'onboarding_country_id' => 'required',
+            'agent_id' => 'required',
+            'application_id' => 'required',
+            'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
+            'date_of_birth' => 'required|date|date_format:Y-m-d',
+            'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',                        
+            'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/|unique:workers',
+            'passport_valid_until' => 'required|date|date_format:Y-m-d',
+            'address' => 'required',
+            'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
+            'kin_name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+            'kin_relationship' => 'required',
+            'kin_contact_number' => 'required|regex:/^[0-9]+$/',
+            'ksm_reference_number' => 'required',
+            'bio_medical_reference_number' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+            'bio_medical_reference_number' => 'required|max:255',
+            'bio_medical_valid_until' => 'required|date|date_format:Y-m-d'
+        ];
     }
     /**
      * @param string $comments
