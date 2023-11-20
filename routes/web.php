@@ -745,5 +745,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('deleteAll', 'V1\InvoiceItemsTempController@deleteAll');
         });
 
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'notifications'], function () use ($router) {
+            $router->post('count', 'V1\NotificationController@count');
+            $router->post('list', 'V1\NotificationController@list');
+            $router->post('updateReadStatus', 'V1\NotificationController@updateReadStatus');
+            $router->post('renewalNotifications', 'V1\NotificationController@renewalNotifications');
+        });
+
     });
 });
