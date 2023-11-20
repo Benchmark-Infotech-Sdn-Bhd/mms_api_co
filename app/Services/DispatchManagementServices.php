@@ -30,6 +30,10 @@ class DispatchManagementServices
      * @var AuthServices
      */
     private AuthServices $authServices;
+    /**
+     * @var NotificationServices
+     */
+    private NotificationServices $notificationServices;
 
     /**
      * dispatchManagementServices constructor.
@@ -37,13 +41,15 @@ class DispatchManagementServices
      * @param OnboardingDispatchAttachments $onboardingDispatchAttachments
      * @param Storage $storage
      * @param AuthServices $authServices
+     * @param NotificationServices $notificationServices
      */
-    public function __construct(OnboardingDispatch $onboardingDispatch, OnboardingDispatchAttachments $onboardingDispatchAttachments, Storage $storage, AuthServices $authServices)
+    public function __construct(OnboardingDispatch $onboardingDispatch, OnboardingDispatchAttachments $onboardingDispatchAttachments, Storage $storage, AuthServices $authServices, NotificationServices $notificationServices)
     {
         $this->onboardingDispatch = $onboardingDispatch;
         $this->onboardingDispatchAttachments = $onboardingDispatchAttachments;
         $this->storage = $storage;
         $this->authServices = $authServices;
+        $this->notificationServices = $notificationServices;
     }
     /**
      * @return array
@@ -85,6 +91,10 @@ class DispatchManagementServices
      */   
     public function list($request): mixed
     {
+        dispatch(new \App\Jobs\RunnerNotificationMail('sam','enock@codetesma.com','this is welcome message'));
+
+        echo "testing";
+
         $user = JWTAuth::parseToken()->authenticate();
         $request['company_id'] = $this->authServices->getCompanyIds($user);
 
@@ -183,6 +193,17 @@ class DispatchManagementServices
             'modified_by' =>  $request['created_by'] ?? 0
         ]);
 
+        $NotificationParams['user_id'] = $request['employee_id'];
+        $NotificationParams['from_user_id'] = $params['created_by'];
+        $NotificationParams['type'] = 'Dispatches';
+        $NotificationParams['title'] = 'Dispatches';
+        $NotificationParams['message'] = $request['reference_number'].' Dispatch is Assigned '.$request['date'].','.$request['time'];
+        $NotificationParams['status'] = 0;
+        $NotificationParams['read_flag'] = 0;
+        $NotificationParams['created_by'] = $params['created_by'];
+        $NotificationParams['modified_by'] = $params['created_by'];
+        $this->notificationServices->insertNotification($NotificationParams);
+
         if (request()->hasFile('attachment') && isset($onboardingDispatch['id'])) {
             foreach($request->file('attachment') as $file) {                
                 $fileName = $file->getClientOriginalName();                 
@@ -244,7 +265,7 @@ class DispatchManagementServices
 
         $onboardingDispatch = $this->onboardingDispatch->findOrFail($request['id']);
         
-        $onboardingDispatch->date =  $request['name'] ?? $onboardingDispatch->date;
+        $onboardingDispatch->date =  $request['date'] ?? $onboardingDispatch->date;
         $onboardingDispatch->time =  $request['time'] ?? $onboardingDispatch->time;
         $onboardingDispatch->employee_id =  $request['employee_id'] ?? $onboardingDispatch->employee_id;
         $onboardingDispatch->from =  $request['from'] ?? $onboardingDispatch->from;
@@ -264,6 +285,17 @@ class DispatchManagementServices
         if(isset($request['acknowledgement_remarks']) && !empty($request['acknowledgement_remarks'])){
             $onboardingDispatch->dispatch_status = 'Completed'; 
             $onboardingDispatch->acknowledgement_date = Carbon::now(); 
+
+            $NotificationParams['user_id'] = $request['employee_id'];
+            $NotificationParams['from_user_id'] = $params['modified_by'];
+            $NotificationParams['type'] = 'Dispatches';
+            $NotificationParams['title'] = 'Dispatches';
+            $NotificationParams['message'] = $onboardingDispatch->reference_number.' Dispatch is Completed  '.$request['date'].','.$request['time'];
+            $NotificationParams['status'] = 0;
+            $NotificationParams['read_flag'] = 0;
+            $NotificationParams['created_by'] = $params['modified_by'];
+            $NotificationParams['modified_by'] = $params['modified_by'];
+            $this->notificationServices->insertNotification($NotificationParams);
         }
         $onboardingDispatch->save();
 

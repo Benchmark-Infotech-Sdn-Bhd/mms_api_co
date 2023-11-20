@@ -54,6 +54,10 @@ class DirectRecruitmentOnboardingAttestationServices
      * @var DirectRecruitmentOnboardingCountry
      */
     private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+    /**
+     * @var NotificationServices
+     */
+    private NotificationServices $notificationServices;
 
     /**
      * DirectRecruitmentOnboardingAttestationServices constructor.
@@ -65,9 +69,10 @@ class DirectRecruitmentOnboardingAttestationServices
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
      * @param Storage $storage;
      * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
+     * @param NotificationServices $notificationServices
      */
 
-    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
+    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices, NotificationServices $notificationServices)
     {
         $this->onboardingAttestation = $onboardingAttestation;
         $this->onboardingDispatch = $onboardingDispatch;
@@ -77,6 +82,7 @@ class DirectRecruitmentOnboardingAttestationServices
         $this->storage = $storage;
         $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
+        $this->notificationServices = $notificationServices;
     }
     /**
      * @return array
@@ -280,6 +286,17 @@ class DirectRecruitmentOnboardingAttestationServices
                 'modified_by' =>  $request['created_by'] ?? 0
             ]);
         }
+
+        $NotificationParams['user_id'] = $request['employee_id'];
+        $NotificationParams['from_user_id'] = $request['created_by'];
+        $NotificationParams['type'] = 'Dispatches';
+        $NotificationParams['title'] = 'Dispatches';
+        $NotificationParams['message'] = $onboardingDispatch->reference_number.' Dispatch is Assigned  '.$request['date'].','.$request['time'];
+        $NotificationParams['status'] = 0;
+        $NotificationParams['read_flag'] = 0;
+        $NotificationParams['created_by'] = $request['created_by'];
+        $NotificationParams['modified_by'] = $request['created_by'];
+        $this->notificationServices->insertNotification($NotificationParams);
         
         return true;
     }
