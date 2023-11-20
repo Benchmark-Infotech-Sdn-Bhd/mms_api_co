@@ -17,7 +17,11 @@ class Kernel extends ConsoleKernel
         Commands\XeroGetTaxRates::class,
         Commands\XeroGetAccounts::class,
         Commands\XeroGetItems::class,
+<<<<<<< HEAD
         Commands\RenewalNotifications::class
+=======
+        Commands\WorkerImportFailure::class
+>>>>>>> cfb9c4104960c4b1b984f7bd6c03a785d1d6ec4c
     ];
 
     /**
@@ -32,6 +36,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('command:XeroGetTaxRates')->cron('0 */6 * * *');
         $schedule->command('command:XeroGetAccounts')->cron('0 */6 * * *');
         $schedule->command('command:XeroGetItems')->cron('0 */6 * * *');
+        $schedule->command('command:WorkerImportFailure')->everyTwoMinutes();
         $schedule->command('command:RenewalNotifications')->cron('0 0 * * *');
     }
 }

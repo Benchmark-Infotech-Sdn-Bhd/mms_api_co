@@ -494,6 +494,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('listAttachment', 'V1\WorkersController@listAttachment');
             $router->post('deleteAttachment', 'V1\WorkersController@deleteAttachment');
             $router->post('import', 'V1\WorkersController@import');
+            $router->post('importHistory', 'V1\WorkersController@importHistory');
+            $router->post('failureExport', 'V1\WorkersController@failureExport');
             $router->group(['prefix' => 'workerEvent'], function () use ($router) {
                 $router->post('list', 'V1\WorkerEventController@list');
                 $router->post('create', 'V1\WorkerEventController@create');
