@@ -291,6 +291,7 @@ class DispatchManagementUnitTest extends TestCase
     public function creationData(): array
     {
         return [
+            "onboarding_attestation_id" => 0,
             "date" => Carbon::now()->format('Y-m-d'),
             "time" => '12:00 AM',
             "employee_id" => 1,
@@ -315,6 +316,7 @@ class DispatchManagementUnitTest extends TestCase
     {
         return [
             "id" => 1,
+            "onboarding_attestation_id" => 0,
             "date" => Carbon::now()->format('Y-m-d'),
             "time" => '12:00 AM',
             "employee_id" => 1,
