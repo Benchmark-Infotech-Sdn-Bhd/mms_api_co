@@ -199,9 +199,6 @@ class DirectRecruitmentOnboardingAttestationServices
         }
         if (isset($request['collection_date']) && !empty($request['collection_date'])) {
             $request['status'] = 'Collected';
-            $onboardingCountry = $this->directRecruitmentOnboardingCountry->findOrFail($onboardingAttestation->onboarding_country_id);
-            $onboardingCountry->utilised_quota = $onboardingCountry->quota;
-            $onboardingCountry->save();
         }
         if(isset($request['submission_date']) && !empty($request['submission_date'])){
             $onboardingAttestation->submission_date =  $request['submission_date'];

@@ -104,6 +104,12 @@ class DirectRecruitmentCallingVisaApprovalServices
                     'directrecruitment_status' => 'Accepted', 
                     'modified_by' => $request['modified_by']
                 ]);
+            // Update Utilised Quota
+            $approvedCount = 0;
+            $countryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
+            $approvedCount = $countryDetails->utilised_quota + count($request['workers']);
+            $countryDetails->utilised_quota = $approvedCount;
+            $countryDetails->save();
         } else {
             $this->workerVisa->whereIn('worker_id', $request['workers'])
             ->update([
