@@ -171,9 +171,6 @@ class CommonWorkersImport extends Job
     public function createValidation(): array
     {
         return [
-            'onboarding_country_id' => 'required',
-            'agent_id' => 'required',
-            'application_id' => 'required',
             'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
             'date_of_birth' => 'required|date|date_format:Y-m-d',
             'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',                        
@@ -186,8 +183,16 @@ class CommonWorkersImport extends Job
             'kin_contact_number' => 'required|regex:/^[0-9]+$/',
             'ksm_reference_number' => 'required',
             'bio_medical_reference_number' => 'required|regex:/^[a-zA-Z]*$/|max:255',
-            'bio_medical_reference_number' => 'required|max:255',
-            'bio_medical_valid_until' => 'required|date|date_format:Y-m-d'
+            'bio_medical_valid_until' => 'required|date|date_format:Y-m-d',
+            'purchase_date' => 'required',
+            'clinic_name' => 'required',
+            'doctor_code' => 'required',
+            'allocated_xray' => 'required',
+            'xray_code' => 'required',
+            'ig_policy_number' => 'required',
+            'hospitalization_policy_number' => 'required',
+            'insurance_expiry_date' => 'required',
+            'company_id' => 'required'
         ];
     }
     /**
