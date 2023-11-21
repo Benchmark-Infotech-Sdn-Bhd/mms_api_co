@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Models\Workers;
+use App\Models\WorkerArrival;
+use App\Models\DirectrecruitmentWorkers;
+use App\Models\DirectRecruitmentOnboardingCountry;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -13,14 +16,32 @@ class DirectRecruitmentPostponedServices
      * @var workers
      */
     private Workers $workers;
+    /**
+     * @var WorkerArrival
+     */
+    private WorkerArrival $workerArrival;
+    /**
+     * @var DirectrecruitmentWorkers
+     */
+    private DirectrecruitmentWorkers $directrecruitmentWorkers;
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
 
     /**
      * DirectRecruitmentPostponedServices constructor.
      * @param Workers $workers
+     * @param WorkerArrival $workerArrival
+     * @param DirectrecruitmentWorkers $directrecruitmentWorkers
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(Workers $workers)
+    public function __construct(Workers $workers, WorkerArrival $workerArrival, DirectrecruitmentWorkers $directrecruitmentWorkers, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
-        $this->workers = $workers;;
+        $this->workers = $workers;
+        $this->workerArrival = $workerArrival;
+        $this->directrecruitmentWorkers = $directrecruitmentWorkers;
+        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -75,5 +96,50 @@ class DirectRecruitmentPostponedServices
             ->orderBy('workers.id', 'desc')
             ->paginate(Config::get('services.paginate_worker_row'));
     }
-    
+    /**
+     * @param $request
+     * @return bool
+     */
+    public function updateCallingVisaExpiry(): bool
+    {
+        $postponedWorkerIds = $this->workerArrival
+                                ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_arrival.worker_id')
+                                ->where('worker_arrival.arrival_status', 'Postponed')
+                                ->where('worker_visa.calling_visa_valid_until', '<', Carbon::now()->format('Y-m-d'))
+                                ->select('worker_arrival.worker_id')
+                                ->distinct('worker_arrival.worker_id')
+                                ->get()->toArray();
+        $postponedWorkerIds = array_column($postponedWorkerIds, 'worker_id');
+        if(!empty($postponedWorkerIds)) {
+            $workerIds = $this->workerArrival
+                    ->whereIn('worker_id', $postponedWorkerIds)
+                    ->where('arrival_status', 'Not Arrived')
+                    ->select('worker_id')
+                    ->distinct('worker_id')
+                    ->get()->toArray();
+            $workerIds = array_column($workerIds, 'worker_id');
+            
+            if(isset($workerIds) && !empty($workerIds)) {
+                $this->workers->whereIn('id', $workerIds)
+                    ->update([
+                        'directrecruitment_status' => 'Expired'
+                    ]);
+                foreach ($workerIds as $workerId) {
+                    $utilisedQuota = 0;
+                    $onBoardingCountryDetails = $this->directrecruitmentWorkers
+                                            ->leftJoin('workers', 'workers.id', 'directrecruitment_workers.worker_id')
+                                            ->where('directrecruitment_workers.worker_id', $workerId)
+                                            ->where('workers.directrecruitment_status', 'Expired')
+                                            ->select('directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id')
+                                            ->get()->toArray();
+                    // print_r($onBoardingCountryDetails);exit;
+                    $countryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($onBoardingCountryDetails[0]['onboarding_country_id']);
+                    $utilisedQuota = (($countryDetails->utilised_quota - 1) < 0) ? 0 : $countryDetails->utilised_quota - 1;
+                    $countryDetails->utilised_quota = $utilisedQuota;
+                    $countryDetails->save();
+                }
+            }
+        }        
+        return true;
+    }
 }

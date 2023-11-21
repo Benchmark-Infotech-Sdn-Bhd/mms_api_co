@@ -214,7 +214,7 @@ class DirectRecruitmentOnboardingCountryServices
         $utilisedQuota = $this->workers
         ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
         ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
-        ->where('workers.directrecruitment_status', 'Processed')
+        ->whereNotIn('workers.directrecruitment_status', Config::get('services.NOT_UTILISED_STATUS_TYPE'))
         ->where('directrecruitment_workers.application_id', $request['application_id'])
         ->select('worker_visa.ksm_reference_number', DB::raw('COUNT(workers.id) as utilised_quota'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
         ->groupBy('worker_visa.ksm_reference_number')
@@ -226,6 +226,7 @@ class DirectRecruitmentOnboardingCountryServices
             foreach($utilisedQuota as $utilisedKey => $utilisedValue) {
                 if($utilisedQuota[$utilisedKey]['ksm_reference_number'] == $ksmReferenceNumbers[$key]['ksm_reference_number']) {
                     $ksmReferenceNumbers[$key]['utilised_quota'] = $utilisedQuota[$utilisedKey]['utilised_quota'];
+                    $ksmReferenceNumbers[$key]['worker_id'] = $utilisedQuota[$utilisedKey]['workers_id'];
                 }
             }
         }

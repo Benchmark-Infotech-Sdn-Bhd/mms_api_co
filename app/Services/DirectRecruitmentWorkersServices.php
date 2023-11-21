@@ -66,7 +66,7 @@ class DirectRecruitmentWorkersServices
      * @param DirectrecruitmentWorkers $directrecruitmentWorkers;
      * @param WorkersServices $workersServices;
      * @param DirectrecruitmentApplications $directrecruitmentApplications;
-     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      * @param Levy $levy
      */
     public function __construct(
@@ -350,8 +350,7 @@ class DirectRecruitmentWorkersServices
             }
 
         })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as visa_status', 'workers.cancel_status as cancellation_status', 'workers.created_at', 'workers.directrecruitment_status', 'workers.replace_worker_id')
-        ->selectRaw("(CASE WHEN (workers.directrecruitment_status = 'Repatriated') THEN workers.directrecruitment_status 
-        WHEN (workers.cancel_status = 1) THEN 'Cancelled' 
+        ->selectRaw("(CASE WHEN (workers.directrecruitment_status = 'Repatriated') THEN workers.directrecruitment_status WHEN (workers.directrecruitment_status = 'Expired') THEN workers.directrecruitment_status WHEN (workers.cancel_status = 1) THEN 'Cancelled' 
         WHEN (workers.cancel_status = 2) THEN 'Cancelled' 
 		ELSE worker_visa.approval_status END) as status");
         if(isset($request['status']) && !empty($request['status'])) {

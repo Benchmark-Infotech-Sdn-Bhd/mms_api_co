@@ -104,4 +104,6 @@ return [
     'STANDARD_FEE_COST' => [100.00, 94.00, 50.00, 120.00],
 
     'OTHERS_EVENT_TYPE' => ['Repatriated', 'e-Run', 'Deceased'],
+
+    'NOT_UTILISED_STATUS_TYPE' => ['Pending', 'Rejected', 'Repatriated', 'Cancelled', 'Expired'],
 ];
