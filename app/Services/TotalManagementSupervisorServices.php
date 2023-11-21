@@ -30,27 +30,20 @@ class TotalManagementSupervisorServices
     public function list($request): mixed
     {
         return $this->totalManagementProject
-        ->leftJoin('users as supervisorUsers', 'supervisorUsers.id', '=', 'total_management_project.supervisor_id')
-        ->leftJoin('employee', function ($join) {
-            $join->on('employee.id', '=', 'supervisorUsers.reference_id');
-        })
-        ->leftJoin('transportation as supervisorTransportation', 'supervisorTransportation.id', '=', 'supervisorUsers.reference_id')
-        ->leftJoin('users', 'employee.id', '=', 'users.reference_id')
-        ->leftJoin('users as usersTransportation', 'supervisorTransportation.id', '=', 'usersTransportation.reference_id')
-        ->leftJoin('transportation', function ($join) {
-            $join->on('transportation.id', '=', 'total_management_project.driver_id');
-            //->where('total_management_project.assign_as_supervisor', '=', 1);
-        })
+        ->leftJoin('users', 'users.id', '=', 'total_management_project.supervisor_id')
+        ->leftJoin('employee', 'employee.id', '=', 'users.reference_id')
+        ->leftJoin('transportation as supervisorTransportation', 'supervisorTransportation.id', '=', 'users.reference_id')
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('employee.employee_name', 'like', '%'.$request['search'].'%')
-                ->orWhere('transportation.driver_name', 'like', '%'.$request['search'].'%');
+                ->orWhere('supervisorTransportation.driver_name', 'like', '%'.$request['search'].'%');
             }
         })
         ->whereIn('employee.company_id', $request['company_id'])
-        ->select('total_management_project.employee_id','employee.employee_name', 'employee.contact_number', 'users.email', 'total_management_project.assign_as_supervisor', 'total_management_project.driver_id', 'transportation.driver_name', 'transportation.driver_contact_number', DB::raw('COUNT(total_management_project.id) as project_count'), 'total_management_project.supervisor_id', 'total_management_project.supervisor_type')
-        ->selectRaw('IF(total_management_project.supervisor_type = "employee", employee.employee_name, supervisorTransportation.driver_name) as supervisor_name, IF(total_management_project.supervisor_type = "employee", users.email, usersTransportation.email) as emailN')
-        ->groupBy('total_management_project.employee_id','employee.employee_name', 'employee.contact_number', 'users.email', 'usersTransportation.email', 'total_management_project.assign_as_supervisor', 'total_management_project.driver_id', 'transportation.driver_name', 'transportation.driver_contact_number', 'total_management_project.supervisor_id', 'total_management_project.supervisor_type','supervisorTransportation.driver_name')
+        ->where('total_management_project.supervisor_id', '!=', 0)
+        ->select('total_management_project.supervisor_id', 'total_management_project.supervisor_type')
+        ->selectRaw('IF(total_management_project.supervisor_type = "employee", employee.employee_name, supervisorTransportation.driver_name) as supervisor_name, IF(total_management_project.supervisor_type = "employee", users.email, supervisorTransportation.driver_email) as email, IF(total_management_project.supervisor_type = "employee", employee.contact_number, supervisorTransportation.driver_contact_number) as contact_number')
+        ->distinct('total_management_project.supervisor_id')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
@@ -74,6 +67,9 @@ class TotalManagementSupervisorServices
             if(isset($request['driver_id']) && !empty($request['driver_id'])) {
                 $query->where('total_management_project.driver_id', $request['driver_id']);
                 //$query->where('total_management_project.assign_as_supervisor', '=', 1);
+            }
+            if(isset($request['supervisor_id']) && !empty($request['supervisor_id'])) {
+                $query->where('total_management_project.supervisor_id', $request['supervisor_id']);
             }
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%')

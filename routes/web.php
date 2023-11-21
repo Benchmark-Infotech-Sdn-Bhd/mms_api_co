@@ -497,7 +497,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('deleteAttachment', 'V1\WorkersController@deleteAttachment');
             $router->post('import', 'V1\WorkersController@import');
             $router->post('importHistory', 'V1\WorkersController@importHistory');
-            $router->post('failureList', 'V1\WorkersController@failureList');
+            $router->post('failureExport', 'V1\WorkersController@failureExport');
             $router->group(['prefix' => 'workerEvent'], function () use ($router) {
                 $router->post('list', 'V1\WorkerEventController@list');
                 $router->post('create', 'V1\WorkerEventController@create');
@@ -745,6 +745,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('update', 'V1\InvoiceItemsTempController@update');
             $router->post('delete', 'V1\InvoiceItemsTempController@delete');
             $router->post('deleteAll', 'V1\InvoiceItemsTempController@deleteAll');
+        });
+
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'notifications'], function () use ($router) {
+            $router->post('count', 'V1\NotificationController@count');
+            $router->post('list', 'V1\NotificationController@list');
+            $router->post('updateReadStatus', 'V1\NotificationController@updateReadStatus');
+            $router->post('renewalNotifications', 'V1\NotificationController@renewalNotifications');
         });
 
     });
