@@ -74,7 +74,7 @@ return [
             'bucket' => env('LINODE_BUCKET'),
             'url' => env('LINODE_BUCKET_URL'),
             'visibility' => 'public',
-         ],
+         ]
 
     ],
 

@@ -13,6 +13,7 @@ use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Carbon\Carbon;
+use App\Models\User;
 
 class DirectRecruitmentOnboardingAttestationServices
 {
@@ -287,16 +288,21 @@ class DirectRecruitmentOnboardingAttestationServices
             ]);
         }
 
-        $NotificationParams['user_id'] = $request['employee_id'];
-        $NotificationParams['from_user_id'] = $request['created_by'];
-        $NotificationParams['type'] = 'Dispatches';
-        $NotificationParams['title'] = 'Dispatches';
-        $NotificationParams['message'] = $onboardingDispatch->reference_number.' Dispatch is Assigned  '.$request['date'].','.$request['time'];
-        $NotificationParams['status'] = 0;
-        $NotificationParams['read_flag'] = 0;
-        $NotificationParams['created_by'] = $request['created_by'];
-        $NotificationParams['modified_by'] = $request['created_by'];
-        $this->notificationServices->insertNotification($NotificationParams);
+        $getUser = $this->getUser($request['employee_id']);
+        if($getUser){
+            $NotificationParams['user_id'] = $request['employee_id'];
+            $NotificationParams['from_user_id'] = $request['created_by'];
+            $NotificationParams['type'] = 'Dispatches';
+            $NotificationParams['title'] = 'Dispatches';
+            $NotificationParams['message'] = $request['reference_number'].' Dispatch is Assigned';
+            $NotificationParams['status'] = 1;
+            $NotificationParams['read_flag'] = 0;
+            $NotificationParams['created_by'] = $request['created_by'];
+            $NotificationParams['modified_by'] = $request['created_by'];
+            $this->notificationServices->insertNotification($NotificationParams);
+            
+            dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']));
+        }
         
         return true;
     }
@@ -469,6 +475,14 @@ class DirectRecruitmentOnboardingAttestationServices
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
+    }
+    /**
+     * get user
+     * @param $request
+     */    
+    public function getUser($referenceId)
+    {   
+        return User::where('reference_id',$referenceId)->where('user_type','Employee')->first('id', 'name', 'email');
     }
 
 }

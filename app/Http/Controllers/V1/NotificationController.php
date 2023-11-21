@@ -78,4 +78,22 @@ class NotificationController extends Controller
             return $this->sendError(['message' => $data['error']], 400);
         }
     }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function renewalNotifications(): JsonResponse
+    {
+        try {
+            $data = $this->notificationServices->renewalNotifications();
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Update failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
 }

@@ -14,8 +14,7 @@ class RunnerNotificationMail implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
-    public $name;
-    public $email;
+    public $user;
     public $message;
     public $timeout = 7200; // 2 hours
     public $maxExceptions = 2;
@@ -25,10 +24,9 @@ class RunnerNotificationMail implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($name, $email, $message)
+    public function __construct($user, $message)
     {
-        $this->name = $name;
-        $this->email = $email;
+        $this->user = $user;
         $this->message = $message;
     }
 
@@ -43,15 +41,33 @@ class RunnerNotificationMail implements ShouldQueue
 
         $input = [];
         $input['subject'] = "Notification Mail";
-        $input['name'] = $this->name;
-        $input['email'] = $this->email;
+        $input['name'] = $this->user['name'];
+        $input['email'] = $this->user['email'];
         $input['message'] = $this->message;
 
-        Mail::send('email.RunnerNotificationMail', ['params' => $input], function ($message) use ($input) {
-            $message->to($input['email'])
-                ->subject($input['subject']);
-            $message->from(Config::get('services.mail_from_address'), Config::get('services.mail_from_name'));
-        });
-        Log::info('Runners notification mail process completed');
+        if($this->emailValidation($input['email'])){
+            Mail::send('email.RunnerNotificationMail', ['params' => $input], function ($message) use ($input) {
+                $message->to($input['email'])
+                    ->subject($input['subject']);
+                $message->from(Config::get('services.mail_from_address'), Config::get('services.mail_from_name'));
+            });
+            Log::info('Runners notification mail process completed');
+        }else{
+            Log::info('Runners notification mail process failed due to incorrect email id');
+        }
+        
+    }
+    /**
+     * Email Validation
+     */
+    public function emailValidation($email)
+    {
+        if (isset($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return TRUE;
+        }
+        else
+        {
+            return FALSE;
+        }
     }
 }

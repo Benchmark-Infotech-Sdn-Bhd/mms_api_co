@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Validator;
 
 class CommonWorkersImport extends Job
 {
@@ -43,17 +44,23 @@ class CommonWorkersImport extends Job
     public function handle(): void
     {
         Log::info('Worker instert - started ');
-        
+
         $comments = '';
-        $validationCheck = $this->createValidation($this->workerParameter);
-        if(isset($validationCheck) && !empty($validationCheck)) {
+        $successFlag = 0;
+        $validationError = [];
+        $validator = Validator::make($this->workerParameter, $this->createValidation());
+        if($validator->fails()) {            
+            $validationError = str_replace(".,",", ", implode(",",$validator->messages()->all()));
+        }
+
+        if(empty($validationError)) {
 
             $workerRelationship = DB::table('kin_relationship')
                                     ->where('name', $this->workerParameter['kin_relationship'])
                                     ->first('id');
 
             if(is_null($workerRelationship)) {
-                $comments .= ' ERROR - Invalid Kin Relationship';
+                $comments .= 'ERROR - Invalid Kin Relationship';
                 DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
                 Log::info('ERROR - worker import failed  due to '.$comments);
             } else {
@@ -147,42 +154,58 @@ class CommonWorkersImport extends Job
 
                     Log::info('Worker inserted -  '.$worker['id']);
                     DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_success');
+                    $successFlag = 1;
                     $comments .= ' SUCCESS - worker imported';
                 }
             }
         } else {
             DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
             Log::info('ERROR - required params are empty');
-            $comments .= ' ERROR - required params are empty';
+            $comments .= 'ERROR - ' . $validationError;
         }
-        $this->insertRecord($comments);
+        $this->insertRecord($comments, 1, $successFlag, $this->workerParameter['company_id']);
     }
     /**
-     * @param $workers
-     * @return bool
+     * @return array
      */
-    public function createValidation($workers): bool
+    public function createValidation(): array
     {
-        foreach($workers as $key => $worker) {
-            Log::info($key);
-            if(empty($worker)) {
-                return false;
-            }
-        }
-        return true;
+        return [
+            'onboarding_country_id' => 'required',
+            'agent_id' => 'required',
+            'application_id' => 'required',
+            'name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
+            'date_of_birth' => 'required|date|date_format:Y-m-d',
+            'gender' => 'required|regex:/^[a-zA-Z]*$/|max:15',                        
+            'passport_number' => 'required|regex:/^[a-zA-Z0-9]*$/|unique:workers',
+            'passport_valid_until' => 'required|date|date_format:Y-m-d',
+            'address' => 'required',
+            'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
+            'kin_name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+            'kin_relationship' => 'required',
+            'kin_contact_number' => 'required|regex:/^[0-9]+$/',
+            'ksm_reference_number' => 'required',
+            'bio_medical_reference_number' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+            'bio_medical_reference_number' => 'required|max:255',
+            'bio_medical_valid_until' => 'required|date|date_format:Y-m-d'
+        ];
     }
     /**
      * @param string $comments
      * @param int $status
+     * @param int $successFlag
+     * @param int $companyId
      */
-    public function insertRecord($comments = '', $status = 1): void
+    public function insertRecord($comments = '', $status = 1, $successFlag, $companyId): void
     {
         BulkUploadRecords::create(
             [
                 'bulk_upload_id' => $this->bulkUpload->id,
                 'parameter' => json_encode($this->workerParameter),
                 'comments' => $comments,
-                'status' => $status
+                'status' => $status,
+                'success_flag' => $successFlag,
+                'company_id' => $companyId
             ]
         );
     }

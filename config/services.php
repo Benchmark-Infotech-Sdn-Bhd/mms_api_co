@@ -104,4 +104,20 @@ return [
     'STANDARD_FEE_COST' => [100.00, 94.00, 50.00, 120.00],
 
     'OTHERS_EVENT_TYPE' => ['Repatriated', 'e-Run', 'Deceased'],
+
+    'NOTIFICATION_TYPE' => 'RENEWALNOTIFICATIONS',
+    'FOMEMA_NOTIFICATION_TITLE' => 'FOMEMA RENEWAL',
+    'FOMEMA_NOTIFICATION_MESSAGE' => 'workers Fomema should be renewed.',
+    'PASSPORT_NOTIFICATION_TITLE' => 'PASSPORT RENEWAL',
+    'PASSPORT_NOTIFICATION_MESSAGE' => 'no. of workers Passport should be renewed.',
+    'PLKS_NOTIFICATION_TITLE' => 'PLKS RENEWAL',
+    'PLKS_NOTIFICATION_MESSAGE' => 'no. of workers PLKS Visa should be renewed.',
+    'CALLING_VISA_NOTIFICATION_TITLE' => 'CALLING VISA RENEWAL',
+    'CALLING_VISA_NOTIFICATION_MESSAGE' => 'no. of workers Calling Visa should be renewed.',
+    'SPECIAL_PASS_NOTIFICATION_TITLE' => 'SPECIAL PASS RENEWAL',
+    'SPECIAL_PASS_NOTIFICATION_MESSAGE' => 'no. of workers Special Pass should be renewed.',
+    'INSURANCE_NOTIFICATION_TITLE' => 'INSURANCE RENEWAL',
+    'INSURANCE_NOTIFICATION_MESSAGE' => 'no. of workers Insurance should be renewed.',
+    'ENTRY_VISA_NOTIFICATION_TITLE' => 'ENTRY VISA RENEWAL',
+    'ENTRY_VISA_NOTIFICATION_MESSAGE' => 'no. of workers Entry Visa should be renewed.',
 ];

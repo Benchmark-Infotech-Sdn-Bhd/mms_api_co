@@ -11,6 +11,7 @@ use App\Models\OnboardingDispatchAttachments;
 use App\Services\AuthServices;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class DispatchManagementServices
 {
@@ -91,10 +92,6 @@ class DispatchManagementServices
      */   
     public function list($request): mixed
     {
-        dispatch(new \App\Jobs\RunnerNotificationMail('sam','enock@codetesma.com','this is welcome message'));
-
-        echo "testing";
-
         $user = JWTAuth::parseToken()->authenticate();
         $request['company_id'] = $this->authServices->getCompanyIds($user);
 
@@ -193,16 +190,22 @@ class DispatchManagementServices
             'modified_by' =>  $request['created_by'] ?? 0
         ]);
 
-        $NotificationParams['user_id'] = $request['employee_id'];
-        $NotificationParams['from_user_id'] = $params['created_by'];
-        $NotificationParams['type'] = 'Dispatches';
-        $NotificationParams['title'] = 'Dispatches';
-        $NotificationParams['message'] = $request['reference_number'].' Dispatch is Assigned '.$request['date'].','.$request['time'];
-        $NotificationParams['status'] = 0;
-        $NotificationParams['read_flag'] = 0;
-        $NotificationParams['created_by'] = $params['created_by'];
-        $NotificationParams['modified_by'] = $params['created_by'];
-        $this->notificationServices->insertNotification($NotificationParams);
+        $getUser = $this->getUser($request['employee_id']);
+        if($getUser){
+            $NotificationParams['user_id'] = $getUser['id'];
+            $NotificationParams['from_user_id'] = $params['created_by'];
+            $NotificationParams['type'] = 'Dispatches';
+            $NotificationParams['title'] = 'Dispatches';
+            $NotificationParams['message'] = $request['reference_number'].' Dispatch is Assigned';
+            $NotificationParams['status'] = 1;
+            $NotificationParams['read_flag'] = 0;
+            $NotificationParams['created_by'] = $params['created_by'];
+            $NotificationParams['modified_by'] = $params['created_by'];
+            $this->notificationServices->insertNotification($NotificationParams);
+            
+            dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']));
+        }
+        
 
         if (request()->hasFile('attachment') && isset($onboardingDispatch['id'])) {
             foreach($request->file('attachment') as $file) {                
@@ -286,16 +289,22 @@ class DispatchManagementServices
             $onboardingDispatch->dispatch_status = 'Completed'; 
             $onboardingDispatch->acknowledgement_date = Carbon::now(); 
 
-            $NotificationParams['user_id'] = $request['employee_id'];
-            $NotificationParams['from_user_id'] = $params['modified_by'];
-            $NotificationParams['type'] = 'Dispatches';
-            $NotificationParams['title'] = 'Dispatches';
-            $NotificationParams['message'] = $onboardingDispatch->reference_number.' Dispatch is Completed  '.$request['date'].','.$request['time'];
-            $NotificationParams['status'] = 0;
-            $NotificationParams['read_flag'] = 0;
-            $NotificationParams['created_by'] = $params['modified_by'];
-            $NotificationParams['modified_by'] = $params['modified_by'];
-            $this->notificationServices->insertNotification($NotificationParams);
+            $getUser = $this->getUser($request['employee_id']);
+            if($getUser){
+                $NotificationParams['user_id'] = $getUser['id'];
+                $NotificationParams['from_user_id'] = $params['modified_by'];
+                $NotificationParams['type'] = 'Dispatches';
+                $NotificationParams['title'] = 'Dispatches';
+                $NotificationParams['message'] = $onboardingDispatch->reference_number.' Dispatch is Completed';
+                $NotificationParams['status'] = 1;
+                $NotificationParams['read_flag'] = 0;
+                $NotificationParams['created_by'] = $params['modified_by'];
+                $NotificationParams['modified_by'] = $params['modified_by'];
+                $this->notificationServices->insertNotification($NotificationParams);
+                
+                dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']));
+            }
+
         }
         $onboardingDispatch->save();
 
@@ -361,5 +370,13 @@ class DispatchManagementServices
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
+    }
+    /**
+     * get user
+     * @param $request
+     */    
+    public function getUser($referenceId)
+    {   
+        return User::where('reference_id',$referenceId)->where('user_type','Employee')->first('id', 'name', 'email');
     }
 }

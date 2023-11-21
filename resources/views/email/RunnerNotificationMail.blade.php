@@ -1,7 +1,11 @@
 
 <p>Hello {{ $params['name'] }},</p>
 
-<p>{{ $params['message'] }}</p>
+<p>This Email is to notify that,</p>
+@isset($params['message'])
+<p><b>Dispatch Status</b></p>
+<p>{!! $params['message'] !!} </p>
+@endisset
 
 <p>To view the details, follow the link below.</p>
 
