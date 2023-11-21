@@ -89,18 +89,11 @@ class WorkersImport extends Job
         $ksmReferenceNumberQuotaError = 0;
         $agentWorkerCountError = 0;
         $successFlag = 0;
-        //$validationCheck = $this->createValidation($this->workerParameter);
 
         $validationError = [];
         $validator = Validator::make($this->workerParameter, $this->formatValidation());
         if($validator->fails()) {
-            
             $validationError = str_replace(".","", implode(",",$validator->messages()->all()));
-            
-            //Log::info('validationError' . print_r($validator->errors(), true));
-
-            //Log::info('error' . print_r($validationError, true));
-
         }
 
         if(empty($validationError)) {
@@ -357,22 +350,6 @@ class WorkersImport extends Job
         }
         
         $this->insertRecord($comments, 1, $successFlag);
-    }
-    /**
-     * @param $workers
-     * @return array
-     */
-    public function createValidation($workers): array
-    {
-        $emptyFields = [];
-        $i=0;
-        foreach($workers as $key => $worker) {
-            // Log::info($key);
-            if(empty($worker)) {
-                $emptyFields[$i++] = " " . $key . " is required";
-            }
-        }
-        return $emptyFields;
     }
     /**
      * @param string $comments

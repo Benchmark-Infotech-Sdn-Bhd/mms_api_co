@@ -648,21 +648,19 @@ class DirectRecruitmentWorkersServices
 
     /**
      * @param $request
-     * @return mixed
+     * @return array
      */
-    public function failureList($request): mixed
-    {
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['company_id'] = $this->authServices->getCompanyIds($user);
-
-        return $this->workerBulkUpload
-        ->with(['records' => function ($query) {
-            $query->where('success_flag', 0);
-        }])
-        ->select('id', 'total_records', 'total_success', 'total_failure', 'created_at')
-        ->where('module_type', 'WorkerBioData')
-        ->where('id', $request['bulk_upload_id'])
-        ->paginate(Config::get('services.paginate_row'));
+    public function failureExport($request): array
+    {        
+        $workerBulkUpload = $this->workerBulkUpload->findOrFail($request['bulk_upload_id']);
+        if($workerBulkUpload->process_status != 'Processed' || is_null($workerBulkUpload->failure_case_url)) {
+            return [
+                'queueError' => true
+            ];
+        }
+        return [
+            'file_url' => $workerBulkUpload->failure_case_url
+        ];
     }
 
 }

@@ -302,7 +302,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('replaceWorker', 'V1\DirectRecruitmentWorkersController@replaceWorker');
                     $router->post('import', 'V1\DirectRecruitmentWorkersController@import');
                     $router->post('importHistory', 'V1\DirectRecruitmentWorkersController@importHistory');
-                    $router->post('failureList', 'V1\DirectRecruitmentWorkersController@failureList');
+                    $router->post('failureExport', 'V1\DirectRecruitmentWorkersController@failureExport');
                     $router->post('workerStatusList', 'V1\DirectRecruitmentWorkersController@workerStatusList');
                     $router->post('updateStatus', 'V1\DirectRecruitmentWorkersController@updateStatus');
                 });
