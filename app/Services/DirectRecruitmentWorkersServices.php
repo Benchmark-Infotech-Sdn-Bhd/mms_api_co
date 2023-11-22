@@ -596,7 +596,8 @@ class DirectRecruitmentWorkersServices
                 'company_id' => $user['company_id']
             ]
         );
-
+        $rows = Excel::toArray(new WorkerImport($params, $workerBulkUpload), $file);
+        $this->workerBulkUpload->where('id', $workerBulkUpload->id)->update(['actual_row_count' => count($rows[0])]);
         Excel::import(new WorkerImport($params, $workerBulkUpload), $file);
         return true;
     }
@@ -640,9 +641,12 @@ class DirectRecruitmentWorkersServices
         $request['company_id'] = $this->authServices->getCompanyIds($user);
 
         return $this->workerBulkUpload
-        ->select('id', 'total_records', 'total_success', 'total_failure', 'created_at')
+        ->select('id', 'actual_row_count', 'total_success', 'total_failure', 'process_status', 'created_at')
         ->where('module_type', 'WorkerBioData')
+        ->where('process_status', 'Processed')
+        ->whereNotNull('failure_case_url')
         ->whereIn('company_id', $request['company_id'])
+        ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
 

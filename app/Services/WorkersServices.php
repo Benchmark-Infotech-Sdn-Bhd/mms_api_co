@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\DB;
 use App\Imports\CommonWorkerImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\FailureExport;
+use App\Exports\WorkerBiodataFailureExport;
 
 class WorkersServices
 {
@@ -1191,24 +1192,31 @@ class WorkersServices
     public function prepareExcelForFailureCases(): bool
     {
         $ids = [];
+        $data = [];
         $bulkUploads = $this->workerBulkUpload
         ->where( function ($query) {
             $query->whereNull('process_status')
             ->orWhereNull('failure_case_url');
         })
-        ->select('id', 'total_records', 'total_success', 'total_failure', 'actual_row_count')
+        ->select('id', 'total_records', 'total_success', 'total_failure', 'actual_row_count', 'module_type')
         ->get()->toArray();
 
         foreach($bulkUploads as $bulkUpload) {
             if($bulkUpload['actual_row_count'] == ($bulkUpload['total_success'] + $bulkUpload['total_failure'])) {
                 array_push($ids, $bulkUpload['id']);
+                $data[$bulkUpload['id']]['module_type'] = $bulkUpload['module_type'];
             }
         }
         $this->workerBulkUpload->whereIn('id', $ids)->update(['process_status' => 'Processed']);
         foreach($ids as $id) {
+            $moduleType = isset($data[$id]['module_type']) ? $data[$id]['module_type'] : '';
             $fileName = "FailureCases" . $id . ".xlsx";
             $filePath = '/FailureCases/Workers/' . $fileName; 
-            Excel::store(new FailureExport($id), $filePath, 'linode');
+            if($moduleType == 'WorkerBioData'){
+                Excel::store(new WorkerBiodataFailureExport($id), $filePath, 'linode');
+            }else{
+                Excel::store(new FailureExport($id), $filePath, 'linode');
+            }
             $fileUrl = $this->storage::disk('linode')->url($filePath);
             $this->workerBulkUpload->where('id', $id)->update(['failure_case_url' => $fileUrl]);
         }
