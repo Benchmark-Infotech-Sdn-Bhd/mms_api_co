@@ -42,7 +42,7 @@ class RunnerNotificationMail implements ShouldQueue
         $input = [];
         $input['subject'] = "Notification Mail";
         $input['name'] = $this->user['name'];
-        $input['email'] = 'enock@codtesma.com'; //$this->user['email'];
+        $input['email'] = $this->user['email'];
         $input['mail_subject'] = 'You have new notifications on Dispatch';
         $input['message'] = $this->message;
 
