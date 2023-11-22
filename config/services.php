@@ -120,4 +120,17 @@ return [
     'INSURANCE_NOTIFICATION_MESSAGE' => 'no. of workers Insurance should be renewed.',
     'ENTRY_VISA_NOTIFICATION_TITLE' => 'ENTRY VISA RENEWAL',
     'ENTRY_VISA_NOTIFICATION_MESSAGE' => 'no. of workers Entry Visa should be renewed.',
+
+    'DISPATCH_NOTIFICATION_TITLE' => 'DISPATCHES',
+    'SERVICE_AGREEMENT_NOTIFICATION_TITLE' => 'SERVICE AGREEMENT',
+
+    'FOMEMA_MAIL_MESSAGE' => 'no. of workers Fomema is  to be renewed before Date ',
+    'PASSPORT_MAIL_MESSAGE' => 'no. of workers Passport is  to be renewed before Date ',
+    'PLKS_MAIL_MESSAGE' => 'no. of workers PLKS is  to be renewed before Date',
+    'CALLING_VISA_MAIL_MESSAGE' => 'no. of workers Calling Visa is  to be renewed before Date',
+    'SPECIAL_PASS_MAIL_MESSAGE' => 'no. of workers Special Pass is  to be renewed before Date',
+    'INSURANCE_MAIL_MESSAGE' => 'no. of workers Insurance is  to be renewed before Date',
+    'ENTRY_VISA_MAIL_MESSAGE' => 'no. of workers Entry Visa  is  to be renewed before Date',
+    'SERVICE_AGREEMENT_MAIL_MESSAGE' => 'Service agreement is to expire on',
+    'DISPATCH_MAIL_MESSAGE' => 'Dispatch is Pending',
 ];
