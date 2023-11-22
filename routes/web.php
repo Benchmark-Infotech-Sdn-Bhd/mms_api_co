@@ -169,6 +169,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('dropDownCompanies', 'V1\CRMController@dropDownCompanies');
             $router->post('getProspectDetails', 'V1\CRMController@getProspectDetails');
             $router->post('systemList', 'V1\CRMController@systemList');
+            $router->post('crmImport', 'V1\CRMController@crmImport');
         });
         /**
          * Routes for Vendors.

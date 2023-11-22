@@ -492,4 +492,17 @@ class CRMServices
             ->select('id', 'system_name')
             ->get();
     }
+
+    /**
+     * @return mixed
+     */
+    public function crmImport($request, $file): mixed
+    {
+        $params = $request->all();
+        $params['created_by'] = 1;
+        $params['modified_by'] = 1;
+
+        Excel::import(new CrmImport($params, ''), $file);
+        return true;
+    }
 }

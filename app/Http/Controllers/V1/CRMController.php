@@ -179,4 +179,33 @@ class CRMController extends Controller
             return $this->sendError(['message' => 'Faild to List Systems']);
         }
     }
+    /**
+     * Get System List.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function crmImport(Request $request): JsonResponse
+    {
+        try {
+            
+            $originalFilename = $request->file('file')->getClientOriginalName();
+            $originalFilename_arr = explode('.', $originalFilename);
+            $fileExt = end($originalFilename_arr);
+            $destinationPath = storage_path('upload/crm/');
+            $fileName = 'A-' . time() . '.' . $fileExt;
+            $request->file('file')->move($destinationPath, $fileName);
+            
+            $response = $this->crmServices->crmImport($request, $destinationPath . $fileName);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+
+            return $this->sendSuccess(['message' => "Successfully crm was imported"]);
+
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Faild to Import']);
+        }
+    }
 }
