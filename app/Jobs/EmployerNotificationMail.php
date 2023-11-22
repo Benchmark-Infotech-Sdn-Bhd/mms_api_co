@@ -39,10 +39,21 @@ class EmployerNotificationMail implements ShouldQueue
     {   
         Log::info('Employer notification mail process started' );
 
+        $mailMessage = $this->message;
         $input = [];
         $input['subject'] = "Notification Mail";
         $input['name'] = $this->user['name'];
-        $input['email'] = $this->user['email'];
+        $input['email'] = 'enock@codtesma.com'; //$this->user['email'];
+        $input['mail_subject'] = 'You have new notifications on ';
+        $input['mail_subject'] .= isset($mailMessage['fomemaRenewal']['mail_message']) ? 'Fomema/' : '';
+        $input['mail_subject'] .= isset($mailMessage['passportRenewal']['mail_message']) ? 'Passport/' : '';
+        $input['mail_subject'] .= isset($mailMessage['plksRenewal']['mail_message']) ? 'PLKS/' : '';
+        $input['mail_subject'] .= isset($mailMessage['callingVisaRenewal']['mail_message']) ? 'Calling Visa/' : '';
+        $input['mail_subject'] .= isset($mailMessage['specialPassRenewal']['mail_message']) ? 'Special Pass/' : '';
+        $input['mail_subject'] .= isset($mailMessage['insuranceRenewal']['mail_message']) ? 'Insurance/' : '';
+        $input['mail_subject'] .= isset($mailMessage['entryVisaRenewal']['mail_message']) ? 'Entry Visa/' : '';
+        $input['mail_subject'] .= ( isset($mailMessage['serviceAgreement']) && !empty($mailMessage['serviceAgreement']) ) ? 'Service Agreement' : '';
+        $input['mail_subject'] = rtrim($input['mail_subject'], '/');
         $input['message'] = $this->message;
 
         if($this->emailValidation($input['email'])){
