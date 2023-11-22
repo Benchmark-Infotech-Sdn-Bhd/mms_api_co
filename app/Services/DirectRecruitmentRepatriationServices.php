@@ -6,7 +6,7 @@ use App\Models\DirectRecruitmentPostArrivalStatus;
 use App\Models\WorkerRepatriation;
 use App\Models\WorkerRepatriationAttachments;
 use App\Models\Workers;
-use App\Models\DirectRecruitmentOnboardingCountry;
+use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -39,9 +39,9 @@ class DirectRecruitmentRepatriationServices
      */
     private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
     /**
-     * @var DirectRecruitmentOnboardingCountry
+     * @var DirectRecruitmentOnboardingCountryServices
      */
-    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
 
     /**
      * DirectRecruitmentRepatriationServices constructor.
@@ -51,17 +51,17 @@ class DirectRecruitmentRepatriationServices
      * @param Workers $workers
      * @param Storage $storage
      * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
-     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerRepatriation $workerRepatriation, WorkerRepatriationAttachments $workerRepatriationAttachments, Workers $workers, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerRepatriation $workerRepatriation, WorkerRepatriationAttachments $workerRepatriationAttachments, Workers $workers, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices)
     {
-        $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
-        $this->workerRepatriation                   = $workerRepatriation;
-        $this->workerRepatriationAttachments        = $workerRepatriationAttachments;
-        $this->workers                              = $workers;
-        $this->storage                              = $storage;
-        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
-        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
+        $this->directRecruitmentPostArrivalStatus           = $directRecruitmentPostArrivalStatus;
+        $this->workerRepatriation                           = $workerRepatriation;
+        $this->workerRepatriationAttachments                = $workerRepatriationAttachments;
+        $this->workers                                      = $workers;
+        $this->storage                                      = $storage;
+        $this->directRecruitmentExpensesServices            = $directRecruitmentExpensesServices;
+        $this->directRecruitmentOnboardingCountryServices   = $directRecruitmentOnboardingCountryServices;
     }
     /**
      * @return array
@@ -196,12 +196,8 @@ class DirectRecruitmentRepatriationServices
                     'fomema_valid_until' => $request['fomema_valid_until'], 
                     'modified_by' => $request['modified_by']
                 ]);
-            // Update Utilised Quota
-            $utilisedQuota = 0;
-            $countryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
-            $utilisedQuota = $countryDetails->utilised_quota - count($request['workers']);
-            $countryDetails->utilised_quota = $utilisedQuota;
-            $countryDetails->save();
+                
+            $this->directRecruitmentOnboardingCountryServices->updateUtilisedQuota($request['onboarding_country_id'], count($request['workers']), 'decrement');
         }
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
         

@@ -132,7 +132,7 @@ class DirectRecruitmentPostponedServices
                                             ->where('workers.directrecruitment_status', 'Expired')
                                             ->select('directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id')
                                             ->get()->toArray();
-                    // print_r($onBoardingCountryDetails);exit;
+                                            
                     $countryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($onBoardingCountryDetails[0]['onboarding_country_id']);
                     $utilisedQuota = (($countryDetails->utilised_quota - 1) < 0) ? 0 : $countryDetails->utilised_quota - 1;
                     $countryDetails->utilised_quota = $utilisedQuota;

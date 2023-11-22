@@ -57,12 +57,7 @@ class DirectRecruitmentArrivalServices
     /**
      * @var Storage
      */
-    private Storage $storage;
-    /**
-     * @var DirectRecruitmentOnboardingCountry
-     */
-    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
-    
+    private Storage $storage;    
 
     /**
      * DirectRecruitmentArrivalServices constructor.
@@ -73,10 +68,9 @@ class DirectRecruitmentArrivalServices
      * @param CancellationAttachment $cancellationAttachment
      * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus
-     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      * @param Storage $storage;
      */
-    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectrecruitmentArrival $directrecruitmentArrival, WorkerArrival $workerArrival, CancellationAttachment $cancellationAttachment, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, Storage $storage, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectrecruitmentArrival $directrecruitmentArrival, WorkerArrival $workerArrival, CancellationAttachment $cancellationAttachment, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, Storage $storage)
     {
         $this->workers                                      = $workers;
         $this->workerVisa                                   = $workerVisa;
@@ -86,7 +80,6 @@ class DirectRecruitmentArrivalServices
         $this->directRecruitmentOnboardingCountryServices   = $directRecruitmentOnboardingCountryServices;
         $this->directRecruitmentPostArrivalStatus           = $directRecruitmentPostArrivalStatus;
         $this->storage                                      = $storage;
-        $this->directRecruitmentOnboardingCountry           = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -399,13 +392,9 @@ class DirectRecruitmentArrivalServices
                         'remarks' => $request['remarks'] ?? '',
                         'modified_by' => $params['created_by']
                     ]);
-                // Update Utilised Quota
-                $utilisedQuota = 0;
+
                 $arrivalDetails = $this->directrecruitmentArrival->findOrFail($request['arrival_id']);
-                $countryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($arrivalDetails->onboarding_country_id);
-                $utilisedQuota = $countryDetails->utilised_quota - count($workers);
-                $countryDetails->utilised_quota = $utilisedQuota;
-                $countryDetails->save();
+                $this->directRecruitmentOnboardingCountryServices->updateUtilisedQuota($arrivalDetails->onboarding_country_id, count($workers), 'decrement');
     
                 foreach ($workers as $workerId) {
     
