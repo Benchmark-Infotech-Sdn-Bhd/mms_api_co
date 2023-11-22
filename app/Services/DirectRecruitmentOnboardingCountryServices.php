@@ -10,6 +10,7 @@ use App\Models\ApplicationInterviews;
 use App\Models\OnboardingAttestation;
 use App\Models\Workers;
 use App\Models\Levy;
+use App\Models\OnboardingCountriesKSMReferenceNumber;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\DB;
 
@@ -43,6 +44,10 @@ class DirectRecruitmentOnboardingCountryServices
      * @var Levy
      */
     private Levy $levy;
+    /**
+     * @var OnboardingCountriesKSMReferenceNumber
+     */
+    private OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber;
 
     /**
      * DirectRecruitmentOnboardingCountryServices constructor.
@@ -53,8 +58,9 @@ class DirectRecruitmentOnboardingCountryServices
      * @param OnboardingAttestation $onboardingAttestation;
      * @param Workers $workers
      * @param Levy $levy
+     * @param OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber
      */
-    public function __construct(DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApplicationInterviews $applicationInterviews, ValidationServices $validationServices, OnboardingAttestation $onboardingAttestation, Workers $workers, Levy $levy)
+    public function __construct(DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApplicationInterviews $applicationInterviews, ValidationServices $validationServices, OnboardingAttestation $onboardingAttestation, Workers $workers, Levy $levy, OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber)
     {
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->directRecruitmentApplicationApproval = $directRecruitmentApplicationApproval;
@@ -63,6 +69,7 @@ class DirectRecruitmentOnboardingCountryServices
         $this->onboardingAttestation = $onboardingAttestation;
         $this->workers = $workers;
         $this->levy = $levy;
+        $this->onboardingCountriesKSMReferenceNumber = $onboardingCountriesKSMReferenceNumber;
     }
     /**
      * @return array
@@ -72,7 +79,8 @@ class DirectRecruitmentOnboardingCountryServices
         return [
             'application_id' => 'required',
             'country_id' => 'required',
-            'quota' => 'required|regex:/^[0-9]+$/|max:3'
+            'quota' => 'required|regex:/^[0-9]+$/|max:3',
+            'ksm_reference_number' => 'required'
         ];
     }
     /**
@@ -82,7 +90,18 @@ class DirectRecruitmentOnboardingCountryServices
     {
         return [
             'id' => 'required',
-            'country_id' => 'required',
+            'country_id' => 'required'
+            // 'quota' => 'required|regex:/^[0-9]+$/|max:3'
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function ksmUpdateValidation(): array
+    {
+        return [
+            'id' => 'required',
+            'onboarding_country_id' => 'required',
             'quota' => 'required|regex:/^[0-9]+$/|max:3'
         ];
     }
@@ -101,7 +120,9 @@ class DirectRecruitmentOnboardingCountryServices
             }
         }
         
-        return $this->directRecruitmentOnboardingCountry->leftJoin('countries', 'countries.id', 'directrecruitment_onboarding_countries.country_id')
+        return $this->directRecruitmentOnboardingCountry->with(['onboardingKSMReferenceNumbers' => function ($query) {
+            $query->select('id', 'onboarding_country_id', 'ksm_reference_number', 'quota', 'utilised_quota');
+        }])->leftJoin('countries', 'countries.id', 'directrecruitment_onboarding_countries.country_id')
         ->leftJoin('directrecruitment_onboarding_status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_status.id')
             ->where('directrecruitment_onboarding_countries.application_id', $request['application_id'])
             ->where(function ($query) use ($request) {
@@ -119,13 +140,15 @@ class DirectRecruitmentOnboardingCountryServices
      */   
     public function show($request): mixed
     {
-        return $this->directRecruitmentOnboardingCountry->leftJoin('directrecruitment_onboarding_status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_status.id')->select('directrecruitment_onboarding_countries.*', 'directrecruitment_onboarding_status.name as onboarding_status_name')->find($request['id']);
+        return $this->directRecruitmentOnboardingCountry->with(['onboardingKSMReferenceNumbers' => function ($query) {
+            $query->select('id', 'onboarding_country_id', 'ksm_reference_number', 'quota', 'utilised_quota');
+        }])->leftJoin('directrecruitment_onboarding_status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_status.id')->select('directrecruitment_onboarding_countries.*', 'directrecruitment_onboarding_status.name as onboarding_status_name')->find($request['id']);
     }
     /**
      * @param $request
      * @return bool|array
      */   
-    public function create($request): bool|array
+    public function create($request)
     {
         $validator = Validator::make($request, $this->createValidation());
         if($validator->fails()) {
@@ -133,25 +156,72 @@ class DirectRecruitmentOnboardingCountryServices
                 'error' => $validator->errors()
             ];
         }
-        $interviewApproved = $this->applicationInterviews->where('application_id', $request['application_id'])
-                        ->where('status', 'Approved')->sum('approved_quota');
-        $countriesQuota = $this->directRecruitmentOnboardingCountry->where('application_id', $request['application_id'])
+        // $interviewApproved = $this->applicationInterviews->where('application_id', $request['application_id'])
+        //                 ->where('status', 'Approved')->sum('approved_quota');
+        // $countriesQuota = $this->directRecruitmentOnboardingCountry->where('application_id', $request['application_id'])
+        //                     ->sum('quota');
+        // $countriesQuota += $request['quota'];
+        // if($countriesQuota > $interviewApproved) {
+        //     return [
+        //         'quotaError' => true
+        //     ];
+        // }
+        // $countriesQuota = $this->directRecruitmentOnboardingCountry->where('application_id', $request['application_id'])
+        //                     ->sum('quota');
+        $levyApproved = $this->levy->where('application_id', $request['application_id'])
+                        ->where('new_ksm_reference_number', $request['ksm_reference_number'])
+                        ->where('status', 'Paid')->sum('approved_quota');
+                        
+        $ksmQuota = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $request['application_id'])
+                            ->where('ksm_reference_number', $request['ksm_reference_number'])
                             ->sum('quota');
-        $countriesQuota += $request['quota'];
-        if($countriesQuota > $interviewApproved) {
+        if($levyApproved < ($ksmQuota + $request['quota'])) {
             return [
-                'quotaError' => true
+                'ksmQuotaError' => true
             ];
         }
-        $this->directRecruitmentOnboardingCountry->create([
+        
+        $checkCountry = $this->directRecruitmentOnboardingCountry->where('application_id', $request['application_id'])     
+                            ->where('country_id', $request['country_id'])
+                            ->first();
+        // if(!empty($checkCountry)) {
+        //     $ksmQuota = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $request['application_id'])
+        //                     ->where('onboarding_country_id', $checkCountry->id)
+        //                     ->where('ksm_reference_number', $request['ksm_reference_number'])
+        //                     ->sum('quota');
+        //     if($interviewApproved < ($checkCountry->quota + $request['quota'])) {
+        //         return [
+        //             'quotaError' => true
+        //         ];
+        //     }
+        // }              
+        if(empty($checkCountry)) {
+            $onboardingCountry = $this->directRecruitmentOnboardingCountry->create([
+                'application_id' => $request['application_id'] ?? 0,
+                'country_id' => $request['country_id'] ?? 0,
+                'quota' => $request['quota'] ?? 0,
+                'utilised_quota' => $request['utilised_quota'] ?? 0,
+                'status' => $request['status'] ?? 1,
+                'created_by' => $request['created_by'] ?? 0,
+                'modified_by' => $request['created_by'] ?? 0
+            ]);
+        }
+        $this->onboardingCountriesKSMReferenceNumber->create([
             'application_id' => $request['application_id'] ?? 0,
-            'country_id' => $request['country_id'] ?? 0,
+            'onboarding_country_id' => $onboardingCountry->id ?? $checkCountry->id,
+            'ksm_reference_number' => $request['ksm_reference_number'] ?? '',
+            'valid_until' => $request['valid_until'] ?? '',
             'quota' => $request['quota'] ?? 0,
             'utilised_quota' => $request['utilised_quota'] ?? 0,
             'status' => $request['status'] ?? 1,
             'created_by' => $request['created_by'] ?? 0,
             'modified_by' => $request['created_by'] ?? 0
         ]);
+        if (!empty($checkCountry)) {
+            $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($checkCountry->id);
+            $onboardingCountryDetails->quota = $onboardingCountryDetails->quota + $request['quota'];
+            $onboardingCountryDetails->save();
+        }
         return true;
     }
     /**
@@ -167,21 +237,21 @@ class DirectRecruitmentOnboardingCountryServices
             ];
         }
         $onboardingCountry = $this->directRecruitmentOnboardingCountry->findOrFail($request['id']);
-        $interviewApproved = $this->applicationInterviews->where('application_id', $onboardingCountry->application_id)
-                        ->where('status', 'Approved')
-                        ->sum('approved_quota');
-        $countriesQuota = $this->directRecruitmentOnboardingCountry
-                            ->where('application_id', $onboardingCountry->application_id)
-                            ->whereNot(function ($query) use ($request){
-                                $query->where('id', $request['id']);
-                            })
-                            ->sum('quota'); 
-        $countriesQuota += $request['quota'];
-        if($countriesQuota > $interviewApproved) {
-            return [
-                'quotaError' => true
-            ];
-        }
+        // $interviewApproved = $this->applicationInterviews->where('application_id', $onboardingCountry->application_id)
+        //                 ->where('status', 'Approved')
+        //                 ->sum('approved_quota');
+        // $countriesQuota = $this->directRecruitmentOnboardingCountry
+        //                     ->where('application_id', $onboardingCountry->application_id)
+        //                     ->whereNot(function ($query) use ($request){
+        //                         $query->where('id', $request['id']);
+        //                     })
+        //                     ->sum('quota'); 
+        // $countriesQuota += $request['quota'];
+        // if($countriesQuota > $interviewApproved) {
+        //     return [
+        //         'quotaError' => true
+        //     ];
+        // }
         $attestationDetails = $this->onboardingAttestation->where('onboarding_country_id', $request['id'])->first(['status']);
         if(isset($attestationDetails)) {
             if ($attestationDetails->status == 'Collected') {
@@ -192,7 +262,7 @@ class DirectRecruitmentOnboardingCountryServices
         }
         $onboardingCountry->application_id =  $request['application_id'] ?? $onboardingCountry->application_id;
         $onboardingCountry->country_id =  $request['country_id'] ?? $onboardingCountry->country_id;
-        $onboardingCountry->quota =  $request['quota'] ?? $onboardingCountry->quota;
+        // $onboardingCountry->quota =  $request['quota'] ?? $onboardingCountry->quota;
         $onboardingCountry->status =  $request['status'] ?? $onboardingCountry->status;
         $onboardingCountry->utilised_quota =  $request['utilised_quota'] ?? $onboardingCountry->utilised_quota;
         $onboardingCountry->modified_by =  $request['modified_by'] ?? $onboardingCountry->modified_by;
@@ -247,6 +317,64 @@ class DirectRecruitmentOnboardingCountryServices
             $onboardingCountry->save();
 
         //}        
+        return true;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function ksmDropDownForOnboarding($request): mixed
+    {
+        return $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])
+        ->select('id', 'ksm_reference_number', 'valid_until')
+        ->orderBy('created_at','DESC')
+        ->get(); 
+    }
+    /**
+     * @param $request
+     * @return bool|array
+     */
+    public function ksmQuotaUpdate($request): bool|array
+    {
+        $validator = Validator::make($request, $this->ksmUpdateValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        $ksmDetails = $this->onboardingCountriesKSMReferenceNumber->findOrFail($request['id']);
+        $levyApproved = $this->levy->where('application_id', $ksmDetails->application_id)
+                        ->where('new_ksm_reference_number', $ksmDetails->ksm_reference_number)
+                        ->where('status', 'Paid')->sum('approved_quota');
+                
+        $ksmQuota = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $ksmDetails->application_id)
+                            ->where('ksm_reference_number', $ksmDetails->ksm_reference_number)
+                            ->where('id', '<>', $request['id'])
+                            ->sum('quota');
+        
+        if($levyApproved < ($ksmQuota + $request['quota'])) {
+            return [
+                'ksmQuotaError' => true
+            ];
+        }
+        
+        $attestationDetails = $this->onboardingAttestation->where('onboarding_country_id', $request['onboarding_country_id'])->first(['status']);
+        if(isset($attestationDetails)) {
+            if ($attestationDetails->status == 'Collected') {
+                return [
+                    'editError' => true
+                ];
+            } 
+        }
+        $currentQuota = 0;
+        $ksmDetails->ksm_reference_number =  $request['ksm_reference_number'] ?? $ksmDetails->ksm_reference_number;
+        $ksmDetails->quota =  $request['quota'] ?? $ksmDetails->quota;
+        $ksmDetails->modified_by =  $request['modified_by'] ?? $ksmDetails->modified_by;
+        $ksmDetails->save();
+        $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
+        $currentQuota = $onboardingCountryDetails->quota - $ksmDetails->quota;
+        $onboardingCountryDetails->quota = $currentQuota + $request['quota'];
+        $onboardingCountryDetails->save();
         return true;
     }
 }

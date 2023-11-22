@@ -85,7 +85,8 @@ class DirectRecruitmentOnboardingAttestationServices
     {
         return [
             'application_id' => 'required',
-            'onboarding_country_id' => 'required'
+            'onboarding_country_id' => 'required',
+            'ksm_reference_number' => 'required'
         ];
     }
     /**
@@ -136,7 +137,7 @@ class DirectRecruitmentOnboardingAttestationServices
             ['application_id', $request['application_id']],
             ['onboarding_country_id', $request['onboarding_country_id']],
         ])
-        ->select('id', 'application_id', 'onboarding_country_id', 'item_name', 'status', 'submission_date', 'collection_date', 'created_at', 'updated_at')
+        ->select('id', 'application_id', 'onboarding_country_id', 'item_name', 'status', 'submission_date', 'collection_date', 'created_at', 'updated_at', 'ksm_reference_number')
         ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -169,6 +170,7 @@ class DirectRecruitmentOnboardingAttestationServices
             $this->onboardingAttestation->create([
                 'application_id' => $request['application_id'] ?? 0,
                 'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+                'ksm_reference_number' => $request['ksm_reference_number'] ?? '',
                 'item_name' => 'Attestation Submission',
                 'status' => 'Pending',
                 'created_by' => $request['created_by'] ?? 0,
@@ -211,6 +213,7 @@ class DirectRecruitmentOnboardingAttestationServices
             $onBoardingStatus['onboarding_status'] = 3; //Agent Added
             $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
         }
+        $onboardingAttestation->ksm_reference_number =  $request['ksm_reference_number'] ?? $onboardingAttestation->ksm_reference_number;
         $onboardingAttestation->file_url =  $request['file_url'] ?? $onboardingAttestation->file_url;
         $onboardingAttestation->remarks =  $request['remarks'] ?? $onboardingAttestation->remarks;
         $onboardingAttestation->status =  $request['status'] ?? $onboardingAttestation->status;
@@ -449,6 +452,17 @@ class DirectRecruitmentOnboardingAttestationServices
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
+    }
+    /**
+     * @param $request
+     * @return bool
+     */    
+    public function updateKSMReferenceNumber($request): bool
+    {   
+        return $this->onboardingAttestation->where('application_id', $request['application_id'])
+                ->where('onboarding_country_id', $request['onboarding_country_id'])
+                ->where('ksm_reference_number', $request['old_ksm_reference_number'])
+                ->update(['ksm_reference_number' => $request['ksm_reference_number']]); 
     }
 
 }
