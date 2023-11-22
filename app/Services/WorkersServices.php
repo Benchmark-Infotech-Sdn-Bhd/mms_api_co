@@ -1214,7 +1214,7 @@ class WorkersServices
             $filePath = '/FailureCases/Workers/' . $fileName; 
             if($moduleType == 'WorkerBioData'){
                 Excel::store(new WorkerBiodataFailureExport($id), $filePath, 'linode');
-            }else{
+            }else if($moduleType == 'Workers'){
                 Excel::store(new FailureExport($id), $filePath, 'linode');
             }
             $fileUrl = $this->storage::disk('linode')->url($filePath);
