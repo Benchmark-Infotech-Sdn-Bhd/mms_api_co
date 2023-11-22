@@ -43,7 +43,7 @@ class EmployerNotificationMail implements ShouldQueue
         $input = [];
         $input['subject'] = "Notification Mail";
         $input['name'] = $this->user['name'];
-        $input['email'] = 'enock@codtesma.com'; //$this->user['email'];
+        $input['email'] = $this->user['email'];
         $input['mail_subject'] = 'You have new notifications on ';
         $input['mail_subject'] .= isset($mailMessage['fomemaRenewal']['mail_message']) ? 'Fomema/' : '';
         $input['mail_subject'] .= isset($mailMessage['passportRenewal']['mail_message']) ? 'Passport/' : '';
