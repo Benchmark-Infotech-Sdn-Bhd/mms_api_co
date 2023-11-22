@@ -249,21 +249,4 @@ class DirectRecruitmentOnboardingCountryServices
         //}        
         return true;
     }
-    /**
-     * @param $bulkUploadId, $workerCount, $type
-     * @return bool
-     */
-    public function updateUtilisedQuota($bulkUploadId, $workerCount, $type): bool
-    {
-        $utilisedQuota = 0;
-        $countryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($bulkUploadId);
-        if($type == 'increment') {
-            $utilisedQuota = $countryDetails->utilised_quota + $workerCount;
-        } else if($type == 'decrement') {
-            $utilisedQuota = (($countryDetails->utilised_quota - $workerCount) < 0) ? 0 : $countryDetails->utilised_quota - $workerCount;;
-        }
-        $countryDetails->utilised_quota = $utilisedQuota;
-        $countryDetails->save();    
-        return true;
-    }
 }

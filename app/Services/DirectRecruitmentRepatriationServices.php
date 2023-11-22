@@ -6,11 +6,11 @@ use App\Models\DirectRecruitmentPostArrivalStatus;
 use App\Models\WorkerRepatriation;
 use App\Models\WorkerRepatriationAttachments;
 use App\Models\Workers;
-use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Events\WorkerQuotaUpdated;
 
 class DirectRecruitmentRepatriationServices
 {
@@ -38,10 +38,6 @@ class DirectRecruitmentRepatriationServices
      * @var DirectRecruitmentExpensesServices
      */
     private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
-    /**
-     * @var DirectRecruitmentOnboardingCountryServices
-     */
-    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
 
     /**
      * DirectRecruitmentRepatriationServices constructor.
@@ -51,9 +47,8 @@ class DirectRecruitmentRepatriationServices
      * @param Workers $workers
      * @param Storage $storage
      * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
-     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerRepatriation $workerRepatriation, WorkerRepatriationAttachments $workerRepatriationAttachments, Workers $workers, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices)
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerRepatriation $workerRepatriation, WorkerRepatriationAttachments $workerRepatriationAttachments, Workers $workers, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
     {
         $this->directRecruitmentPostArrivalStatus           = $directRecruitmentPostArrivalStatus;
         $this->workerRepatriation                           = $workerRepatriation;
@@ -61,7 +56,6 @@ class DirectRecruitmentRepatriationServices
         $this->workers                                      = $workers;
         $this->storage                                      = $storage;
         $this->directRecruitmentExpensesServices            = $directRecruitmentExpensesServices;
-        $this->directRecruitmentOnboardingCountryServices   = $directRecruitmentOnboardingCountryServices;
     }
     /**
      * @return array
@@ -197,7 +191,7 @@ class DirectRecruitmentRepatriationServices
                     'modified_by' => $request['modified_by']
                 ]);
                 
-            $this->directRecruitmentOnboardingCountryServices->updateUtilisedQuota($request['onboarding_country_id'], count($request['workers']), 'decrement');
+            event(new WorkerQuotaUpdated($request['onboarding_country_id'], count($request['workers']), 'decrement'));
         }
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
         

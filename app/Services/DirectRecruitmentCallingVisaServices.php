@@ -6,11 +6,11 @@ use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\Workers;
 use App\Models\WorkerVisa;
 use App\Models\CancellationAttachment;
-use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Events\WorkerQuotaUpdated;
 
 class DirectRecruitmentCallingVisaServices
 {
@@ -34,10 +34,6 @@ class DirectRecruitmentCallingVisaServices
      * @var Storage
      */
     private Storage $storage;
-    /**
-     * @var DirectRecruitmentOnboardingCountryServices
-     */
-    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
 
     /**
      * DirectRecruitmentCallingVisaServices constructor.
@@ -46,16 +42,14 @@ class DirectRecruitmentCallingVisaServices
      * @param WorkerVisa $workerVisa
      * @param CancellationAttachment $cancellationAttachment
      * @param Storage $storage
-     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices
      */
-    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, CancellationAttachment $cancellationAttachment, Storage $storage, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices)
+    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, CancellationAttachment $cancellationAttachment, Storage $storage)
     {
         $this->directRecruitmentCallingVisaStatus           = $directRecruitmentCallingVisaStatus;
         $this->workers                                      = $workers;
         $this->workerVisa                                   = $workerVisa;
         $this->cancellationAttachment                       = $cancellationAttachment;
         $this->storage                                      = $storage;
-        $this->directRecruitmentOnboardingCountryServices   = $directRecruitmentOnboardingCountryServices;
 
     }
     /**
@@ -239,7 +233,8 @@ class DirectRecruitmentCallingVisaServices
                     }
                 }
             }
-            $this->directRecruitmentOnboardingCountryServices->updateUtilisedQuota($request['onboarding_country_id'], count($request['workers']), 'decrement');
+
+            event(new WorkerQuotaUpdated($request['onboarding_country_id'], count($request['workers']), 'decrement'));
         }
         $this->directRecruitmentCallingVisaStatus->where([
             'application_id' => $request['application_id'],

@@ -16,6 +16,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use App\Events\WorkerQuotaUpdated;
 
 class DirectRecruitmentArrivalServices
 {
@@ -394,7 +395,9 @@ class DirectRecruitmentArrivalServices
                     ]);
 
                 $arrivalDetails = $this->directrecruitmentArrival->findOrFail($request['arrival_id']);
-                $this->directRecruitmentOnboardingCountryServices->updateUtilisedQuota($arrivalDetails->onboarding_country_id, count($workers), 'decrement');
+                
+                event(new WorkerQuotaUpdated($arrivalDetails->onboarding_country_id, count($workers), 'decrement'));
+
     
                 foreach ($workers as $workerId) {
     
