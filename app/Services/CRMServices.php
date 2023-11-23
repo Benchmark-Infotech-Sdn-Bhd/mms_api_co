@@ -19,6 +19,8 @@ use App\Services\InvoiceServices;
 use App\Services\AuthServices;
 use Illuminate\Support\Str;
 use App\Models\Role;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\CrmImport;
 
 class CRMServices
 {
@@ -491,5 +493,19 @@ class CRMServices
         return $this->systemType->where('status', 1)
             ->select('id', 'system_name')
             ->get();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function crmImport($request, $file): mixed
+    {
+        $params = $request->all();
+        $params['created_by'] = 1;
+        $params['modified_by'] = 1;
+
+        $row = Excel::import(new CrmImport($params, '', $this), $file);
+        return true; 
+
     }
 }
