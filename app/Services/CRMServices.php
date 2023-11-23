@@ -19,6 +19,8 @@ use App\Services\InvoiceServices;
 use App\Services\AuthServices;
 use Illuminate\Support\Str;
 use App\Models\Role;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\CrmImport;
 
 class CRMServices
 {
@@ -502,7 +504,8 @@ class CRMServices
         $params['created_by'] = 1;
         $params['modified_by'] = 1;
 
-        Excel::import(new CrmImport($params, ''), $file);
-        return true;
+        $row = Excel::import(new CrmImport($params, '', $this), $file);
+        return true; 
+
     }
 }
