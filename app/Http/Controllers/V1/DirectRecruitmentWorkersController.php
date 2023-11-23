@@ -274,5 +274,48 @@ class DirectRecruitmentWorkersController extends Controller
             return $this->sendError(['message' => $data['error']], 400);
         }
     }
+
+    /**
+     * list Import details
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function importHistory(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->directRecruitmentWorkersServices->importHistory($params);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
+    /**
+     * list failure cases
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function failureExport(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->directRecruitmentWorkersServices->failureExport($params);
+            if (isset($data['queueError'])) {
+                return $this->sendError(['message' => 'Import is in Progress'], 400);
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Failed to Export. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+    }
     
 }
