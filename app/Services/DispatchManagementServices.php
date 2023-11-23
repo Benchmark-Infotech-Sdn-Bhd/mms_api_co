@@ -194,15 +194,15 @@ class DispatchManagementServices
         if($getUser){
             $NotificationParams['user_id'] = $getUser['id'];
             $NotificationParams['from_user_id'] = $params['created_by'];
-            $NotificationParams['type'] = 'Dispatches';
-            $NotificationParams['title'] = 'Dispatches';
+            $NotificationParams['type'] = Config::get('services.DISPATCH_NOTIFICATION_TITLE');
+            $NotificationParams['title'] = Config::get('services.DISPATCH_NOTIFICATION_TITLE');
             $NotificationParams['message'] = $request['reference_number'].' Dispatch is Assigned';
             $NotificationParams['status'] = 1;
             $NotificationParams['read_flag'] = 0;
             $NotificationParams['created_by'] = $params['created_by'];
             $NotificationParams['modified_by'] = $params['created_by'];
-            $this->notificationServices->insertNotification($NotificationParams);
-            
+            $NotificationParams['company_id'] = $user['company_id'];
+            $this->notificationServices->insertDispatchNotification($NotificationParams);
             dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']));
         }
         
@@ -293,15 +293,15 @@ class DispatchManagementServices
             if($getUser){
                 $NotificationParams['user_id'] = $getUser['id'];
                 $NotificationParams['from_user_id'] = $params['modified_by'];
-                $NotificationParams['type'] = 'Dispatches';
-                $NotificationParams['title'] = 'Dispatches';
+                $NotificationParams['type'] = Config::get('services.DISPATCH_NOTIFICATION_TITLE');
+                $NotificationParams['title'] = Config::get('services.DISPATCH_NOTIFICATION_TITLE');
                 $NotificationParams['message'] = $onboardingDispatch->reference_number.' Dispatch is Completed';
                 $NotificationParams['status'] = 1;
                 $NotificationParams['read_flag'] = 0;
                 $NotificationParams['created_by'] = $params['modified_by'];
                 $NotificationParams['modified_by'] = $params['modified_by'];
-                $this->notificationServices->insertNotification($NotificationParams);
-                
+                $NotificationParams['company_id'] = $user['company_id'];
+                $this->notificationServices->insertDispatchNotification($NotificationParams);
                 dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']));
             }
 

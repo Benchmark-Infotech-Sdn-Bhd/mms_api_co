@@ -299,8 +299,8 @@ class DirectRecruitmentOnboardingAttestationServices
             $NotificationParams['read_flag'] = 0;
             $NotificationParams['created_by'] = $request['created_by'];
             $NotificationParams['modified_by'] = $request['created_by'];
-            $this->notificationServices->insertNotification($NotificationParams);
-            
+            $NotificationParams['company_id'] = $request['company_id'];
+            $this->notificationServices->insertDispatchNotification($NotificationParams);
             dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']));
         }
         

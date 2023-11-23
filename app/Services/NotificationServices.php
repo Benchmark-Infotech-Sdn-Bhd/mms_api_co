@@ -120,11 +120,6 @@ class NotificationServices
             $message['passportRenewal'] = $this->passportRenewalNotifications($user); 
             $message['insuranceRenewal'] = $this->insuranceRenewalNotifications($user); 
             $message['entryVisaRenewal'] = $this->entryVisaRenewalNotifications($user);
-            $message['dispatchPending'] = $this->dispatchPendingNotifications($user);
-
-            if(!empty($message['dispatchPending'])){
-                dispatch(new \App\Jobs\RunnerNotificationMail($user,$message['dispatchPending']));
-            }
             
             if(!empty($message['fomemaRenewal']) || !empty($message['passportRenewal']) || !empty($message['plksRenewal']) || !empty($message['callingVisaRenewal']) || !empty($message['specialPassRenewal']) || !empty($message['insuranceRenewal']) || !empty($message['entryVisaRenewal']) || !empty($message['serviceAgreement'])){
                 dispatch(new \App\Jobs\EmployerNotificationMail($user,$message));
@@ -146,6 +141,11 @@ class NotificationServices
             $message['insuranceRenewal'] = $this->insuranceRenewalNotifications($user); 
             $message['entryVisaRenewal'] = $this->entryVisaRenewalNotifications($user);
             $message['serviceAgreement'] = $this->serviceAgreementNotifications($user);
+            $message['dispatchPending'] = $this->dispatchSummaryNotifications($user);
+
+            if(!empty($message['dispatchPending'])){
+                dispatch(new \App\Jobs\RunnerNotificationMail($user,$message['dispatchPending']));
+            }
             
             if(!empty($message['fomemaRenewal']) || !empty($message['passportRenewal']) || !empty($message['plksRenewal']) || !empty($message['callingVisaRenewal']) || !empty($message['specialPassRenewal']) || !empty($message['insuranceRenewal']) || !empty($message['entryVisaRenewal']) || !empty($message['serviceAgreement'])){
                 dispatch(new \App\Jobs\AdminNotificationMail($user,$message));
@@ -312,7 +312,7 @@ class NotificationServices
         ->get();
 
         foreach($pendingCount as $row){
-            $NotificationParams['user_id'] = $user['reference_id'];
+            $NotificationParams['user_id'] = $user['id'];
             $NotificationParams['from_user_id'] = $row['created_by'];
             $NotificationParams['type'] = Config::get('services.DISPATCH_NOTIFICATION_TITLE');
             $NotificationParams['title'] = Config::get('services.DISPATCH_NOTIFICATION_TITLE');
@@ -355,6 +355,105 @@ class NotificationServices
             $mailMessage .= $row['company_name'].' - '.$row['name'].' '.Config::get('services.SERVICE_AGREEMENT_MAIL_MESSAGE').' '.$row['valid_until'].' <br/>';
         }
         return $mailMessage;
+    }
+    /**
+     * @param $params
+     * @return array
+     */
+    public function dispatchSummaryNotifications($user)
+    {
+        $notificationMessage = '';
+        $mailMessage = '';
+        
+        $pending_count = OnboardingDispatch::leftJoin('employee', 'employee.id', 'onboarding_dispatch.employee_id')
+        ->where('employee.company_id', $user['company_id'])
+        ->where('onboarding_dispatch.dispatch_status', 'Assigned')
+        ->where('onboarding_dispatch.calltime', '<', Carbon::now())
+        ->distinct('onboarding_dispatch.id')->count('onboarding_dispatch.id');
+
+        $assigned_count = OnboardingDispatch::leftJoin('employee', 'employee.id', 'onboarding_dispatch.employee_id')
+        ->where('employee.company_id', $user['company_id'])
+        ->where('onboarding_dispatch.dispatch_status', 'Assigned')
+        ->where('onboarding_dispatch.calltime', '>', Carbon::now())
+        ->distinct('onboarding_dispatch.id')->count('onboarding_dispatch.id');
+
+        $completed_count = OnboardingDispatch::leftJoin('employee', 'employee.id', 'onboarding_dispatch.employee_id')
+        ->where('employee.company_id', $user['company_id'])
+        ->where('onboarding_dispatch.dispatch_status', 'Completed')
+        ->distinct('onboarding_dispatch.id')->count('onboarding_dispatch.id');
+
+        if($pending_count > 0){
+            $notificationMessage .= $pending_count.' Dispatches are Pending. ';
+            $mailMessage .= $pending_count.' no. of Dispatches are Pending. <br/>';
+        }
+        if($assigned_count > 0){
+            $notificationMessage .= $assigned_count.' Dispatches are Assigned. ';
+            $mailMessage .= $assigned_count.' no. of Dispatches are Assigned. <br/>';
+        }
+        if($completed_count > 0){
+            $notificationMessage .= $completed_count.' Dispatches are Completed.';
+            $mailMessage .= $completed_count.' no. of Dispatches are Completed. <br/>';
+        }
+
+        if(!empty($notificationMessage)){
+            $NotificationParams['user_id'] = $user['id'];
+            $NotificationParams['from_user_id'] = 1;
+            $NotificationParams['type'] = Config::get('services.DISPATCH_NOTIFICATION_TITLE');
+            $NotificationParams['title'] = Config::get('services.DISPATCH_NOTIFICATION_TITLE');
+            $NotificationParams['message'] = $notificationMessage;
+            $NotificationParams['status'] = 1;
+            $NotificationParams['read_flag'] = 0;
+            $NotificationParams['created_by'] = 1;
+            $NotificationParams['modified_by'] = 1;
+            $this->insertNotification($NotificationParams);
+        }
+
+        return $mailMessage;       
+    }
+     /**
+     * @param $params
+     * @return array
+     */
+    public function insertDispatchNotification($params)
+    {
+        if(isset($params['company_id']) && !empty($params['company_id']) && !empty($params['message'])){
+
+            $this->insertNotification($params);
+
+            $adminUsers = User::where('users.user_type', 'Admin')
+            ->where('users.company_id', $params['company_id'])
+            ->where('users.status', 1)
+            ->whereNull('users.deleted_at')
+            ->select('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')
+            ->distinct('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')->get();
+
+            foreach($adminUsers as $user){
+                $params['user_id'] = $user['id'];
+                $this->insertNotification($params);
+                dispatch(new \App\Jobs\RunnerNotificationMail($user,$params['message']));
+            }
+
+            $runners = User::
+            join('user_role_type', 'users.id', '=', 'user_role_type.user_id')
+            ->join('roles', 'roles.id', '=', 'user_role_type.role_id')
+            ->where('users.user_type', '=', 'Employee')
+            ->where('roles.role_name', '=', 'Runner')
+            ->where('users.company_id', $params['company_id'])
+            ->where('users.status', 1)
+            ->whereNull('users.deleted_at')
+            ->select('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')
+            ->groupBy('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')
+            ->distinct('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')->get();
+
+            foreach($runners as $user){
+                $params['user_id'] = $user['id'];
+                $this->insertNotification($params);
+                dispatch(new \App\Jobs\RunnerNotificationMail($user,$params['message']));
+            }
+
+        }
+        
+        return true;
     }
 
 }
