@@ -62,7 +62,8 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
                     'bio_medical_reference_number' => $row['bio_medical_reference_number'] ?? '',
                     'bio_medical_valid_until' => $this->dateConvert($row['bio_medical_valid_until']),
                     'created_by' => $this->parameters['created_by'] ?? 0,
-                    'modified_by' => $this->parameters['modified_by'] ?? 0
+                    'modified_by' => $this->parameters['modified_by'] ?? 0,
+                    'company_id' => $this->parameters['company_id'] ?? 0,
                 ];
 
                 $workerNonMandatory = [

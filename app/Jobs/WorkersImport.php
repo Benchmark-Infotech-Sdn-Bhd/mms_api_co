@@ -68,7 +68,8 @@ class WorkersImport extends Job
             'kin_contact_number' => 'required|regex:/^[0-9]+$/',
             'ksm_reference_number' => 'required',
             'bio_medical_reference_number' => 'required|max:255',
-            'bio_medical_valid_until' => 'required|date|date_format:Y-m-d'
+            'bio_medical_valid_until' => 'required|date|date_format:Y-m-d',
+            'company_id' => 'required'
         ];
     }
 
@@ -349,14 +350,15 @@ class WorkersImport extends Job
             $comments .= ' ERROR - ' . $validationError;
         }
         
-        $this->insertRecord($comments, 1, $successFlag);
+        $this->insertRecord($comments, 1, $successFlag, $this->workerParameter['company_id']);
     }
     /**
      * @param string $comments
      * @param int $status
      * @param int $successFlag
+     * @param int $companyId
      */
-    public function insertRecord($comments = '', $status = 1, $successFlag): void
+    public function insertRecord($comments = '', $status = 1, $successFlag, $companyId): void
     {
         BulkUploadRecords::create(
             [
@@ -364,7 +366,8 @@ class WorkersImport extends Job
                 'parameter' => json_encode($this->workerParameter),
                 'comments' => $comments,
                 'status' => $status,
-                'success_flag' => $successFlag
+                'success_flag' => $successFlag,
+                'company_id' => $companyId
             ]
         );
     }

@@ -580,6 +580,7 @@ class DirectRecruitmentWorkersServices
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
         $params['modified_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
         /* if(!($this->validationServices->validate($request->toArray(),$this->bulkUploadValidation()))){
             return [
               'validate' => $this->validationServices->errors()
@@ -593,7 +594,10 @@ class DirectRecruitmentWorkersServices
                 'name' => 'Worker Bulk Upload',
                 'type' => 'Worker bulk upload',
                 'module_type' => 'WorkerBioData',
-                'company_id' => $user['company_id']
+                'company_id' => $user['company_id'],
+                'created_by' => $params['created_by'],
+                'modified_by' => $params['created_by'],
+                'user_type' => $user['user_type']
             ]
         );
         $rows = Excel::toArray(new WorkerImport($params, $workerBulkUpload), $file);
