@@ -5,6 +5,7 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
+
 class DispatchManagementUnitTest extends TestCase
 {
     use DatabaseMigrations;
@@ -22,7 +23,7 @@ class DispatchManagementUnitTest extends TestCase
      * 
      * @return void
      */
-    /*public function testForDispatchManagementcreate(): void
+    public function testForDispatchManagementcreate(): void
     {
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
@@ -30,13 +31,13 @@ class DispatchManagementUnitTest extends TestCase
         $response->seeJson([
             'data' => ['message' => 'Dispatch Created Successfully']
         ]);
-    }*/
+    }
     /**
      * Functional test for update
      * 
      * @return void
      */
-    /*public function testForDispatchManagementUpdate(): void
+    public function testForDispatchManagementUpdate(): void
     {
         $this->creationSeeder();
         $res = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
@@ -45,17 +46,17 @@ class DispatchManagementUnitTest extends TestCase
         $response->seeJson([
             'data' => ['message' => 'Dispatch Updated Successfully']
         ]);
-    }*/
+    }
     /**
      * Functional test for  show
      * 
      * @return void
      */
-    /*public function testForDispatchManagementShow(): void
+    public function testForDispatchManagementShow(): void
     {
         $this->creationSeeder();
         $res = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', ['id' => 1], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/dispatchManagement/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -63,13 +64,13 @@ class DispatchManagementUnitTest extends TestCase
                     
                 ]
         ]);
-    }*/
+    }
     /**
      * Functional test for  list
      * 
      * @return void
      */
-    /*public function testForDispatchManagementList(): void
+    public function testForDispatchManagementList(): void
     {
         $this->creationSeeder();
         $res = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
@@ -81,7 +82,7 @@ class DispatchManagementUnitTest extends TestCase
                     
                 ]
         ]);
-    }*/
+    }
     /**
      * @return void
      */
@@ -224,6 +225,12 @@ class DispatchManagementUnitTest extends TestCase
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
 
+        /*$payload = [
+            'application_id' => 1,
+            'onboarding_country_id' => 1
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $payload, $this->getHeader(false));*/
+
         $payload = [
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
@@ -291,7 +298,7 @@ class DispatchManagementUnitTest extends TestCase
     public function creationData(): array
     {
         return [
-            "onboarding_attestation_id" => 0,
+            "onboarding_attestation_id" => 1,
             "date" => Carbon::now()->format('Y-m-d'),
             "time" => '12:00 AM',
             "employee_id" => 1,
@@ -316,7 +323,7 @@ class DispatchManagementUnitTest extends TestCase
     {
         return [
             "id" => 1,
-            "onboarding_attestation_id" => 0,
+            "onboarding_attestation_id" => 1,
             "date" => Carbon::now()->format('Y-m-d'),
             "time" => '12:00 AM',
             "employee_id" => 1,
