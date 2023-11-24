@@ -135,4 +135,6 @@ return [
     'ENTRY_VISA_MAIL_MESSAGE' => 'no. of workers Entry Visa  is  to be renewed before Date',
     'SERVICE_AGREEMENT_MAIL_MESSAGE' => 'Service agreement is to expire on',
     'DISPATCH_MAIL_MESSAGE' => 'Dispatch is Pending',
+
+    'ACCESS_MODULE_TYPE' => ['Dashboard', 'Maintain Masters', 'Branches', 'CRM', 'Direct Recruitment', 'e-Contract', 'Total Management', 'Employee', 'Access Management', 'Workers', 'Dispatch Management', 'Invoice', 'Reports'],
 ];

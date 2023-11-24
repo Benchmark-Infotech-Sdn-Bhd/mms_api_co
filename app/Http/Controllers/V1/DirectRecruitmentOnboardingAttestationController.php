@@ -133,6 +133,7 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentOnboardingAttestationServices->updateDispatch($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
