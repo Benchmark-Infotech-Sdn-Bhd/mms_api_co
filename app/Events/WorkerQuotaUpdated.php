@@ -7,7 +7,7 @@ class WorkerQuotaUpdated extends Event
     /**
      * @var int
      */
-    public $bulkUploadId;
+    public $onBoardingCountryId;
     /**
      * @var int
      */
@@ -21,9 +21,9 @@ class WorkerQuotaUpdated extends Event
      *
      * @return void
      */
-    public function __construct($bulkUploadId, $workerCount, $type)
+    public function __construct($onBoardingCountryId, $workerCount, $type)
     {
-        $this->bulkUploadId = $bulkUploadId;
+        $this->onBoardingCountryId = $onBoardingCountryId;
         $this->workerCount = $workerCount;
         $this->type = $type;
     }

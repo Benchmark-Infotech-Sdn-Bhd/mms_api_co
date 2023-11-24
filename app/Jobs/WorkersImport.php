@@ -16,6 +16,7 @@ use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Models\DirectRecruitmentOnboardingAgent;
 use App\Models\WorkerStatus;
+use App\Models\OnboardingCountriesKSMReferenceNumber;
 use App\Models\Levy;
 use App\Services\ManageWorkersServices;
 use Illuminate\Support\Facades\DB;
@@ -163,12 +164,21 @@ class WorkersImport extends Job
             $comments .= 'ERROR - country quota cannot exceeded';
         }
 
-        $approvedCount = Levy::where('application_id', $this->workerParameter['application_id'])
-                             ->where('new_ksm_reference_number', $this->workerParameter['ksm_reference_number'])
-                             ->first('approved_quota');
+        // $approvedCount = Levy::where('application_id', $this->workerParameter['application_id'])
+        //                      ->where('new_ksm_reference_number', $this->workerParameter['ksm_reference_number'])
+        //                      ->first('approved_quota');
 
-        if(isset($approvedCount['approved_quota'])){
-            Log::info('levy approved count - ' . $approvedCount['approved_quota']);
+        // if(isset($approvedCount['approved_quota'])){
+        //     Log::info('levy approved count - ' . $approvedCount['approved_quota']);
+        // }
+
+        $approvedCount = OnboardingCountriesKSMReferenceNumber::where('application_id', $this->workerParameter['application_id'])
+                            ->where('onboarding_country_id', $this->workerParameter['onboarding_country_id'])
+                            ->where('ksm_reference_number', $this->workerParameter['ksm_reference_number'])
+                            ->sum('quota');
+
+        if(isset($approvedCount)){
+            Log::info('Onboarding KSM approved count - ' . $approvedCount);
         }
         
         $ksmReferenceNumberCount = DB::table('directrecruitment_workers')
@@ -184,7 +194,7 @@ class WorkersImport extends Job
 
         Log::info('ksm reference number count - ' . $ksmReferenceNumberCount);
 
-        if(isset($approvedCount['approved_quota']) && ($ksmReferenceNumberCount >= $approvedCount['approved_quota'])) {
+        if(isset($approvedCount['approved_quota']) && ($ksmReferenceNumberCount >= $approvedCount)) {
             $ksmReferenceNumberQuotaError = 1;
             $comments .= ' ERROR - ksm reference number quota cannot exceeded';
         }

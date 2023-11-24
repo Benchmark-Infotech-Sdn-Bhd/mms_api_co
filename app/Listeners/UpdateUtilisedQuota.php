@@ -26,7 +26,7 @@ class UpdateUtilisedQuota
     public function handle(WorkerQuotaUpdated $event)
     {
         $utilisedQuota = 0;
-        $countryDetails = DirectRecruitmentOnboardingCountry::findOrFail($event->bulkUploadId);
+        $countryDetails = DirectRecruitmentOnboardingCountry::findOrFail($event->onBoardingCountryId);
         if($event->type == 'increment') {
             $utilisedQuota = $countryDetails->utilised_quota + $event->workerCount;
         } else if($event->type == 'decrement') {
