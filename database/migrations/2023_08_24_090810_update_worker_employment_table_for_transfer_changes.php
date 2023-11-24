@@ -16,8 +16,9 @@ return new class extends Migration
             $table->string('work_end_date')->change();
             // transfer_flag 1 means, worker transferred to another project
             $table->tinyInteger('transfer_flag')->default(0)->after('service_type');
-            $table->dropColumn('transfer_start_date');
+           
             if (DB::getDriverName() !== 'sqlite') {
+                $table->dropColumn('transfer_start_date');
                 $table->dropColumn('transfer_end_date');
             }
         });

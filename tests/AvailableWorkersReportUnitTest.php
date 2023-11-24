@@ -5,10 +5,10 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-
-class DirectRecruitmentArrivalUnitTest extends TestCase
+class AvailableWorkersReportUnitTest extends TestCase
 {
     use DatabaseMigrations;
+    
     /**
      * @return void
      */
@@ -17,206 +17,77 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test for create
+     * Functional test for Available Workers Report listing
      * 
      * @return void
      */
-    public function testForDirectRecruitmentArrivalcreate(): void
+    public function testForAvailableWorkersReportListing(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Arrival Submitted Successfully']
-        ]);
-    }
-    /**
-     * Functional test for create id validation
-     * 
-     * @return void
-     */
-    public function testForDirectRecruitmentArrivalcreateIdValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'application_id' => ['The application id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for create onboarding country id validation
-     * 
-     * @return void
-     */
-    public function testForDirectRecruitmentArrivalcreateOnboardingCountryIdValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', array_merge($this->creationData(), ['onboarding_country_id' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'onboarding_country_id' => ['The onboarding country id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for create Filght date validation
-     * 
-     * @return void
-     */
-    public function testForDirectRecruitmentArrivalcreateFlightDateValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', array_merge($this->creationData(), ['flight_date' => '11/11/2023']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'flight_date' => ['The flight date does not match the format Y-m-d.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for worker list for submit
-     * 
-     * @return void
-     */
-    public function testForDirectRecruitmentArrivalWorkersListsubmit(): void
-    {
-        $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/workersListForSubmit', ["application_id" => 1,"onboarding_country_id" => 1,"search" => "","calling_visa_reference_number"=>""], $this->getHeader(false));
+        $response = $this->json('POST', '/api/v1/reports/availableWorkers/list', ["search" => "","service_id" => "","status" => "","page" => 1,"export" => ""], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    
+                   
                 ]
         ]);
     }
+
     /**
-     * Functional test for worker list for update
+     * Functional test for Available Workers Report listing search
      * 
      * @return void
      */
-    public function testForDirectRecruitmentArrivalWorkersListUpdate(): void
+    public function testForAvailableWorkersReportListingSearchserviceID(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/workersListForUpdate', 
-        ["application_id"=> 1, "onboarding_country_id"=>1, "arrival_id"=>1, "search"=> "", "calling_visa_reference_number"=>""], $this->getHeader(false));
+        $response = $this->json('POST', '/api/v1/reports/availableWorkers/list', ["search" => "","service_id" => "1","status" => "","page" => 1,"export" => ""], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    
+                   
                 ]
         ]);
     }
+
     /**
-     * Functional test for  list
+     * Functional test for Available Workers Report listing search status
      * 
      * @return void
      */
-    public function testFortestForDirectRecruitmentArrivallist(): void
+    public function testForAvailableWorkersReportListingSearchStatus(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/list', ['application_id' => 1, 'onboarding_country_id' => 1], $this->getHeader(false));
+        $response = $this->json('POST', '/api/v1/reports/availableWorkers/list', ["search" => "","service_id" => "", "status" => "Assigned","page" => 1,"export" => ""], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    
+                   
                 ]
         ]);
     }
+
     /**
-     * Functional test for  show
+     * Functional test for Available Workers Report listing Export
      * 
      * @return void
      */
-    public function testFortestForDirectRecruitmentArrivalShow(): void
+    public function testForAvailableWorkersReportListingExport(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/show', ['arrival_id' => 1], $this->getHeader(false));
+        $response = $this->json('POST', '/api/v1/reports/availableWorkers/list', ["search" => "","service_id" => "", "status" => "","page" => 1,"export" => "1"], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    
+                   
                 ]
         ]);
     }
-    /**
-     * Functional test for  cancel worker detail
-     * 
-     * @return void
-     */
-    public function testFortestForDirectRecruitmentArrivalCancelWorkerDetail(): void
-    {
-        $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/cancelWorkerDetail', ['worker_id' => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' =>
-                [
-                    
-                ]
-        ]);
-    }
-    /**
-     * Functional test for  calling visa ReferenceNumber List
-     * 
-     * @return void
-     */
-    public function testFortestForDirectRecruitmentArrivalcallingvisaReferenceNumberList(): void
-    {
-        $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/callingvisaReferenceNumberList', ['application_id' => 1, 'onboarding_country_id' => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' =>
-                [
-                    
-                ]
-        ]);
-    }
-    /**
-     * Functional test for  cancel worker
-     * 
-     * @return void
-     */
-    public function testFortestForDirectRecruitmentArrivalCancelWorker(): void
-    {
-        $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/cancelWorker', $this->cancelData(), $this->getHeader(false));
-       $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Worker Cancellation Completed Successfully']
-        ]);
-    }
-    /**
-     * Functional test for  update worker
-     * 
-     * @return void
-     */
-    public function testFortestForDirectRecruitmentArrivalupdateWorkers(): void
-    {
-        $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/updateWorkers', $this->updateWorkerData(), $this->getHeader(false));
-       $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Workers Updated Successfully']
-        ]);
-    }
+    
     /**
      * @return void
      */
@@ -236,7 +107,7 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'Supervisor'
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -261,6 +132,31 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
         $payload =  [
+            'name' => 'name',
+            'type' => 'Transportation',
+            'email_address' => 'email@gmail.com',
+            'contact_number' => random_int(10, 1000),
+            'person_in_charge' => 'test',
+            'pic_contact_number' => random_int(10, 1000),
+            'address' => 'address',
+            'state' => 'state',
+            'city' => 'city',
+            'postcode' => random_int(10, 1000),
+            'remarks' => 'test',
+       ];
+       $response = $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
+
+       $payload =  [
+        'driver_name' => 'name',
+        'driver_contact_number' => random_int(10, 1000),
+        'vehicle_type' => 'type',
+        'number_plate' => random_int(10, 1000),
+        'vehicle_capacity' => random_int(10, 1000),
+        'vendor_id' => 1
+   ];
+   $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
+
+        $payload =  [
             'sector_name' => 'Agriculture',
             'sub_sector_name' => 'Agriculture'
         ];  
@@ -279,7 +175,7 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
             'pic_designation' => 'Manager', 
             'registered_by' => 1, 
             'sector_type' => 1, 
-            'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])
+            'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "EContract"]])
         ];
         $res = $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
 
@@ -336,7 +232,7 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
             'application_id' => 1, 
             'payment_date' => Carbon::now()->format('Y-m-d'), 
             'payment_amount' => 10.87, 
-            'approved_quota' => 10, 
+            'approved_quota' => 50, 
             'ksm_reference_number' => 'My/643/7684548', 
             'payment_reference_number' => 'SVZ498787', 
             'approval_number' => 'ADR4674', 
@@ -356,7 +252,7 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'country_id' => 1, 
-            'quota' => 15
+            'quota' => 20
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
         
@@ -375,7 +271,7 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
             'agent_id' => 1, 
-            'quota' => 10
+            'quota' => 20
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
 
@@ -489,13 +385,8 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
             'workers' => 1
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/dispatch/update', $payload, $this->getHeader(false));
-    }
-    /**
-     * @return array
-     */
-    public function creationData(): array
-    {
-        return [
+
+        $payload = [
             'application_id' => 1,
             'onboarding_country_id' => 1,
             'flight_date' => Carbon::now()->format('Y-m-d'),
@@ -504,28 +395,105 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
             'workers' => [1],
             'remarks' => 1
         ];
-    }
-    /**
-     * @return array
-     */
-    public function cancelData(): array
-    {
-        return [
-            'arrival_id' => 1,
-            'workers' => 1,
-            'attachment' => '/C:/Users/admin/Desktop/Accounting.png',
-            'remarks' => 'remark testing'
-        ];
-    }
-    /**
-     * @return array
-     */
-    public function updateWorkerData(): array
-    {
-        return [
-            'arrival_id' => 1,
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1,
+            'onboarding_country_id' => 1,
+            'arrived_date' => Carbon::now()->format('Y-m-d'),
+            'entry_visa_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
             'workers' => [1]
         ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1,
+            'onboarding_country_id' => 1,
+            'jtk_submitted_on' => Carbon::now()->format('Y-m-d'),
+            'workers' => [1]
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateJTKSubmission', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'onboarding_country_id' => 1, 
+            'purchase_date' => Carbon::now()->format('Y-m-d'), 
+            'fomema_total_charge' => '111.99', 
+            'convenient_fee' => 3, 
+            'workers' => [1]
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/fomema/purchase', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'onboarding_country_id' => 1, 
+            'clinic_name' => 'XYZ Clinic', 
+            'doctor_code' => 'AGV64873', 
+            'allocated_xray' => 'FGFSG VDHVG', 
+            'xray_code' => 'DTF783848', 
+            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'), 
+            'workers' => 1, 
+            'file_url' => 'test'
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/fomema/fomemaFit', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'onboarding_country_id' => 1, 
+            'plks_expiry_date' => Carbon::now()->addYear()->format('Y-m-d'), 
+            'workers' => 1
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false));
+
+        $payload = [
+            'prospect_id' => 1, 
+            'company_name' => 'ABC Firm', 
+            'contact_number' => '768456948', 
+            'email' => 'testcrm@gmail.com', 
+            'pic_name' => 'PICTest', 
+            'sector_id' => 1, 
+            'sector_name' => 'Agriculture', 
+            'fomnext_quota' => 10, 
+            'air_ticket_deposit' => 1.11, 
+            'service_id' => 2, 
+            'file_url' => 'test'
+        ];
+        $this->json('POST', 'api/v1/eContract/addService', $payload, $this->getHeader(false));
+
+        $payload = [
+            'id' => 1, 
+            'crm_prospect_id' => 1, 
+            'quota_requested' => 10, 
+            'person_incharge' => 'PICTest', 
+            'cost_quoted' => 20, 
+            'remarks' => 'testRemark', 
+            'file_url' => 'test'
+        ];
+        $this->json('POST', 'api/v1/eContract/proposalSubmit', $payload, $this->getHeader(false));
+
+        $payload = [
+            "application_id" => 1,
+            "name" => "test name",
+            "state" => "state test",
+            "city" => "city test",
+            "address" => "test address",
+            "annual_leave" => 10,
+            "medical_leave" => 10,
+            "hospitalization_leave" => 10,
+            "attachment" => "test.png",
+            "valid_until" => Carbon::now()->format('Y-m-d')
+        ];
+        $this->json('POST', 'api/v1/eContract/project/add', $payload, $this->getHeader(false));
+
+        $payload = [
+            "project_id" => 1,
+            "department" => "department",
+            "sub_department" => "sub department",
+            "accommodation_provider_id" => 0,
+            "accommodation_unit_id" => 0,
+            "work_start_date" =>  Carbon::now()->format('Y-m-d'),
+            "workers" => [1]
+        ];
+        $this->json('POST', 'api/v1/eContract/manage/workerAssign/assignWorker', $payload, $this->getHeader(false));
     }
-    
 }
