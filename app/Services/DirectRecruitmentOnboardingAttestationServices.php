@@ -165,6 +165,7 @@ class DirectRecruitmentOnboardingAttestationServices
         $onboardingAttestation = $this->onboardingAttestation->where([
             ['application_id', $request['application_id']],
             ['onboarding_country_id', $request['onboarding_country_id']],
+            ['ksm_reference_number', $request['ksm_reference_number']]
         ])->first(['id', 'application_id', 'onboarding_country_id']);
 
         if(is_null($onboardingAttestation)){

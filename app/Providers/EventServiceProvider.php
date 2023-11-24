@@ -18,6 +18,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\WorkerQuotaUpdated' => [
             'App\Listeners\UpdateUtilisedQuota'
         ],
+        'App\Events\KSMQuotaUpdated' => [
+            'App\Listeners\UpdateKSMUtilisedQuota'
+        ],
     ];
 
     /**
