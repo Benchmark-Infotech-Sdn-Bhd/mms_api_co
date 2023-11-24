@@ -61,7 +61,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
                     'kin_relationship_id' => $row['kin_relationship_id'] ?? '',
                     'kin_relationship' => $row['kin_relationship'] ?? '',
                     'kin_contact_number' => $row['kin_contact_number'] ?? '',
-                    'ksm_reference_number' => $row['ksm_reference_number'] ?? '',
+                    'ksm_reference_number' => $this->parameters['ksm_reference_number'],
                     'bio_medical_reference_number' => $row['bio_medical_reference_number'] ?? '',
                     'bio_medical_valid_until' => $this->dateConvert($row['bio_medical_valid_until']),
                     'created_by' => $row['created_by'] ?? 0,

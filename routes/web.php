@@ -306,6 +306,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('import', 'V1\DirectRecruitmentWorkersController@import');
                     $router->post('workerStatusList', 'V1\DirectRecruitmentWorkersController@workerStatusList');
                     $router->post('updateStatus', 'V1\DirectRecruitmentWorkersController@updateStatus');
+                    $router->post('ksmDropDownBasedOnOnboardingAgent', 'V1\DirectRecruitmentWorkersController@ksmDropDownBasedOnOnboardingAgent');
                 });
                 $router->group(['prefix' => 'callingVisa'], function () use ($router) {
                     $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');

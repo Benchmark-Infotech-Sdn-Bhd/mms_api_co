@@ -627,5 +627,15 @@ class DirectRecruitmentWorkersServices
             "message" => "Updated Successfully"
         ];
     }
-
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function ksmDropDownBasedOnOnboardingAgent($request): mixed
+    {
+        return $this->directRecruitmentOnboardingAgent->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->where('id', $request['agent_id'])
+        ->select('id', 'ksm_reference_number')
+        ->get(); 
+    }
 }

@@ -112,15 +112,24 @@ class DirectRecruitmentOnboardingAgentServices
             ];
         }
 
-        $countriesQuota = $this->directRecruitmentOnboardingCountry
-                               ->where('application_id', $request['application_id'])
-                               ->where('id', $request['onboarding_country_id'])
-                               ->sum('quota');
+        // $countriesQuota = $this->directRecruitmentOnboardingCountry
+        //                        ->where('application_id', $request['application_id'])
+        //                        ->where('id', $request['onboarding_country_id'])
+        //                        ->sum('quota');
+        // \DB::enableQueryLog();
+        $countriesQuota = $this->onboardingCountriesKSMReferenceNumber
+                                ->where('application_id', $request['application_id'])
+                                ->where('onboarding_country_id', $request['onboarding_country_id'])
+                                ->where('ksm_reference_number', $request['ksm_reference_number'])
+                                ->sum('quota');
+                                // dd(\DB::getQueryLog());
         $agentQuota = $this->directRecruitmentOnboardingAgent
         ->where('application_id', $request['application_id'])
         ->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->where('ksm_reference_number', $request['ksm_reference_number'])
         ->sum('quota');
         $agentQuota += $request['quota'];
+        // echo $countriesQuota;exit;
         if($agentQuota > $countriesQuota) {
             return [
                 'quotaError' => true
@@ -130,6 +139,7 @@ class DirectRecruitmentOnboardingAgentServices
         ->where('agent_id', $request['agent_id'])
         ->where('application_id', $request['application_id'])
         ->where('onboarding_country_id', $request['onboarding_country_id'])
+        // ->where('ksm_reference_number', $request['ksm_reference_number'])
         ->get();
         if(count($checkAgent) > 0) {
             return [
@@ -166,13 +176,19 @@ class DirectRecruitmentOnboardingAgentServices
                 'error' => $validator->errors()
             ];
         }
-        $countriesQuota = $this->directRecruitmentOnboardingCountry
-                               ->where('application_id', $request['application_id'])
-                               ->where('id', $request['onboarding_country_id'])
-                               ->sum('quota');
+        // $countriesQuota = $this->directRecruitmentOnboardingCountry
+        //                        ->where('application_id', $request['application_id'])
+        //                        ->where('id', $request['onboarding_country_id'])
+        //                        ->sum('quota');
+        $countriesQuota = $this->onboardingCountriesKSMReferenceNumber
+                                ->where('application_id', $request['application_id'])
+                                ->where('onboarding_country_id', $request['onboarding_country_id'])
+                                ->where('ksm_reference_number', $request['ksm_reference_number'])
+                                ->sum('quota');
         $agentQuota = $this->directRecruitmentOnboardingAgent
         ->where('application_id', $request['application_id'])
         ->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->where('ksm_reference_number', $request['ksm_reference_number'])
         ->where('id', '<>', $request['id'])
         ->sum('quota');
         $agentQuota += $request['quota'];

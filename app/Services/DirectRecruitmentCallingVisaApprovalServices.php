@@ -98,7 +98,8 @@ class DirectRecruitmentCallingVisaApprovalServices
                     'directrecruitment_status' => 'Accepted', 
                     'modified_by' => $request['modified_by']
                 ]);
-
+            
+            // update utilised quota
             event(new WorkerQuotaUpdated($request['onboarding_country_id'], count($request['workers']), 'increment'));
             
         } else {
