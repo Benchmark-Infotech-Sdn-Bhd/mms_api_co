@@ -13,6 +13,7 @@ use App\Services\DirectRecruitmentOnboardingCountryServices;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Carbon\Carbon;
+use App\Models\User;
 
 class DirectRecruitmentOnboardingAttestationServices
 {
@@ -54,6 +55,10 @@ class DirectRecruitmentOnboardingAttestationServices
      * @var DirectRecruitmentOnboardingCountry
      */
     private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+    /**
+     * @var NotificationServices
+     */
+    private NotificationServices $notificationServices;
 
     /**
      * DirectRecruitmentOnboardingAttestationServices constructor.
@@ -65,9 +70,10 @@ class DirectRecruitmentOnboardingAttestationServices
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
      * @param Storage $storage;
      * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
+     * @param NotificationServices $notificationServices
      */
 
-    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
+    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices, NotificationServices $notificationServices)
     {
         $this->onboardingAttestation = $onboardingAttestation;
         $this->onboardingDispatch = $onboardingDispatch;
@@ -77,6 +83,7 @@ class DirectRecruitmentOnboardingAttestationServices
         $this->storage = $storage;
         $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
+        $this->notificationServices = $notificationServices;
     }
     /**
      * @return array
@@ -280,6 +287,22 @@ class DirectRecruitmentOnboardingAttestationServices
                 'modified_by' =>  $request['created_by'] ?? 0
             ]);
         }
+
+        $getUser = $this->getUser($request['employee_id']);
+        if($getUser){
+            $NotificationParams['user_id'] = $request['employee_id'];
+            $NotificationParams['from_user_id'] = $request['created_by'];
+            $NotificationParams['type'] = 'Dispatches';
+            $NotificationParams['title'] = 'Dispatches';
+            $NotificationParams['message'] = $request['reference_number'].' Dispatch is Assigned';
+            $NotificationParams['status'] = 1;
+            $NotificationParams['read_flag'] = 0;
+            $NotificationParams['created_by'] = $request['created_by'];
+            $NotificationParams['modified_by'] = $request['created_by'];
+            $NotificationParams['company_id'] = $request['company_id'];
+            $this->notificationServices->insertDispatchNotification($NotificationParams);
+            dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']));
+        }
         
         return true;
     }
@@ -452,6 +475,14 @@ class DirectRecruitmentOnboardingAttestationServices
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
         ];
+    }
+    /**
+     * * get user
+     * @param $request
+     */    
+    public function getUser($referenceId)
+    {   
+        return User::where('reference_id',$referenceId)->where('user_type','Employee')->first('id', 'name', 'email');
     }
     /**
      * @param $request

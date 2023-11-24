@@ -169,6 +169,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('dropDownCompanies', 'V1\CRMController@dropDownCompanies');
             $router->post('getProspectDetails', 'V1\CRMController@getProspectDetails');
             $router->post('systemList', 'V1\CRMController@systemList');
+            $router->post('crmImport', 'V1\CRMController@crmImport');
         });
         /**
          * Routes for Vendors.
@@ -304,6 +305,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('onboardingAgent', 'V1\DirectRecruitmentWorkersController@onboardingAgent');
                     $router->post('replaceWorker', 'V1\DirectRecruitmentWorkersController@replaceWorker');
                     $router->post('import', 'V1\DirectRecruitmentWorkersController@import');
+                    $router->post('importHistory', 'V1\DirectRecruitmentWorkersController@importHistory');
+                    $router->post('failureExport', 'V1\DirectRecruitmentWorkersController@failureExport');
                     $router->post('workerStatusList', 'V1\DirectRecruitmentWorkersController@workerStatusList');
                     $router->post('updateStatus', 'V1\DirectRecruitmentWorkersController@updateStatus');
                     $router->post('ksmDropDownBasedOnOnboardingAgent', 'V1\DirectRecruitmentWorkersController@ksmDropDownBasedOnOnboardingAgent');
@@ -748,6 +751,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('update', 'V1\InvoiceItemsTempController@update');
             $router->post('delete', 'V1\InvoiceItemsTempController@delete');
             $router->post('deleteAll', 'V1\InvoiceItemsTempController@deleteAll');
+        });
+
+        /**
+        * Routes for Application Summary.
+        */
+        $router->group(['prefix' => 'notifications'], function () use ($router) {
+            $router->post('count', 'V1\NotificationController@count');
+            $router->post('list', 'V1\NotificationController@list');
+            $router->post('updateReadStatus', 'V1\NotificationController@updateReadStatus');
+            $router->post('renewalNotifications', 'V1\NotificationController@renewalNotifications');
         });
 
     });

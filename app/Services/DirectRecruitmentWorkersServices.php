@@ -579,6 +579,7 @@ class DirectRecruitmentWorkersServices
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
         $params['modified_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
         /* if(!($this->validationServices->validate($request->toArray(),$this->bulkUploadValidation()))){
             return [
               'validate' => $this->validationServices->errors()
@@ -591,10 +592,15 @@ class DirectRecruitmentWorkersServices
                 'application_id' => $request['application_id'] ?? '',
                 'name' => 'Worker Bulk Upload',
                 'type' => 'Worker bulk upload',
-                'module_type' => 'Direct Recruitment'
+                'module_type' => 'WorkerBioData',
+                'company_id' => $user['company_id'],
+                'created_by' => $params['created_by'],
+                'modified_by' => $params['created_by'],
+                'user_type' => $user['user_type']
             ]
         );
-
+        $rows = Excel::toArray(new WorkerImport($params, $workerBulkUpload), $file);
+        $this->workerBulkUpload->where('id', $workerBulkUpload->id)->update(['actual_row_count' => count($rows[0])]);
         Excel::import(new WorkerImport($params, $workerBulkUpload), $file);
         return true;
     }
@@ -625,6 +631,41 @@ class DirectRecruitmentWorkersServices
         return  [
             "isUpdated" => $worker,
             "message" => "Updated Successfully"
+        ];
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function importHistory($request): mixed
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $this->workerBulkUpload
+        ->select('id', 'actual_row_count', 'total_success', 'total_failure', 'process_status', 'created_at')
+        ->where('module_type', 'WorkerBioData')
+        ->where('process_status', 'Processed')
+        ->whereNotNull('failure_case_url')
+        ->whereIn('company_id', $request['company_id'])
+        ->orderBy('id', 'desc')
+        ->paginate(Config::get('services.paginate_row'));
+    }
+
+    /**
+     * @param $request
+     * @return array
+     */
+    public function failureExport($request): array
+    {        
+        $workerBulkUpload = $this->workerBulkUpload->findOrFail($request['bulk_upload_id']);
+        if($workerBulkUpload->process_status != 'Processed' || is_null($workerBulkUpload->failure_case_url)) {
+            return [
+                'queueError' => true
+            ];
+        }
+        return [
+            'file_url' => $workerBulkUpload->failure_case_url
         ];
     }
     /**

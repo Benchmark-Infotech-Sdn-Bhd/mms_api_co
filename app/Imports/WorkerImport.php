@@ -42,7 +42,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
     public function model(array $row)
     {
         try {
-                Log::info('Row Data' . print_r($row, true));
+                //Log::info('Row Data' . print_r($row, true));
                 
                 $workerParameter = [
                     'onboarding_country_id' => $this->parameters['onboarding_country_id'],
@@ -54,22 +54,25 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
                     'passport_number' => isset($row['passport_number']) ? (string)$row['passport_number'] : '',
                     'passport_valid_until' => $this->dateConvert($row['passport_valid_until']),
                     'address' => $row['address'] ?? '',
-                    'city' => $row['city'] ?? '',
                     'state' => $row['state'] ?? '',
-
                     'kin_name' => $row['kin_name'] ?? '',
-                    'kin_relationship_id' => $row['kin_relationship_id'] ?? '',
                     'kin_relationship' => $row['kin_relationship'] ?? '',
                     'kin_contact_number' => $row['kin_contact_number'] ?? '',
                     'ksm_reference_number' => $this->parameters['ksm_reference_number'],
                     'bio_medical_reference_number' => $row['bio_medical_reference_number'] ?? '',
                     'bio_medical_valid_until' => $this->dateConvert($row['bio_medical_valid_until']),
-                    'created_by' => $row['created_by'] ?? 0,
-                    'modified_by' => $row['modified_by'] ?? 0
+                    'created_by' => $this->parameters['created_by'] ?? 0,
+                    'modified_by' => $this->parameters['modified_by'] ?? 0,
+                    'company_id' => $this->parameters['company_id'] ?? 0,
+                ];
+
+                $workerNonMandatory = [
+                    'kin_relationship_id' => $row['kin_relationship_id'] ?? '',
+                    'city' => $row['city'] ?? '',
                 ];
                 
                 DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-                dispatch(new WorkersImport($workerParameter, $this->bulkUpload));
+                dispatch(new WorkersImport($workerParameter, $this->bulkUpload, $workerNonMandatory));
 
         } catch (\Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));
