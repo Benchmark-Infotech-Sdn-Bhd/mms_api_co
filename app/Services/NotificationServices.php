@@ -445,6 +445,7 @@ class NotificationServices
             ->join('modules', 'role_permission.module_id', '=', 'modules.id')
             ->where('users.company_id', $params['company_id'])
             ->where('users.user_type', '!=', 'Admin')
+            ->where('users.id', '!=', $params['user_id'])
             ->where('users.status', 1)
             ->whereNull('users.deleted_at')
             ->where('modules.module_name', Config::get('services.ACCESS_MODULE_TYPE')[10])
