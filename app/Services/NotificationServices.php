@@ -91,7 +91,7 @@ class NotificationServices
          ->where('users.user_type', '!=', 'Admin')
         ->where('users.status', 1)
         ->whereNull('users.deleted_at')
-        ->whereIn('modules.module_name', Config::get('services.WORKER_MODULE_TYPE'))
+        ->whereIn('modules.module_name', Config::get('services.ACCESS_MODULE_TYPE'))
         ->select('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id',DB::raw('GROUP_CONCAT(modules.module_name SEPARATOR ",") AS module_name'))
         ->groupBy('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')
         ->distinct('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')->get();
@@ -106,20 +106,26 @@ class NotificationServices
             $message['callingVisaRenewal'] = [];
             $message['specialPassRenewal'] = [];
             $message['serviceAgreement'] = '';
+            $message['fomemaRenewal'] = [];
+            $message['passportRenewal'] = [];
+            $message['insuranceRenewal'] = [];
+            $message['entryVisaRenewal'] = [];
 
-            if(in_array(Config::get('services.WORKER_MODULE_TYPE')[0], $userModules)){
+            if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[4], $userModules)){
                 $message['plksRenewal'] = $this->plksRenewalNotifications($user); 
                 $message['callingVisaRenewal'] = $this->callingVisaRenewalNotifications($user); 
                 $message['specialPassRenewal'] = $this->specialPassRenewalNotifications($user);
             }
-            if(in_array(Config::get('services.WORKER_MODULE_TYPE')[2], $userModules)){
+            if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], $userModules)){
                 $message['serviceAgreement'] = $this->serviceAgreementNotifications($user);
             }
 
-            $message['fomemaRenewal'] = $this->fomemaRenewalNotifications($user); 
-            $message['passportRenewal'] = $this->passportRenewalNotifications($user); 
-            $message['insuranceRenewal'] = $this->insuranceRenewalNotifications($user); 
-            $message['entryVisaRenewal'] = $this->entryVisaRenewalNotifications($user);
+            if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[4], $userModules) || in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], $userModules) || in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], $userModules)){
+                $message['fomemaRenewal'] = $this->fomemaRenewalNotifications($user); 
+                $message['passportRenewal'] = $this->passportRenewalNotifications($user); 
+                $message['insuranceRenewal'] = $this->insuranceRenewalNotifications($user); 
+                $message['entryVisaRenewal'] = $this->entryVisaRenewalNotifications($user);
+            }
             
             if(!empty($message['fomemaRenewal']) || !empty($message['passportRenewal']) || !empty($message['plksRenewal']) || !empty($message['callingVisaRenewal']) || !empty($message['specialPassRenewal']) || !empty($message['insuranceRenewal']) || !empty($message['entryVisaRenewal']) || !empty($message['serviceAgreement'])){
                 dispatch(new \App\Jobs\EmployerNotificationMail($user,$message));
@@ -433,19 +439,20 @@ class NotificationServices
                 dispatch(new \App\Jobs\RunnerNotificationMail($user,$params['message']));
             }
 
-            $runners = User::
+            $employeeUsers = User::
             join('user_role_type', 'users.id', '=', 'user_role_type.user_id')
-            ->join('roles', 'roles.id', '=', 'user_role_type.role_id')
-            ->where('users.user_type', '=', 'Employee')
-            ->where('roles.role_name', '=', 'Runner')
+            ->join('role_permission', 'user_role_type.role_id', '=', 'role_permission.role_id')
+            ->join('modules', 'role_permission.module_id', '=', 'modules.id')
             ->where('users.company_id', $params['company_id'])
+            ->where('users.user_type', '!=', 'Admin')
             ->where('users.status', 1)
             ->whereNull('users.deleted_at')
-            ->select('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')
+            ->where('modules.module_name', Config::get('services.ACCESS_MODULE_TYPE')[10])
+            ->select('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id',DB::raw('GROUP_CONCAT(modules.module_name SEPARATOR ",") AS module_name'))
             ->groupBy('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')
             ->distinct('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')->get();
 
-            foreach($runners as $user){
+            foreach($employeeUsers as $user){
                 $params['user_id'] = $user['id'];
                 $this->insertNotification($params);
                 dispatch(new \App\Jobs\RunnerNotificationMail($user,$params['message']));
