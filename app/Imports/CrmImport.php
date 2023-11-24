@@ -52,7 +52,7 @@ class CrmImport implements ToModel, WithChunkReading, WithHeadingRow
 
                 $prospectService[0] = new \stdClass();
                 $prospectService[0]->service_id = $row['service_type'];
-                $prospectService[0]->service_name = Config::get('services.WORKER_MODULE_TYPE')[$row['service_type']-1];
+                $prospectService[0]->service_name = Config::get('services.CRM_MODULE_TYPE')[$row['service_type']-1];
 
                 $loginCredential[0] = new \stdClass();
                 $loginCredential[0]->system_id = 1;
