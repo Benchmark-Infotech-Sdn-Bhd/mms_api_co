@@ -32,6 +32,6 @@ class Kernel extends ConsoleKernel
         $schedule->command('command:XeroGetTaxRates')->cron('0 */6 * * *');
         $schedule->command('command:XeroGetAccounts')->cron('0 */6 * * *');
         $schedule->command('command:XeroGetItems')->cron('0 */6 * * *');
-        $schedule->command('command:AuditsDeleteData')->daily();
+        $schedule->command('command:AuditsDeleteData')->cron('0 0 * * *');
     }
 }

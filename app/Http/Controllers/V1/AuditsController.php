@@ -38,6 +38,9 @@ class AuditsController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->auditsServices->list($params);
+            if(isset($response['error']) && !empty($response['error'])) {
+                return $this->validationError($response['error']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
