@@ -14,6 +14,15 @@ use App\Models\EContractProject;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Carbon;
+use Maatwebsite\Excel\Excel as BaseExcel;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PassportRenewalExport;
+use App\Exports\InsuranceRenewalExport;
+use App\Exports\FomemaRenewalExport;
+use App\Exports\PlksRenewalExport;
+use App\Exports\CallingVisaRenewalExport;
+use App\Exports\SpecialPassRenewalExport;
+use App\Exports\EntryVisaRenewalExport;
 
 class NotificationServices
 {
@@ -43,6 +52,7 @@ class NotificationServices
      */
     public function list($user)
     {
+        $this->renewalNotifications();
         return Notifications::where('user_id', $user['id'])
             ->select('id', 'type', 'title', 'message', 'created_at', 'read_flag')
             ->orderBy('created_at', 'desc')
@@ -202,6 +212,8 @@ class NotificationServices
             
             $params = $this->formNotificationInsertData($user, $fomemaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.FOMEMA_NOTIFICATION_TITLE'), Config::get('services.FOMEMA_NOTIFICATION_MESSAGE'), 3, 'MONTHS', Config::get('services.FOMEMA_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['attachment_filename'] = "fomemaRenewal.csv";
+            $params['attachment_file'] = Excel::raw(new FomemaRenewalExport($user['company_id']), BaseExcel::CSV);
         }        
         return $params;
     }
@@ -218,6 +230,8 @@ class NotificationServices
         if(isset($passportRenewalNotificationsCount) && $passportRenewalNotificationsCount != 0){
             $params = $this->formNotificationInsertData($user, $passportRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PASSPORT_NOTIFICATION_TITLE'), Config::get('services.PASSPORT_NOTIFICATION_MESSAGE'), 3, 'MONTHS', Config::get('services.PASSPORT_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['attachment_filename'] = "passportRenewal.csv";
+            $params['attachment_file'] = Excel::raw(new PassportRenewalExport($user['company_id']), BaseExcel::CSV);
         }      
         return $params;  
     }
@@ -234,6 +248,8 @@ class NotificationServices
         if(isset($plksRenewalNotificationsCount) && $plksRenewalNotificationsCount != 0){
             $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PLKS_NOTIFICATION_TITLE'), Config::get('services.PLKS_NOTIFICATION_MESSAGE'), 2, 'MONTHS', Config::get('services.PLKS_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['attachment_filename'] = "plksRenewal.csv";
+            $params['attachment_file'] = Excel::raw(new PlksRenewalExport($user['company_id']), BaseExcel::CSV);
         }   
         return $params;     
     }
@@ -250,6 +266,8 @@ class NotificationServices
         if(isset($callingVisaRenewalNotificationsCount) && $callingVisaRenewalNotificationsCount != 0){
             $params = $this->formNotificationInsertData($user, $callingVisaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.CALLING_VISA_NOTIFICATION_TITLE'), Config::get('services.CALLING_VISA_NOTIFICATION_MESSAGE'), 1, 'MONTHS', Config::get('services.CALLING_VISA_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['attachment_filename'] = "callingVisaRenewal.csv";
+            $params['attachment_file'] = Excel::raw(new CallingVisaRenewalExport($user['company_id']), BaseExcel::CSV);
         }       
         return $params;
     }
@@ -266,6 +284,8 @@ class NotificationServices
         if(isset($specialPassRenewalNotificationsCount) && $specialPassRenewalNotificationsCount != 0){
             $params = $this->formNotificationInsertData($user, $specialPassRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_TITLE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_MESSAGE'), 1, 'MONTHS', Config::get('services.SPECIAL_PASS_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['attachment_filename'] = "specialPassRenewal.csv";
+            $params['attachment_file'] = Excel::raw(new SpecialPassRenewalExport($user['company_id']), BaseExcel::CSV);
         }  
         return $params;      
     }
@@ -282,6 +302,8 @@ class NotificationServices
         if(isset($insuranceRenewalNotifications) && $insuranceRenewalNotifications != 0){
             $params = $this->formNotificationInsertData($user, $insuranceRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.INSURANCE_NOTIFICATION_TITLE'), Config::get('services.INSURANCE_NOTIFICATION_MESSAGE'), 1, 'MONTHS', Config::get('services.INSURANCE_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['attachment_filename'] = "insuranceRenewal.csv";
+            $params['attachment_file'] = Excel::raw(new InsuranceRenewalExport($user['company_id']), BaseExcel::CSV);
         }        
         return $params;
     }
@@ -298,6 +320,8 @@ class NotificationServices
         if(isset($entryVisaRenewalNotifications) && $entryVisaRenewalNotifications != 0){
             $params = $this->formNotificationInsertData($user, $entryVisaRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.ENTRY_VISA_NOTIFICATION_TITLE'), Config::get('services.ENTRY_VISA_NOTIFICATION_MESSAGE'), 15, 'DAYS', Config::get('services.ENTRY_VISA_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['attachment_filename'] = "entryVisaRenewal.csv";
+            $params['attachment_file'] = Excel::raw(new EntryVisaRenewalExport($user['company_id']), BaseExcel::CSV);
         } 
         return $params;       
     }

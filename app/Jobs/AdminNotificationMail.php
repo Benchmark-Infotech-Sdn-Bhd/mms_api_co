@@ -56,11 +56,54 @@ class AdminNotificationMail implements ShouldQueue
         $input['mail_subject'] = rtrim($input['mail_subject'], '/');
         $input['message'] = $this->message;
 
+        $input['passport_attachment_filename'] = isset($mailMessage['passportRenewal']['attachment_filename']) ? $mailMessage['passportRenewal']['attachment_filename'] : '';
+        $input['passport_attachment_file'] = isset($mailMessage['passportRenewal']['attachment_file']) ? $mailMessage['passportRenewal']['attachment_file'] : [];
+
+        $input['insurance_attachment_filename'] = isset($mailMessage['insuranceRenewal']['attachment_filename']) ? $mailMessage['insuranceRenewal']['attachment_filename'] : '';
+        $input['insurance_attachment_file'] = isset($mailMessage['insuranceRenewal']['attachment_file']) ? $mailMessage['insuranceRenewal']['attachment_file'] : [];
+
+        $input['fomema_attachment_filename'] = isset($mailMessage['fomemaRenewal']['attachment_filename']) ? $mailMessage['fomemaRenewal']['attachment_filename'] : '';
+        $input['fomema_attachment_file'] = isset($mailMessage['fomemaRenewal']['attachment_file']) ? $mailMessage['fomemaRenewal']['attachment_file'] : [];
+
+        $input['plks_attachment_filename'] = isset($mailMessage['plksRenewal']['attachment_filename']) ? $mailMessage['plksRenewal']['attachment_filename'] : '';
+        $input['plks_attachment_file'] = isset($mailMessage['plksRenewal']['attachment_file']) ? $mailMessage['plksRenewal']['attachment_file'] : [];
+
+        $input['callingvisa_attachment_filename'] = isset($mailMessage['callingVisaRenewal']['attachment_filename']) ? $mailMessage['callingVisaRenewal']['attachment_filename'] : '';
+        $input['callingvisa_attachment_file'] = isset($mailMessage['callingVisaRenewal']['attachment_file']) ? $mailMessage['callingVisaRenewal']['attachment_file'] : [];
+
+        $input['specialpass_attachment_filename'] = isset($mailMessage['specialPassRenewal']['attachment_filename']) ? $mailMessage['specialPassRenewal']['attachment_filename'] : '';
+        $input['specialpass_attachment_file'] = isset($mailMessage['specialPassRenewal']['attachment_file']) ? $mailMessage['specialPassRenewal']['attachment_file'] : [];
+
+        $input['entryvisa_attachment_filename'] = isset($mailMessage['entryVisaRenewal']['attachment_filename']) ? $mailMessage['entryVisaRenewal']['attachment_filename'] : '';
+        $input['entryvisa_attachment_file'] = isset($mailMessage['entryVisaRenewal']['attachment_file']) ? $mailMessage['entryVisaRenewal']['attachment_file'] : [];
+
         if($this->emailValidation($input['email'])){
             Mail::send('email.AdminNotificationMail', ['params' => $input], function ($message) use ($input) {
                 $message->to($input['email'])
                     ->subject($input['subject']);
                 $message->from(Config::get('services.mail_from_address'), Config::get('services.mail_from_name'));
+                
+                if(!empty($input['passport_attachment_filename']) && !empty($input['passport_attachment_file'])){
+                    $message->attachData($input['passport_attachment_file'], $input['passport_attachment_filename']);
+                }
+                if(!empty($input['insurance_attachment_filename']) && !empty($input['insurance_attachment_file'])){
+                    $message->attachData($input['insurance_attachment_file'], $input['insurance_attachment_filename']);
+                }
+                if(!empty($input['fomema_attachment_filename']) && !empty($input['fomema_attachment_file'])){
+                    $message->attachData($input['fomema_attachment_file'], $input['fomema_attachment_filename']);
+                }
+                if(!empty($input['plks_attachment_filename']) && !empty($input['plks_attachment_file'])){
+                    $message->attachData($input['plks_attachment_file'], $input['plks_attachment_filename']);
+                }
+                if(!empty($input['callingvisa_attachment_filename']) && !empty($input['callingvisa_attachment_file'])){
+                    $message->attachData($input['callingvisa_attachment_file'], $input['callingvisa_attachment_filename']);
+                }
+                if(!empty($input['specialpass_attachment_filename']) && !empty($input['specialpass_attachment_file'])){
+                    $message->attachData($input['specialpass_attachment_file'], $input['specialpass_attachment_filename']);
+                }
+                if(!empty($input['entryvisa_attachment_filename']) && !empty($input['entryvisa_attachment_file'])){
+                    $message->attachData($input['entryvisa_attachment_file'], $input['entryvisa_attachment_filename']);
+                }
             });
             Log::info('Admin notification mail process completed');
         }else{
