@@ -18,6 +18,8 @@ class Kernel extends ConsoleKernel
         Commands\XeroGetAccounts::class,
         Commands\XeroGetItems::class,
         Commands\AuditsDeleteData::class,
+        Commands\WorkerImportFailure::class,
+        Commands\RenewalNotifications::class
     ];
 
     /**
@@ -33,5 +35,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('command:XeroGetAccounts')->cron('0 */6 * * *');
         $schedule->command('command:XeroGetItems')->cron('0 */6 * * *');
         $schedule->command('command:AuditsDeleteData')->cron('0 0 * * *');
+        $schedule->command('command:WorkerImportFailure')->everyTwoMinutes();
+        $schedule->command('command:RenewalNotifications')->cron('0 0 * * *');
     }
 }

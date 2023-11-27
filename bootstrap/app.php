@@ -66,6 +66,7 @@ $app->configure('app');
 $app->configure('jwt');
 $app->configure('services');
 $app->configure('mail');
+$app->configure('filesystems');
 
 /*
 |--------------------------------------------------------------------------
