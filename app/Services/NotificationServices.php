@@ -346,8 +346,7 @@ class NotificationServices
     public function serviceAgreementNotifications($user)
     {
         $params['mail_message'] = '';
-        $params['attachment_filename'] = '';
-        $params['attachment_file'] = [];
+        $params['company_id'] = '';
         $mailMessage = '';
 
         $serviceAgreement = EContractProject::leftjoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
