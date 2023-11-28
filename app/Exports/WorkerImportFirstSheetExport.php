@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 
-class WorkerImportFileExport implements FromCollection,WithHeadings,WithEvents
+class WorkerImportFirstSheetExport implements FromCollection,WithHeadings,WithEvents
 {
     protected  $users;
     protected  $selects;
@@ -17,47 +17,9 @@ class WorkerImportFileExport implements FromCollection,WithHeadings,WithEvents
     protected  $columnCount;
     public function __construct($params)
     {
-        $applicationId = $params['application_id'];
-        $gender=['Male','Female'];
-        $kinRelationship=['Parents','Children','Brothers','Sisters','Grandparents','Uncles','Aunts','Others'];
-        $branch=\App\Models\Branch::pluck('branch_name')->toArray();
-
-        $ksmReferenceNumberData =\App\Models\DirectRecruitmentApplicationApproval::
-            leftJoin('levy', function($join) use ($applicationId){
-                $join->on('levy.application_id', '=', 'directrecruitment_application_approval.application_id')
-                ->on('levy.new_ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
-            })
-            ->leftJoin('directrecruitment_onboarding_countries', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_application_approval.application_id')
-            ->where('directrecruitment_application_approval.application_id', $applicationId)
-            ->select('directrecruitment_application_approval.ksm_reference_number')
-            ->groupBy('directrecruitment_application_approval.ksm_reference_number')
-            ->distinct('directrecruitment_application_approval.ksm_reference_number')
-            ->get()->toArray();
-
-        $ksmReferenceNumber= [];
-        foreach ($ksmReferenceNumberData as $key => $value) {
-            $ksmReferenceNumber[] = $value['ksm_reference_number'];
-        }
-
-        $agentData = \App\Models\DirectRecruitmentOnboardingAgent::
-            leftJoin('agent', 'directrecruitment_onboarding_agent.agent_id', 'agent.id')
-            ->where('directrecruitment_onboarding_agent.application_id', $applicationId)
-            ->select('agent.agent_name')
-            ->get()->toArray();
-
-        $agent = [];
-        foreach ($agentData as $key => $value) {
-            $agent[] = $value['agent_name'];
-        }
-
-        $selects=[  //selects should have column_name and options
-            ['columns_name'=>'C','options'=>$gender],
-            ['columns_name'=>'J','options'=>$kinRelationship],
-            ['columns_name'=>'L','options'=>$ksmReferenceNumber],
-            ['columns_name'=>'AA','options'=>$agent],
-        ];
+        $selects=[];
         $this->selects=$selects;
-        $this->rowCount=100;//number of rows that will have the dropdown
+        $this->rowCount=1;//number of rows that will have the dropdown
         $this->columnCount=5;//number of columns to be auto sized
     }
 
@@ -85,17 +47,6 @@ class WorkerImportFileExport implements FromCollection,WithHeadings,WithEvents
             'ksm_reference_number',
             'bio_medical_reference_number',
             'bio_medical_valid_until',
-            'purchase_date',
-            'clinic_name',
-            'doctor_code',
-            'allocated_xray',
-            'xray_code',
-            'ig_policy_number',
-            'hospitalization_policy_number',
-            'insurance_expiry_date',
-            'bank_name',
-            'account_number',
-            'socso_number',
             'agent'
         ];
     }

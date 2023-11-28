@@ -153,12 +153,12 @@ class ManageWorkersController extends Controller
     public function exportTemplate(Request $request): JsonResponse
     {
         try {            
-            $this->manageWorkersServices->exportTemplate($request);
+            $data = $this->manageWorkersServices->exportTemplate($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
 
-            return $this->sendSuccess(['message' => "Successfully worker template was exported"]);
+            return $this->sendSuccess(['file_url' => $data, 'message' => "Successfully worker template was exported"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             $data['error'] = 'Export failed. Please retry.';
