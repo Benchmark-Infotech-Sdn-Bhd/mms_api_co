@@ -91,6 +91,7 @@ class WorkersImport extends Job
         $ksmReferenceNumberQuotaError = 0;
         $agentWorkerCountError = 0;
         $successFlag = 0;
+        $agentKSMError = 0;
 
         $validationError = [];
         $validator = Validator::make($this->workerParameter, $this->formatValidation());
@@ -186,6 +187,7 @@ class WorkersImport extends Job
         ->leftjoin('workers', 'workers.id', '=', 'worker_visa.worker_id')
         ->where([
             ['directrecruitment_workers.application_id', $this->workerParameter['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $this->workerParameter['onboarding_country_id']],
             ['workers.cancel_status', 0],
             ['worker_visa.ksm_reference_number', $this->workerParameter['ksm_reference_number']],
         ])
@@ -194,9 +196,19 @@ class WorkersImport extends Job
 
         Log::info('ksm reference number count - ' . $ksmReferenceNumberCount);
 
-        if(isset($approvedCount['approved_quota']) && ($ksmReferenceNumberCount >= $approvedCount)) {
+        if(isset($approvedCount) && ($ksmReferenceNumberCount >= $approvedCount)) {
             $ksmReferenceNumberQuotaError = 1;
             $comments .= ' ERROR - ksm reference number quota cannot exceeded';
+        }
+        $agentCheck = DirectRecruitmentOnboardingAgent::where('application_id', $this->workerParameter['application_id'])
+        ->where('onboarding_country_id', $this->workerParameter['onboarding_country_id'])
+        ->where('ksm_reference_number', $this->workerParameter['ksm_reference_number'])
+        ->where('id', $this->workerParameter['agent_id'])
+        ->first();
+        
+        if(empty($agentCheck)) {
+            $agentKSMError = 1;
+            $comments .= ' ERROR - The KSM reference number not belongs to this Agent';
         }
 
         $agentDetails = DirectRecruitmentOnboardingAgent::findOrFail($this->workerParameter['agent_id']);
@@ -217,8 +229,7 @@ class WorkersImport extends Job
             $agentWorkerCountError = 1;
             $comments .= ' ERROR - agent worker quota count cannot exceeded'; 
         }
-
-            if($workerCount == 0 && $ksmError == 0 && $countryQuotaError == 0 && $ksmReferenceNumberQuotaError == 0 && $agentWorkerCountError == 0){
+            if($workerCount == 0 && $ksmError == 0 && $countryQuotaError == 0 && $ksmReferenceNumberQuotaError == 0 && $agentWorkerCountError == 0 && $agentKSMError == 0){
 
                 $applicationDetails = DirectrecruitmentApplications::findOrFail($this->workerParameter['application_id']);
                 $prospect_id = $applicationDetails->crm_prospect_id;

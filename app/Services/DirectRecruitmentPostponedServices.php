@@ -6,6 +6,9 @@ use App\Models\Workers;
 use App\Models\WorkerArrival;
 use App\Models\DirectrecruitmentWorkers;
 use App\Models\DirectRecruitmentOnboardingCountry;
+use App\Models\WorkerVisa;
+use App\Models\OnboardingCountriesKSMReferenceNumber;
+use App\Models\CallingVisaExpiryCronDetails;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -28,6 +31,18 @@ class DirectRecruitmentPostponedServices
      * @var DirectRecruitmentOnboardingCountry
      */
     private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+    /**
+     * @var WorkerVisa
+     */
+    private WorkerVisa $workerVisa;
+    /**
+     * @var OnboardingCountriesKSMReferenceNumber
+     */
+    private OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber;
+    /**
+     * @var CallingVisaExpiryCronDetails
+     */
+    private CallingVisaExpiryCronDetails $callingVisaExpiryCronDetails;
 
     /**
      * DirectRecruitmentPostponedServices constructor.
@@ -35,13 +50,19 @@ class DirectRecruitmentPostponedServices
      * @param WorkerArrival $workerArrival
      * @param DirectrecruitmentWorkers $directrecruitmentWorkers
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
+     * @param WorkerVisa $workerVisa
+     * @param OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber
+     * @param CallingVisaExpiryCronDetails $callingVisaExpiryCronDetails
      */
-    public function __construct(Workers $workers, WorkerArrival $workerArrival, DirectrecruitmentWorkers $directrecruitmentWorkers, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
+    public function __construct(Workers $workers, WorkerArrival $workerArrival, DirectrecruitmentWorkers $directrecruitmentWorkers, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, WorkerVisa $workerVisa, OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber, CallingVisaExpiryCronDetails $callingVisaExpiryCronDetails)
     {
         $this->workers = $workers;
         $this->workerArrival = $workerArrival;
         $this->directrecruitmentWorkers = $directrecruitmentWorkers;
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
+        $this->workerVisa = $workerVisa;
+        $this->onboardingCountriesKSMReferenceNumber = $onboardingCountriesKSMReferenceNumber;
+        $this->callingVisaExpiryCronDetails = $callingVisaExpiryCronDetails;
     }
     /**
      * @return array
@@ -102,10 +123,13 @@ class DirectRecruitmentPostponedServices
      */
     public function updateCallingVisaExpiry(): bool
     {
+        $workerDetails = [];
+        $workerKSM = [];
         $postponedWorkerIds = $this->workerArrival
                                 ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_arrival.worker_id')
                                 ->where('worker_arrival.arrival_status', 'Postponed')
                                 ->where('worker_visa.calling_visa_valid_until', '<', Carbon::now()->format('Y-m-d'))
+                                ->where('worker_visa.status', '<>', 'Expired')
                                 ->select('worker_arrival.worker_id')
                                 ->distinct('worker_arrival.worker_id')
                                 ->get()->toArray();
@@ -118,25 +142,73 @@ class DirectRecruitmentPostponedServices
                     ->distinct('worker_id')
                     ->get()->toArray();
             $workerIds = array_column($workerIds, 'worker_id');
+
+            foreach($workerIds as $worker) {
+                $ksmDetails = $this->workerVisa->where('worker_id', $worker)->first(['ksm_reference_number']);
+                $onboardingDetails = $this->directrecruitmentWorkers->where('worker_id', $worker)
+                                        ->first(['application_id', 'onboarding_country_id']);
+                
+                $workerDetails[$worker]['onboarding_country_id'] = $onboardingDetails->onboarding_country_id;
+                $workerKSM[$onboardingDetails->onboarding_country_id][$ksmDetails->ksm_reference_number]['onboarding_country_id'] = $onboardingDetails->onboarding_country_id;
+                $workerKSM[$onboardingDetails->onboarding_country_id][$ksmDetails->ksm_reference_number]['application_id'] = $onboardingDetails->application_id;
+            }
+            
+            //update cron table for initial utilised quota
+            foreach($workerKSM as $key => $ksmDetails) {
+                foreach($ksmDetails as $ksmKey => $ksmDetail) {
+                    $quotaDetails = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $ksmDetail['application_id'])
+                                        ->where('onboarding_country_id', $ksmDetail['onboarding_country_id'])
+                                        ->where('ksm_reference_number', $ksmKey)
+                                        ->first(['quota', 'utilised_quota']);
+                    $this->callingVisaExpiryCronDetails->create([
+                        'application_id' => $ksmDetail['application_id'],
+                        'onboarding_country_id' => $ksmDetail['onboarding_country_id'],
+                        'ksm_reference_number' => $ksmKey,
+                        'approved_quota' => $quotaDetails->quota,
+                        'initial_utilised_quota' => $quotaDetails->utilised_quota,
+                        'current_utilised_quota' => 0,
+                    ]);
+                } 
+            }
             
             if(isset($workerIds) && !empty($workerIds)) {
                 $this->workers->whereIn('id', $workerIds)
                     ->update([
                         'directrecruitment_status' => 'Expired'
                     ]);
+                    $this->workerVisa->whereIn('worker_id', $workerIds)
+                    ->update([
+                        'status' => 'Expired'
+                    ]);
                 foreach ($workerIds as $workerId) {
+                    // updating quota in onboarding country 
                     $utilisedQuota = 0;
-                    $onBoardingCountryDetails = $this->directrecruitmentWorkers
-                                            ->leftJoin('workers', 'workers.id', 'directrecruitment_workers.worker_id')
-                                            ->where('directrecruitment_workers.worker_id', $workerId)
-                                            ->where('workers.directrecruitment_status', 'Expired')
-                                            ->select('directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id')
-                                            ->get()->toArray();
-                                            
-                    $countryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($onBoardingCountryDetails[0]['onboarding_country_id']);
+                    $countryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($workerDetails[$workerId]['onboarding_country_id']);
                     $utilisedQuota = (($countryDetails->utilised_quota - 1) < 0) ? 0 : $countryDetails->utilised_quota - 1;
                     $countryDetails->utilised_quota = $utilisedQuota;
                     $countryDetails->save();
+
+                    // updating quota based on ksm reference number
+                    $WorkerKSMDetails = $this->workerVisa->where('worker_id', $workerId)->first(['ksm_reference_number']);
+                    $ksmDetails = $this->onboardingCountriesKSMReferenceNumber->where('onboarding_country_id', $countryDetails->id)
+                            ->where('ksm_reference_number', $WorkerKSMDetails->ksm_reference_number)
+                            ->first(['id', 'utilised_quota']);
+                    $ksmUtilisedQuota = (($ksmDetails->utilised_quota - 1) < 0) ? 0 : $ksmDetails->utilised_quota - 1;
+                    $this->onboardingCountriesKSMReferenceNumber->where('id', $ksmDetails->id)->update(['utilised_quota' => $ksmUtilisedQuota]);
+                }
+            }
+            //update cron table for current utilised quota
+            foreach($workerKSM as $key => $ksmDetails) {
+                foreach($ksmDetails as $ksmKey => $ksmDetail) {
+                    $currentQuotaDetails = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $ksmDetail['application_id'])
+                                        ->where('onboarding_country_id', $ksmDetail['onboarding_country_id'])
+                                        ->where('ksm_reference_number', $ksmKey)
+                                        ->first(['quota', 'utilised_quota']);
+                    $this->callingVisaExpiryCronDetails->where([
+                        ['onboarding_country_id', $ksmDetail['onboarding_country_id']],
+                        ['application_id', $ksmDetail['application_id']],
+                        ['ksm_reference_number', $ksmKey]
+                    ])->update(['current_utilised_quota' => $currentQuotaDetails->utilised_quota]);
                 }
             }
         }        

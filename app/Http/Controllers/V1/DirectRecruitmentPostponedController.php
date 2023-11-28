@@ -55,20 +55,4 @@ class DirectRecruitmentPostponedController extends Controller
             return $this->sendError(['message' => 'Failed to List Workers'], 400);
         }
     }
-    /**
-     * Dispaly list of workers for Postponed.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateExpiry(Request $request) : JsonResponse
-    {
-        try {
-            $response = $this->directRecruitmentPostponedServices->updateCallingVisaExpiry();
-            return $this->sendSuccess($response);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to List Workers'], 400);
-        }
-    }
 }

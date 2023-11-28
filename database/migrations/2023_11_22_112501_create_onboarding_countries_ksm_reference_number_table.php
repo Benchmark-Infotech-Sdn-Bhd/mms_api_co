@@ -19,7 +19,7 @@ return new class extends Migration
             // Foreign key from Direct Recruitment Application table
             $table->foreign('application_id')
               ->references('id')->on('directrecruitment_applications')->onDelete('cascade');
-            // Country Id column
+            // Onboarding Country Id column
             $table->unsignedBigInteger('onboarding_country_id');
             // Foreign key from Contries table
             $table->foreign('onboarding_country_id', 'onboarding_country_id_foreign')->nullable()

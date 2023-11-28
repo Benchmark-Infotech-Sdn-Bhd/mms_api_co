@@ -401,7 +401,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     });
                     $router->group(['prefix' => 'postponed'], function () use ($router) {
                         $router->post('workersList', 'V1\DirectRecruitmentPostponedController@workersList');
-                        $router->post('updateExpiry', 'V1\DirectRecruitmentPostponedController@updateExpiry');
                     });
                 });
             });

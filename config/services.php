@@ -98,7 +98,7 @@ return [
     'XERO_ACCESS_TOKEN' => env('XERO_ACCESS_TOKEN'),
     'XERO_REFRESH_TOKEN' => env('XERO_REFRESH_TOKEN'),
 
-    'DIRECT_RECRUITMENT_WORKER_STATUS' => ['Pending','Accepted','Not Arrived','Arrived','FOMEMA Fit','Processed'],
+    'DIRECT_RECRUITMENT_WORKER_STATUS' => ['Pending','Accepted','Not Arrived','Arrived','FOMEMA Fit','Processed', 'Expired'],
 
     'POST_ARRIVAL_CANCELLED_STATUS' => env('POST_ARRIVAL_CANCELLED_STATUS', 2),
     

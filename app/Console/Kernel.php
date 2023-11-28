@@ -18,7 +18,8 @@ class Kernel extends ConsoleKernel
         Commands\XeroGetAccounts::class,
         Commands\XeroGetItems::class,
         Commands\WorkerImportFailure::class,
-        Commands\RenewalNotifications::class
+        Commands\RenewalNotifications::class,
+        Commands\UpdateCallingVisaExpiry::class
     ];
 
     /**
@@ -35,5 +36,6 @@ class Kernel extends ConsoleKernel
         $schedule->command('command:XeroGetItems')->cron('0 */6 * * *');
         $schedule->command('command:WorkerImportFailure')->everyTwoMinutes();
         $schedule->command('command:RenewalNotifications')->cron('0 0 * * *');
+        $schedule->command('command:UpdateCallingVisaExpiry')->cron('0 0 * * *');
     }
 }
