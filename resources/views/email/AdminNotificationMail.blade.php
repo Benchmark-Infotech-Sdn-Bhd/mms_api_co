@@ -29,9 +29,9 @@
 <p><b>Entry Visa:</b></p>
 <p>{{ $params['message']['entryVisaRenewal']['mail_message'] }}</p>
 @endisset
-@if(isset($params['message']['serviceAgreement']) && !empty($params['message']['serviceAgreement']))
+@if(isset($params['message']['serviceAgreement']['mail_message']) && !empty($params['message']['serviceAgreement']['mail_message']))
 <p><b>Service Agreement:</b></p>
-<p>{!! $params['message']['serviceAgreement'] !!}</p>
+<p>{!! $params['message']['serviceAgreement']['mail_message'] !!}</p>
 @endif
 
 
