@@ -761,6 +761,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('updateReadStatus', 'V1\NotificationController@updateReadStatus');
             $router->post('renewalNotifications', 'V1\NotificationController@renewalNotifications');
         });
+        /**
+        * Routes for Audits.
+        */
+        $router->group(['prefix' => 'audits'], function () use ($router) {
+            $router->post('list', 'V1\AuditsController@list');
+        });
 
     });
 });

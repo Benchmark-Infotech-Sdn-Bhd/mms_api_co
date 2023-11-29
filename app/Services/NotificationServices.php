@@ -202,6 +202,7 @@ class NotificationServices
             
             $params = $this->formNotificationInsertData($user, $fomemaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.FOMEMA_NOTIFICATION_TITLE'), Config::get('services.FOMEMA_NOTIFICATION_MESSAGE'), 3, 'MONTHS', Config::get('services.FOMEMA_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
         }        
         return $params;
     }
@@ -218,6 +219,7 @@ class NotificationServices
         if(isset($passportRenewalNotificationsCount) && $passportRenewalNotificationsCount != 0){
             $params = $this->formNotificationInsertData($user, $passportRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PASSPORT_NOTIFICATION_TITLE'), Config::get('services.PASSPORT_NOTIFICATION_MESSAGE'), 3, 'MONTHS', Config::get('services.PASSPORT_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
         }      
         return $params;  
     }
@@ -234,6 +236,7 @@ class NotificationServices
         if(isset($plksRenewalNotificationsCount) && $plksRenewalNotificationsCount != 0){
             $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PLKS_NOTIFICATION_TITLE'), Config::get('services.PLKS_NOTIFICATION_MESSAGE'), 2, 'MONTHS', Config::get('services.PLKS_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
         }   
         return $params;     
     }
@@ -250,6 +253,7 @@ class NotificationServices
         if(isset($callingVisaRenewalNotificationsCount) && $callingVisaRenewalNotificationsCount != 0){
             $params = $this->formNotificationInsertData($user, $callingVisaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.CALLING_VISA_NOTIFICATION_TITLE'), Config::get('services.CALLING_VISA_NOTIFICATION_MESSAGE'), 1, 'MONTHS', Config::get('services.CALLING_VISA_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
         }       
         return $params;
     }
@@ -266,6 +270,7 @@ class NotificationServices
         if(isset($specialPassRenewalNotificationsCount) && $specialPassRenewalNotificationsCount != 0){
             $params = $this->formNotificationInsertData($user, $specialPassRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_TITLE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_MESSAGE'), 1, 'MONTHS', Config::get('services.SPECIAL_PASS_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
         }  
         return $params;      
     }
@@ -282,6 +287,7 @@ class NotificationServices
         if(isset($insuranceRenewalNotifications) && $insuranceRenewalNotifications != 0){
             $params = $this->formNotificationInsertData($user, $insuranceRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.INSURANCE_NOTIFICATION_TITLE'), Config::get('services.INSURANCE_NOTIFICATION_MESSAGE'), 1, 'MONTHS', Config::get('services.INSURANCE_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
         }        
         return $params;
     }
@@ -298,6 +304,7 @@ class NotificationServices
         if(isset($entryVisaRenewalNotifications) && $entryVisaRenewalNotifications != 0){
             $params = $this->formNotificationInsertData($user, $entryVisaRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.ENTRY_VISA_NOTIFICATION_TITLE'), Config::get('services.ENTRY_VISA_NOTIFICATION_MESSAGE'), 15, 'DAYS', Config::get('services.ENTRY_VISA_MAIL_MESSAGE'));
             $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
         } 
         return $params;       
     }
@@ -338,6 +345,8 @@ class NotificationServices
      */
     public function serviceAgreementNotifications($user)
     {
+        $params['mail_message'] = '';
+        $params['company_id'] = '';
         $mailMessage = '';
 
         $serviceAgreement = EContractProject::leftjoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
@@ -360,7 +369,11 @@ class NotificationServices
             $this->insertNotification($NotificationParams);
             $mailMessage .= $row['company_name'].' - '.$row['name'].' '.Config::get('services.SERVICE_AGREEMENT_MAIL_MESSAGE').' '.$row['valid_until'].' <br/>';
         }
-        return $mailMessage;
+        if(!empty($mailMessage)){
+            $params['company_id'] = $user['company_id'];
+            $params['mail_message'] = $mailMessage;
+        }
+        return $params;
     }
     /**
      * @param $params
@@ -425,6 +438,7 @@ class NotificationServices
         if(isset($params['company_id']) && !empty($params['company_id']) && !empty($params['message'])){
 
             $this->insertNotification($params);
+            $employeeId = $params['user_id'];
 
             $adminUsers = User::where('users.user_type', 'Admin')
             ->where('users.company_id', $params['company_id'])
@@ -445,6 +459,7 @@ class NotificationServices
             ->join('modules', 'role_permission.module_id', '=', 'modules.id')
             ->where('users.company_id', $params['company_id'])
             ->where('users.user_type', '!=', 'Admin')
+            ->where('users.id', '!=', $employeeId)
             ->where('users.status', 1)
             ->whereNull('users.deleted_at')
             ->where('modules.module_name', Config::get('services.ACCESS_MODULE_TYPE')[10])
