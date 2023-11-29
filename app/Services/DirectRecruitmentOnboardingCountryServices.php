@@ -367,12 +367,13 @@ class DirectRecruitmentOnboardingCountryServices
             } 
         }
         $currentQuota = 0;
+        $oldKSMQuota = $ksmDetails->quota;
         $ksmDetails->ksm_reference_number =  $request['ksm_reference_number'] ?? $ksmDetails->ksm_reference_number;
         $ksmDetails->quota =  $request['quota'] ?? $ksmDetails->quota;
         $ksmDetails->modified_by =  $request['modified_by'] ?? $ksmDetails->modified_by;
         $ksmDetails->save();
         $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
-        $currentQuota = $onboardingCountryDetails->quota - $ksmDetails->quota;
+        $currentQuota = $onboardingCountryDetails->quota - $oldKSMQuota;
         $onboardingCountryDetails->quota = $currentQuota + $request['quota'];
         $onboardingCountryDetails->save();
         return true;
