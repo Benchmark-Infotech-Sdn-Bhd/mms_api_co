@@ -21,11 +21,11 @@ class WorkerImportKinRelationshipSheetExport implements FromQuery, WithHeadings,
     {
         return KinRelationship::query()->where('status', 1)
         ->whereNull('deleted_at')
-        ->select('id', 'name');
+        ->select('name');
     }
     public function headings(): array
     {
-        return ['id', 'name'];
+        return ['name'];
     }
     public function title(): string
     {
