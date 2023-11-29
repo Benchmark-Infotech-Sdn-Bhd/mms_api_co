@@ -7,6 +7,8 @@ use Illuminate\Support\Carbon;
 
 class UserProfileUnitTest extends TestCase
 {
+    use DatabaseMigrations;
+
     /**
      * @return void
      */
@@ -15,28 +17,14 @@ class UserProfileUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test for employee user profile id mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForEmployeeUserProfileUpdateIdRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1//user/updateUser', array_merge($this->employeeUpdationData(), ['id' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'id' => ['The id field is required.']
-            ]
-        ]);
-    }
-    /**
      * Functional test for employee user profile name mandatory field validation 
      * 
      * @return void
      */
     public function testForEmployeeUserProfileUpdateNameRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/updateUser', array_merge($this->employeeUpdationData(), ['name' => '']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['name' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -51,7 +39,8 @@ class UserProfileUnitTest extends TestCase
      */
     public function testForEmployeeUserProfileUpdateContactNumberRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/updateUser', array_merge($this->employeeUpdationData(), ['contact_number' => '']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['contact_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -66,7 +55,8 @@ class UserProfileUnitTest extends TestCase
      */
     public function testForEmployeeUserProfileUpdateAddressRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/updateUser', array_merge($this->employeeUpdationData(), ['address' => '']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['address' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -81,7 +71,8 @@ class UserProfileUnitTest extends TestCase
      */
     public function testForEmployeeUserProfileUpdateStateRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/updateUser', array_merge($this->employeeUpdationData(), ['state' => '']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['state' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -96,7 +87,8 @@ class UserProfileUnitTest extends TestCase
      */
     public function testForEmployeeUserProfileUpdateCityRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/updateUser', array_merge($this->employeeUpdationData(), ['city' => '']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['city' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -111,7 +103,8 @@ class UserProfileUnitTest extends TestCase
      */
     public function testForEmployeeUserProfileUpdateNameFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/updateUser', array_merge($this->employeeUpdationData(), ['name' => 'Valae$$$']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['name' => 'Valae$$$']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -126,7 +119,8 @@ class UserProfileUnitTest extends TestCase
      */
     public function testForEmployeeUserProfileUpdateContactNumberFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/updateUser', array_merge($this->employeeUpdationData(), ['contact_number' => '64545646njfj']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['contact_number' => '6454564jfj']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -141,7 +135,8 @@ class UserProfileUnitTest extends TestCase
      */
     public function testForEmployeeUserProfileUpdateContactNumberLengthValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/updateUser', array_merge($this->employeeUpdationData(), ['contact_number' => '54326547648712']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['contact_number' => '54326547648712']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -156,11 +151,12 @@ class UserProfileUnitTest extends TestCase
      */
     public function testForEmployeeUserProfileUpdateStateFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/updateUser', array_merge($this->employeeUpdationData(), ['state' => 'State6456&&']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['state' => 'State6456&&']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'state' => ['The state field is format is invalid.']
+                'state' => ['The state format is invalid.']
             ]
         ]);
     }
@@ -171,11 +167,12 @@ class UserProfileUnitTest extends TestCase
      */
     public function testForEmployeeUserProfileUpdateCityFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/updateUser', array_merge($this->employeeUpdationData(), ['city' => 'City6456&&']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['city' => 'City6456&&']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'city' => ['The city field is format is invalid.']
+                'city' => ['The city format is invalid.']
             ]
         ]);
     }
@@ -187,7 +184,7 @@ class UserProfileUnitTest extends TestCase
     public function testToDisplayProfile(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/user/updateUser', ['id' => 1], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/user/showUser', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' => [
@@ -237,28 +234,13 @@ class UserProfileUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for retest password id mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForResetPasswordIdRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1//user/resetPassword', array_merge($this->employeeUpdationData(), ['id' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'id' => ['The id field is required.']
-            ]
-        ]);
-    }
-    /**
      * Functional test for retest password new password mandatory field validation 
      * 
      * @return void
      */
     public function testForResetPasswordNewPasswordRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/resetPassword', array_merge($this->employeeUpdationData(), ['new_password' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/user/resetPassword', array_merge($this->resetPaaswordData(), ['new_password' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -273,12 +255,38 @@ class UserProfileUnitTest extends TestCase
      */
     public function testForResetPasswordCurrentPasswordRequiredValidation(): void
     {
-        $response = $this->json('POST', 'api/v1//user/resetPassword', array_merge($this->employeeUpdationData(), ['current_password' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/user/resetPassword', array_merge($this->resetPaaswordData(), ['current_password' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
                 'current_password' => ['The current password field is required.']
             ]
+        ]);
+    }
+    /**
+     * Functional test for retest password incorrect current password
+     * 
+     * @return void
+     */
+    public function testForIncorrectCurrentPassword(): void
+    {
+        $response = $this->json('POST', 'api/v1/user/resetPassword', array_merge($this->resetPaaswordData(), ['current_password' => 'City6456&&']), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Current password keyed in is incorrect']
+        ]);
+    }
+    /**
+     * Functional test for retest password 
+     * 
+     * @return void
+     */
+    public function testForResetPassword(): void
+    {
+        $response = $this->json('POST', 'api/v1/user/resetPassword', $this->resetPaaswordData(), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Password Updated Successfully']
         ]);
     }
     
@@ -301,7 +309,8 @@ class UserProfileUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            "special_permission" => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -311,7 +320,7 @@ class UserProfileUnitTest extends TestCase
             'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'), 
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
-            'email' => 'test@gmail.com', 
+            'email' => 'testemp@gmail.com', 
             'contact_number' => 238467,
             'address' => 'Addres', 
             'postcode' => 2344, 
@@ -321,9 +330,33 @@ class UserProfileUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            "subsidiary_companies" => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
+
+        $payload =  [
+            'sector_name' => 'Agriculture',
+            'sub_sector_name' => 'Agriculture'
+        ];  
+        $this->json('POST', 'api/v1/sector/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'company_name' => 'ABC Firm', 
+            'contract_type' => 'Zero Cost', 
+            'roc_number' => 'APS6376', 
+            'director_or_owner' => 'Test', 
+            'contact_number' => '768456948', 
+            'email' => 'testcrm@gmail.com', 
+            'address' => 'Coimbatore', 
+            'pic_name' => 'PICTest', 
+            'pic_contact_number' => '764859694', 
+            'pic_designation' => 'Manager', 
+            'registered_by' => 1, 
+            'sector_type' => 1, 
+            'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])
+        ];
+        $response = $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
     }
     /**
      * @return array
@@ -331,8 +364,8 @@ class UserProfileUnitTest extends TestCase
     public function employeeUpdationData(): array
     {
         return [
-            'id' => 1, 
-            'name' => '',  
+            'id' => 2, 
+            'name' => 'Test',  
             'contact_number' => '4765348758',
             'address' => 'address',
             'state' => 'state',
@@ -355,7 +388,7 @@ class UserProfileUnitTest extends TestCase
     public function customerUpdationData(): array
     {
         return [
-            'id' => 1, 
+            'id' => 3, 
             'contact_number' => '642534545'
         ];
     }
@@ -367,7 +400,7 @@ class UserProfileUnitTest extends TestCase
         return [
             'id' => 1, 
             'new_password' => 'Test123',
-            'current_password' => 'Test456'
+            'current_password' => 'Welcome@123'
         ];
     }
 }

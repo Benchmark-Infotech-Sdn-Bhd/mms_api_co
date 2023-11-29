@@ -191,7 +191,7 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             } else if(isset($response['ksmQuotaError'])) {
                 return $this->sendError(['message' => 'The number of quota cannot exceed the Approved KSM Quota'], 422);
             }
-            return $this->sendSuccess(['message' => 'Country Updated Successfully']);
+            return $this->sendSuccess(['message' => 'Quota Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Faild to Update Country'], 400);
