@@ -46,6 +46,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('invoice');
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::dropIfExists('invoice');
+        }
     }
 };
