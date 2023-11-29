@@ -77,6 +77,8 @@ return [
 
     'WORKER_MODULE_TYPE' => ['Direct Recruitment', 'Total Management', 'e-Contract'],
 
+    'CRM_MODULE_TYPE' => ['Direct Recruitment', 'e-Contract', 'Total Management'],
+
     'FOMNEXTS_DETAILS' => ['company_name' => 'FOMNEXTS', 'roc_number' => '123456789', 'location' => 'A-10-12 & A-10-07, Menara A, Kompleks Atria, Damansara Jaya 47400, Petaling Jaya', 'sector' => 'Manufacturing'],
 
     'OTHER_EXPENSES_TITLE' => ([1 => 'Application - Levy Payment Amount', 2 => 'Onboarding - Attestation Costing', 3 => 'Onboarding - Calling Visa - I.G Insurance', 4 => 'Onboarding - Calling Visa - Immigration Fee Paid', 5 => 'Onboarding - Calling Visa - Hospitalisation', 6 => 'Onboarding - FOMEMA Total Charge + Convenient Fee (RM)', 7 => 'Onboarding - Repatriation Expenses (RM)']),
@@ -104,4 +106,35 @@ return [
     'STANDARD_FEE_COST' => [100.00, 94.00, 50.00, 120.00],
 
     'OTHERS_EVENT_TYPE' => ['Repatriated', 'e-Run', 'Deceased'],
+
+    'NOTIFICATION_TYPE' => 'RENEWALNOTIFICATIONS',
+    'FOMEMA_NOTIFICATION_TITLE' => 'FOMEMA RENEWAL',
+    'FOMEMA_NOTIFICATION_MESSAGE' => 'workers Fomema should be renewed.',
+    'PASSPORT_NOTIFICATION_TITLE' => 'PASSPORT RENEWAL',
+    'PASSPORT_NOTIFICATION_MESSAGE' => 'no. of workers Passport should be renewed.',
+    'PLKS_NOTIFICATION_TITLE' => 'PLKS RENEWAL',
+    'PLKS_NOTIFICATION_MESSAGE' => 'no. of workers PLKS Visa should be renewed.',
+    'CALLING_VISA_NOTIFICATION_TITLE' => 'CALLING VISA RENEWAL',
+    'CALLING_VISA_NOTIFICATION_MESSAGE' => 'no. of workers Calling Visa should be renewed.',
+    'SPECIAL_PASS_NOTIFICATION_TITLE' => 'SPECIAL PASS RENEWAL',
+    'SPECIAL_PASS_NOTIFICATION_MESSAGE' => 'no. of workers Special Pass should be renewed.',
+    'INSURANCE_NOTIFICATION_TITLE' => 'INSURANCE RENEWAL',
+    'INSURANCE_NOTIFICATION_MESSAGE' => 'no. of workers Insurance should be renewed.',
+    'ENTRY_VISA_NOTIFICATION_TITLE' => 'ENTRY VISA RENEWAL',
+    'ENTRY_VISA_NOTIFICATION_MESSAGE' => 'no. of workers Entry Visa should be renewed.',
+
+    'DISPATCH_NOTIFICATION_TITLE' => 'DISPATCHES',
+    'SERVICE_AGREEMENT_NOTIFICATION_TITLE' => 'SERVICE AGREEMENT',
+
+    'FOMEMA_MAIL_MESSAGE' => 'no. of workers Fomema is  to be renewed before Date ',
+    'PASSPORT_MAIL_MESSAGE' => 'no. of workers Passport is  to be renewed before Date ',
+    'PLKS_MAIL_MESSAGE' => 'no. of workers PLKS is  to be renewed before Date',
+    'CALLING_VISA_MAIL_MESSAGE' => 'no. of workers Calling Visa is  to be renewed before Date',
+    'SPECIAL_PASS_MAIL_MESSAGE' => 'no. of workers Special Pass is  to be renewed before Date',
+    'INSURANCE_MAIL_MESSAGE' => 'no. of workers Insurance is  to be renewed before Date',
+    'ENTRY_VISA_MAIL_MESSAGE' => 'no. of workers Entry Visa  is  to be renewed before Date',
+    'SERVICE_AGREEMENT_MAIL_MESSAGE' => 'Service agreement is to expire on',
+    'DISPATCH_MAIL_MESSAGE' => 'Dispatch is Pending',
+
+    'ACCESS_MODULE_TYPE' => ['Dashboard', 'Maintain Masters', 'Branches', 'CRM', 'Direct Recruitment', 'e-Contract', 'Total Management', 'Employee', 'Access Management', 'Workers', 'Dispatch Management', 'Invoice', 'Reports'],
 ];
