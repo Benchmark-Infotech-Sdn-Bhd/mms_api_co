@@ -6,10 +6,11 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 
-class WorkerImportFirstSheetExport implements FromCollection,WithHeadings,WithEvents
+class WorkerImportFirstSheetExport implements FromCollection,WithHeadings,WithEvents,WithTitle
 {
     protected  $users;
     protected  $selects;
@@ -42,7 +43,7 @@ class WorkerImportFirstSheetExport implements FromCollection,WithHeadings,WithEv
             'city',
             'state',
             'kin_name',
-            'kin_relationship',
+            'kin_relationship_id',
             'kin_contact_number',
             'ksm_reference_number',
             'bio_medical_reference_number',
@@ -91,5 +92,10 @@ class WorkerImportFirstSheetExport implements FromCollection,WithHeadings,WithEv
 
             },
         ];
+    }
+
+    public function title(): string
+    {
+        return 'WorkerDetails';
     }
 }

@@ -80,7 +80,7 @@ class WorkerImportFileExport implements FromCollection,WithHeadings,WithEvents
             'city',
             'state',
             'kin_name',
-            'kin_relationship',
+            'kin_relationship_id',
             'kin_contact_number',
             'ksm_reference_number',
             'bio_medical_reference_number',
