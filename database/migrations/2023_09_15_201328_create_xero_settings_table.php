@@ -46,6 +46,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('xero_settings');
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::dropIfExists('xero_settings');
+        }
     }
 };

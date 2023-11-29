@@ -269,12 +269,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('update', 'V1\DirectRecruitmentOnboardingCountryController@update');
                     $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
                     $router->post('onboarding_status_update', 'V1\DirectRecruitmentOnboardingCountryController@onboarding_status_update');
+                    $router->post('ksmDropDownForOnboarding', 'V1\DirectRecruitmentOnboardingCountryController@ksmDropDownForOnboarding');
+                    $router->post('ksmQuotaUpdate', 'V1\DirectRecruitmentOnboardingCountryController@ksmQuotaUpdate');
                 });
                 $router->group(['prefix' => 'agent'], function () use ($router) {
                     $router->post('list', 'V1\DirectRecruitmentOnboardingAgentController@list');
                     $router->post('show', 'V1\DirectRecruitmentOnboardingAgentController@show');
                     $router->post('create', 'V1\DirectRecruitmentOnboardingAgentController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingAgentController@update');
+                    $router->post('ksmDropDownBasedOnOnboarding', 'V1\DirectRecruitmentOnboardingAgentController@ksmDropDownBasedOnOnboarding');
                 });
                 $router->group(['prefix' => 'attestation'], function () use ($router) {
                     //Attestation
@@ -306,6 +309,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('failureExport', 'V1\DirectRecruitmentWorkersController@failureExport');
                     $router->post('workerStatusList', 'V1\DirectRecruitmentWorkersController@workerStatusList');
                     $router->post('updateStatus', 'V1\DirectRecruitmentWorkersController@updateStatus');
+                    $router->post('ksmDropDownBasedOnOnboardingAgent', 'V1\DirectRecruitmentWorkersController@ksmDropDownBasedOnOnboardingAgent');
                 });
                 $router->group(['prefix' => 'callingVisa'], function () use ($router) {
                     $router->post('callingVisaStatusList', 'V1\DirectRecruitmentCallingVisaController@callingVisaStatusList');

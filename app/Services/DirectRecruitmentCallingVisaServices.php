@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Events\WorkerQuotaUpdated;
+use App\Events\KSMQuotaUpdated;
 
 class DirectRecruitmentCallingVisaServices
 {
@@ -44,11 +46,12 @@ class DirectRecruitmentCallingVisaServices
      */
     public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, CancellationAttachment $cancellationAttachment, Storage $storage)
     {
-        $this->directRecruitmentCallingVisaStatus   = $directRecruitmentCallingVisaStatus;
-        $this->workers                              = $workers;
-        $this->workerVisa                           = $workerVisa;
-        $this->cancellationAttachment               = $cancellationAttachment;
-        $this->storage                              = $storage;
+        $this->directRecruitmentCallingVisaStatus           = $directRecruitmentCallingVisaStatus;
+        $this->workers                                      = $workers;
+        $this->workerVisa                                   = $workerVisa;
+        $this->cancellationAttachment                       = $cancellationAttachment;
+        $this->storage                                      = $storage;
+
     }
     /**
      * @return array
@@ -148,9 +151,9 @@ class DirectRecruitmentCallingVisaServices
             })
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
-                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'worker_visa.status' => 'Pending'
+                'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id']
             ])
+            ->whereIn('worker_visa.status', ['Pending', 'Expired'])
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
@@ -231,6 +234,22 @@ class DirectRecruitmentCallingVisaServices
                     }
                 }
             }
+
+            $workerDetails = [];
+            $ksmCount = [];
+
+            // update utilised quota based on ksm reference number
+            foreach($request['workers'] as $worker) {
+                $ksmDetails = $this->workerVisa->where('worker_id', $worker)->first(['ksm_reference_number']);
+                $workerDetails[$worker] = $ksmDetails->ksm_reference_number;
+            }
+            $ksmCount = array_count_values($workerDetails);
+            foreach($ksmCount as $key => $value) {
+                event(new KSMQuotaUpdated($request['onboarding_country_id'], $key, $value, 'decrement'));
+            }
+
+            // update utilised quota in onboarding country
+            event(new WorkerQuotaUpdated($request['onboarding_country_id'], count($request['workers']), 'decrement'));
         }
         $this->directRecruitmentCallingVisaStatus->where([
             'application_id' => $request['application_id'],

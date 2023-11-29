@@ -16,8 +16,10 @@ return new class extends Migration
                 $table->dropForeign('total_management_expenses_application_id_foreign');
             }
             $table->dropColumn('application_id');
-            $table->string('payment_reference_number')->nullable()->change();
-            $table->integer('quantity')->nullable()->change();
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->string('payment_reference_number')->nullable()->change();
+                $table->integer('quantity')->nullable()->change();
+            }
 
             $table->bigInteger('worker_id')->unsigned();
             $table->foreign('worker_id')->references('id')->on('workers')->onDelete('cascade');

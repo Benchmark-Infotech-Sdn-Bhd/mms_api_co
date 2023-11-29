@@ -6,10 +6,13 @@ use App\Models\DirectRecruitmentPostArrivalStatus;
 use App\Models\WorkerRepatriation;
 use App\Models\WorkerRepatriationAttachments;
 use App\Models\Workers;
+use App\Models\WorkerVisa;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Events\WorkerQuotaUpdated;
+use App\Events\KSMQuotaUpdated;
 
 class DirectRecruitmentRepatriationServices
 {
@@ -37,6 +40,10 @@ class DirectRecruitmentRepatriationServices
      * @var DirectRecruitmentExpensesServices
      */
     private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
+    /**
+     * @var WorkerVisa
+     */
+    private WorkerVisa $workerVisa;
 
     /**
      * DirectRecruitmentRepatriationServices constructor.
@@ -46,15 +53,17 @@ class DirectRecruitmentRepatriationServices
      * @param Workers $workers
      * @param Storage $storage
      * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
+     * @param WorkerVisa $workerVisa
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerRepatriation $workerRepatriation, WorkerRepatriationAttachments $workerRepatriationAttachments, Workers $workers, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerRepatriation $workerRepatriation, WorkerRepatriationAttachments $workerRepatriationAttachments, Workers $workers, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices, WorkerVisa $workerVisa)
     {
-        $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
-        $this->workerRepatriation                   = $workerRepatriation;
-        $this->workerRepatriationAttachments        = $workerRepatriationAttachments;
-        $this->workers                              = $workers;
-        $this->storage                              = $storage;
-        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
+        $this->directRecruitmentPostArrivalStatus           = $directRecruitmentPostArrivalStatus;
+        $this->workerRepatriation                           = $workerRepatriation;
+        $this->workerRepatriationAttachments                = $workerRepatriationAttachments;
+        $this->workers                                      = $workers;
+        $this->storage                                      = $storage;
+        $this->directRecruitmentExpensesServices            = $directRecruitmentExpensesServices;
+        $this->workerVisa                                   = $workerVisa;
     }
     /**
      * @return array
@@ -189,6 +198,22 @@ class DirectRecruitmentRepatriationServices
                     'fomema_valid_until' => $request['fomema_valid_until'], 
                     'modified_by' => $request['modified_by']
                 ]);
+            
+            $workerDetails = [];
+            $ksmCount = [];
+
+            // update utilised quota based on ksm reference number
+            foreach($request['workers'] as $worker) {
+                $ksmDetails = $this->workerVisa->where('worker_id', $worker)->first(['ksm_reference_number']);
+                $workerDetails[$worker] = $ksmDetails->ksm_reference_number;
+            }
+            $ksmCount = array_count_values($workerDetails);
+            foreach($ksmCount as $key => $value) {
+                event(new KSMQuotaUpdated($request['onboarding_country_id'], $key, $value, 'decrement'));
+            }
+
+            // update utilised quota in onboarding country
+            event(new WorkerQuotaUpdated($request['onboarding_country_id'], count($request['workers']), 'decrement'));
         }
         $this->updatePostArrivalStatus($request['application_id'], $request['onboarding_country_id'], $request['modified_by']);
         

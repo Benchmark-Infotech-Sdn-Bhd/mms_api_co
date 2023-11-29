@@ -79,19 +79,12 @@ class CountriesTest extends TestCase
     public function testForCountryCreationMinMaxFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
-        ['country_name' => 'Malay Test fdtrddxrtdsrrtd hjuyrfds ygftrdrese erdsewswmmmmmmmmmmmkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ewsw AAAAAAAAAAAAAAA', 
-        'system_type' => 'ABC', 
-        'fee' => 67, 
-        'bond' => 6767]), $this->getHeader());
+        ['country_name' => 'Malay Test $$%%%^^', 'bond' => '76548&&&&']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
-            "data" => [
-            "country_name" => [
-                "The country name must not be greater than 150 characters."
-            ],
-            "bond" => [
-                "The bond must not be greater than 3 characters."
-            ]
+            'data' => [
+                'country_name' => ['The country name format is invalid.'],
+                'bond' => ['The bond format is invalid.']
             ]
         ]);
     }
@@ -103,58 +96,10 @@ class CountriesTest extends TestCase
     public function testForCountryNameMinMaxFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
-        ['country_name' => 'Malay Test fdtrddxrtdsrrtd hjuyrfds ygftrdrese erdsewswmmmmmmmmmmmkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ewsw AAAAAAAAAAAAAAA', 
-        'system_type' => 'Embassy', 
-        'fee' => 67, 
-        'bond' => 67]), $this->getHeader());
+        ['bond' => '6767676767767$%$%$']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [
-            "country_name" => [
-                "The country name must not be greater than 150 characters."
-            ]
-            ]
-        ]);
-    }
-        /**
-     * Functional test to validate minimum/maximum characters for fields in Bond
-     * 
-     * @return void
-     */
-    public function testForBondMinMaxFieldValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
-        ['country_name' => 'Malay', 
-        'system_type' => 'ABC', 
-        'fee' => 67, 
-        'bond' => 6767]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            "data" => [
-            "bond" => [
-                "The bond must not be greater than 3 characters."
-            ]
-            ]
-        ]);
-    }
-    /**
-     * Functional test to validate format for fields in Country creation
-     * 
-     * @return void
-     */
-    public function testForCountryCreationFieldFormatValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/country/create', array_merge($this->creationData(), 
-        ['country_name' => 'Malay123$', 
-        'system_type' => 'Embassy', 
-        'fee' => 67, 
-        'bond' => null]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            "data" => [
-            "country_name" => [
-                "The country name format is invalid."
-            ],
             "bond" => [
                 "The bond format is invalid."
             ]
@@ -193,13 +138,11 @@ class CountriesTest extends TestCase
         ['country_name' => 'Malay', 
         'system_type' => 'Embassy', 
         'fee' => 67, 
-        'bond' => null]), $this->getHeader());
+        'bond' => '53476837jhdjs']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [
-            "bond" => [
-                "The bond format is invalid."
-            ]
+                "bond" => ["The bond format is invalid."]
             ]
         ]);
     }

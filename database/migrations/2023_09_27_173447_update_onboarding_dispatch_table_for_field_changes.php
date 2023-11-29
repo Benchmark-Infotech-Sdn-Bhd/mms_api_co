@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('onboarding_dispatch', function (Blueprint $table) {
-            $table->date('date')->nullable()->change();
-            $table->date('calltime')->nullable()->change();
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->date('date')->nullable()->change();
+                $table->date('calltime')->nullable()->change();
+            }
         });
     }
 
