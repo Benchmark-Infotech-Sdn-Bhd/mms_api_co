@@ -38,6 +38,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payroll_bulk_upload');
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::dropIfExists('payroll_bulk_upload');
+        }
     }
 };

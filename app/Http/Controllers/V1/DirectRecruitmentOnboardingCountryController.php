@@ -77,6 +77,8 @@ class DirectRecruitmentOnboardingCountryController extends Controller
                 return $this->validationError($response['error']);
             } else if(isset($response['quotaError'])) {
                 return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota'], 422);
+            } else if(isset($response['ksmQuotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Approved KSM Quota'], 422);
             }
             return $this->sendSuccess(['message' => 'Country Added Successfully']);
         } catch (Exception $e) {
@@ -148,6 +150,51 @@ class DirectRecruitmentOnboardingCountryController extends Controller
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Faild to Update Status'], 400);
+        }
+    }
+    /**
+     * Dropdown KSM Referenec Number
+     * 
+     * @param Request $request
+     * @return JsonResponse   
+     */
+    public function ksmDropDownForOnboarding(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentOnboardingCountryServices->ksmDropDownForOnboarding($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error = ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List KSM Reference Numbers'], 400);
+        }
+    }
+    /**
+     * Update ksm reference number quota
+     * 
+     * @param Request $request
+     * @return JsonResponse   
+     */
+    public function ksmQuotaUpdate(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $response = $this->directRecruitmentOnboardingCountryServices->ksmQuotaUpdate($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota.'], 422);
+            } else if(isset($response['editError'])) {
+                return $this->sendError(['message' => 'Attestation submission has been processed for this record, users are not allowed to modify the records.'], 422);
+            } else if(isset($response['ksmQuotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Approved KSM Quota'], 422);
+            }
+            return $this->sendSuccess(['message' => 'Quota Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error = ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Faild to Update Country'], 400);
         }
     }
 }

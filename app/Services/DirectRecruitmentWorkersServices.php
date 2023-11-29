@@ -12,6 +12,7 @@ use App\Models\WorkerBulkUpload;
 use App\Models\DirectrecruitmentApplications;
 use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Models\Levy;
+use App\Models\OnboardingCountriesKSMReferenceNumber;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
@@ -52,6 +53,10 @@ class DirectRecruitmentWorkersServices
      */
     private Levy $levy;
     /**
+     * @var OnboardingCountriesKSMReferenceNumber
+     */
+    private OnboardingCountriesKSMReferenceNumber $OnboardingCountriesKSMReferenceNumber;
+    /**
      * DirectRecruitmentWorkersServices constructor.
      * @param Workers $workers
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
@@ -66,8 +71,9 @@ class DirectRecruitmentWorkersServices
      * @param DirectrecruitmentWorkers $directrecruitmentWorkers;
      * @param WorkersServices $workersServices;
      * @param DirectrecruitmentApplications $directrecruitmentApplications;
-     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      * @param Levy $levy
+     * @param OnboardingCountriesKSMReferenceNumber $OnboardingCountriesKSMReferenceNumber
      */
     public function __construct(
             Workers                                     $workers,
@@ -84,7 +90,8 @@ class DirectRecruitmentWorkersServices
             WorkersServices                             $workersServices,
             DirectrecruitmentApplications               $directrecruitmentApplications,
             DirectRecruitmentOnboardingCountry          $directRecruitmentOnboardingCountry,
-            Levy                                        $levy
+            Levy                                        $levy,
+            OnboardingCountriesKSMReferenceNumber       $OnboardingCountriesKSMReferenceNumber
     )
     {
         $this->workers = $workers;
@@ -102,6 +109,7 @@ class DirectRecruitmentWorkersServices
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->levy = $levy;
+        $this->OnboardingCountriesKSMReferenceNumber = $OnboardingCountriesKSMReferenceNumber;
     }
     /**
      * @return array
@@ -160,10 +168,15 @@ class DirectRecruitmentWorkersServices
             }
         }
 
-        $approvedCount = $this->levy->where('application_id', $request['application_id'])
-                             ->where('new_ksm_reference_number', $request['ksm_reference_number'])
-                             ->select('approved_quota')
-                             ->first()->toArray();
+        // $approvedCount = $this->levy->where('application_id', $request['application_id'])
+        //                      ->where('new_ksm_reference_number', $request['ksm_reference_number'])
+        //                      ->select('approved_quota')
+        //                      ->first()->toArray();
+
+        $approvedCount = $this->OnboardingCountriesKSMReferenceNumber->where('application_id', $request['application_id'])
+                            ->where('onboarding_country_id', $request['onboarding_country_id'])
+                            ->where('ksm_reference_number', $request['ksm_reference_number'])
+                            ->sum('quota');
         
         $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
 
@@ -195,7 +208,7 @@ class DirectRecruitmentWorkersServices
         ->whereIn('workers.directrecruitment_status', Config::get('services.DIRECT_RECRUITMENT_WORKER_STATUS'))
         ->count('directrecruitment_workers.worker_id');
 
-        if(isset($approvedCount) && ($ksmReferenceNumberCount >= $approvedCount['approved_quota'])) {
+        if(isset($approvedCount) && ($ksmReferenceNumberCount >= $approvedCount)) {
             return [
                 'ksmCountError' => true
             ]; 
@@ -350,8 +363,7 @@ class DirectRecruitmentWorkersServices
             }
 
         })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as visa_status', 'workers.cancel_status as cancellation_status', 'workers.created_at', 'workers.directrecruitment_status', 'workers.replace_worker_id')
-        ->selectRaw("(CASE WHEN (workers.directrecruitment_status = 'Repatriated') THEN workers.directrecruitment_status 
-        WHEN (workers.cancel_status = 1) THEN 'Cancelled' 
+        ->selectRaw("(CASE WHEN (workers.directrecruitment_status = 'Repatriated') THEN workers.directrecruitment_status WHEN (workers.directrecruitment_status = 'Expired') THEN workers.directrecruitment_status WHEN (workers.cancel_status = 1) THEN 'Cancelled' 
         WHEN (workers.cancel_status = 2) THEN 'Cancelled' 
 		ELSE worker_visa.approval_status END) as status");
         if(isset($request['status']) && !empty($request['status'])) {
@@ -634,7 +646,6 @@ class DirectRecruitmentWorkersServices
             "message" => "Updated Successfully"
         ];
     }
-
     /**
      * @param $request
      * @return mixed
@@ -670,5 +681,15 @@ class DirectRecruitmentWorkersServices
             'file_url' => $workerBulkUpload->failure_case_url
         ];
     }
-
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function ksmDropDownBasedOnOnboardingAgent($request): mixed
+    {
+        return $this->directRecruitmentOnboardingAgent->where('onboarding_country_id', $request['onboarding_country_id'])
+        ->where('id', $request['agent_id'])
+        ->select('id', 'ksm_reference_number')
+        ->get(); 
+    }
 }

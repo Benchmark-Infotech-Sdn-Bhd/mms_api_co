@@ -12,9 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('invoice_items_temp', function (Blueprint $table) {
-            $table->decimal('price', 8,2)->default(0)->change();
-            $table->decimal('tax_rate', 8,2)->default(0)->change();
-            $table->decimal('total_price', 8,2)->default(0)->change();
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->decimal('price', 8,2)->default(0)->change();
+                $table->decimal('tax_rate', 8,2)->default(0)->change();
+                $table->decimal('total_price', 8,2)->default(0)->change();
+            }
         });
     }
 

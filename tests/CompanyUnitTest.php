@@ -309,6 +309,20 @@ class CompanyUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test to update Company status
+     * 
+     * @return void
+     */
+    public function testForCompanyStatusUpdation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/updateStatus', ['id' => 2, 'status' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Company Status Updated Successfully']
+        ]);
+    }
+    /**
      * Functional test for Companies list
      * 
      * @return void
@@ -367,17 +381,125 @@ class CompanyUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for subsidiary dropdown
+     * 
+     * @return void
+     */
+    public function testForSubsidiaryDropdown(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/subsidiaryDropDown', ['current_company_id' => 2], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+    /**
+     * Functional test for parent DropDown
+     * 
+     * @return void
+     */
+    public function testForParentDropDown(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/subsidiaryDropDown', [], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+    /**
+     * Functional test to assign subsidiary
+     * 
+     * @return void
+     */
+    public function testForAssignSubsidiary(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/assignSubsidiary', ['subsidiary_company' => [2], 'parent_company_id' => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Subsidiary Updated Successfully']
+        ]);
+    }
+    /**
+     * Functional test for list user company
+     * 
+     * @return void
+     */
+    public function testForListUserCompany(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/listUserCompany', [], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+    /**
+     * Functional test to update company id
+     * 
+     * @return void
+     */
+    public function testForCompanyIdUpdation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/updateCompanyId', ['company_id' => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Company ID Updated Successfully']
+        ]);
+    }
+    /**
+     * Functional test for subsidiary dropdown based on parent
+     * 
+     * @return void
+     */
+    public function testForSubsidiaryDropdownBasedOnParent(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/subsidiaryDropdownBasedOnParent', ['company_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+    /**
+     * Functional test for company dropdown
+     * 
+     * @return void
+     */
+    public function testForCompanyDropdown(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/dropdown', [], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+    /**
      * @return array
      */
     public function creationData(): array
     {
-        return ['company_name' => 'Test Company', 'register_number' => 'APS646-46876', 'country' => 'India', 'state' => 'TamilNadu', 'pic_name' => 'TestPIC', 'role' => 'Admin'];
+        return ['company_name' => 'Test Company', 'register_number' => 'APS646-46876', 'country' => 'India', 'state' => 'TamilNadu', 'pic_name' => '', 'role' => 'Admin', 'parent_id' => 0, 'system_color' => '#cesser', 'file_url' => 'test.png'];
     }
     /**
      * @return array
      */
     public function updationData(): array
     {
-        return ['id' => 1, 'company_name' => 'Test Company', 'register_number' => 'APS646-46876', 'country' => 'India', 'state' => 'TamilNadu', 'pic_name' => 'TestPIC', 'role' => 'Admin'];
+        return ['id' => 2, 'company_name' => 'Test Company', 'register_number' => 'APS646-46876', 'country' => 'India', 'state' => 'TamilNadu', 'system_color' => '#cesser', 'file_url' => 'test.png'];
     }
 }

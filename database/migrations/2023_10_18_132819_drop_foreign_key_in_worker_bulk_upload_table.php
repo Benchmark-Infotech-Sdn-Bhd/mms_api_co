@@ -16,12 +16,12 @@ return new class extends Migration
                 $table->dropForeign('worker_bulk_upload_onboarding_country_id_foreign');
                 $table->dropForeign('worker_bulk_upload_agent_id_foreign');
                 $table->dropForeign('worker_bulk_upload_application_id_foreign');
+                $table->unsignedBigInteger('onboarding_country_id')->nullable()->after('id')->change();
+                $table->unsignedBigInteger('agent_id')->nullable()->after('onboarding_country_id')->change();
+                $table->unsignedBigInteger('application_id')->nullable()->after('agent_id')->change();
             }
             // Column for module type
             $table->string('module_type', 255)->nullable();
-            $table->unsignedBigInteger('onboarding_country_id')->nullable()->after('id')->change();
-            $table->unsignedBigInteger('agent_id')->nullable()->after('onboarding_country_id')->change();
-            $table->unsignedBigInteger('application_id')->nullable()->after('agent_id')->change();
         });
     }
 

@@ -40,6 +40,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('onboarding_dispatch_attachments');
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::dropIfExists('onboarding_dispatch_attachments');
+        }
     }
 };

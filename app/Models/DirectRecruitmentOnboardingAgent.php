@@ -19,7 +19,7 @@ class DirectRecruitmentOnboardingAgent extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'application_id', 'onboarding_country_id', 'agent_id', 'quota', 'status', 'created_by', 'modified_by'
+        'application_id', 'onboarding_country_id', 'agent_id', 'ksm_reference_number', 'quota', 'status', 'created_by', 'modified_by'
     ];
 
 }
