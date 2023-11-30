@@ -200,7 +200,9 @@ class DirectRecruitmentDispatchUnitTest extends TestCase
         $payload = [
             'application_id' => 1,
             'country_id' => 1,
-            'quota' => 10
+            'ksm_reference_number' => 'My/992/095648000',
+            'valid_until' => Carbon::now()->format('Y-m-d'), 
+            'quota' => 25
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
         
@@ -222,6 +224,48 @@ class DirectRecruitmentDispatchUnitTest extends TestCase
             'quota' => 10
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1,
+            'onboarding_country_id' => 1,
+            'agent_id' => 1,
+            'name' => 'TestWorker',
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'),
+            'gender' => 'Female',
+            'passport_number' => 12345678,
+            'passport_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'address' => 'address',
+            'city' => 'city',
+            'state' => 'state',
+            'kin_name' => 'Kin name',
+            'kin_relationship_id' => 1,
+            'kin_contact_number' => 1234567890,
+            'ksm_reference_number' => 'My/992/095648000',
+            'bio_medical_reference_number' => '123456',
+            'bio_medical_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'purchase_date' => Carbon::now()->format('Y-m-d'),
+            'calling_visa_reference_number' => '',
+            'calling_visa_valid_until' => '',
+            'entry_visa_valid_until' => '',
+            'work_permit_valid_until' => '',
+            'bio_medical_reference_number' => 'BIO1234567',
+            'bio_medical_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'purchase_date' => Carbon::now()->format('Y-m-d'),
+            'clinic_name' => 'Test Clinic',
+            'doctor_code' => 'Doc123',
+            'allocated_xray' => 'Tst1234',
+            'xray_code' => 'Xray1234',
+            'ig_policy_number' => '',
+            'ig_policy_number_valid_until' => '',
+            'hospitalization_policy_number' => '',
+            'hospitalization_policy_number_valid_until' => '',
+            'bank_name' => 'Bank Name',
+            'account_number' => 1234556678,
+            'socso_number' => 12345678
+        ];
+
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1, 

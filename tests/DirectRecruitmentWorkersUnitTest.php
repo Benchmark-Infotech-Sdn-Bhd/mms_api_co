@@ -23,7 +23,7 @@ class DirectRecruitmentWorkersUnitTest extends TestCase
      */
     public function testForDirectRecruitmentWorkersCreateApplicationIdValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->UpdationData(), ['application_id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -31,7 +31,36 @@ class DirectRecruitmentWorkersUnitTest extends TestCase
             ]
         ]);
     }
-
+    /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentWorkersCreateOnboardingCountryIdValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->creationData(), ['onboarding_country_id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'onboarding_country_id' => ['The onboarding country id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentWorkersCreateAgentIdValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->creationData(), ['agent_id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'agent_id' => ['The agent id field is required.']
+            ]
+        ]);
+    }
     /**
      * Functional test for worker create 
      * 
@@ -288,6 +317,81 @@ class DirectRecruitmentWorkersUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for worker kinRelationship
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentworkerkinRelationship(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/kinRelationship', ["application_id" => 1,"onboarding_country_id" => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' => []
+        ]);
+    }
+    /**
+     * Functional test for worker import history
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentworkerimportHistory(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/importHistory', ["page" => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' => []
+        ]);
+    }
+    /**
+     * Functional test for worker failureExport
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentworkerksfailureExport(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/failureExport', ["bulk_upload_id" => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' => []
+        ]);
+    }
+    /**
+     * Functional test for worker ksm DropDownBased OnOnboardingAgent
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentworkerksmDropDownBasedOnOnboardingAgent(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/ksmDropDownBasedOnOnboardingAgent', ["onboarding_country_id" => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' => []
+        ]);
+    }
+    /**
+     * Functional test for worker updateStatus
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentworkerupdateStatus(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/updateStatus', ["id" => 1, "status" => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' => []
+        ]);
+    }
+    /**
      * @return void
      */
     public function creationSeeder(): void
@@ -442,7 +546,7 @@ class DirectRecruitmentWorkersUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'ksm_reference_number' => 'My/643/7684548', 
+            'ksm_reference_number' => 'My/992/095648000', 
             'received_date' => Carbon::now()->format('Y-m-d'), 
             'valid_until' => Carbon::now()->addYear()->format('Y-m-d')
         ];
@@ -451,7 +555,9 @@ class DirectRecruitmentWorkersUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'country_id' => 1, 
-            'quota' => 20
+            'ksm_reference_number' => 'My/992/095648000',
+            'valid_until' => Carbon::now()->format('Y-m-d'), 
+            'quota' => 25
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
         
@@ -504,7 +610,7 @@ class DirectRecruitmentWorkersUnitTest extends TestCase
             'kin_name' => 'Kin name',
             'kin_relationship_id' => 1,
             'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/643/7684548',
+            'ksm_reference_number' => 'My/992/095648000',
             'calling_visa_reference_number' => '',
             'calling_visa_valid_until' => '',
             'entry_visa_valid_until' => '',
@@ -546,7 +652,7 @@ class DirectRecruitmentWorkersUnitTest extends TestCase
             'kin_name' => 'Kin name',
             'kin_relationship_id' => 1,
             'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/643/7684548',
+            'ksm_reference_number' => 'My/992/095648000',
             'calling_visa_reference_number' => '',
             'calling_visa_valid_until' => '',
             'entry_visa_valid_until' => '',
@@ -589,7 +695,7 @@ class DirectRecruitmentWorkersUnitTest extends TestCase
             'kin_name' => 'Kin name',
             'kin_relationship_id' => 1,
             'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/643/7684548',
+            'ksm_reference_number' => 'My/992/095648000',
             'calling_visa_reference_number' => '',
             'calling_visa_valid_until' => '',
             'entry_visa_valid_until' => '',
