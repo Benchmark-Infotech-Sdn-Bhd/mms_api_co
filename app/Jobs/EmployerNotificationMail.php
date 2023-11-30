@@ -47,7 +47,7 @@ class EmployerNotificationMail implements ShouldQueue
      */
     public function handle()
     {   
-        Log::info('Employer notification mail process started' );
+        Log::channel('cron_activity_logs')->info('Employer notification mail process started' );
 
         $mailMessage = $this->message;
         $input = [];
@@ -139,9 +139,9 @@ class EmployerNotificationMail implements ShouldQueue
 
             });
     
-            Log::info('Employer notification mail process completed' );
+            Log::channel('cron_activity_logs')->info('Employer notification mail process completed' );
         }else{
-            Log::info('Employer notification mail process failed due to incorrect email id' );
+            Log::channel('cron_activity_logs')->info('Employer notification mail process failed due to incorrect email id' );
         }
         
     }
