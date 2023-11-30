@@ -176,7 +176,7 @@ class DirectRecruitmentOnboardingCountryServices
                             ->where('onboarding_country_id', $checkCountry->id)
                             ->where('ksm_reference_number', $request['ksm_reference_number'])
                             ->get();
-            if(empty($checkKSM)) {
+            if(!empty($checkKSM)) {
                 return [
                     'ksmNumberError' => true
                 ];
