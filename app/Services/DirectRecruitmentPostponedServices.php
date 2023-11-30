@@ -160,7 +160,6 @@ class DirectRecruitmentPostponedServices
                                         ->where('onboarding_country_id', $ksmValue['onboarding_country_id'])
                                         ->where('ksm_reference_number', $ksmKey)
                                         ->first(['quota', 'utilised_quota']);
-                    
                     $this->callingVisaExpiryCronDetails->create([
                         'application_id' => $ksmValue['application_id'],
                         'onboarding_country_id' => $ksmValue['onboarding_country_id'],
@@ -194,7 +193,6 @@ class DirectRecruitmentPostponedServices
                     $ksmDetails = $this->onboardingCountriesKSMReferenceNumber->where('onboarding_country_id', $countryDetails->id)
                             ->where('ksm_reference_number', $WorkerKSMDetails->ksm_reference_number)
                             ->first(['id', 'utilised_quota']);
-                    
                     $ksmUtilisedQuota = (($ksmDetails->utilised_quota - 1) < 0) ? 0 : $ksmDetails->utilised_quota - 1;
                     $this->onboardingCountriesKSMReferenceNumber->where('id', $ksmDetails->id)->update(['utilised_quota' => $ksmUtilisedQuota]);
                 }
