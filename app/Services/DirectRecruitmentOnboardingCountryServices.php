@@ -275,18 +275,19 @@ class DirectRecruitmentOnboardingCountryServices
      */   
     public function ksmReferenceNumberList($request): mixed
     {
-        $ksmReferenceNumbers = $this->levy->where('application_id', $request['application_id'])
-                            ->whereIn('status', Config::get('services.APPLICATION_LEVY_KSM_REFERENCE_STATUS'))
-                            ->select('id','new_ksm_reference_number as ksm_reference_number', 'approved_quota')
-                            ->orderBy('created_at','DESC')
-                            ->get()->toArray();
+        $ksmReferenceNumbers = $this->directRecruitmentApplicationApproval
+                                    ->leftJoin('levy', 'levy.new_ksm_reference_number', 'directrecruitment_application_approval.ksm_reference_number')
+                                    ->whereIn('levy.status', Config::get('services.APPLICATION_LEVY_KSM_REFERENCE_STATUS'))
+                                    ->select('directrecruitment_application_approval.id','directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota', 'directrecruitment_application_approval.valid_until')
+                                    ->orderBy('directrecruitment_application_approval.created_at','DESC')
+                                    ->get()->toArray();
                         
         $utilisedQuota = $this->workers
         ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
         ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
         ->whereNotIn('workers.directrecruitment_status', Config::get('services.NOT_UTILISED_STATUS_TYPE'))
         ->where('directrecruitment_workers.application_id', $request['application_id'])
-        ->select('worker_visa.ksm_reference_number', DB::raw('COUNT(workers.id) as utilised_quota'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
+        ->select('worker_visa.ksm_reference_number', DB::raw('COUNT(workers.id) as utilised_quota')/*, DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id')*/)
         ->groupBy('worker_visa.ksm_reference_number')
         ->orderBy('worker_visa.ksm_reference_number','DESC')
         ->get()->toArray();
@@ -296,7 +297,7 @@ class DirectRecruitmentOnboardingCountryServices
             foreach($utilisedQuota as $utilisedKey => $utilisedValue) {
                 if($utilisedQuota[$utilisedKey]['ksm_reference_number'] == $ksmReferenceNumbers[$key]['ksm_reference_number']) {
                     $ksmReferenceNumbers[$key]['utilised_quota'] = $utilisedQuota[$utilisedKey]['utilised_quota'];
-                    $ksmReferenceNumbers[$key]['worker_id'] = $utilisedQuota[$utilisedKey]['workers_id'];
+                    // $ksmReferenceNumbers[$key]['worker_id'] = $utilisedQuota[$utilisedKey]['workers_id'];
                 }
             }
         }
