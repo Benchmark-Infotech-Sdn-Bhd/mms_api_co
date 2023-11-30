@@ -154,15 +154,15 @@ class DirectRecruitmentPostponedServices
             }
             
             //update cron table for initial utilised quota
-            foreach($workerKSM as $key => $ksmDetails) {
-                foreach($ksmDetails as $ksmKey => $ksmDetail) {
-                    $quotaDetails = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $ksmDetail['application_id'])
-                                        ->where('onboarding_country_id', $ksmDetail['onboarding_country_id'])
+            foreach($workerKSM as $key => $ksmValues) {
+                foreach($ksmValues as $ksmKey => $ksmValue) {
+                    $quotaDetails = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $ksmValue['application_id'])
+                                        ->where('onboarding_country_id', $ksmValue['onboarding_country_id'])
                                         ->where('ksm_reference_number', $ksmKey)
                                         ->first(['quota', 'utilised_quota']);
                     $this->callingVisaExpiryCronDetails->create([
-                        'application_id' => $ksmDetail['application_id'],
-                        'onboarding_country_id' => $ksmDetail['onboarding_country_id'],
+                        'application_id' => $ksmValue['application_id'],
+                        'onboarding_country_id' => $ksmValue['onboarding_country_id'],
                         'ksm_reference_number' => $ksmKey,
                         'approved_quota' => $quotaDetails->quota,
                         'initial_utilised_quota' => $quotaDetails->utilised_quota,
@@ -198,15 +198,15 @@ class DirectRecruitmentPostponedServices
                 }
             }
             //update cron table for current utilised quota
-            foreach($workerKSM as $key => $ksmDetails) {
-                foreach($ksmDetails as $ksmKey => $ksmDetail) {
-                    $currentQuotaDetails = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $ksmDetail['application_id'])
-                                        ->where('onboarding_country_id', $ksmDetail['onboarding_country_id'])
+            foreach($workerKSM as $key => $ksmValues) {
+                foreach($ksmValues as $ksmKey => $ksmValue) {
+                    $currentQuotaDetails = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $ksmValue['application_id'])
+                                        ->where('onboarding_country_id', $ksmValue['onboarding_country_id'])
                                         ->where('ksm_reference_number', $ksmKey)
                                         ->first(['quota', 'utilised_quota']);
                     $this->callingVisaExpiryCronDetails->where([
-                        ['onboarding_country_id', $ksmDetail['onboarding_country_id']],
-                        ['application_id', $ksmDetail['application_id']],
+                        ['onboarding_country_id', $ksmValue['onboarding_country_id']],
+                        ['application_id', $ksmValue['application_id']],
                         ['ksm_reference_number', $ksmKey]
                     ])->update(['current_utilised_quota' => $currentQuotaDetails->utilised_quota]);
                 }
