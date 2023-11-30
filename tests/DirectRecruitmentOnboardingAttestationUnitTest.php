@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Laravel\Lumen\Testing\DatabaseMigrations;
+use Illuminate\Support\Carbon;
 
 class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
 {
@@ -16,6 +17,68 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
         parent::setUp();
     }
     /**
+     * Functional test to create onboarding attestation validaton
+     * 
+     * @return void
+     */
+    public function testToCreateOnboardingAttestationApplicationIdValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', array_merge($this->attestationCreateData(), ['application_id' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'application_id' => ['The application id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to create onboarding attestation validaton
+     * 
+     * @return void
+     */
+    public function testToCreateOnboardingAttestationOnboardingCountryIdValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', array_merge($this->attestationCreateData(), ['onboarding_country_id' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'onboarding_country_id' => ['The onboarding country id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to create onboarding attestation validaton
+     * 
+     * @return void
+     */
+    public function testToCreateOnboardingAttestationKsmReferenceNumberValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', array_merge($this->attestationCreateData(), ['ksm_reference_number' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'ksm_reference_number' => ['The ksm reference number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to create onboarding attestation
+     * 
+     * @return void
+     */
+    public function testToCreateOnboardingAttestation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Attestation Added Successfully']
+        ]);
+    }
+    /**
      * Functional test to List onboarding attestation
      * 
      * @return void
@@ -23,7 +86,8 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     public function testToListOnboardingAttestation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/list', ['application_id' => 1], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/list', ['application_id' => 1, 'onboarding_country_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -52,6 +116,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     public function testToShowOnboardingAttestation(): void
     {
         $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/show', ['id' => 1], $this->getHeader());
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
@@ -81,6 +146,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     public function testToUpdateOnboardingAttestation(): void
     {
         $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/update', $this->attestationUpdateData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
@@ -95,6 +161,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     public function testToShowDispatchOnboardingAttestation(): void
     {
         $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/showDispatch', ['onboarding_attestation_id' => 1], $this->getHeader());
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
@@ -124,6 +191,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     public function testToUpdateDispatchOnboardingAttestation(): void
     {
         $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/updateDispatch', $this->dipatchUpdateData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
@@ -138,11 +206,78 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     public function testToShowEmbassyOnboardingAttestation(): void
     {
         $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/showEmbassyFile', ['onboarding_attestation_id' => 1, 'embassy_attestation_id' => 1], $this->getHeader());
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data'
         ]);
+    }
+    /**
+     * Functional test to list embassy onboarding attestation
+     * 
+     * @return void
+     */
+    public function testToListEmbassyOnboardingAttestation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/listEmbassy', ['onboarding_attestation_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                []
+    ]);
+    }
+    /**
+     * Functional test to upload EmbassyFile onboarding attestation validation
+     * 
+     * @return void
+     */
+    public function testToUploadEmbassyFileEmbassyOnboardingAttestationValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/uploadEmbassyFile', array_merge($this->UploadEmbassyData(), ['onboarding_attestation_id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'onboarding_attestation_id' => ['The onboarding attestation id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to upload EmbassyFile onboarding attestation
+     * 
+     * @return void
+     */
+    public function testToUploadEmbassyFileEmbassyOnboardingAttestation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/uploadEmbassyFile', $this->UploadEmbassyData(), $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                []
+    ]);
+    }
+    /**
+     * Functional test to delete EmbassyFile onboarding attestation
+     * 
+     * @return void
+     */
+    public function testToDeleteEmbassyFileEmbassyOnboardingAttestation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/uploadEmbassyFile', $this->UploadEmbassyData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/deleteEmbassyFile', ['onboarding_embassy_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                []
+    ]);
     }
      /**
      * @return void
@@ -170,7 +305,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
-            'date_of_birth' => '1998-11-02', 
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'), 
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
@@ -219,40 +354,6 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
         $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
 
         $payload = [
-            'country_id' => 1, 
-            'title' => 'Document', 
-            'amount' => 10
-        ];
-        $this->json('POST', 'api/v1/embassyAttestationFile/create', $payload, $this->getHeader(false));
-
-        $payload = [
-            'employee_name' => 'Test', 
-            'gender' => 'Female', 
-            'date_of_birth' => '1998-11-02', 
-            'ic_number' => 222223434, 
-            'passport_number' => 'ADI', 
-            'email' => 'test@gmail.com', 
-            'contact_number' => 238467,
-            'address' => 'Addres', 
-            'postcode' => 2344, 
-            'position' => 'Position', 
-            'branch_id' => 1,
-            'role_id' => 1, 
-            'salary' => 67.00, 
-            'status' => 1, 
-            'city' => 'ABC', 
-            'state' => 'Malaysia'
-        ];
-        $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
-
-        $payload = [
-            "application_id" => 1,
-            "country_id" => 1,
-            "quota" => 10
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
-
-        $payload = [
             "agent_name" => 'ABC', 
             "country_id" => 1, 
             "city" => 'CBE', 
@@ -264,12 +365,96 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
         $this->json('POST', 'api/v1/agent/create', $payload, $this->getHeader(false));
 
         $payload = [
+            'id' => 1, 
+            'crm_prospect_id' => 1, 
+            'quota_applied' => 100, 
+            'person_incharge' => 'test', 
+            'cost_quoted' => 10.22, 
+            'remarks' => 'test'
+        ];
+        
+        $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
+
+        $payload = [
+            'id' => 1, 
+            'application_id' => 1, 
+            'item_name' => 'Document Checklist', 
+            'application_checklist_status' => 'Completed', 
+            'remarks' => 'test', 
+            'file_url' => 'test'
+        ];
+        $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/update', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'submission_date' => Carbon::now()->format('Y-m-d'), 
+            'applied_quota' => 25, 
+            'status' => 'Approved', 
+            'ksm_reference_number' => 'My/643/7684548', 
+            'remarks' => 'test'
+        ];
+        $this->json('POST', 'api/v1/fwcms/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'ksm_reference_number' => 'My/643/7684548', 
+            'schedule_date' => Carbon::now()->format('Y-m-d'), 
+            'approved_quota' => 25, 
+            'approval_date' => Carbon::now()->format('Y-m-d'),
+            'status' => 'Approved',
+            'remarks' => 'test'
+        ];
+        $this->json('POST', 'api/v1/applicationInterview/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'payment_date' => Carbon::now()->format('Y-m-d'), 
+            'payment_amount' => 10.87, 
+            'approved_quota' => 25, 
+            'ksm_reference_number' => 'My/643/7684548', 
+            'payment_reference_number' => 'SVZ498787', 
+            'approval_number' => 'ADR4674', 
+            'new_ksm_reference_number' => 'My/992/095648000', 
+            'remarks' => 'test create'
+        ];
+        $this->json('POST', 'api/v1/levy/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648000', 
+            'received_date' => Carbon::now()->format('Y-m-d'), 
+            'valid_until' => Carbon::now()->format('Y-m-d')
+        ];
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'country_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648000', 
+            'valid_until' => Carbon::now()->format('Y-m-d'), 
+            'quota' => 25
+        ];
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
+
+        $payload = [
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
             'agent_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648000',
             'quota' => 10
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
+    }
+    /**
+     * @return array
+     */
+    public function attestationCreateData(): array
+    {
+        return [
+            "application_id" => 1,
+            "onboarding_country_id" => 1,
+            "ksm_reference_number" => "My/992/095648000"
+        ];
     }
     /**
      * @return array
@@ -278,8 +463,9 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     {
         return [
             "id" => 1,
-            "submission_date" => "2023-06-06",
-            "collection_date" => "2023-06-06",
+            "ksm_reference_number" => "My/992/095648000",
+            "submission_date" => Carbon::now()->format('Y-m-d'),
+            "collection_date" => Carbon::now()->format('Y-m-d'),
             "file_url" => "google.com",
             "remarks" => "remarks testing"
         ];
@@ -291,15 +477,27 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     {
         return [
                 "onboarding_attestation_id" => 1,
-                "date" => "06/06/2023",
+                "date" => Carbon::now()->format('Y-m-d'),
                 "time" => "12:00 AM",
                 "employee_id" => 1,
                 "from" => "test",
-                "calltime" => "12:00 AM",
+                "calltime" => Carbon::now()->format('Y-m-d'),
                 "area" => "Malaysia",
                 "employer_name" => "test emp",
                 "phone_number" => "02123456789",
                 "remarks" => "remarks testing"
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function UploadEmbassyData(): array
+    {
+        return [
+            "onboarding_attestation_id" => 1,
+            "embassy_attestation_id" => 1,
+            "amount" => "100",
+            "attachment[]" => 'test.png'
         ];
     }
 }

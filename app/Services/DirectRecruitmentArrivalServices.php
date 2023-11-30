@@ -9,12 +9,15 @@ use App\Models\WorkerArrival;
 use App\Models\CancellationAttachment;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Models\DirectRecruitmentPostArrivalStatus;
+use App\Models\DirectRecruitmentOnboardingCountry;
 use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use App\Events\WorkerQuotaUpdated;
+use App\Events\KSMQuotaUpdated;
 
 class DirectRecruitmentArrivalServices
 {
@@ -56,8 +59,7 @@ class DirectRecruitmentArrivalServices
     /**
      * @var Storage
      */
-    private Storage $storage;
-    
+    private Storage $storage;    
 
     /**
      * DirectRecruitmentArrivalServices constructor.
@@ -392,6 +394,24 @@ class DirectRecruitmentArrivalServices
                         'remarks' => $request['remarks'] ?? '',
                         'modified_by' => $params['created_by']
                     ]);
+
+                $arrivalDetails = $this->directrecruitmentArrival->findOrFail($request['arrival_id']);
+                
+                $workerDetails = [];
+                $ksmCount = [];
+                // update utilised quota based on ksm reference number
+                foreach($workers as $worker) {
+                    $ksmDetails = $this->workerVisa->where('worker_id', $worker)->first(['ksm_reference_number']);
+                    $workerDetails[$worker] = $ksmDetails->ksm_reference_number;
+                }
+                $ksmCount = array_count_values($workerDetails);
+                foreach($ksmCount as $key => $value) {
+                    event(new KSMQuotaUpdated($arrivalDetails->onboarding_country_id, $key, $value, 'decrement'));
+                }
+                
+                // update utilised quota in onboarding country
+                event(new WorkerQuotaUpdated($arrivalDetails->onboarding_country_id, count($workers), 'decrement'));
+
     
                 foreach ($workers as $workerId) {
     

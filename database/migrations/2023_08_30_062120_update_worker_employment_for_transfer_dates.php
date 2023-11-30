@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('worker_employment', function (Blueprint $table) {
-            $table->date('work_start_date')->nullable()->change();
-            $table->date('work_end_date')->nullable()->change();
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->date('work_start_date')->nullable()->change();
+                $table->date('work_end_date')->nullable()->change();
+            }
         });
     }
 

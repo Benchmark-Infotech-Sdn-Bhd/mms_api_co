@@ -27,6 +27,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bulk_upload_records');
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::dropIfExists('bulk_upload_records');
+        }
     }
 };

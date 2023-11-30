@@ -6,10 +6,11 @@ use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\WorkerInsuranceDetails;
 use App\Models\Workers;
 use App\Models\WorkerVisa;
-use App\Models\DirectRecruitmentOnboardingCountry;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use App\Events\WorkerQuotaUpdated;
+use App\Events\KSMQuotaUpdated;
 
 class DirectRecruitmentCallingVisaApprovalServices
 {
@@ -29,10 +30,6 @@ class DirectRecruitmentCallingVisaApprovalServices
      * @var DirectRecruitmentCallingVisaStatus
      */
     private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
-    /**
-     * @var DirectRecruitmentOnboardingCountry
-     */
-    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
 
     /**
      * DirectRecruitmentCallingVisaApprovalServices constructor.
@@ -40,15 +37,13 @@ class DirectRecruitmentCallingVisaApprovalServices
      * @param WorkerVisa $workerVisa
      * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
-     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
     {
-        $this->workers                                = $workers;
-        $this->workerVisa                             = $workerVisa;
-        $this->workerInsuranceDetails                 = $workerInsuranceDetails;
-        $this->directRecruitmentCallingVisaStatus     = $directRecruitmentCallingVisaStatus;
-        $this->directRecruitmentOnboardingCountry     = $directRecruitmentOnboardingCountry;
+        $this->workers                                          = $workers;
+        $this->workerVisa                                       = $workerVisa;
+        $this->workerInsuranceDetails                           = $workerInsuranceDetails;
+        $this->directRecruitmentCallingVisaStatus               = $directRecruitmentCallingVisaStatus;
     }
     /**
      * @return array
@@ -97,6 +92,7 @@ class DirectRecruitmentCallingVisaApprovalServices
                     'error' => $validator->errors()
                 ];
             }
+
             $this->workerVisa->whereIn('worker_id', $request['workers'])->update(['calling_visa_generated' => $request['calling_visa_generated'], 'calling_visa_valid_until' => $request['calling_visa_valid_until'], 'remarks' => $request['remarks'], 'approval_status' => $request['status'], 'modified_by' => $request['modified_by']]);
 
             $this->workers->whereIn('id', $request['workers'])
@@ -104,6 +100,23 @@ class DirectRecruitmentCallingVisaApprovalServices
                     'directrecruitment_status' => 'Accepted', 
                     'modified_by' => $request['modified_by']
                 ]);
+
+            $workerDetails = [];
+            $ksmCount = [];
+            
+            // update utilised quota based on ksm reference number
+            foreach($request['workers'] as $worker) {
+                $ksmDetails = $this->workerVisa->where('worker_id', $worker)->first(['ksm_reference_number']);
+                $workerDetails[$worker] = $ksmDetails->ksm_reference_number;
+            }
+            $ksmCount = array_count_values($workerDetails);
+            foreach($ksmCount as $key => $value) {
+                event(new KSMQuotaUpdated($request['onboarding_country_id'], $key, $value, 'increment'));
+            }
+
+            // update utilised quota in onboarding country
+            event(new WorkerQuotaUpdated($request['onboarding_country_id'], count($request['workers']), 'increment'));
+            
         } else {
             $this->workerVisa->whereIn('worker_id', $request['workers'])
             ->update([
