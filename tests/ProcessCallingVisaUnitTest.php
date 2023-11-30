@@ -315,7 +315,8 @@ class ProcessCallingVisaUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -335,7 +336,8 @@ class ProcessCallingVisaUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -360,7 +362,7 @@ class ProcessCallingVisaUnitTest extends TestCase
             'sector_type' => 1, 
             'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])
         ];
-        $res = $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
 
         $payload = [
             "country_name" => "India",
@@ -371,6 +373,17 @@ class ProcessCallingVisaUnitTest extends TestCase
         $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
 
         $payload = [
+            "agent_name" => 'ABC', 
+            "country_id" => 1, 
+            "city" => 'CBE', 
+            "person_in_charge" => 'ABC',
+            "pic_contact_number" => '9823477867', 
+            "email_address" => 'test@gmail.com', 
+            "company_address" => 'Test'
+        ];
+        $this->json('POST', 'api/v1/agent/create', $payload, $this->getHeader(false));
+
+        $payload = [
             'id' => 1, 
             'crm_prospect_id' => 1, 
             'quota_applied' => 100, 
@@ -378,6 +391,7 @@ class ProcessCallingVisaUnitTest extends TestCase
             'cost_quoted' => 10.22, 
             'remarks' => 'test'
         ];
+        
         $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
 
         $payload = [
@@ -393,7 +407,7 @@ class ProcessCallingVisaUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'submission_date' => Carbon::now()->format('Y-m-d'), 
-            'applied_quota' => 50, 
+            'applied_quota' => 25, 
             'status' => 'Approved', 
             'ksm_reference_number' => 'My/643/7684548', 
             'remarks' => 'test'
@@ -404,7 +418,7 @@ class ProcessCallingVisaUnitTest extends TestCase
             'application_id' => 1, 
             'ksm_reference_number' => 'My/643/7684548', 
             'schedule_date' => Carbon::now()->format('Y-m-d'), 
-            'approved_quota' => 50, 
+            'approved_quota' => 25, 
             'approval_date' => Carbon::now()->format('Y-m-d'),
             'status' => 'Approved',
             'remarks' => 'test'
@@ -415,7 +429,7 @@ class ProcessCallingVisaUnitTest extends TestCase
             'application_id' => 1, 
             'payment_date' => Carbon::now()->format('Y-m-d'), 
             'payment_amount' => 10.87, 
-            'approved_quota' => 10, 
+            'approved_quota' => 25, 
             'ksm_reference_number' => 'My/643/7684548', 
             'payment_reference_number' => 'SVZ498787', 
             'approval_number' => 'ADR4674', 
@@ -426,40 +440,33 @@ class ProcessCallingVisaUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'ksm_reference_number' => 'My/643/7684548', 
+            'ksm_reference_number' => 'My/992/095648000', 
             'received_date' => Carbon::now()->format('Y-m-d'), 
-            'valid_until' => Carbon::now()->addYear()->format('Y-m-d')
+            'valid_until' => Carbon::now()->format('Y-m-d')
         ];
         $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1, 
             'country_id' => 1, 
-            'quota' => 15
+            'ksm_reference_number' => 'My/992/095648000', 
+            'valid_until' => Carbon::now()->format('Y-m-d'), 
+            'quota' => 25
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
-        
-        $payload = [
-            'agent_name' => 'ABC', 
-            'country_id' => 1, 
-            'city' => 'CBE', 
-            'person_in_charge' => 'ABC',
-            'pic_contact_number' => '9823477867', 
-            'email_address' => 'test@gmail.com', 
-            'company_address' => 'Test'
-        ];
-        $this->json('POST', 'api/v1/agent/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
             'agent_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648000',
             'quota' => 10
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
 
         $payload = [
             "id" => 1,
+            "ksm_reference_number" => "My/992/095648000",
             "submission_date" => Carbon::now()->format('Y-m-d'),
             "collection_date" => Carbon::now()->format('Y-m-d'),
             "file_url" => "google.com",
@@ -483,7 +490,7 @@ class ProcessCallingVisaUnitTest extends TestCase
             'kin_name' => 'Kin name',
             'kin_relationship_id' => 1,
             'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/643/7684548',
+            'ksm_reference_number' => 'My/992/095648000',
             'calling_visa_reference_number' => '',
             'calling_visa_valid_until' => '',
             'entry_visa_valid_until' => '',

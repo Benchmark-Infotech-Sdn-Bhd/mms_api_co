@@ -164,7 +164,8 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -184,7 +185,8 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -209,7 +211,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
             'sector_type' => 1, 
             'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])
         ];
-        $res = $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
 
         $payload = [
             "country_name" => "India",
@@ -300,7 +302,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
             'valid_until' => Carbon::now()->format('Y-m-d'), 
             'quota' => 25
         ];
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1, 

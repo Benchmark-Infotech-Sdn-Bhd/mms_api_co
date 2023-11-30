@@ -52,7 +52,15 @@ class DirectRecruitmentCallingVisaApprovalServices
     {
         return [
             'calling_visa_generated' => 'required|date|date_format:Y-m-d|before:tomorrow',
-            'calling_visa_valid_until' => 'required|date|date_format:Y-m-d|after:today',
+            'calling_visa_valid_until' => 'required|date|date_format:Y-m-d|after:today'
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function statusValidation(): array
+    {
+        return [
             'status' => 'required'
         ];
     }
@@ -71,6 +79,12 @@ class DirectRecruitmentCallingVisaApprovalServices
      */
     public function approvalStatusUpdate($request): bool|array
     {
+        $validator = Validator::make($request, $this->statusValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
         if(isset($request['workers']) && !empty($request['workers'])) {
             $workerVisaProcessed = $this->workerInsuranceDetails
                             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_insurance_details.worker_id')
