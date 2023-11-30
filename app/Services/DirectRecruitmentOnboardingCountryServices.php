@@ -277,6 +277,7 @@ class DirectRecruitmentOnboardingCountryServices
     {
         $ksmReferenceNumbers = $this->directRecruitmentApplicationApproval
                                     ->leftJoin('levy', 'levy.new_ksm_reference_number', 'directrecruitment_application_approval.ksm_reference_number')
+                                    ->where('directrecruitment_application_approval.application_id', $request['application_id'])
                                     ->whereIn('levy.status', Config::get('services.APPLICATION_LEVY_KSM_REFERENCE_STATUS'))
                                     ->select('directrecruitment_application_approval.id','directrecruitment_application_approval.ksm_reference_number', 'levy.approved_quota', 'directrecruitment_application_approval.valid_until')
                                     ->orderBy('directrecruitment_application_approval.created_at','DESC')
