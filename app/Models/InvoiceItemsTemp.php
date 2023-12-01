@@ -54,8 +54,7 @@ class InvoiceItemsTemp extends Model implements Auditable
         return [
             'id' => 'required|regex:/^[0-9]+$/',
             'crm_prospect_id' => 'required|regex:/^[0-9]+$/',
-            'service_id' => 'required|regex:/^[0-9]+$/',
-            'expense_id' => 'required|regex:/^[0-9]+$/'
+            'service_id' => 'required|regex:/^[0-9]+$/'
         ];
     }
 
