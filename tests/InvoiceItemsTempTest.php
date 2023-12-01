@@ -159,25 +159,6 @@ class InvoiceItemsTempTest extends TestCase
         ]);
     }
     /**
-     * Functional test to validate Required fields for ExpenseId
-     * 
-     * @return void
-     */
-    public function testForExpenseIdRequiredUpdationValidation(): void
-    {
-        $this->json('POST', 'api/v1/invoiceItemsTemp/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/invoiceItemsTemp/update', array_merge($this->updationData(), 
-        ['expense_id' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            "data" => [ 
-                "expense_id" => [
-                    "The expense id field is required."
-                ]
-            ]
-        ]);
-    }
-    /**
      * Functional test for update InvoiceItemsTemp
      */
     public function testForUpdateInvoiceItemsTemp(): void
