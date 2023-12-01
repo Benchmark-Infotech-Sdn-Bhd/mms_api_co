@@ -79,6 +79,8 @@ class DirectRecruitmentOnboardingCountryController extends Controller
                 return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota'], 422);
             } else if(isset($response['ksmQuotaError'])) {
                 return $this->sendError(['message' => 'The number of quota cannot exceed the Approved KSM Quota'], 422);
+            } else if(isset($response['ksmNumberError'])) {
+                return $this->sendError(['message' => 'The KSM Reference Number Alredy Exists'], 422);
             }
             return $this->sendSuccess(['message' => 'Country Added Successfully']);
         } catch (Exception $e) {
