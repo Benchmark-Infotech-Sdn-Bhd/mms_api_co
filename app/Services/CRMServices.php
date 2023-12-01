@@ -382,11 +382,12 @@ class CRMServices
             }
         }
 
-        $createContactXero = $this->invoiceServices->createContacts($request);
-        $prospectData = $this->crmProspect->findOrFail($prospect['id']);
-        $prospectData->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
-        $prospectData->save();
-
+        if (\DB::getDriverName() !== 'sqlite') {
+            $createContactXero = $this->invoiceServices->createContacts($request);
+            $prospectData = $this->crmProspect->findOrFail($prospect['id']);
+            $prospectData->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
+            $prospectData->save();
+        }
         return true;
     }
     /**

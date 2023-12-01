@@ -271,6 +271,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('onboarding_status_update', 'V1\DirectRecruitmentOnboardingCountryController@onboarding_status_update');
                     $router->post('ksmDropDownForOnboarding', 'V1\DirectRecruitmentOnboardingCountryController@ksmDropDownForOnboarding');
                     $router->post('ksmQuotaUpdate', 'V1\DirectRecruitmentOnboardingCountryController@ksmQuotaUpdate');
+                    $router->post('deleteKSM', 'V1\DirectRecruitmentOnboardingCountryController@deleteKSM');
                 });
                 $router->group(['prefix' => 'agent'], function () use ($router) {
                     $router->post('list', 'V1\DirectRecruitmentOnboardingAgentController@list');
