@@ -16,6 +16,9 @@ return new class extends Migration
                 // worker_status column
                 \DB::statement("ALTER TABLE `workers` CHANGE `directrecruitment_status` `directrecruitment_status` ENUM('Pending','Accepted','Rejected','Not Arrived','Arrived','FOMEMA Fit','Processed','Repatriated','Cancelled','Expired') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Pending';");
             }
+            if(DB::getDriverName() == 'sqlite') {
+                $table->string('directrecruitment_status', 255)->default('Pending');
+            }
         });
     }
 
