@@ -32,4 +32,31 @@ class InvoiceItemsTemp extends Model implements Auditable
         return $this->hasOne(CRMProspect::class, 'id', 'crm_prospect_id');
     }
 
+    /**
+     * The attributes that are required.
+     *
+     * @var array
+     */
+    public $rules = [
+        'crm_prospect_id' => 'required|regex:/^[0-9]+$/',
+        'service_id' => 'required|regex:/^[0-9]+$/',
+        'invoice_items' => 'required'
+    ];
+
+    /**
+     * The function returns array that are required for updation.
+     * @param $params
+     * @return array
+     */
+    public function rulesForUpdation($id): array
+    {
+        // Unique name with deleted at
+        return [
+            'id' => 'required|regex:/^[0-9]+$/',
+            'crm_prospect_id' => 'required|regex:/^[0-9]+$/',
+            'service_id' => 'required|regex:/^[0-9]+$/',
+            'expense_id' => 'required|regex:/^[0-9]+$/'
+        ];
+    }
+
 }
