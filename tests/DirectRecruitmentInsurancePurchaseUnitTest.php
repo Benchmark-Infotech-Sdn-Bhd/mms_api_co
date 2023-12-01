@@ -21,7 +21,7 @@ class DirectRecruitmentInsurancePurchaseUnitTest extends TestCase
      * 
      * @return void
      */
-    /*public function testForSubmitInsurancePurchase(): void
+    public function testForSubmitInsurancePurchase(): void
     {
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/insurancePurchase/submit', $this->creationData(), $this->getHeader(false));
@@ -29,13 +29,13 @@ class DirectRecruitmentInsurancePurchaseUnitTest extends TestCase
         $response->seeJson([
             'data' => ['message' => 'Insurance Purchase Submitted Successfully']
         ]);
-    }*/
+    }
     /**
      * Functional test for submit insurance purchase validation
      * 
      * @return void
      */
-    /*public function testForSubmitInsurancePurchaseApplicationIdValidation(): void
+    public function testForSubmitInsurancePurchaseApplicationIdValidation(): void
     {
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/insurancePurchase/submit', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -44,13 +44,13 @@ class DirectRecruitmentInsurancePurchaseUnitTest extends TestCase
                 'application_id' => ['The application id field is required.']
             ]
         ]);
-    }*/
+    }
     /**
      * Functional test for submit insurance purchase validation
      * 
      * @return void
      */
-    /*public function testForSubmitInsurancePurchaseCountryIdValidation(): void
+    public function testForSubmitInsurancePurchaseCountryIdValidation(): void
     {
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/insurancePurchase/submit', array_merge($this->creationData(), ['onboarding_country_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -59,13 +59,13 @@ class DirectRecruitmentInsurancePurchaseUnitTest extends TestCase
                 'onboarding_country_id' => ['The onboarding country id field is required.']
             ]
         ]);
-    }*/
+    }
     /**
      * Functional test for submit insurance purchase validation
      * 
      * @return void
      */
-    /*public function testForSubmitInsurancePurchaseIgPolicyNumberValidation(): void
+    public function testForSubmitInsurancePurchaseIgPolicyNumberValidation(): void
     {
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/insurancePurchase/submit', array_merge($this->creationData(), ['ig_policy_number' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -74,7 +74,7 @@ class DirectRecruitmentInsurancePurchaseUnitTest extends TestCase
                 'ig_policy_number' => ['The ig policy number field is required.']
             ]
         ]);
-    }*/
+    }
     /**
      * Functional test for workers list
      * 
@@ -209,7 +209,7 @@ class DirectRecruitmentInsurancePurchaseUnitTest extends TestCase
             "email_address" => 'test@gmail.com', 
             "company_address" => 'Test'
         ];
-        $this->json('POST', 'api/v1/agent/create', $payload, $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/agent/create', $payload, $this->getHeader(false));
 
         $payload = [
             'id' => 1, 
@@ -282,28 +282,17 @@ class DirectRecruitmentInsurancePurchaseUnitTest extends TestCase
             'quota' => 25
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
-        
-        $payload = [
-            'agent_name' => 'ABC', 
-            'country_id' => 1, 
-            'city' => 'CBE', 
-            'person_in_charge' => 'ABC',
-            'pic_contact_number' => '9823477867', 
-            'email_address' => 'test@gmail.com', 
-            'company_address' => 'Test'
-        ];
-        $this->json('POST', 'api/v1/agent/create', $payload, $this->getHeader(false));
 
         $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'agent_id' => 1,
+            'application_id' => 1, 
+            'onboarding_country_id' => 1, 
+            'agent_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648000',
             'quota' => 10
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
-
-
-       $payload = [
+        
+        $payload = [
             "id" => 1,
             "submission_date" => Carbon::now()->format('Y-m-d'),
             "collection_date" => Carbon::now()->format('Y-m-d'),
@@ -311,7 +300,7 @@ class DirectRecruitmentInsurancePurchaseUnitTest extends TestCase
             "remarks" => "remarks testing"
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/update', $payload, $this->getHeader(false));
-
+        
         $payload = [
             'application_id' => 1,
             'onboarding_country_id' => 1,
@@ -332,24 +321,6 @@ class DirectRecruitmentInsurancePurchaseUnitTest extends TestCase
             'bio_medical_reference_number' => '123456',
             'bio_medical_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
             'purchase_date' => Carbon::now()->format('Y-m-d'),
-            'calling_visa_reference_number' => '',
-            'calling_visa_valid_until' => '',
-            'entry_visa_valid_until' => '',
-            'work_permit_valid_until' => '',
-            'bio_medical_reference_number' => 'BIO1234567',
-            'bio_medical_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
-            'purchase_date' => Carbon::now()->format('Y-m-d'),
-            'clinic_name' => 'Test Clinic',
-            'doctor_code' => 'Doc123',
-            'allocated_xray' => 'Tst1234',
-            'xray_code' => 'Xray1234',
-            'ig_policy_number' => '',
-            'ig_policy_number_valid_until' => '',
-            'hospitalization_policy_number' => '',
-            'hospitalization_policy_number_valid_until' => '',
-            'bank_name' => 'Bank Name',
-            'account_number' => 1234556678,
-            'socso_number' => 12345678
         ];
 
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $payload, $this->getHeader(false));

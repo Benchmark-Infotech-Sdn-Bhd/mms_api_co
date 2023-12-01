@@ -286,7 +286,7 @@ class DirectRecruitmentOnboardingCountryServices
         ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
         ->whereNotIn('workers.directrecruitment_status', Config::get('services.NOT_UTILISED_STATUS_TYPE'))
         ->where('directrecruitment_workers.application_id', $request['application_id'])
-        ->select('worker_visa.ksm_reference_number', DB::raw('COUNT(workers.id) as utilised_quota'), DB::raw('GROUP_CONCAT(workers.id SEPARATOR ",") AS workers_id'))
+        ->select('worker_visa.ksm_reference_number', DB::raw('COUNT(workers.id) as utilised_quota'), DB::raw('GROUP_CONCAT(workers.id) AS workers_id'))
         ->groupBy('worker_visa.ksm_reference_number')
         ->orderBy('worker_visa.ksm_reference_number','DESC')
         ->get()->toArray();
