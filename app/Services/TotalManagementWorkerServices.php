@@ -487,7 +487,7 @@ class TotalManagementWorkerServices
         })
         ->where('workers.crm_prospect_id', 0)
         ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
-        ->where('worker_employment.project_id', $projectIds)
+        ->whereIn('worker_employment.project_id', $projectIds)
         ->distinct('workers.id')
         ->count('workers.id');
 
