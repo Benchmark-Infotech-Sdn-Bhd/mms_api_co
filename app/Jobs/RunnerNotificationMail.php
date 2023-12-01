@@ -37,7 +37,7 @@ class RunnerNotificationMail implements ShouldQueue
      */
     public function handle()
     {   
-        Log::info('Runners notification mail process started');
+        Log::channel('cron_activity_logs')->info('Runners notification mail process started');
 
         $input = [];
         $input['subject'] = "Notification Mail";
@@ -52,9 +52,9 @@ class RunnerNotificationMail implements ShouldQueue
                     ->subject($input['subject']);
                 $message->from(Config::get('services.mail_from_address'), Config::get('services.mail_from_name'));
             });
-            Log::info('Runners notification mail process completed');
+            Log::channel('cron_activity_logs')->info('Runners notification mail process completed');
         }else{
-            Log::info('Runners notification mail process failed due to incorrect email id');
+            Log::channel('cron_activity_logs')->info('Runners notification mail process failed due to incorrect email id');
         }
         
     }

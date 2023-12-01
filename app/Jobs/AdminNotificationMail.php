@@ -47,7 +47,7 @@ class AdminNotificationMail implements ShouldQueue
      */
     public function handle()
     {   
-        Log::info('Admin notification mail process started');
+        Log::channel('cron_activity_logs')->info('Admin notification mail process started');
 
         $mailMessage = $this->message;
         $input = [];
@@ -138,9 +138,9 @@ class AdminNotificationMail implements ShouldQueue
                     $message->attachData($input['serviceagreement_attachment_file'], $input['serviceagreement_attachment_filename']);
                 }
             });
-            Log::info('Admin notification mail process completed');
+            Log::channel('cron_activity_logs')->info('Admin notification mail process completed');
         }else{
-            Log::info('Admin notification mail process failed due to incorrect email id');
+            Log::channel('cron_activity_logs')->info('Admin notification mail process failed due to incorrect email id');
         }
         
     }
