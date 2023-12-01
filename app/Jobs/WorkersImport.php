@@ -68,7 +68,7 @@ class WorkersImport extends Job
             'kin_relationship_id' => 'required',
             'kin_contact_number' => 'required|regex:/^[0-9]+$/',
             'ksm_reference_number' => 'required',
-            'bio_medical_reference_number' => 'required|max:255',
+            'bio_medical_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/|max:255',
             'bio_medical_valid_until' => 'required|date|date_format:Y-m-d',
             'company_id' => 'required'
         ];
