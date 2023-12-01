@@ -144,4 +144,27 @@ class ManageWorkersController extends Controller
 
     }
 
+    /**
+     * Export Template for Workers Import from Excel.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function exportTemplate(Request $request): JsonResponse
+    {
+        try {            
+            $data = $this->manageWorkersServices->exportTemplate($request);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+
+            return $this->sendSuccess(['file_url' => $data, 'message' => "Successfully worker template was exported"]);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Export failed. Please retry.';
+            return $this->sendError(['message' => $data['error']], 400);
+        }
+
+    }
+
 }

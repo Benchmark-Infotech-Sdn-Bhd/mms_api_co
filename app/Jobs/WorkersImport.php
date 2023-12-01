@@ -64,8 +64,8 @@ class WorkersImport extends Job
             'passport_valid_until' => 'required|date|date_format:Y-m-d',
             'address' => 'required',
             'state' => 'required|regex:/^[a-zA-Z ]*$/|max:150',
-            'kin_name' => 'required|regex:/^[a-zA-Z]*$/|max:255',
-            'kin_relationship' => 'required',
+            'kin_name' => 'required|regex:/^[a-zA-Z ]*$/|max:255',
+            'kin_relationship_id' => 'required',
             'kin_contact_number' => 'required|regex:/^[0-9]+$/',
             'ksm_reference_number' => 'required',
             'bio_medical_reference_number' => 'required|max:255',
@@ -92,6 +92,7 @@ class WorkersImport extends Job
         $agentWorkerCountError = 0;
         $successFlag = 0;
         $agentKSMError = 0;
+        $agentError = 0;
 
         $validationError = [];
         $validator = Validator::make($this->workerParameter, $this->formatValidation());
@@ -101,9 +102,9 @@ class WorkersImport extends Job
 
         if(empty($validationError)) {
 
-            $workerRelationship = DB::table('kin_relationship')->where('name', $this->workerParameter['kin_relationship'])->first('id');
+            //$workerRelationship = DB::table('kin_relationship')->where('name', $this->workerParameter['kin_relationship'])->first('id');
 
-            Log::info('Row Data - realtionship - ' . print_r($workerRelationship->id, true));
+            Log::info('Row Data - realtionship - ' . print_r($this->workerParameter['kin_relationship_id'], true));
 
             $workerCount = DB::table('workers')->where('passport_number', $this->workerParameter['passport_number'])->count();
 
@@ -200,6 +201,27 @@ class WorkersImport extends Job
             $ksmReferenceNumberQuotaError = 1;
             $comments .= ' ERROR - ksm reference number quota cannot exceeded';
         }
+
+        $agentDataCheck = DirectRecruitmentOnboardingAgent::where('application_id', $this->workerParameter['application_id'])
+        ->where('onboarding_country_id', $this->workerParameter['onboarding_country_id'])
+        ->where('ksm_reference_number', $this->workerParameter['ksm_reference_number'])
+        ->select('id')
+        ->get();
+
+        $agentData = array();
+        foreach ($agentDataCheck as $key => $agentId) {
+            Log::info('ksm result - ' . ($agentId->id));
+            $agentData[$key] = $agentId->id;
+        }
+     
+        if(isset($agentData) && !empty($agentData)){
+            if(!in_array($this->workerParameter['agent_id'], $agentData)){
+                Log::info('Row Data -  The On Boarding Agent Id error - ' . print_r($this->workerParameter['agent_id'], true));   
+                $agentError = 1; 
+                $comments .= 'ERROR - The On Boarding Agent Id is mis-matched';
+            }
+        }
+
         $agentCheck = DirectRecruitmentOnboardingAgent::where('application_id', $this->workerParameter['application_id'])
         ->where('onboarding_country_id', $this->workerParameter['onboarding_country_id'])
         ->where('ksm_reference_number', $this->workerParameter['ksm_reference_number'])
@@ -229,7 +251,7 @@ class WorkersImport extends Job
             $agentWorkerCountError = 1;
             $comments .= ' ERROR - agent worker quota count cannot exceeded'; 
         }
-            if($workerCount == 0 && $ksmError == 0 && $countryQuotaError == 0 && $ksmReferenceNumberQuotaError == 0 && $agentWorkerCountError == 0 && $agentKSMError == 0){
+            if($workerCount == 0 && $ksmError == 0 && $countryQuotaError == 0 && $ksmReferenceNumberQuotaError == 0 && $agentWorkerCountError == 0 && $agentKSMError == 0 && $agentError == 0){
 
                 $applicationDetails = DirectrecruitmentApplications::findOrFail($this->workerParameter['application_id']);
                 $prospect_id = $applicationDetails->crm_prospect_id;
@@ -272,7 +294,7 @@ class WorkersImport extends Job
                 WorkerKin::create([
                     "worker_id" => $worker['id'],
                     "kin_name" => $this->workerParameter['kin_name'] ?? '',
-                    "kin_relationship_id" => $workerRelationship->id ?? 0,
+                    "kin_relationship_id" => $this->workerParameter['kin_relationship_id'] ?? 0,
                     "kin_contact_number" =>  $this->workerParameter['kin_contact_number'] ?? '',
                     'created_at'    => Carbon::now()->toDateTimeString(),
                     'updated_at'    => Carbon::now()->toDateTimeString()         
