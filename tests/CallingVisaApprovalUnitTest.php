@@ -308,21 +308,6 @@ class CallingVisaApprovalUnitTest extends TestCase
             'cost_quoted' => 10.22, 
             'remarks' => 'test'
         ];
-
-        $payload =  [
-            'name' => 'Insurance Vendor',
-            'type' => 'Insurance',
-            'email_address' => 'email@gmail.com',
-            'contact_number' => random_int(10, 1000),
-            'person_in_charge' => 'test',
-            'pic_contact_number' => random_int(10, 1000),
-            'address' => 'address',
-            'state' => 'state',
-            'city' => 'city',
-            'postcode' => random_int(10, 1000),
-            'remarks' => 'test',
-        ];
-        $response = $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
         
         $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
 
@@ -404,8 +389,7 @@ class CallingVisaApprovalUnitTest extends TestCase
             "file_url" => "google.com",
             "remarks" => "remarks testing"
         ];
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/update', $payload, $this->getHeader(false));
-        dd($res);exit;
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/update', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1,
