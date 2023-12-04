@@ -222,7 +222,7 @@ class TotalManagementProjectUnitTest extends TestCase
         ];
         $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
 
-        $payload = [
+        /* $payload = [
             'id' => 1, 
             'crm_prospect_id' => 1, 
             'quota_applied' => 100, 
@@ -478,10 +478,9 @@ class TotalManagementProjectUnitTest extends TestCase
             'plks_expiry_date' => Carbon::now()->addYear()->format('Y-m-d'), 
             'workers' => 1
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false)); */
 
         $payload = [
-            'id' => 1, 
             'company_name' => 'ABC Firm', 
             'contact_number' => '768456948', 
             'email' => 'testcrm@gmail.com', 
@@ -507,6 +506,8 @@ class TotalManagementProjectUnitTest extends TestCase
             "city" => "city test",
             "address" => "test address",
             "employee_id" => 1,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee",
             "transportation_provider_id" => 1,
             "driver_id" => 1,
             "assign_as_supervisor" => 0,
@@ -528,6 +529,8 @@ class TotalManagementProjectUnitTest extends TestCase
             "city" => "city test",
             "address" => "test address",
             "employee_id" => 1,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee",
             "transportation_provider_id" => 1,
             "driver_id" => 1,
             "assign_as_supervisor" => 0,

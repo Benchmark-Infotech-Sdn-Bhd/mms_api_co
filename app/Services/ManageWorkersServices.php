@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\WorkerImport;
+use App\Exports\WorkerImportParentSheetExport;
 
 class ManageWorkersServices
 {
@@ -573,6 +574,22 @@ class ManageWorkersServices
 
         Excel::import(new WorkerImport($params, $workerBulkUpload), $file);
         return true;
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function exportTemplate($request): mixed
+    {
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+            
+        $fileName = "importWorker".$params['application_id'].".xlsx";
+        $filePath = '/upload/worker/' . $fileName; 
+        Excel::store(new WorkerImportParentSheetExport($params, []), $filePath, 'linode');
+        $fileUrl = $this->storage::disk('linode')->url($filePath);            
+        return $fileUrl;
     }
 
 }

@@ -298,7 +298,8 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -318,7 +319,8 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -463,7 +465,6 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     {
         return [
             "id" => 1,
-            "ksm_reference_number" => "My/992/095648000",
             "submission_date" => Carbon::now()->format('Y-m-d'),
             "collection_date" => Carbon::now()->format('Y-m-d'),
             "file_url" => "google.com",

@@ -216,7 +216,7 @@ class TotalManagementPayrollUnitTest extends TestCase
         ];
         $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
 
-        $payload = [
+        /* $payload = [
             'id' => 1, 
             'crm_prospect_id' => 1, 
             'quota_applied' => 100, 
@@ -472,7 +472,45 @@ class TotalManagementPayrollUnitTest extends TestCase
             'plks_expiry_date' => Carbon::now()->addYear()->format('Y-m-d'), 
             'workers' => 1
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false)); */
+
+        $payload = [
+            'application_id' => 1,
+            'onboarding_country_id' => 1,
+            'agent_id' => 1,
+            'name' => 'TestWorker',
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'),
+            'gender' => 'Female',
+            'passport_number' => 12345,
+            'passport_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'address' => 'address',
+            'city' => 'city',
+            'state' => 'state',
+            'kin_name' => 'Kin name',
+            'kin_relationship_id' => 1,
+            'kin_contact_number' => 1234567890,
+            'ksm_reference_number' => 'My/643/7684548',
+            'calling_visa_reference_number' => '',
+            'calling_visa_valid_until' => '',
+            'entry_visa_valid_until' => '',
+            'work_permit_valid_until' => '',
+            'bio_medical_reference_number' => '1234567890',
+            'bio_medical_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'purchase_date' => Carbon::now()->format('Y-m-d'),
+            'clinic_name' => 'Test Clinic',
+            'doctor_code' => 'Doc123',
+            'allocated_xray' => 'Tst1234',
+            'xray_code' => 'Xray1234',
+            'ig_policy_number' => '',
+            'ig_policy_number_valid_until' => '',
+            'hospitalization_policy_number' => '',
+            'hospitalization_policy_number_valid_until' => '',
+            'bank_name' => 'Bank Name',
+            'account_number' => 1234556678,
+            'socso_number' => 12345678
+        ];
+        $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
 
         $payload = [
             'id' => 1, 
@@ -496,6 +534,8 @@ class TotalManagementPayrollUnitTest extends TestCase
             "city" => "city test",
             "address" => "test address",
             "employee_id" => 1,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee",
             "transportation_provider_id" => 1,
             "driver_id" => 1,
             "assign_as_supervisor" => 0,
@@ -512,6 +552,8 @@ class TotalManagementPayrollUnitTest extends TestCase
             "city" => "city test",
             "address" => "test address",
             "employee_id" => 1,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee",
             "transportation_provider_id" => 1,
             "driver_id" => 1,
             "assign_as_supervisor" => 0,

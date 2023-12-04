@@ -601,7 +601,7 @@ class DirectRecruitmentWorkersServices
 
         $workerBulkUpload = $this->workerBulkUpload->create([
                 'onboarding_country_id' => $request['onboarding_country_id'] ?? '',
-                'agent_id' => $request['agent_id'] ?? '',
+                'agent_id' => $request['agent_id'] ?? NULL,
                 'application_id' => $request['application_id'] ?? '',
                 'name' => 'Worker Bulk Upload',
                 'type' => 'Worker bulk upload',
