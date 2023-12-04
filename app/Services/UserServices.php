@@ -100,6 +100,7 @@ class UserServices
         }
 
         return $this->user
+        ->leftJoin('company', 'company.id', 'users.company_id')
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('users.name', 'like', "%{$request['search_param']}%")
@@ -107,7 +108,7 @@ class UserServices
             }
         })
         ->where('users.user_type', Config::get('services.ROLE_TYPE_ADMIN'))
-        ->select('users.id', 'users.name', 'users.email', 'users.created_at', 'users.user_type', 'users.status')
+        ->select('users.id', 'users.name', 'users.email', 'users.created_at', 'users.user_type', 'users.status', 'company.id as company_id', 'company.company_name')
         ->distinct()
         ->orderBy('users.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
@@ -125,7 +126,9 @@ class UserServices
             ];
         }
 
-        $user = $this->user->find($request['id']);        
+        $user = $this->user->with(['company' => function ($query) {
+            $query->select('id', 'company_name');
+        }])->find($request['id']);        
         return $user;
     }
 
