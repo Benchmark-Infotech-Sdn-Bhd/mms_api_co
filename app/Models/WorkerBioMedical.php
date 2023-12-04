@@ -33,7 +33,7 @@ class WorkerBioMedical extends Model implements Auditable
      */
     public $rules = [
         'worker_id' => 'required|regex:/^[0-9]+$/',
-        'bio_medical_reference_number' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+        'bio_medical_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/|max:255',
         'bio_medical_valid_until' => 'required|date_format:Y-m-d'
     ];
     /**
@@ -46,7 +46,7 @@ class WorkerBioMedical extends Model implements Auditable
         // Unique name with deleted at
         return [
             'worker_id' => 'required|regex:/^[0-9]+$/',
-            'bio_medical_reference_number' => 'required|regex:/^[a-zA-Z]*$/|max:255',
+            'bio_medical_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/|max:255',
             'bio_medical_valid_until' => 'required|date_format:Y-m-d'
         ];
     }

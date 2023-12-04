@@ -381,6 +381,7 @@ class CRMServices
                 ]);
             }
         }
+
         if (\DB::getDriverName() !== 'sqlite') {
             $createContactXero = $this->invoiceServices->createContacts($request);
             $prospectData = $this->crmProspect->findOrFail($prospect['id']);

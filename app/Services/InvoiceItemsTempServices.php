@@ -47,11 +47,11 @@ class InvoiceItemsTempServices
     {
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
-        /*if(!($this->validationServices->validate($request->toArray(),$this->invoiceItemsTemp->rules))){
+        if(!($this->validationServices->validate($request->toArray(),$this->invoiceItemsTemp->rules))){
             return [
               'validate' => $this->validationServices->errors()
             ];
-        }*/
+        }
 
         $invoiceItemsTempCount = $this->invoiceItemsTemp->where('created_by', $user['id'])->count(); 
         
@@ -98,11 +98,11 @@ class InvoiceItemsTempServices
 
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
-        /*if(!($this->validationServices->validate($request->toArray(),$this->invoiceItemsTemp->rulesForUpdation($request['id'])))){
+        if(!($this->validationServices->validate($request->toArray(),$this->invoiceItemsTemp->rulesForUpdation($request['id'])))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
-        }*/
+        }
 
         $invoiceItemsTemp = $this->invoiceItemsTemp->findOrFail($request['id']);
 

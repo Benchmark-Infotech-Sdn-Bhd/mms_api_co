@@ -119,6 +119,21 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for Onboarding country creation KSM alredy exist validation
+     * 
+     * @return void
+     */
+    public function testForOnboardingCountryCreationForKSMValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'The KSM Reference Number Alredy Added for this Country']
+        ]);
+    }
+    /**
      * Functional test for Update Id mandatory field validation 
      * 
      * @return void
@@ -164,6 +179,22 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for Update Onboarding Country edit validation
+     * 
+     * @return void
+     */
+    public function testForUpdateOnboardingCountryEditValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $this->agentData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/update', $this->UpdationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Agent added for this record, users are not allowed to modify the records.']
+        ]);
+    }
+    /**
      * Functional test for KSM Quota Update Id mandatory field validation 
      * 
      * @return void
@@ -175,21 +206,6 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         $response->seeJson([
             'data' => [
                 'id' => ['The id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for KSM Quota Update, Onboarding Country Id mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForKSMQuotaUpdateOnboardingCountryIdRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmQuotaUpdate', array_merge($this->ksmQuotaUpdationData(), ['onboarding_country_id' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'onboarding_country_id' => ['The onboarding country id field is required.']
             ]
         ]);
     }
@@ -251,6 +267,22 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Quota Updated Successfully']
+        ]);
+    }
+    /**
+     * Functional test for Update KSM Quota edit validation
+     * 
+     * @return void
+     */
+    public function testForUpdateKSMQuotaEditValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $this->agentData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmQuotaUpdate', $this->ksmQuotaUpdationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Agent added for this record, users are not allowed to modify the records.']
         ]);
     }
     /**
@@ -348,6 +380,52 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for delete KSM
+     * 
+     * @return void
+     */
+    public function testForDeleteKSM(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/deleteKSM', ['id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $response->seeJson([
+            'data' => ['message' => 'Record Deleted Successfully']
+        ]);
+    }
+    /**
+     * Functional test for delete KSm delete validation
+     * 
+     * @return void
+     */
+    public function testForDeleteValidation(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/deleteKSM', ['id' => 2], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $response->seeJson([
+            'data' => ['message' => 'Data Not Found']
+        ]);
+    }
+    /**
+     * Functional test for KSM delete Restriction
+     * 
+     * @return void
+     */
+    public function testForDeleteRestrictionValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $this->agentData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/deleteKSM', ['id' => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Agent added for this record, users are not allowed to modify the records.']
+        ]);
+    }
+    /**
      * @return void
      */
     public function creationSeeder(): void
@@ -434,6 +512,17 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
 
         $payload = [
+            "agent_name" => 'ABC', 
+            "country_id" => 1, 
+            "city" => 'CBE', 
+            "person_in_charge" => 'ABC',
+            "pic_contact_number" => '9823477867', 
+            "email_address" => 'test@gmail.com', 
+            "company_address" => 'Test'
+        ];
+        $this->json('POST', 'api/v1/agent/create', $payload, $this->getHeader(false));
+
+        $payload = [
             'id' => 1, 
             'application_id' => 1, 
             'item_name' => 'Document Checklist', 
@@ -504,6 +593,13 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
      */
     public function ksmQuotaUpdationData(): array
     {
-        return ['id' => 1, 'onboarding_country_id' => 1, 'quota' => 50];
+        return ['id' => 1, 'onboarding_country_id' => 1, 'ksm_reference_number' => 'My/992/095648000', 'quota' => 50];
+    }
+    /**
+     * @return array
+     */
+    public function agentData(): array
+    {
+        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'quota' => 10, 'ksm_reference_number' => 'My/992/095648000'];
     }
 }

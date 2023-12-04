@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
+class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow, WithMultipleSheets
 {
     protected const CHUNK_ROW = 250;
     private $parameters;
@@ -42,11 +43,11 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
     public function model(array $row)
     {
         try {
-                //Log::info('Row Data' . print_r($row, true));
+                Log::info('Row Data' . print_r($row, true));
                 
                 $workerParameter = [
                     'onboarding_country_id' => $this->parameters['onboarding_country_id'],
-                    'agent_id' => $this->parameters['agent_id'],
+                    'agent_id' => $row['agent_id'],
                     'application_id' => $this->parameters['application_id'],
                     'name' => $row['name'] ?? '',
                     'date_of_birth' => $this->dateConvert($row['date_of_birth']),
@@ -56,7 +57,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
                     'address' => $row['address'] ?? '',
                     'state' => $row['state'] ?? '',
                     'kin_name' => $row['kin_name'] ?? '',
-                    'kin_relationship' => $row['kin_relationship'] ?? '',
+                    'kin_relationship_id' => $row['kin_relationship_id'] ?? '',
                     'kin_contact_number' => $row['kin_contact_number'] ?? '',
                     'ksm_reference_number' => $row['ksm_reference_number'] ?? '',
                     'bio_medical_reference_number' => $row['bio_medical_reference_number'] ?? '',
@@ -67,7 +68,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
                 ];
 
                 $workerNonMandatory = [
-                    'kin_relationship_id' => $row['kin_relationship_id'] ?? '',
+                    'kin_relationship' => $row['kin_relationship'] ?? '',
                     'city' => $row['city'] ?? '',
                 ];
                 
@@ -94,5 +95,15 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow
     public function chunkSize(): int
     {
         return self::CHUNK_ROW;
+    }
+
+    /**
+     * @return array
+     */
+    public function sheets(): array
+    {
+        return [
+            0 => $this,
+        ];
     }
 }

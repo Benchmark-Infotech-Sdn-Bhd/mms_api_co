@@ -80,7 +80,7 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             } else if(isset($response['ksmQuotaError'])) {
                 return $this->sendError(['message' => 'The number of quota cannot exceed the Approved KSM Quota'], 422);
             } else if(isset($response['ksmNumberError'])) {
-                return $this->sendError(['message' => 'The KSM Reference Number Alredy Exists'], 422);
+                return $this->sendError(['message' => 'The KSM Reference Number Alredy Added for this Country'], 422);
             }
             return $this->sendSuccess(['message' => 'Country Added Successfully']);
         } catch (Exception $e) {
@@ -106,7 +106,7 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             } else if(isset($response['quotaError'])) {
                 return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota.'], 422);
             } else if(isset($response['editError'])) {
-                return $this->sendError(['message' => 'Attestation submission has been processed for this record, users are not allowed to modify the records.'], 422);
+                return $this->sendError(['message' => 'Agent added for this record, users are not allowed to modify the records.'], 422);
             }
             return $this->sendSuccess(['message' => 'Country Updated Successfully']);
         } catch (Exception $e) {
@@ -189,14 +189,40 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             } else if(isset($response['quotaError'])) {
                 return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota.'], 422);
             } else if(isset($response['editError'])) {
-                return $this->sendError(['message' => 'Attestation submission has been processed for this record, users are not allowed to modify the records.'], 422);
+                return $this->sendError(['message' => 'Agent added for this record, users are not allowed to modify the records.'], 422);
             } else if(isset($response['ksmQuotaError'])) {
                 return $this->sendError(['message' => 'The number of quota cannot exceed the Approved KSM Quota'], 422);
+            } else if(isset($response['ksmNumberError'])) {
+                return $this->sendError(['message' => 'The KSM Reference Number Alredy Added for this Country'], 422);
             }
             return $this->sendSuccess(['message' => 'Quota Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Faild to Update Country'], 400);
+            return $this->sendError(['message' => 'Faild to Update Record'], 400);
+        }
+    }
+    /**
+     * delete ksm reference number quota
+     * 
+     * @param Request $request
+     * @return JsonResponse   
+     */
+    public function deleteKSM(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->directRecruitmentOnboardingCountryServices->deleteKSM($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            } else if(isset($response['dataError'])) {
+                return $this->sendError(['message' => 'Data Not Found'], 422);
+            } else if(isset($response['editError'])) {
+                return $this->sendError(['message' => 'Agent added for this record, users are not allowed to modify the records.'], 422);
+            }
+            return $this->sendSuccess(['message' => 'Record Deleted Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error = ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Faild to Delete Record'], 400);
         }
     }
 }

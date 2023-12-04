@@ -132,7 +132,7 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $this->creationData(), $this->getHeader(false)); 
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'The Agent already added for this Country']
+            'data' => ['message' => 'The Agent already added for this Country and KSM Reference Number']
         ]);
     }
     /**
@@ -222,6 +222,37 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
             'data' => [
                 'quota' => ['The quota must not be greater than 3 characters.']
             ]
+        ]);
+    }
+    /**
+     * Functional test for Update Onboarding Agent Quota Validation
+     * 
+     * @return void
+     */
+    public function testForUpdateOnboardingAgentQuotaValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/update', array_merge($this->UpdationData(), ['quota' => 100]), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'The number of quota cannot exceed the Country Quota']
+        ]);
+    }
+    /**
+     * Functional test for Update Onboarding Agent Edit validation
+     * 
+     * @return void
+     */
+    public function testForUpdateOnboardingAgentEditValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $this->creationData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/update', $this->attestationUpdateData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/update', $this->UpdationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Attestation submission has been processed for this record, users are not allowed to modify the records.']
         ]);
     }
     /**
@@ -486,5 +517,19 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
     public function UpdationData(): array
     {
         return ['id' => 1, 'application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'quota' => 15, 'ksm_reference_number' => 'My/992/095648000'];
+    }
+    /**
+     * @return array
+     */
+    public function attestationUpdateData(): array
+    {
+        return [
+            "id" => 1,
+            "ksm_reference_number" => "My/992/095648000",
+            "submission_date" => Carbon::now()->format('Y-m-d'),
+            "collection_date" => Carbon::now()->format('Y-m-d'),
+            "file_url" => "google.com",
+            "remarks" => "remarks testing"
+        ];
     }
 }
