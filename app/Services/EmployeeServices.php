@@ -242,7 +242,10 @@ class EmployeeServices
             }
         }
         return $this->employee->join('branch', 'branch.id', '=', 'employee.branch_id')
-        ->join('users', 'employee.id', '=', 'users.reference_id')
+        ->join('users', function ($join) {
+            $join->on('employee.id', '=', 'users.reference_id')
+                ->on('employee.employee_name', '=', 'users.name');
+        })
         ->join('user_role_type','users.id','=','user_role_type.user_id')
         ->join('roles','user_role_type.role_id','=','roles.id')
         ->whereIn('employee.company_id', $request['company_id'])
