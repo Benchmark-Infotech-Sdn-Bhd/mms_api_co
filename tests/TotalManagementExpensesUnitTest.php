@@ -152,11 +152,26 @@ class TotalManagementExpensesUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for total management create expense, payment_reference_number format validation
+     * 
+     * @return void
+     */
+    public function testForTotalManagementCreatePaymentReferenceNumberFormatValidation(): void
+    {
+        $response = $this->json('POST', '/api/v1/totalManagement/manage/expense/create',  array_merge($this->creationData(), ['payment_reference_number' => 'APY8759348*']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'payment_reference_number' => ['The payment reference number format is invalid.']
+            ]
+        ]);
+    }
+    /**
      * Functional test for total management update expense, id required field validation
      * 
      * @return void
      */
-    public function testForEContractExpenseUpdateIdRequiredFieldValidation(): void
+    public function testForTotalManagementExpenseUpdateIdRequiredFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/update',  array_merge($this->updationData(), ['id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -171,7 +186,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseUpdateWorkerIdRequiredFieldValidation(): void
+    public function testForTotalManagementExpenseUpdateWorkerIdRequiredFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/update',  array_merge($this->updationData(), ['worker_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -186,7 +201,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseUpdateApplicationIdRequiredFieldValidation(): void
+    public function testForTotalManagementExpenseUpdateApplicationIdRequiredFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/update',  array_merge($this->updationData(), ['application_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -201,7 +216,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseUpdateProjectIdRequiredFieldValidation(): void
+    public function testForTotalManagementExpenseUpdateProjectIdRequiredFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/update',  array_merge($this->updationData(), ['project_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -216,7 +231,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseUpdateTitleRequiredFieldValidation(): void
+    public function testForTotalManagementExpenseUpdateTitleRequiredFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/update',  array_merge($this->updationData(), ['title' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -231,7 +246,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseUpdateTypeRequiredFieldValidation(): void
+    public function testForTotalManagementExpenseUpdateTypeRequiredFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/update',  array_merge($this->updationData(), ['type' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -246,7 +261,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseUpdatePaymentDateRequiredFieldValidation(): void
+    public function testForTotalManagementExpenseUpdatePaymentDateRequiredFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/update',  array_merge($this->updationData(), ['payment_date' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -261,7 +276,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseUpdateAmountRequiredFieldValidation(): void
+    public function testForTotalManagementExpenseUpdateAmountRequiredFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/update',  array_merge($this->updationData(), ['amount' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -276,7 +291,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseUpdatePaymentDateFormatValidation(): void
+    public function testForTotalManagementExpenseUpdatePaymentDateFormatValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/update', array_merge($this->updationData(), ['payment_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
         $response->seeStatusCode(422);
@@ -291,7 +306,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseUpdateAmountFormatValidation(): void
+    public function testForTotalManagementExpenseUpdateAmountFormatValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/update',  array_merge($this->updationData(), ['amount' => 1000.1111]), $this->getHeader());
         $response->seeStatusCode(422);
@@ -302,11 +317,27 @@ class TotalManagementExpensesUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for total management update expense, payment_reference_number format validation
+     * 
+     * @return void
+     */
+    public function testForTotalManagementUpdatePaymentReferenceNumberFormatValidation(): void
+    {
+        $response = $this->json('POST', '/api/v1/totalManagement/manage/expense/update',  array_merge($this->updationData(), ['payment_reference_number' => 'APY8759348*']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'payment_reference_number' => ['The payment reference number format is invalid.']
+            ]
+        ]);
+    }
+
+    /**
      * Functional test for total management expense update
      * 
      * @return void
      */
-    public function testForEContractExpenseUpdation(): void
+    public function testForTotalManagementExpenseUpdation(): void
     {
         $this->creationSeeder();
         $this->json('POST', 'api/v1/totalManagement/manage/expense/create', $this->creationData(), $this->getHeader(false));
@@ -335,7 +366,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpensePayBackIdRequiredFieldValidation(): void
+    public function testForTotalManagementExpensePayBackIdRequiredFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/payBack',  array_merge($this->payBackData(), ['id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -350,7 +381,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpensePayBackAmountPaidRequiredFieldValidation(): void
+    public function testForTotalManagementExpensePayBackAmountPaidRequiredFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/payBack',  array_merge($this->payBackData(), ['amount_paid' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -365,7 +396,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpensePayBackPaymentDateRequiredFieldValidation(): void
+    public function testForTotalManagementExpensePayBackPaymentDateRequiredFieldValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/payBack',  array_merge($this->payBackData(), ['payment_date' => '']), $this->getHeader());
         $response->seeStatusCode(422);
@@ -380,7 +411,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpensePayBackAmountPaidFormatValidation(): void
+    public function testForTotalManagementExpensePayBackAmountPaidFormatValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/payBack',  array_merge($this->payBackData(), ['amount_paid' => 1000.1111]), $this->getHeader());
         $response->seeStatusCode(422);
@@ -395,7 +426,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpensePayBackPaymentDateFormatValidation(): void
+    public function testForTotalManagementExpensePayBackPaymentDateFormatValidation(): void
     {
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/payBack', array_merge($this->payBackData(), ['payment_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
         $response->seeStatusCode(422);
@@ -410,7 +441,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpensePayBack(): void
+    public function testForTotalManagementExpensePayBack(): void
     {
         $this->creationSeeder();
         $this->json('POST', 'api/v1/totalManagement/manage/expense/create', $this->creationData(), $this->getHeader(false));
@@ -425,7 +456,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseShow(): void
+    public function testForTotalManagementExpenseShow(): void
     {
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/show', ['id' => 1], $this->getHeader(false));
@@ -439,7 +470,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseListWithSearchValidation(): void
+    public function testForTotalManagementExpenseListWithSearchValidation(): void
     {
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/list', ['search' => 'te', 'worker_id' => 1], $this->getHeader(false));
@@ -455,7 +486,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseListWithSearch(): void
+    public function testForTotalManagementExpenseListWithSearch(): void
     {
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/totalManagement/manage/expense/list', ['search' => 'tes', 'worker_id' => 1], $this->getHeader(false));
@@ -484,7 +515,7 @@ class TotalManagementExpensesUnitTest extends TestCase
      * 
      * @return void
      */
-    public function testForEContractExpenseDelete(): void
+    public function testForTotalManagementExpenseDelete(): void
     {
         $this->creationSeeder();
         $this->json('POST', 'api/v1/totalManagement/manage/expense/create', $this->creationData(), $this->getHeader(false));

@@ -104,9 +104,9 @@ class TotalManagementTransferUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for Total Management Transfer cproject listing
+     * Functional test for Total Management Transfer project listing
      * 
-     * @return void
+     * @return void 
      */
     public function testForTotalManagementTransferProjectListing(): void
     {
@@ -164,7 +164,8 @@ class TotalManagementTransferUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Supervisor'
+            'name' => 'Supervisor',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -184,7 +185,8 @@ class TotalManagementTransferUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -249,7 +251,7 @@ class TotalManagementTransferUnitTest extends TestCase
             'crm_prospect_id' => 1, 
             'quota_applied' => 100, 
             'person_incharge' => 'test', 
-            'cost_quoted' => 10.22, 
+            'cost_quoted' => 10, 
             'remarks' => 'test'
         ];
         $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
@@ -339,7 +341,7 @@ class TotalManagementTransferUnitTest extends TestCase
             "file_url" => "google.com",
             "remarks" => "remarks testing"
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/update', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1,
