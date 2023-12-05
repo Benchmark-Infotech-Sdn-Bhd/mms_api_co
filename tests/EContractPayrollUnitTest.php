@@ -118,6 +118,22 @@ class EContractPayrollUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for EContract authorize Payroll
+     * 
+     * @return void
+     */
+    public function testForeContractPayrollAuthorizePayroll(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/eContract/payroll/add', $this->addData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/payroll/authorizePayroll', $this->authorizeData(), $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                []
+        ]);
+    }
+    /**
      * Functional test for EContract Payroll Update validation 
      * 
      * @return void
@@ -581,6 +597,17 @@ class EContractPayrollUnitTest extends TestCase
                 "ot_2_0_hrs_amount"=>  50,
                 "public_holiday_ot_3_0"=>  12,
                 "deduction_hostel"=>  300
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function authorizeData(): array
+    {
+        return [
+            "project_id"=>  1,
+            "month"=>  Carbon::now()->format('m'),
+            "year"=>  Carbon::now()->format('Y')
         ];
     }
 }

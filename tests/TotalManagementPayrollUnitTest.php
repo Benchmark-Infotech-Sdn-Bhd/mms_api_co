@@ -118,6 +118,21 @@ class TotalManagementPayrollUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for total management Payroll authorize Payroll
+     * 
+     * @return void
+     */
+    public function testForTotalManagementPayrollauthorizePayroll(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/payroll/add', $this->addData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/payroll/authorizePayroll', $this->authorizeData(), $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' => []
+        ]);
+    }
+    /**
      * @return void
      */
     public function creationSeeder(): void
@@ -136,10 +151,15 @@ class TotalManagementPayrollUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Supervisor'
+            'name' => 'Supervisor',
+            'special_permission' => '',
+            'system_role' => 0,
+            'status' => 1,
+            'parent_id' => 0,
+            'company_id' => 1
         ];
-        $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
-       
+        $res = $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
+
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
@@ -156,9 +176,10 @@ class TotalManagementPayrollUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
-        $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
         $payload =  [
             'name' => 'name',
@@ -177,6 +198,7 @@ class TotalManagementPayrollUnitTest extends TestCase
 
        $payload =  [
         'driver_name' => 'name',
+        'driver_email' => 'driver@mail.com',
         'driver_contact_number' => random_int(10, 1000),
         'vehicle_type' => 'type',
         'number_plate' => random_int(10, 1000),
@@ -613,6 +635,17 @@ class TotalManagementPayrollUnitTest extends TestCase
                 "ot_2_0_hrs_amount"=>  50,
                 "public_holiday_ot_3_0"=>  12,
                 "deduction_hostel"=>  300
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function authorizeData(): array
+    {
+        return [
+            "project_id"=>  1,
+            "month"=>  Carbon::now()->format('m'),
+            "year"=>  Carbon::now()->format('Y')
         ];
     }
 }

@@ -408,6 +408,7 @@ class TotalManagementServicesUnitTest extends TestCase
     public function testForTotalManagementProposalSubmit(): void
     {
         $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', $this->submitProposalData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
@@ -492,10 +493,15 @@ class TotalManagementServicesUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'Supervisor',
+            'special_permission' => '',
+            'system_role' => 0,
+            'status' => 1,
+            'parent_id' => 0,
+            'company_id' => 1
         ];
-        $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
-       
+        $res = $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
+
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
@@ -512,9 +518,36 @@ class TotalManagementServicesUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
-        $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
+
+        $payload =  [
+            'name' => 'name',
+            'type' => 'Transportation',
+            'email_address' => 'email@gmail.com',
+            'contact_number' => random_int(10, 1000),
+            'person_in_charge' => 'test',
+            'pic_contact_number' => random_int(10, 1000),
+            'address' => 'address',
+            'state' => 'state',
+            'city' => 'city',
+            'postcode' => random_int(10, 1000),
+            'remarks' => 'test',
+       ];
+       $response = $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
+
+       $payload =  [
+        'driver_name' => 'name',
+        'driver_email' => 'driver@mail.com',
+        'driver_contact_number' => random_int(10, 1000),
+        'vehicle_type' => 'type',
+        'number_plate' => random_int(10, 1000),
+        'vehicle_capacity' => random_int(10, 1000),
+        'vendor_id' => 1
+   ];
+   $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
 
         $payload =  [
             'sector_name' => 'Agriculture',
@@ -537,7 +570,7 @@ class TotalManagementServicesUnitTest extends TestCase
             'sector_type' => 1, 
             'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])
         ];
-        $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
 
         $payload = [
             "country_name" => "India",
@@ -822,14 +855,14 @@ class TotalManagementServicesUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['id' => 1, 'company_name' => 'ABC Firm', 'contact_number' => '768456948', 'email' => 'testcrm@gmail.com', 'pic_name' => 'PICTest', 'sector' => 1, 'from_existing' => 0, 'client_quota' => 10, 'fomnext_quota' => 10, 'initial_quota' => 1, 'service_quota' => 1];
+        return ['id' => 1, 'company_name' => 'ABC Firm', 'contact_number' => '768456948', 'email' => 'testcrm@gmail.com', 'pic_name' => 'PICTest', 'sector' => 1, 'from_existing' => 0, 'client_quota' => 20, 'fomnext_quota' => 20, 'initial_quota' => 10, 'service_quota' => 5];
     }
     /**
      * @return array
      */
     public function allocateQuotaData(): array
     {
-        return ['id' => 1, 'prospect_service_id' => 2, 'from_existing' => 1, 'client_quota' => 10, 'fomnext_quota' => 10, 'initial_quota' => 1, 'service_quota' => 1];
+        return ['id' => 1, 'prospect_service_id' => 1, 'from_existing' => 0, 'client_quota' => 20, 'fomnext_quota' => 20, 'initial_quota' => 10, 'service_quota' => 5];
     }
     /**
      * @return array
@@ -837,7 +870,7 @@ class TotalManagementServicesUnitTest extends TestCase
     public function submitProposalData(): array
     {
         return [
-            "id" => 1, "quota_requested" => 1, "person_incharge" => "PICTest", "cost_quoted" => 10.5, "reamrks" => "remarks", "file_url" => "test"
+            "id" => 1, "quota_requested" => 1, "person_incharge" => "PICTest", "cost_quoted" => 100.00, "reamrks" => "remarks", "attachment[]" => "test.png"
         ];
     }
 }
