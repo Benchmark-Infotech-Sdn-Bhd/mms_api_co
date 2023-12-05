@@ -106,7 +106,21 @@ class DirectRecruitmentOnboardingCountryServices
     public function ksmUpdateValidation(): array
     {
         return [
-            'id' => 'required',
+            'ksm_id' => 'required',
+            'ksm_reference_number' => 'required',
+            'valid_until' => 'required',
+            'quota' => 'required|regex:/^[0-9]+$/|max:3'
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function addKSMValidation(): array
+    {
+        return [
+            'onboarding_country_id' => 'required',
+            'ksm_reference_number' => 'required',
+            'valid_until' => 'required',
             'quota' => 'required|regex:/^[0-9]+$/|max:3'
         ];
     }
@@ -165,20 +179,6 @@ class DirectRecruitmentOnboardingCountryServices
                 'error' => $validator->errors()
             ];
         }
-        $checkCountry = $this->directRecruitmentOnboardingCountry->where('application_id', $request['application_id'])     
-                            ->where('country_id', $request['country_id'])
-                            ->first();
-        if(!empty($checkCountry)) {
-            $checkKSM = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $request['application_id'])
-                            ->where('onboarding_country_id', $checkCountry->id)
-                            ->where('ksm_reference_number', $request['ksm_reference_number'])
-                            ->first();
-            if(!empty($checkKSM)) {
-                return [
-                    'ksmNumberError' => true
-                ];
-            }
-        }
         $levyApproved = $this->levy->where('application_id', $request['application_id'])
                         ->where('new_ksm_reference_number', $request['ksm_reference_number'])
                         ->where('status', 'Paid')->sum('approved_quota');
@@ -191,20 +191,18 @@ class DirectRecruitmentOnboardingCountryServices
                 'ksmQuotaError' => true
             ];
         }    
-        if(empty($checkCountry)) {
-            $onboardingCountry = $this->directRecruitmentOnboardingCountry->create([
-                'application_id' => $request['application_id'] ?? 0,
-                'country_id' => $request['country_id'] ?? 0,
-                'quota' => $request['quota'] ?? 0,
-                'utilised_quota' => $request['utilised_quota'] ?? 0,
-                'status' => $request['status'] ?? 1,
-                'created_by' => $request['created_by'] ?? 0,
-                'modified_by' => $request['created_by'] ?? 0
-            ]);
-        }
+        $onboardingCountry = $this->directRecruitmentOnboardingCountry->create([
+            'application_id' => $request['application_id'] ?? 0,
+            'country_id' => $request['country_id'] ?? 0,
+            'quota' => $request['quota'] ?? 0,
+            'utilised_quota' => $request['utilised_quota'] ?? 0,
+            'status' => $request['status'] ?? 1,
+            'created_by' => $request['created_by'] ?? 0,
+            'modified_by' => $request['created_by'] ?? 0
+        ]);
         $this->onboardingCountriesKSMReferenceNumber->create([
             'application_id' => $request['application_id'] ?? 0,
-            'onboarding_country_id' => $onboardingCountry->id ?? $checkCountry->id,
+            'onboarding_country_id' => $onboardingCountry->id,
             'ksm_reference_number' => $request['ksm_reference_number'] ?? '',
             'valid_until' => $request['valid_until'] ?? '',
             'quota' => $request['quota'] ?? 0,
@@ -213,11 +211,7 @@ class DirectRecruitmentOnboardingCountryServices
             'created_by' => $request['created_by'] ?? 0,
             'modified_by' => $request['created_by'] ?? 0
         ]);
-        if (!empty($checkCountry)) {
-            $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($checkCountry->id);
-            $onboardingCountryDetails->quota = $onboardingCountryDetails->quota + $request['quota'];
-            $onboardingCountryDetails->save();
-        }
+       
         return true;
     }
     /**
@@ -246,6 +240,17 @@ class DirectRecruitmentOnboardingCountryServices
         $onboardingCountry->status =  $request['status'] ?? $onboardingCountry->status;
         $onboardingCountry->modified_by =  $request['modified_by'] ?? $onboardingCountry->modified_by;
         $onboardingCountry->save();
+
+        $ksmCount = $this->onboardingCountriesKSMReferenceNumber->where('onboarding_country_id', $onboardingCountry->id)->count('id');
+        if($ksmCount == 1) {
+            return $this->ksmQuotaUpdate($request);
+        } else if($ksmCount > 1) {
+            if(isset($request['ksm_id'])) {
+                return [
+                    'updateError' => true
+                ];
+            }
+        }
         return true;
     }
     /**
@@ -323,7 +328,7 @@ class DirectRecruitmentOnboardingCountryServices
                 'error' => $validator->errors()
             ];
         }
-        $ksmDetails = $this->onboardingCountriesKSMReferenceNumber->findOrFail($request['id']);
+        $ksmDetails = $this->onboardingCountriesKSMReferenceNumber->findOrFail($request['ksm_id']);
         $agentDetails = $this->directRecruitmentOnboardingAgent
                                 ->where('onboarding_country_id', $ksmDetails->onboarding_country_id)
                                 ->where('ksm_reference_number', $ksmDetails->ksm_reference_number)
@@ -337,7 +342,7 @@ class DirectRecruitmentOnboardingCountryServices
         $checkKSM = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $ksmDetails->application_id)
                             ->where('onboarding_country_id', $ksmDetails->onboarding_country_id)
                             ->where('ksm_reference_number', $request['ksm_reference_number'])
-                            ->where('id', '<>', $request['id'])
+                            ->where('id', '<>', $request['ksm_id'])
                             ->first();
         if(!empty($checkKSM)) {
             return [
@@ -351,7 +356,7 @@ class DirectRecruitmentOnboardingCountryServices
                 
         $ksmQuota = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $ksmDetails->application_id)
                             ->where('ksm_reference_number', $request['ksm_reference_number'])
-                            ->where('id', '<>', $request['id'])
+                            ->where('id', '<>', $request['ksm_id'])
                             ->sum('quota');
         
         if($levyApproved < ($ksmQuota + $request['quota'])) {
@@ -363,6 +368,7 @@ class DirectRecruitmentOnboardingCountryServices
         $currentQuota = 0;
         $oldKSMQuota = $ksmDetails->quota;
         $ksmDetails->ksm_reference_number =  $request['ksm_reference_number'] ?? $ksmDetails->ksm_reference_number;
+        $ksmDetails->valid_until =  $request['valid_until'] ?? $ksmDetails->valid_until;
         $ksmDetails->quota =  $request['quota'] ?? $ksmDetails->quota;
         $ksmDetails->modified_by =  $request['modified_by'] ?? $ksmDetails->modified_by;
         $ksmDetails->save();
@@ -401,6 +407,65 @@ class DirectRecruitmentOnboardingCountryServices
         $onboardingCountryDetails->quota = $currentQuota;
         $onboardingCountryDetails->save();
         $ksmDetails->delete();
+        return true;
+    }
+    /**
+     * @param $request
+     * @return bool|array
+     */
+    public function addKSM($request): bool|array
+    {
+        $validator = Validator::make($request, $this->addKSMValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        $checkCountry = $this->directRecruitmentOnboardingCountry->find($request['onboarding_country_id']);
+        $agentDetails = $this->directRecruitmentOnboardingAgent
+                                ->where('onboarding_country_id', $checkCountry->id)
+                                ->first();
+        if(isset($agentDetails) && !empty($agentDetails)) {
+            return [
+                'editError' => true
+            ];
+        }
+        if(!is_null($checkCountry)) {
+            $checkKSM = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $checkCountry->application_id)
+                            ->where('onboarding_country_id', $checkCountry->id)
+                            ->where('ksm_reference_number', $request['ksm_reference_number'])
+                            ->first();
+            if(!empty($checkKSM)) {
+                return [
+                    'ksmNumberError' => true
+                ];
+            }
+        }
+        $levyApproved = $this->levy->where('application_id', $checkCountry->application_id)
+                        ->where('new_ksm_reference_number', $request['ksm_reference_number'])
+                        ->where('status', 'Paid')->sum('approved_quota');
+                        
+        $ksmQuota = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $checkCountry->application_id)
+                            ->where('ksm_reference_number', $request['ksm_reference_number'])
+                            ->sum('quota');
+        if($levyApproved < ($ksmQuota + $request['quota'])) {
+            return [
+                'ksmQuotaError' => true
+            ];
+        }  
+        $this->onboardingCountriesKSMReferenceNumber->create([
+            'application_id' => $checkCountry->application_id ?? 0,
+            'onboarding_country_id' => $checkCountry->id,
+            'ksm_reference_number' => $request['ksm_reference_number'] ?? '',
+            'valid_until' => $request['valid_until'] ?? '',
+            'quota' => $request['quota'] ?? 0,
+            'utilised_quota' => $request['utilised_quota'] ?? 0,
+            'status' => $request['status'] ?? 1,
+            'created_by' => $request['modified_by'] ?? 0,
+            'modified_by' => $request['modified_by'] ?? 0
+        ]);
+        $checkCountry->quota = $checkCountry->quota + $request['quota'];
+        $checkCountry->save();
         return true;
     }
 }
