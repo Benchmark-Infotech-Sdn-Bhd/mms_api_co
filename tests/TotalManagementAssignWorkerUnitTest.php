@@ -268,7 +268,7 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
     public function testForTotalManagementWorkerListing(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/workerListForAssignWorker', ['prospect_id' => 1, 'search' => 'tes', 'company_filter' => '', 'ksm_reference_number' => ''], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/workerListForAssignWorker', ['prospect_id' => 1, 'search' => '', 'company_filter' => '', 'ksm_reference_number' => ''], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -308,7 +308,8 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -328,7 +329,8 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -441,12 +443,26 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
 
         $payload = [
             'id' => 1, 
+            'company_name' => 'ABC Firm', 
+            'contact_number' => '768456948', 
+            'email' => 'testcrm@gmail.com', 
+            'pic_name' => 'PICTest', 
+            'sector' => 1, 
+            'contract_type' => 'Zero Cost', 
+            'service_id' => 1
+        ];
+
+        $this->json('POST', 'api/v1/directRecruitment/addService', $payload, $this->getHeader(false));
+
+        $payload = [
+            'id' => 1, 
             'crm_prospect_id' => 1, 
             'quota_applied' => 100, 
             'person_incharge' => 'test', 
             'cost_quoted' => 10.22, 
             'remarks' => 'test'
         ];
+
         $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
         
         $payload = [
@@ -504,7 +520,8 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'country_id' => 1, 
-            'quota' => 20
+            'quota' => 20,
+            'ksm_reference_number' => 'My/992/095648000'
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
         
@@ -523,9 +540,10 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
             'agent_id' => 1, 
-            'quota' => 20
+            'quota' => 20,
+            'ksm_reference_number' => 'My/992/095648000', 
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));        
 
         $payload = [
             "id" => 1,
@@ -670,7 +688,7 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
             'dispatch_method' => 'Courier',
             'dispatch_consignment_number' => '123456789',
             'dispatch_acknowledgement_number' => '123456789',
-            'workers' => 1
+            'workers' => [1]
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/dispatch/update', $payload, $this->getHeader(false));
 
@@ -734,7 +752,22 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
         $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false));
 
         $payload = [
-            "id" => 1, 
+            'id' => 1, 
+            'company_name' => 'ABC Firm', 
+            'contact_number' => '768456948', 
+            'email' => 'testcrm@gmail.com', 
+            'pic_name' => 'PICTest', 
+            'sector' => 1, 
+            'from_existing' => 0, 
+            'client_quota' => 10, 
+            'fomnext_quota' => 10, 
+            'initial_quota' => 10, 
+            'service_quota' => 10
+        ];
+        $this->json('POST', 'api/v1/totalManagement/addService', $payload, $this->getHeader(false));
+
+        $payload = [
+            "id" => 2, 
             "quota_requested" => 10, 
             "person_incharge" => "PICTest", 
             "cost_quoted" => 10.5, 
@@ -744,20 +777,23 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
         $this->json('POST', 'api/v1/totalManagement/submitProposal', $payload, $this->getHeader(false));
 
         $payload = [
-            "application_id" => 1,
+            "application_id" => 2,
             "name" => "test name",
             "state" => "state test",
             "city" => "city test",
             "address" => "test address",
-            "employee_id" => 1,
+            //"employee_id" => 1,
             "transportation_provider_id" => 2,
-            "driver_id" => 1,
-            "assign_as_supervisor" => 0,
+            "driver_id" => 2,
+            //"assign_as_supervisor" => 0,
             "annual_leave" => 10,
             "medical_leave" => 10,
-            "hospitalization_leave" => 10
+            "hospitalization_leave" => 10,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee"
         ];
         $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
+
     }
     /**
      * @return array
