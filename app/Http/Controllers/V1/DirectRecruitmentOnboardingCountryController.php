@@ -75,8 +75,6 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             $response = $this->directRecruitmentOnboardingCountryServices->create($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
-            } else if(isset($response['quotaError'])) {
-                return $this->sendError(['message' => 'The number of quota cannot exceed the Approved Quota'], 422);
             } else if(isset($response['ksmQuotaError'])) {
                 return $this->sendError(['message' => 'The number of quota cannot exceed the Approved KSM Quota'], 422);
             }
@@ -129,14 +127,12 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             $response = $this->directRecruitmentOnboardingCountryServices->addKSM($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
-            } else if(isset($response['editError'])) {
-                return $this->sendError(['message' => 'Agent added for this record, users are not allowed to modify the records.'], 422);
             } else if(isset($response['ksmQuotaError'])) {
                 return $this->sendError(['message' => 'The number of quota cannot exceed the Approved KSM Quota'], 422);
             } else if(isset($response['ksmNumberError'])) {
                 return $this->sendError(['message' => 'The KSM Reference Number Already Added for this Country'], 422);
             }
-            return $this->sendSuccess(['message' => 'Country Updated Successfully']);
+            return $this->sendSuccess(['message' => 'KSM Refrence Number Added Successfully']);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Faild to Update Country'], 400);

@@ -106,7 +106,7 @@ class DirectRecruitmentOnboardingCountryServices
     public function ksmUpdateValidation(): array
     {
         return [
-            'ksm_id' => 'required',
+            'id' => 'required',
             'ksm_reference_number' => 'required',
             'valid_until' => 'required',
             'quota' => 'required|regex:/^[0-9]+$/|max:3'
@@ -140,7 +140,7 @@ class DirectRecruitmentOnboardingCountryServices
         }
         
         return $this->directRecruitmentOnboardingCountry->with(['onboardingKSMReferenceNumbers' => function ($query) {
-            $query->select('id', 'onboarding_country_id', 'ksm_reference_number', 'quota', 'utilised_quota');
+            $query->select('id', 'onboarding_country_id', 'ksm_reference_number', 'valid_until', 'quota', 'utilised_quota');
         }])->leftJoin('countries', 'countries.id', 'directrecruitment_onboarding_countries.country_id')
         ->leftJoin('directrecruitment_onboarding_status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_status.id')
             ->where('directrecruitment_onboarding_countries.application_id', $request['application_id'])
@@ -164,7 +164,7 @@ class DirectRecruitmentOnboardingCountryServices
                 $join->on('directrecruitment_onboarding_agent.ksm_reference_number', 'onboarding_countries_ksm_reference_number.ksm_reference_number')
                 ->on('directrecruitment_onboarding_agent.onboarding_country_id', 'onboarding_countries_ksm_reference_number.onboarding_country_id');
             })
-            ->select('onboarding_countries_ksm_reference_number.id', 'onboarding_countries_ksm_reference_number.onboarding_country_id', 'onboarding_countries_ksm_reference_number.ksm_reference_number', 'onboarding_countries_ksm_reference_number.quota', 'onboarding_countries_ksm_reference_number.utilised_quota', 'directrecruitment_onboarding_agent.id as agent_id', \DB::raw("(CASE WHEN directrecruitment_onboarding_agent.id is not null THEN '0' ELSE '1' END) AS edit_flag"));
+            ->select('onboarding_countries_ksm_reference_number.id', 'onboarding_countries_ksm_reference_number.onboarding_country_id', 'onboarding_countries_ksm_reference_number.ksm_reference_number', 'onboarding_countries_ksm_reference_number.valid_until', 'onboarding_countries_ksm_reference_number.quota', 'onboarding_countries_ksm_reference_number.utilised_quota', 'directrecruitment_onboarding_agent.id as agent_id', \DB::raw("(CASE WHEN directrecruitment_onboarding_agent.id is not null THEN '0' ELSE '1' END) AS edit_flag"));
         }])->leftJoin('directrecruitment_onboarding_status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_status.id')->select('directrecruitment_onboarding_countries.*', 'directrecruitment_onboarding_status.name as onboarding_status_name')->find($request['id']);
     }
     /**
@@ -243,9 +243,10 @@ class DirectRecruitmentOnboardingCountryServices
 
         $ksmCount = $this->onboardingCountriesKSMReferenceNumber->where('onboarding_country_id', $onboardingCountry->id)->count('id');
         if($ksmCount == 1) {
-            return $this->ksmQuotaUpdate($request);
+            $request['ksm_detail']['modified_by'] = $request['modified_by'];
+            return $this->ksmQuotaUpdate($request['ksm_detail']);
         } else if($ksmCount > 1) {
-            if(isset($request['ksm_id'])) {
+            if(isset($request['ksm_detail'])) {
                 return [
                     'updateError' => true
                 ];
@@ -328,7 +329,7 @@ class DirectRecruitmentOnboardingCountryServices
                 'error' => $validator->errors()
             ];
         }
-        $ksmDetails = $this->onboardingCountriesKSMReferenceNumber->findOrFail($request['ksm_id']);
+        $ksmDetails = $this->onboardingCountriesKSMReferenceNumber->findOrFail($request['id']);
         $agentDetails = $this->directRecruitmentOnboardingAgent
                                 ->where('onboarding_country_id', $ksmDetails->onboarding_country_id)
                                 ->where('ksm_reference_number', $ksmDetails->ksm_reference_number)
@@ -342,7 +343,7 @@ class DirectRecruitmentOnboardingCountryServices
         $checkKSM = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $ksmDetails->application_id)
                             ->where('onboarding_country_id', $ksmDetails->onboarding_country_id)
                             ->where('ksm_reference_number', $request['ksm_reference_number'])
-                            ->where('id', '<>', $request['ksm_id'])
+                            ->where('id', '<>', $request['id'])
                             ->first();
         if(!empty($checkKSM)) {
             return [
@@ -356,7 +357,7 @@ class DirectRecruitmentOnboardingCountryServices
                 
         $ksmQuota = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $ksmDetails->application_id)
                             ->where('ksm_reference_number', $request['ksm_reference_number'])
-                            ->where('id', '<>', $request['ksm_id'])
+                            ->where('id', '<>', $request['id'])
                             ->sum('quota');
         
         if($levyApproved < ($ksmQuota + $request['quota'])) {
@@ -422,14 +423,6 @@ class DirectRecruitmentOnboardingCountryServices
             ];
         }
         $checkCountry = $this->directRecruitmentOnboardingCountry->find($request['onboarding_country_id']);
-        $agentDetails = $this->directRecruitmentOnboardingAgent
-                                ->where('onboarding_country_id', $checkCountry->id)
-                                ->first();
-        if(isset($agentDetails) && !empty($agentDetails)) {
-            return [
-                'editError' => true
-            ];
-        }
         if(!is_null($checkCountry)) {
             $checkKSM = $this->onboardingCountriesKSMReferenceNumber->where('application_id', $checkCountry->application_id)
                             ->where('onboarding_country_id', $checkCountry->id)
