@@ -72,9 +72,17 @@ class DashboardServices
      */   
     public function list($request): mixed
     {
-        $workerCount = $this->workers->where('crm_prospect_id',0)
-                        ->whereIn('company_id', $request['company_id'])
-                        ->count('id');
+        $workerCount = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+        ->leftJoin('worker_employment', function ($join) {
+            $join->on('workers.id', '=', 'worker_employment.worker_id')
+                    ->where('worker_employment.transfer_flag', 0)
+                    ->whereNull('worker_employment.remove_date');
+        })
+        ->where('workers.crm_prospect_id',0)
+        ->whereIn('workers.company_id', $request['company_id'])
+        ->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
+		WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
+		ELSE 'On-Bench' END) IN('On-Bench','Assigned','Counselling','e-Run')")->count('workers.id');
                         
         $workerOnbenchCount = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
         ->leftJoin('worker_employment', function ($join) {
