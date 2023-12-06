@@ -742,6 +742,16 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('xeroGetItems', 'V1\InvoiceController@xeroGetItems');
         });
 
+        $router->group(['prefix' => 'quickBooks'], function () use ($router) {
+            $router->post('accessToken', 'V1\QuickBooksController@accessToken');
+            $router->post('refreshToken', 'V1\QuickBooksController@refreshToken');
+            $router->post('invoiceCreate', 'V1\QuickBooksController@invoiceCreate');
+            $router->post('invoiceShow', 'V1\QuickBooksController@invoiceShow');
+            $router->post('customerCreate', 'V1\QuickBooksController@customerCreate');
+            $router->post('customerShow', 'V1\QuickBooksController@customerShow');
+            $router->post('customerCreateError', 'V1\QuickBooksController@customerCreateError');
+        });
+
         /**
         * Routes for Application Summary.
         */

@@ -139,4 +139,13 @@ return [
     'ACCESS_MODULE_TYPE' => ['Dashboard', 'Maintain Masters', 'Branches', 'CRM', 'Direct Recruitment', 'e-Contract', 'Total Management', 'Employee', 'Access Management', 'Workers', 'Dispatch Management', 'Invoice', 'Reports'],
 
     'NOT_UTILISED_STATUS_TYPE' => ['Pending', 'Rejected', 'Repatriated', 'Cancelled', 'Expired'],
+
+
+    'QUICKBOOKS_CLIENT_ID' => env('QUICKBOOKS_CLIENT_ID'),
+    'QUICKBOOKS_CLIENT_SECRET' => env('QUICKBOOKS_CLIENT_SECRET'),
+    'QUICKBOOKS_REDIRECT_URI' => env('QUICKBOOKS_REDIRECT_URI'),
+    'QUICKBOOKS_ACCESS_TOKEN' => env('QUICKBOOKS_ACCESS_TOKEN'),
+    'QUICKBOOKS_REFRESH_TOKEN' => env('QUICKBOOKS_REFRESH_TOKEN'),
+    'QUICKBOOKS_REALM_ID' => env('QUICKBOOKS_REALM_ID'),
+    'QUICKBOOKS_BASE_URL' => env('QUICKBOOKS_BASE_URL'),
 ];
