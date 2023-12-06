@@ -32,6 +32,51 @@ class EContractWorkerEventUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for EContract worker event create field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractWorkerEventCreateEventDateValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerEvent/create', array_merge($this->creationData(), ['event_date' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'event_date' => ['The event date field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for EContract worker event create field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractWorkerEventCreateEventDateFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerEvent/create', array_merge($this->creationData(), ['event_date' => Carbon::now()->format('Y/m/d')]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'event_date' => ['The event date does not match the format Y-m-d.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for EContract worker event create field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractWorkerEventCreateEventTypeValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerEvent/create', array_merge($this->creationData(), ['event_type' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'event_type' => ['The event type field is required.']
+            ]
+        ]);
+    }
+    /**
      * Functional test for EContract worker event create 
      * 
      * @return void
@@ -135,6 +180,21 @@ class EContractWorkerEventUnitTest extends TestCase
                 ]
         ]);
     }
+    /**
+     * Functional test for attachment delete
+     * 
+     * @return void
+     */
+    public function testForEContractWorkerEventattachmentDelete(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerEvent/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerEvent/deleteAttachment', ["id" => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' => []
+        ]);
+    }
     
     /**
      * @return void
@@ -155,7 +215,12 @@ class EContractWorkerEventUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Supervisor'
+            'name' => 'Supervisor',
+            'special_permission' => '',
+            'system_role' => 0,
+            'status' => 1,
+            'parent_id' => 0,
+            'company_id' => 1
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -166,7 +231,7 @@ class EContractWorkerEventUnitTest extends TestCase
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
-            'contact_number' => 238467,
+            'contact_number' => '0123456789',
             'address' => 'Addres', 
             'postcode' => 2344, 
             'position' => 'Position', 
@@ -175,7 +240,8 @@ class EContractWorkerEventUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
