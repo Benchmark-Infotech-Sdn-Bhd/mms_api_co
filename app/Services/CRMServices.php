@@ -153,7 +153,7 @@ class CRMServices
             'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/|unique:crm_prospects,roc_number,'.$params['id'].',id,deleted_at,NULL',
             'director_or_owner' => 'required|regex:/^[a-zA-Z ]*$/',
             'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
-            'email' => 'required|unique:crm_prospects,email,'.$params['id'].',id,deleted_at,NULL',
+            'email' => 'required|email|unique:crm_prospects,email,'.$params['id'].',id,deleted_at,NULL',
             'address' => 'required',
             'pic_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'pic_contact_number' => 'required|regex:/^[0-9]+$/|max:11',

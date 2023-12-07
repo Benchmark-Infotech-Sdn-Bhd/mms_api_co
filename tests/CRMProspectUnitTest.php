@@ -773,6 +773,21 @@ class CRMProspectUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for CRM prospect update, email Format validation 
+     * 
+     * @return void
+     */
+    public function testForProspectUpdateEmailFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['email' => 'gdshgsggsghvhs']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'email' => ['The email must be a valid email address.']
+            ]
+        ]);
+    }
+    /**
      * Functional test for CRM prospect update email unique validation 
      * 
      * @return void
