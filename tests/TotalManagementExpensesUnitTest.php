@@ -544,7 +544,8 @@ class TotalManagementExpensesUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -564,7 +565,8 @@ class TotalManagementExpensesUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -592,14 +594,16 @@ class TotalManagementExpensesUnitTest extends TestCase
         $payload =  [
             'driver_name' => 'TransOne',
             'driver_contact_number' => 1234567899,
+            'driver_email' => 'test@gmail.com',
             'vehicle_type' => 'test',
             'number_plate' => '1234',
             'vehicle_capacity' => 4,
-            'vendor_id' => 1
-        ];  
+            'vendor_id' => 1,
+            'file_url' => 'test'
+        ];   
         $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
 
-        $payload = [
+         $payload = [
             'company_name' => 'ABC Firm', 
             'contract_type' => 'Zero Cost', 
             'roc_number' => 'APS6376', 
@@ -612,7 +616,7 @@ class TotalManagementExpensesUnitTest extends TestCase
             'pic_designation' => 'Manager', 
             'registered_by' => 1, 
             'sector_type' => 1, 
-            'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"]])
+            'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])
         ];
         $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
 
@@ -697,18 +701,20 @@ class TotalManagementExpensesUnitTest extends TestCase
         $this->json('POST', 'api/v1/totalManagement/submitProposal', $payload, $this->getHeader(false));
 
         $payload = [
-            'application_id' => 1,
-            'name' => 'test name',
-            'state' => 'state test',
-            'city' => 'city test',
-            'address' => 'test address',
-            'employee_id' => 1,
-            'transportation_provider_id' => 1,
-            'driver_id' => 1,
-            'assign_as_supervisor' => 0,
-            'annual_leave' => 10,
-            'medical_leave' => 10,
-            'hospitalization_leave' => 10
+            "application_id" => 1,
+            "name" => "test name",
+            "state" => "state test",
+            "city" => "city test",
+            "address" => "test address",
+            //"employee_id" => 1,
+            "transportation_provider_id" => 1,
+            "driver_id" => 1,
+            //"assign_as_supervisor" => 0,
+            "annual_leave" => 10,
+            "medical_leave" => 10,
+            "hospitalization_leave" => 10,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee"
         ];
         $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
 

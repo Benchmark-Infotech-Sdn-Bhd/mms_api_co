@@ -140,6 +140,25 @@ class AgentsTest extends TestCase
             ]
         ]);
     }
+        /**
+     * Functional test to validate Duplicate Email
+     * 
+     * @return void
+     */
+    public function testForEmailDuplicateValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationDuplicateEmailData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/agent/create', $this->creationDuplicateEmailData(), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "email_address" => [
+                    "The email address has already been taken."
+                ]
+            ]
+        ]);
+    }
     /**
      * Functional test to validate minimum/maximum characters for fields in Agent creation
      * 
@@ -375,8 +394,9 @@ class AgentsTest extends TestCase
      */
     public function testForAgentUpdationValidation(): void
     {
+        $this->creationSeeder();
         $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(), 
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['id' => '','agent_name' => '', 'country_id' => '', 'city' => '', 'person_in_charge' => '',
         'pic_contact_number' => '', 'email_address' => '', 'company_address' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -404,11 +424,311 @@ class AgentsTest extends TestCase
         ]);
     }
     /**
+     * Functional test to validate Id in Agent Updation
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationIdValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['id' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "id" => [
+                    "The id field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate name Agent Updation
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationAgentNameValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['agent_name' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "agent_name" => [
+                    "The agent name field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate country Id Agent Updation
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationCountryIdValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['country_id' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "country_id" => [
+                    "The country id field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate PIC in Agent Updation
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationPICValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['person_in_charge' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "person_in_charge" => [
+                    "The person in charge field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate PIC Contact in Agent Updation
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationPicContactValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['pic_contact_number' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "pic_contact_number" => [
+                    "The pic contact number field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate email in Agent Updation
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationEmailValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['email_address' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "email_address" => [
+                    "The email address field is required."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate email in Agent Updation Email duplication
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationEmailDuplicationValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationDuplicateEmailData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['id' => 2,'email_address' => 'testduplicate@gmail.com']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "email_address" => [
+                    "The email address has already been taken."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate minimum/maximum characters for fields in Agent name
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationAgentNameMinMaxFieldValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['agent_name' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiuery sdjrkwiherihwijerhtwrt ']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "agent_name" => [
+                    "The agent name must not be greater than 250 characters."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate minimum/maximum characters for fields in City
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationCityMinMaxFieldValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['city' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "city" => [
+                    "The city must not be greater than 150 characters."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate minimum/maximum characters for fields in PIC
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationPICMinMaxFieldValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['person_in_charge' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiuery sdrter retyeyt etyuetesardkejjrkererrrrre']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "person_in_charge" => [
+                    "The person in charge must not be greater than 255 characters."
+                ]
+            ]
+        ]);
+    }
+        /**
+     * Functional test to validate minimum/maximum characters for fields in PIC Contact
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationPICContactMinMaxFieldValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['pic_contact_number' => '9834736453465']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "pic_contact_number" => [
+                    "The pic contact number must not be greater than 11 characters."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate format for fields in Agent name
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationAgentNameFieldFormatValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['agent_name' => '12323Aer r4']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "agent_name" => [
+                    "The agent name format is invalid."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate format for fields in City
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationCityFieldFormatValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['city' => '12334@34fg r']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "city" => [
+                    "The city format is invalid."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate format for fields in PIC Contact Number
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationPICContactNumberFieldFormatValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['pic_contact_number' => 'ABC']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "pic_contact_number" => [
+                    "The pic contact number format is invalid."
+                ]
+            ]
+        ]);
+    }
+        /**
+     * Functional test to validate format for fields in Email
+     * 
+     * @return void
+     */
+    public function testForAgentUpdationEmailFieldFormatValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
+        ['email_address' => 'test']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "email_address" => [
+                    "The email address must be a valid email address."
+                ]
+            ]
+        ]);
+    }
+    /**
      * Functional test for create Agent
      */
     public function testForCreateAgent(): void
     {
-        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
@@ -434,7 +754,7 @@ class AgentsTest extends TestCase
      */
     public function testForUpdateAgent(): void
     {
-        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->creationSeeder();
         $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
@@ -451,7 +771,7 @@ class AgentsTest extends TestCase
      */
     public function testForDeleteAgent(): void
     {
-        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->creationSeeder();
         $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/delete', ['id' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
@@ -468,7 +788,7 @@ class AgentsTest extends TestCase
      */
     public function testForListingAgentsWithSearch(): void
     {
-        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->creationSeeder();
         $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/list', ['search_param' => ''], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
@@ -511,7 +831,7 @@ class AgentsTest extends TestCase
      */
     public function testForViewAgent(): void
     {
-        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->creationSeeder();
         $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
@@ -574,7 +894,7 @@ class AgentsTest extends TestCase
      */
     public function testForUpdateAgentStatus(): void
     {
-        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->creationSeeder();
         $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/updateStatus', ['id' => 1, 'status' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
@@ -587,12 +907,47 @@ class AgentsTest extends TestCase
         ]);
     }
     /**
+     * Functional test for Agent dropdown
+     */
+    public function testForAgentDropdown(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/agent/dropdown', [], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            "data"
+        ]);
+    }
+    /**
+     * @return void
+     */
+    public function creationSeeder(): void
+    {
+        $this->artisan("db:seed --class=unit_testing_company");
+        $payload = [
+            "country_name" => "India",
+            "system_type" => "Embassy",
+            "fee" => 500,
+            "bond" => 25
+        ];
+        $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader());
+    }
+    /**
      * @return array
      */
     public function creationData(): array
     {
         return ['agent_name' => 'ABC', 'country_id' => 1, 'city' => 'CBE', 'person_in_charge' => 'ABC',
     'pic_contact_number' => '9823477867', 'email_address' => 'test@gmail.com', 'company_address' => 'Test'];
+    }
+    /**
+     * @return array
+     */
+    public function creationDuplicateEmailData(): array
+    {
+        return ['agent_name' => 'ABC', 'country_id' => 1, 'city' => 'CBE', 'person_in_charge' => 'ABC',
+    'pic_contact_number' => '9823477867', 'email_address' => 'testduplicate@gmail.com', 'company_address' => 'Test'];
     }
     /**
      * @return array

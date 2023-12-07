@@ -268,7 +268,7 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
     public function testForTotalManagementWorkerListing(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/workerListForAssignWorker', ['prospect_id' => 1, 'search' => '', 'company_filter' => '', 'ksm_reference_number' => ''], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/workerListForAssignWorker', ['prospect_id' => 1, 'search' => '', 'company_filter' => '', 'ksm_reference_number' => '', 'application_id' => 1, 'page' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -400,6 +400,7 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
         $payload =  [
             'driver_name' => 'TransOne',
             'driver_contact_number' => 1234567899,
+            'driver_email' => 'test@gmail.com',
             'vehicle_type' => 'test',
             'number_plate' => '1234',
             'vehicle_capacity' => 4,
@@ -783,8 +784,8 @@ class TotalManagementAssignWorkerUnitTest extends TestCase
             "city" => "city test",
             "address" => "test address",
             //"employee_id" => 1,
-            "transportation_provider_id" => 2,
-            "driver_id" => 2,
+            "transportation_provider_id" => 1,
+            "driver_id" => 1,
             //"assign_as_supervisor" => 0,
             "annual_leave" => 10,
             "medical_leave" => 10,

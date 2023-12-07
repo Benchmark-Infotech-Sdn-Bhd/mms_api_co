@@ -55,6 +55,30 @@ class FeeRegistrationTest extends TestCase
             'data' => ['cost']
         ]);
     }
+    /**
+     * A test method for validate cost
+     * 
+     * @return void
+     */
+    public function testFeeRegInvalidCostValidation(): void
+    {
+        $payload =  [
+            'item_name' => 'test',
+            'cost' => '15.4565',
+            'fee_type' => 'Proposal',
+            'applicable_for' => [1,2,3],
+            'sectors' => [1,2,3],
+       ];
+        $response = $this->json('POST', 'api/v1/feeRegistration/create', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "cost" => [
+                    "The cost format is invalid."
+                ]
+            ]
+        ]);
+    }
 
     /**
      * A test method for validate fee type
@@ -100,6 +124,115 @@ class FeeRegistrationTest extends TestCase
                     "cost",
                     "fee_type"
                 ]
+        ]);
+    }
+    /**
+     * A test method for validate Id on Update Fee Registration
+     * 
+     * @return void
+     */
+    public function testFeeRegUpdateIdValidation(): void
+    {
+        $payload =  [
+            'id' => '',
+            'item_name' => 'Uplabs',
+            'cost' => '15',
+            'fee_type' => 'Proposal',
+            'applicable_for' => [1,2,3],
+            'sectors' => [1,2,3],
+       ];
+        $response = $this->json('POST', 'api/v1/feeRegistration/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['id']
+        ]);
+    }
+    /**
+     * A test method for validate ItemName on Update Fee Registration
+     * 
+     * @return void
+     */
+    public function testFeeRegUpdateItemNameValidation(): void
+    {
+        $payload =  [
+            'id' => '1',
+            'item_name' => '',
+            'cost' => '15',
+            'fee_type' => 'Proposal',
+            'applicable_for' => [1,2,3],
+            'sectors' => [1,2,3],
+       ];
+        $response = $this->json('POST', 'api/v1/feeRegistration/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['item_name']
+        ]);
+    }
+    /**
+     * A test method for validate Cost on Update Fee Registration
+     * 
+     * @return void
+     */
+    public function testFeeRegUpdateCostValidation(): void
+    {
+        $payload =  [
+            'id' => '1',
+            'item_name' => 'Uplabs',
+            'cost' => '',
+            'fee_type' => 'Proposal',
+            'applicable_for' => [1,2,3],
+            'sectors' => [1,2,3],
+       ];
+        $response = $this->json('POST', 'api/v1/feeRegistration/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['cost']
+        ]);
+    }
+    /**
+     * A test method for validate cost Format on Update Fee Registration
+     * 
+     * @return void
+     */
+    public function testFeeRegUpdateInvalidCostValidation(): void
+    {
+        $payload =  [
+            'id' => '1',
+            'item_name' => 'test',
+            'cost' => '15.4565',
+            'fee_type' => 'Proposal',
+            'applicable_for' => [1,2,3],
+            'sectors' => [1,2,3],
+       ];
+        $response = $this->json('POST', 'api/v1/feeRegistration/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
+                "cost" => [
+                    "The cost format is invalid."
+                ]
+            ]
+        ]);
+    }
+    /**
+     * A test method for validate Fee Type on Update Fee Registration
+     * 
+     * @return void
+     */
+    public function testFeeRegUpdateFeeTypeValidation(): void
+    {
+        $payload =  [
+            'id' => '1',
+            'item_name' => 'Uplabs',
+            'cost' => '15',
+            'fee_type' => '',
+            'applicable_for' => [1,2,3],
+            'sectors' => [1,2,3],
+       ];
+        $response = $this->json('POST', 'api/v1/feeRegistration/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJsonStructure([
+            'data' => ['fee_type']
         ]);
     }
     /**
