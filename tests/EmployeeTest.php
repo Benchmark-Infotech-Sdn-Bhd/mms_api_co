@@ -1032,6 +1032,24 @@ class EmployeeTest extends TestCase
         ]);
     }
     /**
+     * Functional test to list Employees
+     */
+    public function testForListingEmployeesupervisorList(): void
+    {
+        $this->json('POST', 'api/v1/branch/create', ['branch_name' => 'Test', 'state' => 'state',
+        'city' => 'city', 'branch_address' => 'address', 'postcode' => 9876, 'service_type' => [1,2,3],
+        'remarks' => 'test'], $this->getHeader());
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Supervisor', 'special_permission' => '','system_role' => 0,'status' => 1,'parent_id' => 0,'company_id' => 1], $this->getHeader(false));
+        $this->json('POST', 'api/v1/employee/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/employee/supervisorList', ['search_param' => ''], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            "data" =>
+                [
+                ]
+        ]);
+    }
+    /**
      * @return array
      */
     public function creationData(): array

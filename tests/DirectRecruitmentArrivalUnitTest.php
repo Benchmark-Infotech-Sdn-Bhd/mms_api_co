@@ -236,7 +236,12 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => '',
+            'system_role' => 0,
+            'status' => 1,
+            'parent_id' => 0,
+            'company_id' => 1
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -247,7 +252,7 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
-            'contact_number' => 238467,
+            'contact_number' => 1234567890,
             'address' => 'Addres', 
             'postcode' => 2344, 
             'position' => 'Position', 
@@ -256,7 +261,8 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -336,7 +342,7 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
             'application_id' => 1, 
             'payment_date' => Carbon::now()->format('Y-m-d'), 
             'payment_amount' => 10.87, 
-            'approved_quota' => 10, 
+            'approved_quota' => 50, 
             'ksm_reference_number' => 'My/643/7684548', 
             'payment_reference_number' => 'SVZ498787', 
             'approval_number' => 'ADR4674', 
@@ -347,7 +353,7 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'ksm_reference_number' => 'My/643/7684548', 
+            'ksm_reference_number' => 'My/992/095648000', 
             'received_date' => Carbon::now()->format('Y-m-d'), 
             'valid_until' => Carbon::now()->addYear()->format('Y-m-d')
         ];
@@ -356,10 +362,12 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'country_id' => 1, 
-            'quota' => 15
+            'ksm_reference_number' => 'My/992/095648000',
+            'valid_until' => Carbon::now()->format('Y-m-d'),
+            'quota' => 15,
+            'utilised_quota' => 10
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
-        
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
         $payload = [
             'agent_name' => 'ABC', 
             'country_id' => 1, 
@@ -375,10 +383,19 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
             'agent_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648000',
             'quota' => 10
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
 
+        $payload = [
+            "application_id" => 1,
+            "onboarding_country_id" => 1,
+            "onboarding_agent_id" => 1,
+            "ksm_reference_number" => "My/992/095648000"
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $payload, $this->getHeader(false));
+        
         $payload = [
             "id" => 1,
             "submission_date" => Carbon::now()->format('Y-m-d'),
@@ -404,7 +421,7 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
             'kin_name' => 'Kin name',
             'kin_relationship_id' => 1,
             'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/643/7684548',
+            'ksm_reference_number' => 'My/992/095648000',
             'calling_visa_reference_number' => '',
             'calling_visa_valid_until' => '',
             'entry_visa_valid_until' => '',
