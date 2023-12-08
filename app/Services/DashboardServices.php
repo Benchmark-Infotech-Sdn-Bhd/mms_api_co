@@ -72,14 +72,29 @@ class DashboardServices
      */   
     public function list($request): mixed
     {
-        $workerCount = $this->workers->where('crm_prospect_id',0)
-                        ->whereIn('company_id', $request['company_id'])
-                        ->count('id');
-        $workerOnbenchCount = $this->workers->where('crm_prospect_id',0)
-                        ->whereIn('company_id', $request['company_id'])
-                        ->where('total_management_status','On-Bench')
-                        ->where('econtract_status', 'On-Bench')
-                        ->count('id');
+        $workerCount = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+        ->leftJoin('worker_employment', function ($join) {
+            $join->on('workers.id', '=', 'worker_employment.worker_id')
+                    ->where('worker_employment.transfer_flag', 0)
+                    ->whereNull('worker_employment.remove_date');
+        })
+        ->where('workers.crm_prospect_id',0)
+        ->whereIn('workers.company_id', $request['company_id'])
+        ->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
+		WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
+		ELSE 'On-Bench' END) IN('On-Bench','Assigned','Counselling','e-Run')")->count('workers.id');
+                        
+        $workerOnbenchCount = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+        ->leftJoin('worker_employment', function ($join) {
+            $join->on('workers.id', '=', 'worker_employment.worker_id')
+                    ->where('worker_employment.transfer_flag', 0)
+                    ->whereNull('worker_employment.remove_date');
+        })
+        ->where('workers.crm_prospect_id',0)
+        ->whereIn('workers.company_id', $request['company_id'])
+        ->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
+		WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
+		ELSE 'On-Bench' END) = 'On-Bench'")->count('workers.id');
 
         $serviceDirectRecruitment = $this->directrecruitmentApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')

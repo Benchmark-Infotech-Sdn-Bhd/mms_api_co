@@ -202,15 +202,16 @@ class InvoiceServices
             }
         }
 
-        $generateInvoiceXero = $this->generateInvoices($generateInvoice);
-
-        $invoiceData = $this->invoice->findOrFail($invoice['id']);
-        $invoiceData->invoice_number = $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'];
-        $invoiceData->due_amount = $generateInvoiceXero->original['Invoices'][0]['AmountDue'];
-        $invoiceData->invoice_status = $generateInvoiceXero->original['Invoices'][0]['Status'];
-        $invoiceData->save();
+        $generateInvoiceXero = $this->generateInvoices($generateInvoice);        
 
         if(isset($generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'])){
+
+            $invoiceData = $this->invoice->findOrFail($invoice['id']);
+            $invoiceData->invoice_number = $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'];
+            $invoiceData->due_amount = $generateInvoiceXero->original['Invoices'][0]['AmountDue'];
+            $invoiceData->invoice_status = $generateInvoiceXero->original['Invoices'][0]['Status'];
+            $invoiceData->save();
+
             // Delete from temporary table
             $this->invoiceItemsTemp->where('created_by', $user['id'])->delete();
 
@@ -303,10 +304,12 @@ class InvoiceServices
         
         if(isset($invoiceData) && !empty($invoiceData)){
             $invoiceXeroData = $this->getInvoices($invoiceData);
-            $invoiceData->due_amount = $invoiceXeroData->original['Invoices'][0]['AmountDue'];
-            $invoiceData->due_date = Carbon::parse($invoiceXeroData->original['Invoices'][0]['DueDateString'])->format('Y-m-d');
-            $invoiceData->invoice_status = $invoiceXeroData->original['Invoices'][0]['Status'];
-            $invoiceData->save();
+            if(isset($invoiceXeroData->original['Invoices'][0]['InvoiceNumber'])){
+                $invoiceData->due_amount = $invoiceXeroData->original['Invoices'][0]['AmountDue'];
+                $invoiceData->due_date = Carbon::parse($invoiceXeroData->original['Invoices'][0]['DueDateString'])->format('Y-m-d');
+                $invoiceData->invoice_status = $invoiceXeroData->original['Invoices'][0]['Status'];
+                $invoiceData->save();
+            }
         }
 
         $data = $this->invoice->with('invoiceItems')->find($request['id']);
@@ -430,7 +433,7 @@ class InvoiceServices
             
             return true;
         } catch (Exception $e) {
-            Log::error('Exception in getting Tax details' . $e);
+            Log::channel('cron_activity_logs')->info('Exception in getting Tax details' . $e);
             return false;
         }
     }
@@ -516,7 +519,7 @@ class InvoiceServices
 
             return true;
         } catch (Exception $e) {
-            Log::error('Exception in getting Items details' . $e);
+            Log::channel('cron_activity_logs')->info('Exception in getting Items details' . $e);
             return false;
         }
     }
@@ -608,7 +611,7 @@ class InvoiceServices
 
             return true;
         } catch (Exception $e) {
-            Log::error('Exception in getting Account details' . $e);
+            Log::channel('cron_activity_logs')->info('Exception in getting Account details' . $e);
             return false;
         }
     }
@@ -772,7 +775,7 @@ class InvoiceServices
 
             return response()->json($result);
         } catch (Exception $e) {
-            Log::error('Exception in getting refresh token' . $e);
+            Log::channel('cron_activity_logs')->info('Exception in getting refresh token' . $e);
             return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
         }
     }

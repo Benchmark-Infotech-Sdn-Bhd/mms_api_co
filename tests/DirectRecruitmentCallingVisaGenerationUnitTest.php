@@ -30,37 +30,37 @@ class DirectRecruitmentCallingVisaGenerationUnitTest extends TestCase
             'data' => ['message' => 'Calling Visa Generated Status Updated Successfully']
         ]);
     }
-    // /**
-    //  * Functional test for list calling visa reference number with search
-    //  * 
-    //  * @return void
-    //  */
-    // public function testForWorkersListWithSearch(): void
-    // {
-    //     $this->creationSeeder();
-    //     $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/generation/generatedStatusUpdate', $this->creationData(), $this->getHeader(false));
-    //     $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/generation/listBasedOnCallingVisa', ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'search' => '122'], $this->getHeader(false));
-    //     dd($response);exit;
-    //     $response->assertEquals(200, $this->response->status());
-    //     $this->response->assertJsonStructure([
-    //         'data' =>
-    //             [
-    //                 'current_page',
-    //                 'data',
-    //                 'first_page_url',
-    //                 'from',
-    //                 'last_page',
-    //                 'last_page_url',
-    //                 'links',
-    //                 'next_page_url',
-    //                 'path',
-    //                 'per_page',
-    //                 'prev_page_url',
-    //                 'to',
-    //                 'total'
-    //             ]
-    //     ]);
-    // }
+    /**
+     * Functional test for list calling visa reference number, serach field validation 
+     * 
+     * @return void
+     */
+    public function testForCallingVisaApprovalSearchValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/generation/listBasedOnCallingVisa', ['search' => 'wo'], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'search' => ['The search must be at least 3 characters.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for list calling visa reference number with search
+     * 
+     * @return void
+     */
+    public function testForWorkersListWithSearch(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/generation/listBasedOnCallingVisa', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => '122'], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
     /**
      * Functional test for workers list
      * 
@@ -113,14 +113,15 @@ class DirectRecruitmentCallingVisaGenerationUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
-            'date_of_birth' => '1998-11-02', 
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'), 
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
@@ -133,7 +134,8 @@ class DirectRecruitmentCallingVisaGenerationUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -169,9 +171,41 @@ class DirectRecruitmentCallingVisaGenerationUnitTest extends TestCase
         $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
 
         $payload = [
+            "agent_name" => 'ABC', 
+            "country_id" => 1, 
+            "city" => 'CBE', 
+            "person_in_charge" => 'ABC',
+            "pic_contact_number" => '9823477867', 
+            "email_address" => 'test@gmail.com', 
+            "company_address" => 'Test'
+        ];
+        $this->json('POST', 'api/v1/agent/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'id' => 1, 
+            'crm_prospect_id' => 1, 
+            'quota_applied' => 100, 
+            'person_incharge' => 'test', 
+            'cost_quoted' => 10.22, 
+            'remarks' => 'test'
+        ];
+        
+        $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
+
+        $payload = [
+            'id' => 1, 
             'application_id' => 1, 
-            'submission_date' => '2023-05-04', 
-            'applied_quota' => 100, 
+            'item_name' => 'Document Checklist', 
+            'application_checklist_status' => 'Completed', 
+            'remarks' => 'test', 
+            'file_url' => 'test'
+        ];
+        $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/update', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'submission_date' => Carbon::now()->format('Y-m-d'), 
+            'applied_quota' => 25, 
             'status' => 'Approved', 
             'ksm_reference_number' => 'My/643/7684548', 
             'remarks' => 'test'
@@ -182,7 +216,7 @@ class DirectRecruitmentCallingVisaGenerationUnitTest extends TestCase
             'application_id' => 1, 
             'ksm_reference_number' => 'My/643/7684548', 
             'schedule_date' => Carbon::now()->format('Y-m-d'), 
-            'approved_quota' => 100, 
+            'approved_quota' => 25, 
             'approval_date' => Carbon::now()->format('Y-m-d'),
             'status' => 'Approved',
             'remarks' => 'test'
@@ -191,9 +225,9 @@ class DirectRecruitmentCallingVisaGenerationUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'payment_date' => '2023-05-10', 
+            'payment_date' => Carbon::now()->format('Y-m-d'), 
             'payment_amount' => 10.87, 
-            'approved_quota' => 100, 
+            'approved_quota' => 25, 
             'ksm_reference_number' => 'My/643/7684548', 
             'payment_reference_number' => 'SVZ498787', 
             'approval_number' => 'ADR4674', 
@@ -204,47 +238,172 @@ class DirectRecruitmentCallingVisaGenerationUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'ksm_reference_number' => 'My/643/7684548', 
-            'received_date' => '2023-05-13', 
-            'valid_until' => '2023-06-13'
+            'ksm_reference_number' => 'My/992/095648000', 
+            'received_date' => Carbon::now()->format('Y-m-d'), 
+            'valid_until' => Carbon::now()->format('Y-m-d')
         ];
         $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $payload, $this->getHeader(false));
 
         $payload = [
-            'application_id' => 1,
-            'country_id' => 1,
-            'quota' => 10
+            'application_id' => 1, 
+            'country_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648000', 
+            'valid_until' => Carbon::now()->format('Y-m-d'), 
+            'quota' => 25
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
-        
+
         $payload = [
-            'agent_name' => 'ABC', 
-            'country_id' => 1, 
-            'city' => 'CBE', 
-            'person_in_charge' => 'ABC',
-            'pic_contact_number' => '9823477867', 
-            'email_address' => 'test@gmail.com', 
-            'company_address' => 'Test'
+            'application_id' => 1, 
+            'onboarding_country_id' => 1, 
+            'agent_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648000',
+            'quota' => 10
         ];
-        $this->json('POST', 'api/v1/agent/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            "id" => 1,
+            "ksm_reference_number" => "My/992/095648000",
+            "submission_date" => Carbon::now()->format('Y-m-d'),
+            "collection_date" => Carbon::now()->format('Y-m-d'),
+            "file_url" => "google.com",
+            "remarks" => "remarks testing"
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/update', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1,
             'onboarding_country_id' => 1,
             'agent_id' => 1,
-            'quota' => 10
+            'name' => 'TestWorker',
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'),
+            'gender' => 'Female',
+            'passport_number' => 123456789154,
+            'passport_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'address' => 'address',
+            'city' => 'city',
+            'state' => 'state',
+            'kin_name' => 'Kin name',
+            'kin_relationship_id' => 1,
+            'kin_contact_number' => 1234567890,
+            'ksm_reference_number' => 'My/992/095648000',
+            'bio_medical_reference_number' => 'BIO1234567',
+            'bio_medical_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'purchase_date' => Carbon::now()->format('Y-m-d'),
+            'clinic_name' => 'Test Clinic',
+            'doctor_code' => 'Doc123',
+            'allocated_xray' => 'Tst1234',
+            'xray_code' => 'Xray1234',
+            'bank_name' => 'Bank Name',
+            'account_number' => 1234556678,
+            'socso_number' => 12345678
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
             'agent_id' => 1, 
             'calling_visa_reference_number' => 'AGTF/7637', 
-            'submitted_on' => '2023-05-30', 
+            'submitted_on' => Carbon::now()->format('Y-m-d'), 
             'workers' => [1]
         ];
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1,
+            'onboarding_country_id' => 1,
+            'ig_policy_number' => 123456789,
+            'hospitalization_policy_number' =>123456789,
+            'insurance_provider_id' => 1,
+            'ig_amount' => 10.99,
+            'hospitalization_amount' => 20.99,
+            'insurance_submitted_on' => Carbon::now()->format('Y-m-d'),
+            'insurance_expiry_date' => Carbon::now()->addYear()->format('Y-m-d'),
+            'workers' => '1',
+            'calling_visa_reference_number' => 'AGTF/7637'
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/insurancePurchase/submit', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1,
+            'onboarding_country_id' => 1,
+            'agent_id' => 1,
+            'name' => 'TestWorkerTwo',
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'),
+            'gender' => 'Female',
+            'passport_number' => 123456789155,
+            'passport_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'address' => 'address',
+            'city' => 'city',
+            'state' => 'state',
+            'kin_name' => 'Kin name',
+            'kin_relationship_id' => 1,
+            'kin_contact_number' => 1234567890,
+            'ksm_reference_number' => 'My/992/095648000',
+            'bio_medical_reference_number' => 'BIO1234567',
+            'bio_medical_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
+            'purchase_date' => Carbon::now()->format('Y-m-d'),
+            'clinic_name' => 'Test Clinic',
+            'doctor_code' => 'Doc123',
+            'allocated_xray' => 'Tst1234',
+            'xray_code' => 'Xray1234',
+            'bank_name' => 'Bank Name',
+            'account_number' => 1234556678,
+            'socso_number' => 12345678
+        ];
+        $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'onboarding_country_id' => 1, 
+            'agent_id' => 1, 
+            'calling_visa_reference_number' => 'AGTF/76372', 
+            'submitted_on' => Carbon::now()->format('Y-m-d'), 
+            'workers' => [2]
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1,
+            'onboarding_country_id' => 1,
+            'ig_policy_number' => 123456789,
+            'hospitalization_policy_number' =>123456789,
+            'insurance_provider_id' => 1,
+            'ig_amount' => 10.99,
+            'hospitalization_amount' => 20.99,
+            'insurance_submitted_on' => Carbon::now()->format('Y-m-d'),
+            'insurance_expiry_date' => Carbon::now()->addYear()->format('Y-m-d'),
+            'workers' => '2',
+            'calling_visa_reference_number' => 'AGTF/76372'
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/insurancePurchase/submit', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'onboarding_country_id' => 1, 
+            'agent_id' => 1, 
+            'calling_visa_generated' => '2023-06-13', 
+            'calling_visa_valid_until' => '2025-07-25', 
+            'status' => 'Approved', 
+            'workers' => [1], 
+            'remarks' => 'test'
+        ];
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/approvalStatusUpdate', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'onboarding_country_id' => 1, 
+            'agent_id' => 1, 
+            'total_fee' => 99.99, 
+            'immigration_reference_number' => '46732578437', 
+            'payment_date' => Carbon::now()->format('Y-m-d'), 
+            'workers' => '1'
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/immigrationFeePaid/update', $payload, $this->getHeader(false));
     }
     /**
      * @return array
