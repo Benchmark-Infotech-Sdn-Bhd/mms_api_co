@@ -198,6 +198,14 @@ class DirectRecruitmentServices
      */
     public function applicationListing($request): mixed
     {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
         return $this->directrecruitmentApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
         ->leftJoin('direct_recruitment_application_status', 'direct_recruitment_application_status.id', 'directrecruitment_applications.status')

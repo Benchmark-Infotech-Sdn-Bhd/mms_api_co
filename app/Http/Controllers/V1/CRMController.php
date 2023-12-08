@@ -45,6 +45,9 @@ class CRMController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->crmServices->list($params);
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

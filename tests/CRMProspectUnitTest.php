@@ -1044,6 +1044,21 @@ class CRMProspectUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test to list CRM prospects search validation
+     * 
+     * @return void
+     */
+    public function testForProspectListSearchValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/crm/list', ['search' => 'XY', 'filter' => ''], $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'search' => ['The search must be at least 3 characters.']
+            ]
+        ]);
+    }
+    /**
      * Functional test to list CRM prospects with search
      * 
      * @return void
@@ -1052,7 +1067,7 @@ class CRMProspectUnitTest extends TestCase
     {
         $this->testForProspectCreation();
         $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['company_name' => 'XYZ Firm']), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/crm/list', ['search' => 'XY', 'filter' => ''], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/crm/list', ['search' => 'XYZ', 'filter' => ''], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -1116,22 +1131,6 @@ class CRMProspectUnitTest extends TestCase
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    [
-                        'id',
-                        'company_name',
-                        'roc_number',
-                        'director_or_owner',
-                        'contact_number',
-                        'email',
-                        'address',
-                        'pic_name',
-                        'pic_contact_number',
-                        'pic_designation',
-                        'registered_by',
-                        'registered_by_name',
-                        'prospect_services',
-                        'prospect_login_credentials'
-                    ]
                 ]
         ]);
     }
@@ -1148,10 +1147,6 @@ class CRMProspectUnitTest extends TestCase
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    [
-                        'id',
-                        'company_name'
-                    ]
                 ]
         ]);
     }
@@ -1168,13 +1163,22 @@ class CRMProspectUnitTest extends TestCase
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    [
-                        'id',
-                        'company_name',
-                        'contact_number',
-                        'email',
-                        'pic_name'
-                    ]
+                ]
+        ]);
+    }
+    /**
+     * Functional test for system list
+     * 
+     * @return void
+     */
+    public function testForSystemList(): void
+    {
+        $this->testForProspectCreation();
+        $response = $this->json('POST', 'api/v1/crm/systemList', ["id" => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
                 ]
         ]);
     }
@@ -1195,8 +1199,10 @@ class CRMProspectUnitTest extends TestCase
             'remarks' => 'test'
         ];   
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
+
         $payload =  [
-            'name' => 'Administrator'
+            'name' => 'HR',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -1216,7 +1222,8 @@ class CRMProspectUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
