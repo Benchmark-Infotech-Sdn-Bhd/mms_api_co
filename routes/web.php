@@ -267,11 +267,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('show', 'V1\DirectRecruitmentOnboardingCountryController@show');
                     $router->post('create', 'V1\DirectRecruitmentOnboardingCountryController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingCountryController@update');
-                    $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
-                    $router->post('onboarding_status_update', 'V1\DirectRecruitmentOnboardingCountryController@onboarding_status_update');
-                    $router->post('ksmDropDownForOnboarding', 'V1\DirectRecruitmentOnboardingCountryController@ksmDropDownForOnboarding');
+                    $router->post('addKSM', 'V1\DirectRecruitmentOnboardingCountryController@addKSM');
                     $router->post('ksmQuotaUpdate', 'V1\DirectRecruitmentOnboardingCountryController@ksmQuotaUpdate');
                     $router->post('deleteKSM', 'V1\DirectRecruitmentOnboardingCountryController@deleteKSM');
+                    $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
+                    $router->post('ksmDropDownForOnboarding', 'V1\DirectRecruitmentOnboardingCountryController@ksmDropDownForOnboarding');
+                    $router->post('onboarding_status_update', 'V1\DirectRecruitmentOnboardingCountryController@onboarding_status_update');
                 });
                 $router->group(['prefix' => 'agent'], function () use ($router) {
                     $router->post('list', 'V1\DirectRecruitmentOnboardingAgentController@list');

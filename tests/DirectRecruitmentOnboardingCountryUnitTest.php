@@ -119,21 +119,6 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for Onboarding country creation KSM alredy exist validation
-     * 
-     * @return void
-     */
-    public function testForOnboardingCountryCreationForKSMValidation(): void
-    {
-        $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'The KSM Reference Number Alredy Added for this Country']
-        ]);
-    }
-    /**
      * Functional test for Update Id mandatory field validation 
      * 
      * @return void
@@ -191,7 +176,112 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/update', $this->UpdationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'Agent added for this record, users are not allowed to modify the records.']
+            'data' => ['message' => 'An Agent has been assigned to this record; users cannot edit the records']
+        ]);
+    }
+    /**
+     * Functional test for add KSM onboarding country id mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForAddKSMOnboardingCountryIdRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/addKSM', array_merge($this->addKSMData(), ['onboarding_country_id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'onboarding_country_id' => ['The onboarding country id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for add KSM Quota mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForAddKSMQuotaRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/addKSM', array_merge($this->addKSMData(), ['quota' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'quota' => ['The quota field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for add KSM Quota size validation 
+     * 
+     * @return void
+     */
+    public function testForAddKSMQuotaSizeValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/addKSM', array_merge($this->addKSMData(), ['quota' => 10000]), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'quota' => ['The quota must not be greater than 3 characters.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for add KSM ksm_reference_number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForAddKSMReferenceNumberRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/addKSM', array_merge($this->addKSMData(), ['ksm_reference_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'ksm_reference_number' => ['The ksm reference number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for add ksm quota validation 
+     * 
+     * @return void
+     */
+    public function testForAddKSMQuotaValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/addKSM', array_merge($this->addKSMData(), ['quota' => 100]), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'The number of quota cannot exceed the Approved KSM Quota']
+        ]);
+    }
+    /**
+     * Functional test for Add KSM already Exists validation
+     * 
+     * @return void
+     */
+    public function testForAddKSMKSMNumberValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/addKSM', array_merge($this->addKSMData(), ['ksm_reference_number' => 'My/992/095648000']), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'The KSM Reference Number for this Country Has Been Added Already']
+        ]);
+    }
+    /**
+     * Functional test for Add KSM
+     * 
+     * @return void
+     */
+    public function testForAddKSM(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/addKSM', $this->addKSMData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'KSM Refrence Number Added Successfully']
         ]);
     }
     /**
@@ -240,6 +330,21 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for KSM Quota Update KSM reference number mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForKSMQuotaUpdateKSMReferenceNumberRequiredValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmQuotaUpdate', array_merge($this->ksmQuotaUpdationData(), ['ksm_reference_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'ksm_reference_number' => ['The ksm reference number field is required.']
+            ]
+        ]);
+    }
+    /**
      * Functional test for ksm quota validation 
      * 
      * @return void
@@ -252,6 +357,22 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'The number of quota cannot exceed the Approved KSM Quota']
+        ]);
+    }
+    /**
+     * Functional test for KSM already Exists validation
+     * 
+     * @return void
+     */
+    public function testForUpdateKSMNumberValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/addKSM', $this->addKSMData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmQuotaUpdate', ['id' => 2, 'ksm_reference_number' => 'My/992/095648000', 'quota' => 20], $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'The KSM Reference Number for this Country Has Been Added Already']
         ]);
     }
     /**
@@ -282,7 +403,7 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmQuotaUpdate', $this->ksmQuotaUpdationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'Agent added for this record, users are not allowed to modify the records.']
+            'data' => ['message' => 'An Agent has been assigned to this record; users cannot edit the records']
         ]);
     }
     /**
@@ -422,7 +543,7 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/deleteKSM', ['id' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'Agent added for this record, users are not allowed to modify the records.']
+            'data' => ['message' => 'An Agent has been assigned to this record; users cannot edit the records']
         ]);
     }
     /**
@@ -544,7 +665,28 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
+            'submission_date' => Carbon::now()->format('Y-m-d'), 
+            'applied_quota' => 50, 
+            'status' => 'Approved', 
+            'ksm_reference_number' => 'My/643/7684549', 
+            'remarks' => 'test'
+        ];
+        $this->json('POST', 'api/v1/fwcms/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
             'ksm_reference_number' => 'My/643/7684548', 
+            'schedule_date' => Carbon::now()->format('Y-m-d'), 
+            'approved_quota' => 50, 
+            'approval_date' => Carbon::now()->format('Y-m-d'),
+            'status' => 'Approved',
+            'remarks' => 'test'
+        ];
+        $this->json('POST', 'api/v1/applicationInterview/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'ksm_reference_number' => 'My/643/7684549', 
             'schedule_date' => Carbon::now()->format('Y-m-d'), 
             'approved_quota' => 50, 
             'approval_date' => Carbon::now()->format('Y-m-d'),
@@ -568,7 +710,28 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
+            'payment_date' => Carbon::now()->format('Y-m-d'), 
+            'payment_amount' => 10.87, 
+            'approved_quota' => 50, 
+            'ksm_reference_number' => 'My/643/7684549', 
+            'payment_reference_number' => 'SVZ498787', 
+            'approval_number' => 'ADR4674', 
+            'new_ksm_reference_number' => 'My/992/095648001', 
+            'remarks' => 'test create'
+        ];
+        $this->json('POST', 'api/v1/levy/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
             'ksm_reference_number' => 'My/992/095648000', 
+            'received_date' => Carbon::now()->format('Y-m-d'), 
+            'valid_until' => Carbon::now()->format('Y-m-d')
+        ];
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648001', 
             'received_date' => Carbon::now()->format('Y-m-d'), 
             'valid_until' => Carbon::now()->format('Y-m-d')
         ];
@@ -579,7 +742,7 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['application_id' => 1, 'country_id' => 1, 'ksm_reference_number' => 'My/992/095648000', 'valid_until' => Carbon::now()->format('Y-m-d'), 'quota' => 25];
+        return ['application_id' => 1, 'country_id' => 1, 'ksm_reference_number' => 'My/992/095648000', 'quota' => 25];
     }
     /**
      * @return array
@@ -601,5 +764,12 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
     public function agentData(): array
     {
         return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'quota' => 10, 'ksm_reference_number' => 'My/992/095648000'];
+    }
+    /**
+     * @return array
+     */
+    public function addKSMData(): array
+    {
+        return ['onboarding_country_id' => 1, 'ksm_reference_number' => 'My/992/095648001', 'quota' => 10];
     }
 }

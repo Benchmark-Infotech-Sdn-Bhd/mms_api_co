@@ -17,6 +17,6 @@ class OnboardingCountriesKSMReferenceNumber extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'application_id', 'onboarding_country_id', 'ksm_reference_number', 'valid_until', 'quota', 'utilised_quota', 'status', 'created_by', 'modified_by'
+        'application_id', 'onboarding_country_id', 'ksm_reference_number', 'quota', 'utilised_quota', 'status', 'created_by', 'modified_by'
     ];
 }
