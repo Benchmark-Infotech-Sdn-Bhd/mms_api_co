@@ -86,7 +86,12 @@ class WorkerStatisticsReportUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Supervisor'
+            'name' => 'Supervisor',
+            'special_permission' => '',
+            'system_role' => 0,
+            'status' => 1,
+            'parent_id' => 0,
+            'company_id' => 1
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -106,7 +111,8 @@ class WorkerStatisticsReportUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -222,7 +228,7 @@ class WorkerStatisticsReportUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'ksm_reference_number' => 'My/643/7684548', 
+            'ksm_reference_number' => 'My/992/095648000', 
             'received_date' => Carbon::now()->format('Y-m-d'), 
             'valid_until' => Carbon::now()->addYear()->format('Y-m-d')
         ];
@@ -231,10 +237,12 @@ class WorkerStatisticsReportUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'country_id' => 1, 
-            'quota' => 20
+            'ksm_reference_number' => 'My/992/095648000',
+            'valid_until' => Carbon::now()->format('Y-m-d'),
+            'quota' => 15,
+            'utilised_quota' => 10
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
-        
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
         $payload = [
             'agent_name' => 'ABC', 
             'country_id' => 1, 
@@ -250,10 +258,19 @@ class WorkerStatisticsReportUnitTest extends TestCase
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
             'agent_id' => 1, 
-            'quota' => 20
+            'ksm_reference_number' => 'My/992/095648000',
+            'quota' => 10
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
 
+        $payload = [
+            "application_id" => 1,
+            "onboarding_country_id" => 1,
+            "onboarding_agent_id" => 1,
+            "ksm_reference_number" => "My/992/095648000"
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $payload, $this->getHeader(false));
+        
         $payload = [
             "id" => 1,
             "submission_date" => Carbon::now()->format('Y-m-d'),
@@ -279,7 +296,7 @@ class WorkerStatisticsReportUnitTest extends TestCase
             'kin_name' => 'Kin name',
             'kin_relationship_id' => 1,
             'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/643/7684548',
+            'ksm_reference_number' => 'My/992/095648000',
             'calling_visa_reference_number' => '',
             'calling_visa_valid_until' => '',
             'entry_visa_valid_until' => '',
@@ -299,7 +316,7 @@ class WorkerStatisticsReportUnitTest extends TestCase
             'account_number' => 1234556678,
             'socso_number' => 12345678
         ];
-        $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1, 
@@ -364,17 +381,6 @@ class WorkerStatisticsReportUnitTest extends TestCase
             'workers' => 1
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/dispatch/update', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'flight_date' => Carbon::now()->format('Y-m-d'),
-            'arrival_time' => '12:00 AM',
-            'flight_number' => '0123456789ABC',
-            'workers' => [1],
-            'remarks' => 1
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1,

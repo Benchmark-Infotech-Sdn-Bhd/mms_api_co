@@ -441,7 +441,7 @@ class DirectRecruitmentArrivalUnitTest extends TestCase
             'account_number' => 1234556678,
             'socso_number' => 12345678
         ];
-        $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1, 

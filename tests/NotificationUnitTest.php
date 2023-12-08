@@ -5,11 +5,10 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-
-class DispatchManagementUnitTest extends TestCase
+class NotificationUnitTest extends TestCase
 {
     use DatabaseMigrations;
-    
+
     /**
      * @return void
      */
@@ -17,174 +16,15 @@ class DispatchManagementUnitTest extends TestCase
     {
         parent::setUp();
     }
-    
     /**
-     * Functional test for create
+     * Functional test for notification list
      * 
      * @return void
      */
-    public function testForDispatchManagementcreate(): void
+    public function testForNotificationList(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Dispatch Created Successfully']
-        ]);
-    }
-    /**
-     * Functional test for create date validation
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementcreatedateValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['date' => Carbon::now()->format('Y/m/d')]), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'date' => ['The date does not match the format Y-m-d.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for create time validation
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementcreatetimeValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['time' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'time' => ['The time field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for create employee id validation
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementcreateemployeeidValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['employee_id' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'employee_id' => ['The employee id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for create from validation
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementcreatefromValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['from' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'from' => ['The from field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for create calltime validation
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementcreatecalltimeValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['calltime' => Carbon::now()->format('Y/m/d')]), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'calltime' => ['The calltime does not match the format Y-m-d.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for create area validation
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementcreateareaValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['area' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'area' => ['The area field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for create employer name validation
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementcreateemployernameValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['employer_name' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'employer_name' => ['The employer name field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for create phone number validation
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementcreatephonenumberValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['phone_number' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'phone_number' => ['The phone number field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for update
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementUpdate(): void
-    {
-        $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/dispatchManagement/update', $this->UpdationData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Dispatch Updated Successfully']
-        ]);
-    }
-    /**
-     * Functional test for  show
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementShow(): void
-    {
-        $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/dispatchManagement/show', ['id' => 1], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/notifications/list', ["page" => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -194,15 +34,14 @@ class DispatchManagementUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for  list
+     * Functional test for notification count
      * 
      * @return void
      */
-    public function testForDispatchManagementList(): void
+    public function testForNotificationCount(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/dispatchManagement/list', ["search"=> "","status_filter"=> ""], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/notifications/count', [], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -211,6 +50,40 @@ class DispatchManagementUnitTest extends TestCase
                 ]
         ]);
     }
+    /**
+     * Functional test for notification updateReadStatus
+     * 
+     * @return void
+     */
+    public function testForNotificationupdateReadStatus(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/notifications/updateReadStatus', ['id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    
+                ]
+        ]);
+    }
+    /**
+     * Functional test for notification renewalNotifications
+     * 
+     * @return void
+     */
+    /*public function testForNotificationrenewalNotifications(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/notifications/renewalNotifications', [], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    
+                ]
+        ]);
+    }*/
     /**
      * @return void
      */
@@ -435,7 +308,7 @@ class DispatchManagementUnitTest extends TestCase
             'account_number' => 1234556678,
             'socso_number' => 12345678
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1, 
@@ -500,61 +373,6 @@ class DispatchManagementUnitTest extends TestCase
             'workers' => 1
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/dispatch/update', $payload, $this->getHeader(false));
-
-        $payload = ['prospect_id' => 1, 'company_name' => 'ABC Firm', 'contact_number' => '768456948', 'email' => 'testcrm@gmail.com', 'pic_name' => 'PICTest', 'sector_id' => 1, 'sector_name' => 'Agriculture', 'fomnext_quota' => 10, 'air_ticket_deposit' => 1.11, 'service_id' => 3, 'file_url' => 'test'];
-        $response = $this->json('POST', 'api/v1/eContract/addService', $payload, $this->getHeader(false));
-
-        $payload = ['prospect_id' => 1, 'company_name' => 'ABC Firm', 'contact_number' => '768456948', 'email' => 'testcrm@gmail.com', 'pic_name' => 'PICTest', 'sector_id' => 1, 'sector_name' => 'Agriculture', 'fomnext_quota' => 10, 'air_ticket_deposit' => 1.11, 'service_id' => 2, 'file_url' => 'test'];
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', $payload, $this->getHeader(false));
-    }
-    /**
-     * @return array
-     */
-    public function creationData(): array
-    {
-        return [
-            "onboarding_attestation_id" => 1,
-            "date" => Carbon::now()->format('Y-m-d'),
-            "time" => '12:00 AM',
-            "employee_id" => 1,
-            "from" => 'admin',
-            "calltime" => Carbon::now()->format('Y-m-d'),
-            "area" => "ML",
-            "employer_name" => "employee test",
-            "phone_number" => '0123456789',
-            "remarks" => 'remarks test',
-            "job_type" => "Submission",
-            "passport" => "0123456789",
-            "document_name" => "document name",
-            "payment_amount" => "100.00",
-            "worker_name" => "worker test",
-            "attachment[]" => "/C:/Users/admin/Desktop/Accounting.png"
-        ];
-    }
-    /**
-     * @return array
-     */
-    public function UpdationData(): array
-    {
-        return [
-            "id" => 1,
-            "onboarding_attestation_id" => 1,
-            "date" => Carbon::now()->format('Y-m-d'),
-            "time" => '12:00 AM',
-            "employee_id" => 1,
-            "from" => 'admin',
-            "calltime" => Carbon::now()->format('Y-m-d'),
-            "area" => "ML",
-            "employer_name" => "employee test",
-            "phone_number" => '0123456789',
-            "remarks" => 'remarks test',
-            "job_type" => "Submission",
-            "passport" => "0123456789",
-            "document_name" => "document name",
-            "payment_amount" => "100.00",
-            "worker_name" => "worker test",
-            "attachment[]" => "/C:/Users/admin/Desktop/Accounting.png"
-        ];
     }
     
 }
