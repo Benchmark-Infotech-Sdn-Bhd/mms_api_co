@@ -11,9 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('invoice_items_temp', function (Blueprint $table) {
-            // CRM Prospect ID column
-            $table->bigInteger('crm_prospect_id')->unsigned()->after('id');
+        Schema::table('invoice_items_temp', function (Blueprint $table) {            
+            if (DB::getDriverName() === 'sqlite') {
+                // CRM Prospect ID column
+                $table->bigInteger('crm_prospect_id')->default(0)->unsigned()->after('id');
+            } else {
+                // CRM Prospect ID column
+                $table->bigInteger('crm_prospect_id')->unsigned()->after('id');
+            }
             $table->foreign('crm_prospect_id')->references('id')->on('crm_prospects')->onDelete('cascade');
         });
     }
