@@ -786,7 +786,8 @@ class InvoiceServices
      */
     public function getXeroSettings() : mixed
     {
-        return $this->xeroSettings->find(1);
+        //return $this->xeroSettings->find(1);
+        return $this->xeroSettings->where('title','ZOHO')->first();
     }
 
 }

@@ -98,6 +98,20 @@ return [
     'XERO_ACCESS_TOKEN' => env('XERO_ACCESS_TOKEN'),
     'XERO_REFRESH_TOKEN' => env('XERO_REFRESH_TOKEN'),
 
+
+    'ZOHO_URL' => env('ZOHO_URL', "https://www.zohoapis.in/books/v3/"),
+    'ZOHO_CLIENT_ID' => env('ZOHO_CLIENT_ID', "1000.F3G2JM08SUXQF67CFPMAN5L0U75J7O"),
+    'ZOHO_CLIENT_SECRET' => env('ZOHO_CLIENT_SECRET', "462c552560ed9781ab9788d098f55dece6856fff3b"),
+    'ZOHO_TAX_RATES_URL' => env('ZOHO_TAX_RATES_URL', "TaxRates"),
+    'ZOHO_ITEMS_URL' => env('ZOHO_ITEMS_URL', "Items"),
+    'ZOHO_ACCOUNTS_URL' => env('ZOHO_ACCOUNTS_URL', "accounts"),
+    'ZOHO_CONTACTS_URL' => env('ZOHO_CONTACTS_URL', "contacts"),
+    'ZOHO_INVOICES_URL' => env('ZOHO_INVOICES_URL', "invoices"),
+    'ZOHO_TOKEN_URL' => env('ZOHO_TOKEN_URL', "token"),
+    'ZOHO_TENANT_ID' => env('ZOHO_TENANT_ID', ""),
+    'ZOHO_ACCESS_TOKEN' => env('ZOHO_ACCESS_TOKEN'),
+    'ZOHO_REFRESH_TOKEN' => env('ZOHO_REFRESH_TOKEN'),
+
     'DIRECT_RECRUITMENT_WORKER_STATUS' => ['Pending','Accepted','Not Arrived','Arrived','FOMEMA Fit','Processed', 'Expired'],
 
     'POST_ARRIVAL_CANCELLED_STATUS' => env('POST_ARRIVAL_CANCELLED_STATUS', 2),
