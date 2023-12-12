@@ -408,7 +408,7 @@ class TotalManagementServicesUnitTest extends TestCase
     public function testForTotalManagementProposalSubmit(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/addService', $this->creationData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/totalManagement/addService', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/totalManagement/submitProposal', $this->submitProposalData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
@@ -862,7 +862,7 @@ class TotalManagementServicesUnitTest extends TestCase
      */
     public function allocateQuotaData(): array
     {
-        return ['id' => 1, 'prospect_service_id' => 1, 'from_existing' => 0, 'client_quota' => 20, 'fomnext_quota' => 20, 'initial_quota' => 10, 'service_quota' => 5];
+        return ['id' => 1, 'prospect_service_id' => 1, 'from_existing' => 0, 'client_quota' => 20, 'fomnext_quota' => 20, 'initial_quota' => 10, 'service_quota' => 10];
     }
     /**
      * @return array
@@ -870,7 +870,7 @@ class TotalManagementServicesUnitTest extends TestCase
     public function submitProposalData(): array
     {
         return [
-            "id" => 1, "quota_requested" => 1, "person_incharge" => "PICTest", "cost_quoted" => 100.00, "reamrks" => "remarks", "attachment[]" => "test.png"
+            "id" => 2, "quota_requested" => 1, "person_incharge" => "PICTest", "cost_quoted" => 100.00, "reamrks" => "remarks", "attachment[]" => "test.png"
         ];
     }
 }
