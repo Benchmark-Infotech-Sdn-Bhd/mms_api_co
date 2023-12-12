@@ -345,6 +345,23 @@ class FWCMSUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for Update FWCMS KMS Referenece Number Size validation 
+     * 
+     * @return void
+     */
+    public function testForFWCMSUpdationKMSReferenceNumberSizeValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['ksm_reference_number' => 'VR123/746372473/94365843676347678/4987853846587364587/89475983475834657']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'ksm_reference_number' => ['The ksm reference number must not be greater than 21 characters.']
+            ]
+        ]);
+    }
+    /**
      * Functional test for FWCMS Update
      * 
      * @return void
@@ -432,11 +449,7 @@ class FWCMSUnitTest extends TestCase
 
         $payload =  [
             'name' => 'HR',
-            'special_permission' => '',
-            'system_role' => 0,
-            'status' => 1,
-            'parent_id' => 0,
-            'company_id' => 1
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        

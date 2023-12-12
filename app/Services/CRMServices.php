@@ -153,7 +153,7 @@ class CRMServices
             'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/|unique:crm_prospects,roc_number,'.$params['id'].',id,deleted_at,NULL',
             'director_or_owner' => 'required|regex:/^[a-zA-Z ]*$/',
             'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
-            'email' => 'required|unique:crm_prospects,email,'.$params['id'].',id,deleted_at,NULL',
+            'email' => 'required|email|unique:crm_prospects,email,'.$params['id'].',id,deleted_at,NULL',
             'address' => 'required',
             'pic_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'pic_contact_number' => 'required|regex:/^[0-9]+$/|max:11',
@@ -182,11 +182,28 @@ class CRMServices
         ];
     }
     /**
+     * @return array
+     */
+    public function searchValidation(): array
+    {
+        return [
+            'search' => 'required|min:3'
+        ];
+    }
+    /**
      * @param $request
      * @return mixed 
      */
     public function list($request): mixed
     {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
         return $this->crmProspect
             ->leftJoin('employee', 'employee.id', 'crm_prospects.registered_by')
             ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
@@ -444,14 +461,15 @@ class CRMServices
                 ->update([
                     'name' => $request['pic_name']
                 ]);
-        }        
-        $request['ContactID'] = $prospect['xero_contact_id'];
-        $createContactXero = $this->invoiceServices->createContacts($request);
-        if(isset($createContactXero->original['Contacts'][0]['ContactID']) && !empty($createContactXero->original['Contacts'][0]['ContactID'])){
-            $prospect->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
-            $prospect->save();
+        }   
+        if (\DB::getDriverName() !== 'sqlite') {     
+            $request['ContactID'] = $prospect['xero_contact_id'];
+            $createContactXero = $this->invoiceServices->createContacts($request);
+            if(isset($createContactXero->original['Contacts'][0]['ContactID']) && !empty($createContactXero->original['Contacts'][0]['ContactID'])){
+                $prospect->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
+                $prospect->save();
+            }
         }
-        
 
         return true;
     }

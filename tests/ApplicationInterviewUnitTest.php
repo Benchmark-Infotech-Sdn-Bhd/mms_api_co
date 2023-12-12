@@ -69,40 +69,6 @@ class ApplicationInterviewUnitTest extends TestCase
     }
 
     /**
-     * Functional test for Create Application Interview - Approved Quota mandatory field validation 
-     * 
-     * @return void
-     */
-    /*public function testForApplicationInterviewCreationApprovedQuotaRequiredValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['approved_quota' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'approved_quota' => ['The approved quota field is required.']
-            ]
-        ]);
-    }*/
-
-    /**
-     * Functional test for Create Application Interview - Approval Date mandatory field validation 
-     * 
-     * @return void
-     */
-    /*public function testForApplicationInterviewCreationApprovalDateRequiredValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['approval_date' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'approval_date' => ['The approval date field is required.']
-            ]
-        ]);
-    }*/
-
-    /**
      * Functional test for Create Application Interview - Status mandatory field validation 
      * 
      * @return void
@@ -131,8 +97,7 @@ class ApplicationInterviewUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'schedule_date' => ['The schedule date does not match the format Y-m-d.'
-                ]
+                'schedule_date' => ['The schedule date does not match the format Y-m-d.']
             ]
         ]);
     }
@@ -149,81 +114,10 @@ class ApplicationInterviewUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'schedule_date' => ['The schedule date must be a date after yesterday.'
-                ]
+                'schedule_date' => ['The schedule date must be a date after yesterday.']
             ]
         ]);
     }
-
-    /**
-     * Functional test for Create Application Interview Approved Quota Type validation 
-     * 
-     * @return void
-     */
-    /*public function testForApplicationInterviewCreationApprovedQuotaTypeValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['approved_quota' => 1.1]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'approved_quota' => ['The approved quota format is invalid.']
-            ]
-        ]);
-    }*/
-
-    /**
-     * Functional test for Create Application Interview Approved Quota Max validation 
-     * 
-     * @return void
-     */
-    /*public function testForApplicationInterviewCreationApprovedQuotaMaxValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['approved_quota' => 1000]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'approved_quota' => ['The approved quota must not be greater than 3 characters.']
-            ]
-        ]);
-    }*/
-
-    /**
-     * Functional test for Create Application Interview - Approval Date Format Type validation 
-     * 
-     * @return void
-     */
-    /*public function testForApplicationInterviewCreationApprovalDateFormatTypeValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['approval_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'approval_date' => ['The approval date does not match the format Y-m-d.'
-                ]
-            ]
-        ]);
-    }*/
-
-    /**
-     * Functional test for Create Application Interview - Approval Future Date validation 
-     * 
-     * @return void
-     */
-    /*public function testForApplicationInterviewCreationScheduleFutureDateTypeValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['approval_date' => Carbon::now()->subDays(-1)->format('Y-m-d')]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'approval_date' => ['The approval date must be a date before tomorrow.'
-                ]
-            ]
-        ]);
-    }*/
 
     /**
      * Functional test for Application Interview Create
@@ -266,7 +160,6 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewUpdationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        //$this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
         $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
@@ -331,42 +224,6 @@ class ApplicationInterviewUnitTest extends TestCase
     }
 
     /**
-     * Functional test for Update Application Interview - Approved Quota mandatory field validation 
-     * 
-     * @return void
-     */
-    /*public function testForApplicationInterviewUpdationApprovedQuotaRequiredValidation(): void
-    {
-        $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['approved_quota' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'approved_quota' => ['The approved quota field is required.']
-            ]
-        ]);
-    }*/
-
-    /**
-     * Functional test for Update Application Interview - Approval Date mandatory field validation 
-     * 
-     * @return void
-     */
-    /*public function testForApplicationInterviewUpdationnApprovalDateRequiredValidation(): void
-    {
-        $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['approval_date' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'approval_date' => ['The approval date field is required.']
-            ]
-        ]);
-    }*/
-
-    /**
      * Functional test for Update Application Interview - Status mandatory field validation 
      * 
      * @return void
@@ -397,8 +254,7 @@ class ApplicationInterviewUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'schedule_date' => ['The schedule date does not match the format Y-m-d.'
-                ]
+                'schedule_date' => ['The schedule date does not match the format Y-m-d.']
             ]
         ]);
     }
@@ -416,85 +272,26 @@ class ApplicationInterviewUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'schedule_date' => ['The schedule date must be a date after yesterday.'
-                ]
+                'schedule_date' => ['The schedule date must be a date after yesterday.']
             ]
         ]);
     }
 
-    /**
-     * Functional test for Update Application Interview Approved Quota Type validation 
+     /**
+     * Functional test for update Application Interview quota validation
      * 
      * @return void
      */
-    /*public function testForApplicationInterviewUpdationApprovedQuotaTypeValidation(): void
+    public function testForApplicationInterviewUpdationQuotaValidation(): void
     {
         $this->creationSeeder();
         $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['approved_quota' => 1.1]), $this->getHeader());
-        $response->seeStatusCode(422);
+        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['approved_quota' => 100]), $this->getHeader());
+        $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => [
-                'approved_quota' => ['The approved quota format is invalid.']
-            ]
+            'data' => ['message' => 'The number of quota cannot exceed the FWCMS Quota']
         ]);
-    }*/
-
-    /**
-     * Functional test for Update Application Interview Approved Quota Max validation 
-     * 
-     * @return void
-     */
-    /*public function testForApplicationInterviewUpdationApprovedQuotaMaxValidation(): void
-    {
-        $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['approved_quota' => 1000]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'approved_quota' => ['The approved quota must not be greater than 3 characters.']
-            ]
-        ]);
-    }*/
-
-    /**
-     * Functional test for Update Application Interview - Approval Date Format Type validation 
-     * 
-     * @return void
-     */
-   /* public function testForApplicationInterviewUpdationApprovalDateFormatTypeValidation(): void
-    {
-        $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['approval_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'approval_date' => ['The approval date does not match the format Y-m-d.'
-                ]
-            ]
-        ]);
-    }*/
-
-    /**
-     * Functional test for Update Application Interview - Approval Future Date validation 
-     * 
-     * @return void
-     */
-    /*public function testForApplicationInterviewUpdationScheduleFutureDateTypeValidation(): void
-    {
-        $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['approval_date' => Carbon::now()->subDays(-1)->format('Y-m-d')]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'approval_date' => ['The approval date must be a date before tomorrow.'
-                ]
-            ]
-        ]);
-    }*/
+    }
 
     /**
      * Functional test for Application Interview Update
@@ -576,8 +373,7 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testToListApplicationInterviewDropdownKsmReferenceNumber(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/dropdownKsmReferenceNumber', ['id' => 1, 'application_type' => 'FWCMS'], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationInterview/dropdownKsmReferenceNumber', ['id' => 1, 'application_type' => 'INTERVIEW'], $this->getHeader());
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data'
@@ -603,23 +399,19 @@ class ApplicationInterviewUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Administrator',
-            'special_permission' => '',
-            'system_role' => 0,
-            'status' => 1,
-            'parent_id' => 0,
-            'company_id' => 1
+            'name' => 'HR',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
-
+       
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
-            'date_of_birth' => '1998-11-02', 
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'), 
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
-            'contact_number' => 1234567890,
+            'contact_number' => 238467,
             'address' => 'Addres', 
             'postcode' => 2344, 
             'position' => 'Position', 
@@ -652,8 +444,9 @@ class ApplicationInterviewUnitTest extends TestCase
             'pic_designation' => 'Manager', 
             'registered_by' => 1, 
             'sector_type' => 1, 
-            'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])];
-        $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
+            'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])
+        ];
+        $res = $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
 
         $payload = [
             "country_name" => "India",
@@ -685,10 +478,22 @@ class ApplicationInterviewUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'submission_date' => Carbon::now()->format('Y-m-d'), 
-            'applied_quota' => 50, 
-            'status' => 'Approved', 
-            'ksm_reference_number' => 'My/643/7684548', 
+            'submission_date' => '2023-05-04', 
+            'applied_quota' => 10, 
+            'status' => 'Submitted', 
+            'ksm_reference_number' => 
+            'My/643/7684548', 
+            'remarks' => 'test'
+        ];
+        $this->json('POST', 'api/v1/fwcms/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'submission_date' => '2023-05-04', 
+            'applied_quota' => 10, 
+            'status' => 'Submitted', 
+            'ksm_reference_number' => 
+            'My/643/7684549', 
             'remarks' => 'test'
         ];
         $this->json('POST', 'api/v1/fwcms/create', $payload, $this->getHeader(false));
@@ -699,7 +504,7 @@ class ApplicationInterviewUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['application_id' => 1, 'ksm_reference_number' => 'My/643/7684548', 'schedule_date' => Carbon::now()->format('Y-m-d'), 'approved_quota' => 10, 'approval_date' => Carbon::now()->format('Y-m-d'),'status' => 'Scheduled','remarks' => 'test'];
+        return ['application_id' => 1, 'ksm_reference_number' => 'My/643/7684548', 'schedule_date' => Carbon::now()->format('Y-m-d'), 'status' => 'Scheduled','remarks' => 'test'];
     }
 
     /**
