@@ -5,10 +5,10 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-class TotalManagementPayrollUnitTest extends TestCase
+
+class DirectRecruitmentArrivalUnitTest extends TestCase
 {
     use DatabaseMigrations;
-    
     /**
      * @return void
      */
@@ -17,119 +17,204 @@ class TotalManagementPayrollUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test for Total Management payroll listing
+     * Functional test for create
      * 
      * @return void
      */
-    public function testForTotalManagementPayrollListing(): void
+    public function testForDirectRecruitmentArrivalcreate(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/payroll/list', ["project_id" => 1, "month"  => "", "year" => "", "search" => ""], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Arrival Submitted Successfully']
+        ]);
+    }
+    /**
+     * Functional test for create id validation
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentArrivalcreateIdValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'application_id' => ['The application id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for create onboarding country id validation
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentArrivalcreateOnboardingCountryIdValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', array_merge($this->creationData(), ['onboarding_country_id' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'onboarding_country_id' => ['The onboarding country id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for create Filght date validation
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentArrivalcreateFlightDateValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', array_merge($this->creationData(), ['flight_date' => '11/11/2023']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'flight_date' => ['The flight date does not match the format Y-m-d.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker list for submit
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentArrivalWorkersListsubmit(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/workersListForSubmit', ["application_id" => 1,"onboarding_country_id" => 1,"search" => "","calling_visa_reference_number"=>""], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'current_page',
-                    'data',
-                    'first_page_url',
-                    'from',
-                    'last_page',
-                    'last_page_url',
-                    'links',
-                    'next_page_url',
-                    'path',
-                    'per_page',
-                    'prev_page_url',
-                    'to',
-                    'total'
+                    
                 ]
         ]);
     }
     /**
-     * Functional test for Total Management Payroll Export
+     * Functional test for worker list for update
      * 
      * @return void
      */
-    public function testForTotalManagementPayrollExport(): void
+    public function testForDirectRecruitmentArrivalWorkersListUpdate(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/payroll/export', ["project_id" => 1, "month"  => "", "year" => "", "search" => ""], $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/workersListForUpdate', 
+        ["application_id"=> 1, "onboarding_country_id"=>1, "arrival_id"=>1, "search"=> "", "calling_visa_reference_number"=>""], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
-            'data' => []
+            'data' =>
+                [
+                    
+                ]
         ]);
     }
     /**
-     * Functional test for Total Management Payroll View Timesheet
+     * Functional test for  list
      * 
      * @return void
      */
-    public function testForTotalManagementPayrollViewTimesheet(): void
+    public function testFortestForDirectRecruitmentArrivallist(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/payroll/viewTimesheet', ["project_id" => 1, "month"  => "", "year" => "", "search" => ""], $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/list', ['application_id' => 1, 'onboarding_country_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
-            'data' => []
+            'data' =>
+                [
+                    
+                ]
         ]);
     }
     /**
-     * Functional test for total management Payroll Add
+     * Functional test for  show
      * 
      * @return void
      */
-    public function testForTotalManagementPayrollAdd(): void
+    public function testFortestForDirectRecruitmentArrivalShow(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/payroll/add', $this->addData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/show', ['arrival_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    
+                ]
+        ]);
+    }
+    /**
+     * Functional test for  cancel worker detail
+     * 
+     * @return void
+     */
+    public function testFortestForDirectRecruitmentArrivalCancelWorkerDetail(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/cancelWorkerDetail', ['worker_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    
+                ]
+        ]);
+    }
+    /**
+     * Functional test for  calling visa ReferenceNumber List
+     * 
+     * @return void
+     */
+    public function testFortestForDirectRecruitmentArrivalcallingvisaReferenceNumberList(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/callingvisaReferenceNumberList', ['application_id' => 1, 'onboarding_country_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    
+                ]
+        ]);
+    }
+    /**
+     * Functional test for  cancel worker
+     * 
+     * @return void
+     */
+    public function testFortestForDirectRecruitmentArrivalCancelWorker(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/cancelWorker', $this->cancelData(), $this->getHeader(false));
+       $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'Total Manangement Payroll Added Successfully']
+            'data' => ['message' => 'Worker Cancellation Completed Successfully']
         ]);
     }
     /**
-     * Functional test for Total Management Payroll Show
+     * Functional test for  update worker
      * 
      * @return void
      */
-    public function testForTotalManagementPayrollShow(): void
+    public function testFortestForDirectRecruitmentArrivalupdateWorkers(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/payroll/add', $this->addData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/totalManagement/payroll/show', ["id" => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' => []
-        ]);
-    }
-    /**
-     * Functional test for total management Payroll Update
-     * 
-     * @return void
-     */
-    public function testForTotalManagementPayrollUpdate(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/payroll/add', $this->addData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/totalManagement/payroll/update', $this->updateData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/updateWorkers', $this->updateWorkerData(), $this->getHeader(false));
+       $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'Total Management Payroll Updated Successfully']
-        ]);
-    }
-    /**
-     * Functional test for total management Payroll authorize Payroll
-     * 
-     * @return void
-     */
-    public function testForTotalManagementPayrollauthorizePayroll(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/payroll/add', $this->addData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/totalManagement/payroll/authorizePayroll', $this->authorizeData(), $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' => []
+            'data' => ['message' => 'Workers Updated Successfully']
         ]);
     }
     /**
@@ -151,15 +236,15 @@ class TotalManagementPayrollUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Supervisor',
+            'name' => 'HR',
             'special_permission' => '',
             'system_role' => 0,
             'status' => 1,
             'parent_id' => 0,
             'company_id' => 1
         ];
-        $res = $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
-
+        $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
+       
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
@@ -167,7 +252,7 @@ class TotalManagementPayrollUnitTest extends TestCase
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
-            'contact_number' => 238467,
+            'contact_number' => 1234567890,
             'address' => 'Addres', 
             'postcode' => 2344, 
             'position' => 'Position', 
@@ -179,33 +264,7 @@ class TotalManagementPayrollUnitTest extends TestCase
             'state' => 'Malaysia',
             'subsidiary_companies' => []
         ];
-        $res = $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
-
-        $payload =  [
-            'name' => 'name',
-            'type' => 'Transportation',
-            'email_address' => 'email@gmail.com',
-            'contact_number' => random_int(10, 1000),
-            'person_in_charge' => 'test',
-            'pic_contact_number' => random_int(10, 1000),
-            'address' => 'address',
-            'state' => 'state',
-            'city' => 'city',
-            'postcode' => random_int(10, 1000),
-            'remarks' => 'test',
-       ];
-       $response = $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
-
-       $payload =  [
-        'driver_name' => 'name',
-        'driver_email' => 'driver@mail.com',
-        'driver_contact_number' => random_int(10, 1000),
-        'vehicle_type' => 'type',
-        'number_plate' => random_int(10, 1000),
-        'vehicle_capacity' => random_int(10, 1000),
-        'vendor_id' => 1
-   ];
-   $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
         $payload =  [
             'sector_name' => 'Agriculture',
@@ -238,7 +297,7 @@ class TotalManagementPayrollUnitTest extends TestCase
         ];
         $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
 
-        /* $payload = [
+        $payload = [
             'id' => 1, 
             'crm_prospect_id' => 1, 
             'quota_applied' => 100, 
@@ -294,7 +353,7 @@ class TotalManagementPayrollUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'ksm_reference_number' => 'My/643/7684548', 
+            'ksm_reference_number' => 'My/992/095648000', 
             'received_date' => Carbon::now()->format('Y-m-d'), 
             'valid_until' => Carbon::now()->addYear()->format('Y-m-d')
         ];
@@ -303,10 +362,12 @@ class TotalManagementPayrollUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'country_id' => 1, 
-            'quota' => 20
+            'ksm_reference_number' => 'My/992/095648000',
+            'valid_until' => Carbon::now()->format('Y-m-d'),
+            'quota' => 15,
+            'utilised_quota' => 10
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
-        
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
         $payload = [
             'agent_name' => 'ABC', 
             'country_id' => 1, 
@@ -322,10 +383,19 @@ class TotalManagementPayrollUnitTest extends TestCase
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
             'agent_id' => 1, 
-            'quota' => 20
+            'ksm_reference_number' => 'My/992/095648000',
+            'quota' => 10
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
 
+        $payload = [
+            "application_id" => 1,
+            "onboarding_country_id" => 1,
+            "onboarding_agent_id" => 1,
+            "ksm_reference_number" => "My/992/095648000"
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $payload, $this->getHeader(false));
+        
         $payload = [
             "id" => 1,
             "submission_date" => Carbon::now()->format('Y-m-d'),
@@ -351,7 +421,7 @@ class TotalManagementPayrollUnitTest extends TestCase
             'kin_name' => 'Kin name',
             'kin_relationship_id' => 1,
             'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/643/7684548',
+            'ksm_reference_number' => 'My/992/095648000',
             'calling_visa_reference_number' => '',
             'calling_visa_valid_until' => '',
             'entry_visa_valid_until' => '',
@@ -371,7 +441,7 @@ class TotalManagementPayrollUnitTest extends TestCase
             'account_number' => 1234556678,
             'socso_number' => 12345678
         ];
-        $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1, 
@@ -436,8 +506,13 @@ class TotalManagementPayrollUnitTest extends TestCase
             'workers' => 1
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/dispatch/update', $payload, $this->getHeader(false));
-
-        $payload = [
+    }
+    /**
+     * @return array
+     */
+    public function creationData(): array
+    {
+        return [
             'application_id' => 1,
             'onboarding_country_id' => 1,
             'flight_date' => Carbon::now()->format('Y-m-d'),
@@ -446,206 +521,28 @@ class TotalManagementPayrollUnitTest extends TestCase
             'workers' => [1],
             'remarks' => 1
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'arrived_date' => Carbon::now()->format('Y-m-d'),
-            'entry_visa_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
-            'workers' => [1]
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'jtk_submitted_on' => Carbon::now()->format('Y-m-d'),
-            'workers' => [1]
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateJTKSubmission', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'onboarding_country_id' => 1, 
-            'purchase_date' => Carbon::now()->format('Y-m-d'), 
-            'fomema_total_charge' => '111.99', 
-            'convenient_fee' => 3, 
-            'workers' => [1]
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/fomema/purchase', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'onboarding_country_id' => 1, 
-            'clinic_name' => 'XYZ Clinic', 
-            'doctor_code' => 'AGV64873', 
-            'allocated_xray' => 'FGFSG VDHVG', 
-            'xray_code' => 'DTF783848', 
-            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'), 
-            'workers' => 1, 
-            'file_url' => 'test'
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/fomema/fomemaFit', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'onboarding_country_id' => 1, 
-            'plks_expiry_date' => Carbon::now()->addYear()->format('Y-m-d'), 
-            'workers' => 1
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false)); */
-
-        $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'agent_id' => 1,
-            'name' => 'TestWorker',
-            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'),
-            'gender' => 'Female',
-            'passport_number' => 12345,
-            'passport_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
-            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
-            'address' => 'address',
-            'city' => 'city',
-            'state' => 'state',
-            'kin_name' => 'Kin name',
-            'kin_relationship_id' => 1,
-            'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/643/7684548',
-            'calling_visa_reference_number' => '',
-            'calling_visa_valid_until' => '',
-            'entry_visa_valid_until' => '',
-            'work_permit_valid_until' => '',
-            'bio_medical_reference_number' => '1234567890',
-            'bio_medical_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
-            'purchase_date' => Carbon::now()->format('Y-m-d'),
-            'clinic_name' => 'Test Clinic',
-            'doctor_code' => 'Doc123',
-            'allocated_xray' => 'Tst1234',
-            'xray_code' => 'Xray1234',
-            'ig_policy_number' => '',
-            'ig_policy_number_valid_until' => '',
-            'hospitalization_policy_number' => '',
-            'hospitalization_policy_number_valid_until' => '',
-            'bank_name' => 'Bank Name',
-            'account_number' => 1234556678,
-            'socso_number' => 12345678
-        ];
-        $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
-
-        $payload = [
-            'id' => 1, 
-            'company_name' => 'ABC Firm', 
-            'contact_number' => '768456948', 
-            'email' => 'testcrm@gmail.com', 
-            'pic_name' => 'PICTest', 
-            'sector' => 1, 
-            'from_existing' => 0, 
-            'client_quota' => 10, 
-            'fomnext_quota' => 10, 
-            'initial_quota' => 1, 
-            'service_quota' => 1
-        ];
-        $this->json('POST', 'api/v1/totalManagement/addService', $payload, $this->getHeader(false));
-
-        $payload = [
-            "application_id" => 1,
-            "name" => "test name",
-            "state" => "state test",
-            "city" => "city test",
-            "address" => "test address",
-            "employee_id" => 1,
-            "supervisor_id" => 1,
-            "supervisor_type" => "employee",
-            "transportation_provider_id" => 1,
-            "driver_id" => 1,
-            "assign_as_supervisor" => 0,
-            "annual_leave" => 10,
-            "medical_leave" => 10,
-            "hospitalization_leave" => 10
-        ];
-        $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
-
-        $payload = [
-            "application_id" => 1,
-            "name" => "project two",
-            "state" => "state test",
-            "city" => "city test",
-            "address" => "test address",
-            "employee_id" => 1,
-            "supervisor_id" => 1,
-            "supervisor_type" => "employee",
-            "transportation_provider_id" => 1,
-            "driver_id" => 1,
-            "assign_as_supervisor" => 0,
-            "annual_leave" => 10,
-            "medical_leave" => 10,
-            "hospitalization_leave" => 10
-        ];
-        $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
-
-        $payload = [
-            "project_id" => 1,
-            "department" => "department",
-            "sub_department" => "sub department",
-            "accommodation_provider_id" => 0,
-            "accommodation_unit_id" => 0,
-            "work_start_date" =>  Carbon::now()->format('Y-m-d'),
-            "workers" => [1]
-        ];
-        $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/assignWorker', $payload, $this->getHeader(false));
     }
     /**
      * @return array
      */
-    public function addData(): array
+    public function cancelData(): array
     {
         return [
-            "project_id"=>  1,
-            "month"=>  Carbon::now()->format('m'),
-            "year"=>  Carbon::now()->format('Y'),
-            "worker_id"=>  1
+            'arrival_id' => 1,
+            'workers' => 1,
+            'attachment' => '/C:/Users/admin/Desktop/Accounting.png',
+            'remarks' => 'remark testing'
         ];
     }
     /**
      * @return array
      */
-    public function updateData(): array
+    public function updateWorkerData(): array
     {
         return [
-                "id"=>  1,
-                "basic_salary"=>  1500.00,
-                "ot_1_5"=>  15,
-                "ot_2_0"=>  25,
-                "ot_3_0"=>  35,
-                "ph"=>  10,
-                "rest_day"=>  4,
-                "deduction_advance"=>  10,
-                "deduction_accommodation"=>  10,
-                "annual_leave"=>  30,
-                "medical_leave"=>  15,
-                "hospitalisation_leave"=>  15,
-                "amount"=>  15000,
-                "no_of_workingdays"=>  26,
-                "normalday_ot_1_5"=>  24,
-                "ot_1_5_hrs_amount"=>  15,
-                "restday_daily_salary_rate"=>  30,
-                "hrs_ot_2_0"=>  30,
-                "ot_2_0_hrs_amount"=>  50,
-                "public_holiday_ot_3_0"=>  12,
-                "deduction_hostel"=>  300
+            'arrival_id' => 1,
+            'workers' => [1]
         ];
     }
-    /**
-     * @return array
-     */
-    public function authorizeData(): array
-    {
-        return [
-            "project_id"=>  1,
-            "month"=>  Carbon::now()->format('m'),
-            "year"=>  Carbon::now()->format('Y')
-        ];
-    }
+    
 }

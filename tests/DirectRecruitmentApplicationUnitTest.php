@@ -408,7 +408,7 @@ class DirectRecruitmentApplicationUnitTest extends TestCase
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
-            'contact_number' => 238467,
+            'contact_number' => 1234567890,
             'address' => 'Addres', 
             'postcode' => 2344, 
             'position' => 'Position', 

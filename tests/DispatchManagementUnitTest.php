@@ -5,7 +5,8 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-class TotalManagementProjectUnitTest extends TestCase
+
+class DispatchManagementUnitTest extends TestCase
 {
     use DatabaseMigrations;
     
@@ -16,265 +17,200 @@ class TotalManagementProjectUnitTest extends TestCase
     {
         parent::setUp();
     }
+    
     /**
-     * Functional test for total management project add  mandatory field validation 
+     * Functional test for create
      * 
      * @return void
      */
-    public function testForTotalManagementProjectAddApplicationIdValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'application_id' => ['The application id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAddNameValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['name' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'name' => ['The name field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAddstateValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['state' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'state' => ['The state field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAddcityValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['city' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'city' => ['The city field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAddaddressValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['address' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'address' => ['The address field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAddsupervisoridValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['supervisor_id' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'supervisor_id' => ['The supervisor id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAddsupervisortypeValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['supervisor_type' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'supervisor_type' => ['The supervisor type field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAddtransportationprovideridValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['transportation_provider_id' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'transportation_provider_id' => ['The transportation provider id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAdddriveridValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['driver_id' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'driver_id' => ['The driver id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAddannualleaveValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['annual_leave' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'annual_leave' => ['The annual leave field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAddmedicalleaveValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['medical_leave' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'medical_leave' => ['The medical leave field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAddhospitalizationleaveValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['hospitalization_leave' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'hospitalization_leave' => ['The hospitalization leave field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for total management project add 
-     * 
-     * @return void
-     */
-    public function testForTotalManagementProjectAdd(): void
+    public function testForDispatchManagementcreate(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/project/add', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'Total Manangement Project Added Successfully']
+            'data' => ['message' => 'Dispatch Created Successfully']
         ]);
     }
     /**
-     * Functional test for total management project update  mandatory field validation 
+     * Functional test for create date validation
      * 
      * @return void
      */
-    public function testForTotalManagementProjectUpdateValidation(): void
+    public function testForDispatchManagementcreatedateValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/totalManagement/project/update', array_merge($this->creationData(), ['id' => '']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['date' => Carbon::now()->format('Y/m/d')]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'id' => ['The id field is required.']
+                'date' => ['The date does not match the format Y-m-d.']
             ]
         ]);
     }
     /**
-     * Functional test for total management project update
+     * Functional test for create time validation
      * 
      * @return void
      */
-    public function testForTotalManagementProjectUpdate(): void
+    public function testForDispatchManagementcreatetimeValidation(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/totalManagement/project/add', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/totalManagement/project/update', $this->UpdationData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
+        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['time' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
         $response->seeJson([
-            'data' => ['message' => 'Total Management Project Updated Successfully']
+            'data' => [
+                'time' => ['The time field is required.']
+            ]
         ]);
     }
     /**
-     * Functional test for total management project show
+     * Functional test for create employee id validation
      * 
      * @return void
      */
-    public function testForTotalManagementProjectShow(): void
+    public function testForDispatchManagementcreateemployeeidValidation(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/totalManagement/project/add', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/totalManagement/project/show', ['id' => 1], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['employee_id' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'employee_id' => ['The employee id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for create from validation
+     * 
+     * @return void
+     */
+    public function testForDispatchManagementcreatefromValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['from' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'from' => ['The from field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for create calltime validation
+     * 
+     * @return void
+     */
+    public function testForDispatchManagementcreatecalltimeValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['calltime' => Carbon::now()->format('Y/m/d')]), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'calltime' => ['The calltime does not match the format Y-m-d.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for create area validation
+     * 
+     * @return void
+     */
+    public function testForDispatchManagementcreateareaValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['area' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'area' => ['The area field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for create employer name validation
+     * 
+     * @return void
+     */
+    public function testForDispatchManagementcreateemployernameValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['employer_name' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'employer_name' => ['The employer name field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for create phone number validation
+     * 
+     * @return void
+     */
+    public function testForDispatchManagementcreatephonenumberValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['phone_number' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'phone_number' => ['The phone number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for update
+     * 
+     * @return void
+     */
+    public function testForDispatchManagementUpdate(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/dispatchManagement/update', $this->UpdationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Dispatch Updated Successfully']
+        ]);
+    }
+    /**
+     * Functional test for  show
+     * 
+     * @return void
+     */
+    public function testForDispatchManagementShow(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/dispatchManagement/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'application_id', 'name', 'state', 'city', 'address', 'employee_id', 'transportation_provider_id', 'driver_id', 'assign_as_supervisor', 'annual_leave', 'medical_leave', 'hospitalization_leave', 'created_by', 'modified_by'
+                    
                 ]
         ]);
     }
     /**
-     * Functional test for total management project listing
+     * Functional test for  list
      * 
      * @return void
      */
-    public function testForTotalManagementProjectListing(): void
+    public function testForDispatchManagementList(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/totalManagement/project/add', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/totalManagement/project/list', ['application_id' => 1, 'search' => '', 'page' => 1], $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/dispatchManagement/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/dispatchManagement/list', ["search"=> "","status_filter"=> ""], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
-                []
+                [
+                    
+                ]
         ]);
     }
-    
     /**
      * @return void
      */
@@ -294,15 +230,15 @@ class TotalManagementProjectUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Supervisor',
+            'name' => 'HR',
             'special_permission' => '',
             'system_role' => 0,
             'status' => 1,
             'parent_id' => 0,
             'company_id' => 1
         ];
-        $res = $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
-
+        $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
+       
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
@@ -310,7 +246,7 @@ class TotalManagementProjectUnitTest extends TestCase
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
-            'contact_number' => 238467,
+            'contact_number' => 1234567890,
             'address' => 'Addres', 
             'postcode' => 2344, 
             'position' => 'Position', 
@@ -322,33 +258,7 @@ class TotalManagementProjectUnitTest extends TestCase
             'state' => 'Malaysia',
             'subsidiary_companies' => []
         ];
-        $res = $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
-
-        $payload =  [
-            'name' => 'name',
-            'type' => 'Transportation',
-            'email_address' => 'email@gmail.com',
-            'contact_number' => random_int(10, 1000),
-            'person_in_charge' => 'test',
-            'pic_contact_number' => random_int(10, 1000),
-            'address' => 'address',
-            'state' => 'state',
-            'city' => 'city',
-            'postcode' => random_int(10, 1000),
-            'remarks' => 'test',
-       ];
-       $response = $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
-
-       $payload =  [
-        'driver_name' => 'name',
-        'driver_email' => 'driver@mail.com',
-        'driver_contact_number' => random_int(10, 1000),
-        'vehicle_type' => 'type',
-        'number_plate' => random_int(10, 1000),
-        'vehicle_capacity' => random_int(10, 1000),
-        'vendor_id' => 1
-   ];
-   $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
         $payload =  [
             'sector_name' => 'Agriculture',
@@ -381,7 +291,7 @@ class TotalManagementProjectUnitTest extends TestCase
         ];
         $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
 
-        /* $payload = [
+        $payload = [
             'id' => 1, 
             'crm_prospect_id' => 1, 
             'quota_applied' => 100, 
@@ -437,7 +347,7 @@ class TotalManagementProjectUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'ksm_reference_number' => 'My/643/7684548', 
+            'ksm_reference_number' => 'My/992/095648000', 
             'received_date' => Carbon::now()->format('Y-m-d'), 
             'valid_until' => Carbon::now()->addYear()->format('Y-m-d')
         ];
@@ -446,10 +356,12 @@ class TotalManagementProjectUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'country_id' => 1, 
-            'quota' => 20
+            'ksm_reference_number' => 'My/992/095648000',
+            'valid_until' => Carbon::now()->format('Y-m-d'),
+            'quota' => 15,
+            'utilised_quota' => 10
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
-        
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
         $payload = [
             'agent_name' => 'ABC', 
             'country_id' => 1, 
@@ -465,10 +377,19 @@ class TotalManagementProjectUnitTest extends TestCase
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
             'agent_id' => 1, 
-            'quota' => 20
+            'ksm_reference_number' => 'My/992/095648000',
+            'quota' => 10
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));
 
+        $payload = [
+            "application_id" => 1,
+            "onboarding_country_id" => 1,
+            "onboarding_agent_id" => 1,
+            "ksm_reference_number" => "My/992/095648000"
+        ];
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $payload, $this->getHeader(false));
+        
         $payload = [
             "id" => 1,
             "submission_date" => Carbon::now()->format('Y-m-d'),
@@ -494,7 +415,7 @@ class TotalManagementProjectUnitTest extends TestCase
             'kin_name' => 'Kin name',
             'kin_relationship_id' => 1,
             'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/643/7684548',
+            'ksm_reference_number' => 'My/992/095648000',
             'calling_visa_reference_number' => '',
             'calling_visa_valid_until' => '',
             'entry_visa_valid_until' => '',
@@ -514,7 +435,7 @@ class TotalManagementProjectUnitTest extends TestCase
             'account_number' => 1234556678,
             'socso_number' => 12345678
         ];
-        $this->json('POST', 'api/v1/worker/create', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1, 
@@ -580,78 +501,10 @@ class TotalManagementProjectUnitTest extends TestCase
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/dispatch/update', $payload, $this->getHeader(false));
 
-        $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'flight_date' => Carbon::now()->format('Y-m-d'),
-            'arrival_time' => '12:00 AM',
-            'flight_number' => '0123456789ABC',
-            'workers' => [1],
-            'remarks' => 1
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $payload, $this->getHeader(false));
+        $payload = ['prospect_id' => 1, 'company_name' => 'ABC Firm', 'contact_number' => '768456948', 'email' => 'testcrm@gmail.com', 'pic_name' => 'PICTest', 'sector_id' => 1, 'sector_name' => 'Agriculture', 'fomnext_quota' => 10, 'air_ticket_deposit' => 1.11, 'service_id' => 3, 'file_url' => 'test'];
+        $response = $this->json('POST', 'api/v1/eContract/addService', $payload, $this->getHeader(false));
 
-        $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'arrived_date' => Carbon::now()->format('Y-m-d'),
-            'entry_visa_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
-            'workers' => [1]
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'jtk_submitted_on' => Carbon::now()->format('Y-m-d'),
-            'workers' => [1]
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateJTKSubmission', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'onboarding_country_id' => 1, 
-            'purchase_date' => Carbon::now()->format('Y-m-d'), 
-            'fomema_total_charge' => '111.99', 
-            'convenient_fee' => 3, 
-            'workers' => [1]
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/fomema/purchase', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'onboarding_country_id' => 1, 
-            'clinic_name' => 'XYZ Clinic', 
-            'doctor_code' => 'AGV64873', 
-            'allocated_xray' => 'FGFSG VDHVG', 
-            'xray_code' => 'DTF783848', 
-            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'), 
-            'workers' => 1, 
-            'file_url' => 'test'
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/fomema/fomemaFit', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'onboarding_country_id' => 1, 
-            'plks_expiry_date' => Carbon::now()->addYear()->format('Y-m-d'), 
-            'workers' => 1
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false)); */
-
-        $payload = [
-            'id' => 1,
-            'company_name' => 'ABC Firm', 
-            'contact_number' => '0123456789', 
-            'email' => 'testcrm@gmail.com', 
-            'pic_name' => 'PICTest', 
-            'sector' => 1, 
-            'from_existing' => 0, 
-            'client_quota' => 10, 
-            'fomnext_quota' => 10, 
-            'initial_quota' => 1, 
-            'service_quota' => 1
-        ];
+        $payload = ['prospect_id' => 1, 'company_name' => 'ABC Firm', 'contact_number' => '768456948', 'email' => 'testcrm@gmail.com', 'pic_name' => 'PICTest', 'sector_id' => 1, 'sector_name' => 'Agriculture', 'fomnext_quota' => 10, 'air_ticket_deposit' => 1.11, 'service_id' => 2, 'file_url' => 'test'];
         $response = $this->json('POST', 'api/v1/totalManagement/addService', $payload, $this->getHeader(false));
     }
     /**
@@ -660,20 +513,22 @@ class TotalManagementProjectUnitTest extends TestCase
     public function creationData(): array
     {
         return [
-            "application_id" => 1,
-            "name" => "test name",
-            "state" => "state test",
-            "city" => "city test",
-            "address" => "test address",
+            "onboarding_attestation_id" => 1,
+            "date" => Carbon::now()->format('Y-m-d'),
+            "time" => '12:00 AM',
             "employee_id" => 1,
-            "supervisor_id" => 1,
-            "supervisor_type" => "employee",
-            "transportation_provider_id" => 1,
-            "driver_id" => 1,
-            "assign_as_supervisor" => 0,
-            "annual_leave" => 10,
-            "medical_leave" => 10,
-            "hospitalization_leave" => 10
+            "from" => 'admin',
+            "calltime" => Carbon::now()->format('Y-m-d'),
+            "area" => "ML",
+            "employer_name" => "employee test",
+            "phone_number" => '0123456789',
+            "remarks" => 'remarks test',
+            "job_type" => "Submission",
+            "passport" => "0123456789",
+            "document_name" => "document name",
+            "payment_amount" => "100.00",
+            "worker_name" => "worker test",
+            "attachment[]" => "/C:/Users/admin/Desktop/Accounting.png"
         ];
     }
     /**
@@ -683,20 +538,23 @@ class TotalManagementProjectUnitTest extends TestCase
     {
         return [
             "id" => 1,
-            "application_id" => 1,
-            "name" => "test name",
-            "state" => "state test",
-            "city" => "city test",
-            "address" => "test address",
+            "onboarding_attestation_id" => 1,
+            "date" => Carbon::now()->format('Y-m-d'),
+            "time" => '12:00 AM',
             "employee_id" => 1,
-            "supervisor_id" => 1,
-            "supervisor_type" => "employee",
-            "transportation_provider_id" => 1,
-            "driver_id" => 1,
-            "assign_as_supervisor" => 0,
-            "annual_leave" => 10,
-            "medical_leave" => 10,
-            "hospitalization_leave" => 10
+            "from" => 'admin',
+            "calltime" => Carbon::now()->format('Y-m-d'),
+            "area" => "ML",
+            "employer_name" => "employee test",
+            "phone_number" => '0123456789',
+            "remarks" => 'remarks test',
+            "job_type" => "Submission",
+            "passport" => "0123456789",
+            "document_name" => "document name",
+            "payment_amount" => "100.00",
+            "worker_name" => "worker test",
+            "attachment[]" => "/C:/Users/admin/Desktop/Accounting.png"
         ];
     }
+    
 }

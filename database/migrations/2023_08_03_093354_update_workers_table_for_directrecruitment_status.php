@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('workers', function (Blueprint $table) {
+        /*Schema::table('workers', function (Blueprint $table) {
             // direct recruitment worker status column
             $table->enum('directrecruitment_status',['Pending', 'Accepted', 'Rejected', 'Not Arrived', 'Arrived', 'FOMEMA Fit', 'Processed', 'Repatriated', 'Cancelled'])->default('Pending')->index()->after('plks_expiry_date');
+        });*/
+
+        Schema::table('workers', function (Blueprint $table) {
             if (DB::getDriverName() !== 'sqlite') {
                 // total management worker status column
                 \DB::statement("ALTER TABLE `workers` CHANGE `worker_status` `total_management_status` ENUM('On-Bench','Assigned','Counselling', 'Repatriated', 'e-Run', 'Deceased') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'On-Bench';");

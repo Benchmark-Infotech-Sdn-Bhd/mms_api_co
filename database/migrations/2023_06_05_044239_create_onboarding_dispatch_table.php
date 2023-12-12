@@ -17,8 +17,10 @@ return new class extends Migration
             // onboarding attestation Id column
             $table->unsignedBigInteger('onboarding_attestation_id');
             // Foreign key from onboarding attestation table
-            $table->foreign('onboarding_attestation_id')
+            if (DB::getDriverName() !== 'sqlite') {
+              $table->foreign('onboarding_attestation_id')
               ->references('id')->on('onboarding_attestation')->onDelete('cascade');
+            }
             // Submission Date column
             $table->string('date')->nullable();
             // time column

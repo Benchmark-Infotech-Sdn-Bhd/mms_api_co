@@ -139,7 +139,8 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'id' => ['The id field is required.']
+                'id' => ['The id field is required.'],
+                'ksm_reference_number' => ['The ksm reference number has already been taken.']
             ]
         ]);
     }
@@ -318,7 +319,12 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => '',
+            'system_role' => 0,
+            'status' => 1,
+            'parent_id' => 0,
+            'company_id' => 1
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -338,7 +344,8 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -432,13 +439,13 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['application_id' => 1, 'ksm_reference_number' => 'My/643/7684548', 'received_date' => Carbon::now()->format('Y-m-d'), 'valid_until' => Carbon::now()->addYear()->format('Y-m-d')];
+        return ['application_id' => 1, 'ksm_reference_number' => 'My/992/095648000', 'received_date' => Carbon::now()->format('Y-m-d'), 'valid_until' => Carbon::now()->addYear()->format('Y-m-d')];
     }
     /**
      * @return array
      */
     public function updationData(): array
     {
-        return ['id' => 1, 'application_id' => 1, 'ksm_reference_number' => 'My/643/7684548', 'received_date' => Carbon::now()->format('Y-m-d'), 'valid_until' => Carbon::now()->addYear()->format('Y-m-d')];
+        return ['id' => 1, 'application_id' => 1, 'ksm_reference_number' => 'My/992/095648000', 'received_date' => Carbon::now()->format('Y-m-d'), 'valid_until' => Carbon::now()->addYear()->format('Y-m-d')];
     }
 }

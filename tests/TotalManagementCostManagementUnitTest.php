@@ -5,7 +5,7 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-class EContractCostManagementUnitTest extends TestCase
+class TotalManagementCostManagementUnitTest extends TestCase
 {
     use DatabaseMigrations;
     
@@ -17,102 +17,42 @@ class EContractCostManagementUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test for EContract cost management create  mandatory field validation 
+     * Functional test for Total Management cost management create  mandatory field validation 
      * 
      * @return void
      */
-    public function testForEContractCostManagementCreateProjectIdValidation(): void
+    public function testForTotalManagementCostManagementCreateApplicationIdValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/create', array_merge($this->creationData(), ['project_id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/costManagement/create', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'project_id' => ['The project id field is required.']
+                'application_id' => ['The application id field is required.']
             ]
         ]);
     }
     /**
-     * Functional test for EContract cost management create  mandatory field validation 
+     * Functional test for total Management cost management create 
      * 
      * @return void
      */
-    public function testForEContractCostManagementCreateTitleValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/create', array_merge($this->creationData(), ['title' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'title' => ['The title field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for EContract cost management create  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForEContractCostManagementCreatepaymentreferencenumberValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/create', array_merge($this->creationData(), ['payment_reference_number' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'payment_reference_number' => ['The payment reference number field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for EContract cost management create  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForEContractCostManagementCreatepaymentdateValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/create', array_merge($this->creationData(), ['payment_date' => Carbon::now()->format('Y/m/d')]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'payment_date' => ['The payment date does not match the format Y-m-d.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for EContract cost management create  mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForEContractCostManagementCreateAmountValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/create', array_merge($this->creationData(), ['amount' => '10000.9999']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'amount' => ['The amount format is invalid.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for EContract cost management create 
-     * 
-     * @return void
-     */
-    public function testForEContractCostManagementCreate(): void
+    public function testFortotalManagementCostManagementCreate(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/costManagement/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'E-Contract Cost Management Created Successfully']
+        $this->response->assertJsonStructure([
+            'data' => []
         ]);
     }
     /**
-     * Functional test for EContract cost management update  mandatory field validation 
+     * Functional test for total Management cost management update  mandatory field validation 
      * 
      * @return void
      */
-    public function testForEContractCostManagementUpdateValidation(): void
+    public function testFortotalManagementCostManagementUpdateValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/update', array_merge($this->UpdationData(), ['id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/costManagement/update', array_merge($this->UpdationData(), ['id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -121,30 +61,45 @@ class EContractCostManagementUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for EContract cost management update
+     * Functional test for totalManagement cost management update
      * 
      * @return void
      */
-    public function testForEContractCostManagementUpdate(): void
+    public function testFortotalManagementCostManagementUpdate(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/eContract/costManagement/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/update', $this->UpdationData(), $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/totalManagement/costManagement/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/costManagement/update', $this->UpdationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' => []
+        ]);
+    }
+       /**
+     * Functional test for totalManagement cost management delete
+     * 
+     * @return void
+     */
+    public function testFortotalManagementCostManagementDelete(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/totalManagement/costManagement/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/costManagement/delete', ['id' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'E-Contract Cost Management Updated Successfully']
+            'data' => ['isDeleted' => true, 'message' => 'Deleted Successfully']
         ]);
     }
     /**
-     * Functional test for EContract Cost management show
+     * Functional test for totalManagement Cost management show
      * 
      * @return void
      */
-    public function testForEContractCostManagementShow(): void
+    public function testFortotalManagementCostManagementShow(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/eContract/costManagement/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/show', ['id' => 1], $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/totalManagement/costManagement/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/costManagement/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -152,14 +107,14 @@ class EContractCostManagementUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for EContract cost manangement listing
+     * Functional test for totalManagement cost manangement listing
      * 
      * @return void
      */
-    public function testForEContractCostManagementListing(): void
+    public function testFortotalManagementCostManagementListing(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/list', ['project_id' => 1, 'search_param' => ''], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/costManagement/list', ['project_id' => 1, 'search_param' => ''], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -178,21 +133,6 @@ class EContractCostManagementUnitTest extends TestCase
                     'to',
                     'total'
                 ]
-        ]);
-    }
-    /**
-     * Functional test for attachment delete
-     * 
-     * @return void
-     */
-    public function testForEContractCostManagementattachmentDelete(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/eContract/costManagement/deleteAttachment', ["id" => 1], $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $this->response->assertJsonStructure([
-            'data' => []
         ]);
     }
     
@@ -215,12 +155,7 @@ class EContractCostManagementUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR',
-            'special_permission' => '',
-            'system_role' => 0,
-            'status' => 1,
-            'parent_id' => 0,
-            'company_id' => 1
+            'name' => 'HR'
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -231,7 +166,7 @@ class EContractCostManagementUnitTest extends TestCase
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
-            'contact_number' => 1234567890,
+            'contact_number' => 238467,
             'address' => 'Addres', 
             'postcode' => 2344, 
             'position' => 'Position', 
@@ -240,8 +175,7 @@ class EContractCostManagementUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia',
-            'subsidiary_companies' => []
+            'state' => 'Malaysia'
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -274,6 +208,53 @@ class EContractCostManagementUnitTest extends TestCase
             "bond" => 25
         ];
         $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'id' => 1, 
+            'company_name' => 'ABC Firm', 
+            'contact_number' => '768456948', 
+            'email' => 'testcrm@gmail.com', 
+            'pic_name' => 'PICTest', 
+            'sector' => 1, 
+            'from_existing' => 0, 
+            'client_quota' => 10, 
+            'fomnext_quota' => 10, 
+            'initial_quota' => 1, 
+            'service_quota' => 1
+        ];
+        $this->json('POST', 'api/v1/totalManagement/addService', $payload, $this->getHeader(false));
+
+        $payload = [
+            "application_id" => 1,
+            "name" => "test name",
+            "state" => "state test",
+            "city" => "city test",
+            "address" => "test address",
+            "employee_id" => 1,
+            "transportation_provider_id" => 1,
+            "driver_id" => 1,
+            "assign_as_supervisor" => 0,
+            "annual_leave" => 10,
+            "medical_leave" => 10,
+            "hospitalization_leave" => 10
+        ];
+        $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
+
+        $payload = [
+            "application_id" => 1,
+            "name" => "project two",
+            "state" => "state test",
+            "city" => "city test",
+            "address" => "test address",
+            "employee_id" => 1,
+            "transportation_provider_id" => 1,
+            "driver_id" => 1,
+            "assign_as_supervisor" => 0,
+            "annual_leave" => 10,
+            "medical_leave" => 10,
+            "hospitalization_leave" => 10
+        ];
+        $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
 
         $payload = [
             'prospect_id' => 1, 
@@ -311,6 +292,7 @@ class EContractCostManagementUnitTest extends TestCase
     {
         return [
             "project_id" => 1,
+            "application_id" => 1,
             "title" => "cost management testing",
             "payment_reference_number" => "EXP001",
             "payment_date" => Carbon::now()->format('Y-m-d'),
@@ -327,6 +309,7 @@ class EContractCostManagementUnitTest extends TestCase
     {
         return [
             "id" => 1,
+            "application_id" => 1,
             "title" => "cost management testing",
             "payment_reference_number" => "EXP001",
             "payment_date" => Carbon::now()->format('Y-m-d'),

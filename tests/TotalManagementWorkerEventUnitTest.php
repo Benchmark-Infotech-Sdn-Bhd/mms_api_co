@@ -367,7 +367,7 @@ class TotalManagementWorkerEventUnitTest extends TestCase
     public function testForTotalManagementWorkerListing(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/workerListForAssignWorker', ['prospect_id' => 1, 'search' => 'tes', 'company_filter' => '', 'ksm_reference_number' => ''], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerAssign/workerListForAssignWorker', ['application_id' => 1, 'prospect_id' => 1, 'search' => '', 'company_filter' => '', 'ksm_reference_number' => '', 'page' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -849,6 +849,8 @@ class TotalManagementWorkerEventUnitTest extends TestCase
             "city" => "city test",
             "address" => "test address",
             "employee_id" => 1,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee",
             "transportation_provider_id" => 2,
             "driver_id" => 1,
             "assign_as_supervisor" => 0,

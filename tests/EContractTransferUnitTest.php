@@ -104,20 +104,6 @@ class EContractTransferUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for e-Contract Transfer project listing
-     * 
-     * @return void
-     */
-    public function testForEContractTransferProjectListing(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/eContract/manage/transfer/projectList', ['crm_prospect_id' => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' => []
-        ]);
-    }
-     /**
      * Functional test for e-Contract Transfer worker Employment Detail
      * 
      * @return void
@@ -126,6 +112,20 @@ class EContractTransferUnitTest extends TestCase
     {
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/eContract/manage/transfer/workerEmploymentDetail', ['worker_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' => []
+        ]);
+    }
+    /**
+     * Functional test for e-Contract Transfer project listing
+     * 
+     * @return void
+     */
+    public function testForEContractTransferProjectListing(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/eContract/manage/transfer/projectList', ['crm_prospect_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' => []
@@ -306,7 +306,12 @@ class EContractTransferUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => '',
+            'system_role' => 0,
+            'status' => 1,
+            'parent_id' => 0,
+            'company_id' => 1
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -326,7 +331,8 @@ class EContractTransferUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 

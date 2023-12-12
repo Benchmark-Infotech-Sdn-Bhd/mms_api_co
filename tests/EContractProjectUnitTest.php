@@ -32,6 +32,141 @@ class EContractProjectUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for EContract Project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractProjectAddApplicationNameValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/project/add', array_merge($this->creationData(), ['name' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'name' => ['The name field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for EContract Project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractProjectAddApplicationstateValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/project/add', array_merge($this->creationData(), ['state' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'state' => ['The state field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for EContract Project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractProjectAddApplicationcityValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/project/add', array_merge($this->creationData(), ['city' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'city' => ['The city field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for EContract Project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractProjectAddApplicationaddressValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/project/add', array_merge($this->creationData(), ['address' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'address' => ['The address field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for EContract Project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractProjectAddApplicationannualleaveValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/project/add', array_merge($this->creationData(), ['annual_leave' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'annual_leave' => ['The annual leave field is required.']
+            ]
+        ]);
+    }
+     /**
+     * Functional test for EContract Project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractProjectAddApplicationannualleavemaxValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/project/add', array_merge($this->creationData(), ['annual_leave' => '100']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'annual_leave' => ['The annual leave must not be greater than 2 characters.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for EContract Project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractProjectAddApplicationmedicalleaveValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/project/add', array_merge($this->creationData(), ['medical_leave' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'medical_leave' => ['The medical leave field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for EContract Project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractProjectAddApplicationhospitalizationleaveValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/project/add', array_merge($this->creationData(), ['hospitalization_leave' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'hospitalization_leave' => ['The hospitalization leave field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for EContract Project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForEContractProjectAddApplicationvaliduntilValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/project/add', array_merge($this->creationData(), ['valid_until' => '2023/10/10']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'valid_until' => ['The valid until does not match the format Y-m-d.']
+            ]
+        ]);
+    }
+    /**
      * Functional test for EContract Project add 
      * 
      * @return void
@@ -118,6 +253,21 @@ class EContractProjectUnitTest extends TestCase
                     'to',
                     'total'
                 ]
+        ]);
+    }
+    /**
+     * Functional test for attachment delete
+     * 
+     * @return void
+     */
+    public function testForworkerattachmentDelete(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/eContract/project/add', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/project/deleteAttachment', ["attachment_id" => 1], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' => []
         ]);
     }
     

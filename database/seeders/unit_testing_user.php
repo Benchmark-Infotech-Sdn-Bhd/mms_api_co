@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Company;
 use Illuminate\Database\Seeder;
 
 class unit_testing_user extends Seeder

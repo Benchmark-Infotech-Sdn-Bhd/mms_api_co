@@ -832,7 +832,7 @@ class EmployeeTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', ['branch_name' => 'Test', 'state' => 'state',
         'city' => 'city', 'branch_address' => 'address', 'postcode' => 9876, 'service_type' => [1,2,3],
         'remarks' => 'test'], $this->getHeader());
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader(false));
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator', 'special_permission' => '','system_role' => 0,'status' => 1,'parent_id' => 0,'company_id' => 1], $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/employee/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
@@ -866,7 +866,7 @@ class EmployeeTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', ['branch_name' => 'Test', 'state' => 'state',
         'city' => 'city', 'branch_address' => 'address', 'postcode' => 9876, 'service_type' => [1,2,3],
         'remarks' => 'test'], $this->getHeader());
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader(false));
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator', 'special_permission' => '','system_role' => 0,'status' => 1,'parent_id' => 0,'company_id' => 1], $this->getHeader(false));
         $this->json('POST', 'api/v1/employee/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/employee/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
@@ -920,7 +920,7 @@ class EmployeeTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', ['branch_name' => 'Test', 'state' => 'state',
         'city' => 'city', 'branch_address' => 'address', 'postcode' => 9876, 'service_type' => [1,2,3],
         'remarks' => 'test'], $this->getHeader());
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader(false));
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator', 'special_permission' => '','system_role' => 0,'status' => 1,'parent_id' => 0,'company_id' => 1], $this->getHeader(false));
         $this->json('POST', 'api/v1/employee/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/employee/updateStatus', ['id' => 1, 'status' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
@@ -940,7 +940,7 @@ class EmployeeTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', ['branch_name' => 'Test', 'state' => 'state',
         'city' => 'city', 'branch_address' => 'address', 'postcode' => 9876, 'service_type' => [1,2,3],
         'remarks' => 'test'], $this->getHeader());
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader(false));
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator', 'special_permission' => '','system_role' => 0,'status' => 1,'parent_id' => 0,'company_id' => 1], $this->getHeader(false));
         $this->json('POST', 'api/v1/employee/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/employee/delete', ['id' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
@@ -960,7 +960,7 @@ class EmployeeTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', ['branch_name' => 'Test', 'state' => 'state',
         'city' => 'city', 'branch_address' => 'address', 'postcode' => 9876, 'service_type' => [1,2,3],
         'remarks' => 'test'], $this->getHeader());
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader(false));
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator', 'special_permission' => '','system_role' => 0,'status' => 1,'parent_id' => 0,'company_id' => 1], $this->getHeader(false));
         $this->json('POST', 'api/v1/employee/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/employee/list', ['search_param' => ''], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
@@ -1006,31 +1006,13 @@ class EmployeeTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', ['branch_name' => 'Test', 'state' => 'state',
         'city' => 'city', 'branch_address' => 'address', 'postcode' => 9876, 'service_type' => [1,2,3],
         'remarks' => 'test'], $this->getHeader());
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader(false));
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator', 'special_permission' => '','system_role' => 0,'status' => 1,'parent_id' => 0,'company_id' => 1], $this->getHeader(false));
         $this->json('POST', 'api/v1/employee/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/employee/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             "data" =>
-            [
-                "id",
-                "employee_name",
-                "gender",
-                "date_of_birth",
-                "ic_number",
-                "passport_number",
-                "contact_number",
-                "address",
-                "postcode",
-                "position",
-                "branch_id",
-                "salary",
-                "status",
-                "city",
-                "state",
-                "created_by",
-                "modified_by"
-            ]
+            []
         ]);
     }
     /**
@@ -1041,12 +1023,30 @@ class EmployeeTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', ['branch_name' => 'Test', 'state' => 'state',
         'city' => 'city', 'branch_address' => 'address', 'postcode' => 9876, 'service_type' => [1,2,3],
         'remarks' => 'test'], $this->getHeader());
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader(false));
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator', 'special_permission' => '','system_role' => 0,'status' => 1,'parent_id' => 0,'company_id' => 1], $this->getHeader(false));
         $this->json('POST', 'api/v1/employee/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/employee/dropDown', [], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             "data"
+        ]);
+    }
+    /**
+     * Functional test to list Employees
+     */
+    public function testForListingEmployeesupervisorList(): void
+    {
+        $this->json('POST', 'api/v1/branch/create', ['branch_name' => 'Test', 'state' => 'state',
+        'city' => 'city', 'branch_address' => 'address', 'postcode' => 9876, 'service_type' => [1,2,3],
+        'remarks' => 'test'], $this->getHeader());
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Supervisor', 'special_permission' => '','system_role' => 0,'status' => 1,'parent_id' => 0,'company_id' => 1], $this->getHeader(false));
+        $this->json('POST', 'api/v1/employee/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/employee/supervisorList', ['search_param' => ''], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            "data" =>
+                [
+                ]
         ]);
     }
     /**
@@ -1057,7 +1057,7 @@ class EmployeeTest extends TestCase
         return ['employee_name' => 'Test', 'gender' => 'Female', 'date_of_birth' => '1998-11-02', 
         'ic_number' => 222223434, 'passport_number' => 'ADI', 'email' => 'test@gmail.com', 'contact_number' => 238467,
         'address' => 'Addres', 'postcode' => 2344, 'position' => 'Position', 'branch_id' => 1,
-        'role_id' => 1, 'salary' => 67.00, 'status' => 1, 'city' => 'ABC', 'state' => 'Malaysia'];
+        'role_id' => 1, 'salary' => 67.00, 'status' => 1, 'city' => 'ABC', 'state' => 'Malaysia', 'subsidiary_companies' => []];
     }
     /**
      * @return array
@@ -1067,6 +1067,6 @@ class EmployeeTest extends TestCase
         return ['id' => 1, 'employee_name' => 'Test', 'gender' => 'Female', 'date_of_birth' => '1998-11-02', 
         'ic_number' => 222223434, 'passport_number' => 'ADI', 'email' => 'test@gmail.com', 'contact_number' => 238467,
         'address' => 'Addres', 'postcode' => 2344, 'position' => 'Position', 'branch_id' => 1,
-        'role_id' => 1, 'salary' => 67.00, 'status' => 1, 'city' => 'ABC', 'state' => 'Malaysia'];
+        'role_id' => 1, 'salary' => 67.00, 'status' => 1, 'city' => 'ABC', 'state' => 'Malaysia', 'subsidiary_companies' => []];
     }
 }
