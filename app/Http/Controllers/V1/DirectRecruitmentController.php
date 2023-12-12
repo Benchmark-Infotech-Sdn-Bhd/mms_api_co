@@ -108,6 +108,9 @@ class DirectRecruitmentController extends Controller
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $params['user'] = $user;
             $response = $this->directRecruitmentServices->applicationListing($params);
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
             return $this->sendSuccess($response);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

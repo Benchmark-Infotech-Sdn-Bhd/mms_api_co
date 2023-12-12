@@ -433,7 +433,7 @@ class InvoiceServices
             
             return true;
         } catch (Exception $e) {
-            Log::error('Exception in getting Tax details' . $e);
+            Log::channel('cron_activity_logs')->info('Exception in getting Tax details' . $e);
             return false;
         }
     }
@@ -519,7 +519,7 @@ class InvoiceServices
 
             return true;
         } catch (Exception $e) {
-            Log::error('Exception in getting Items details' . $e);
+            Log::channel('cron_activity_logs')->info('Exception in getting Items details' . $e);
             return false;
         }
     }
@@ -611,7 +611,7 @@ class InvoiceServices
 
             return true;
         } catch (Exception $e) {
-            Log::error('Exception in getting Account details' . $e);
+            Log::channel('cron_activity_logs')->info('Exception in getting Account details' . $e);
             return false;
         }
     }
@@ -775,7 +775,7 @@ class InvoiceServices
 
             return response()->json($result);
         } catch (Exception $e) {
-            Log::error('Exception in getting refresh token' . $e);
+            Log::channel('cron_activity_logs')->info('Exception in getting refresh token' . $e);
             return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
         }
     }

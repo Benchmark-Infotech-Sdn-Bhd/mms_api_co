@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('worker_employment', function (Blueprint $table) {
-            $table->string('transfer_start_date')->change();
-            $table->string('transfer_end_date')->change();
+        Schema::table('onboarding_countries_ksm_reference_number', function (Blueprint $table) {
+            $table->dropColumn('valid_until');
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('onboarding_countries_ksm_reference_number', function (Blueprint $table) {
+            //
+        });
     }
 };

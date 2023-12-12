@@ -5,7 +5,7 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-class PostArrivalPLKSUnitTest extends TestCase
+class PostArrivalPostponedUnitTest extends TestCase
 {
     use DatabaseMigrations;
     
@@ -17,65 +17,6 @@ class PostArrivalPLKSUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test for post arrival, PLKS expiry date mandatory field validation 
-     * 
-     * @return void
-     */
-    public function testForPostArrivalFOMEMAPurchaseDateRequiredValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', array_merge($this->updateData(), ['plks_expiry_date' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'plks_expiry_date' => ['The plks expiry date field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for post arrival, PLKS expiry date format validation 
-     * 
-     * @return void
-     */
-    public function testForPostArrivalFOMEMAPurchaseDateFormatValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', array_merge($this->updateData(), ['plks_expiry_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'plks_expiry_date' => ['The plks expiry date does not match the format Y-m-d.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for post arrival, PLKS expiry date future date validation 
-     * 
-     * @return void
-     */
-    public function testForPostArrivalFOMEMAPurchaseFutureDateValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', array_merge($this->updateData(), ['plks_expiry_date' => Carbon::now()->subYear()->format('Y-m-d')]), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'plks_expiry_date' => ['The plks expiry date must be a date after yesterday.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for post arrival, PLKS updation
-     * 
-     * @return void
-     */
-    public function testForPLKSUpdation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $this->updateData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'PLKS Status Updated Successfully']
-        ]);
-    }
-    /**
      * Functional test for worker list search validation
      * 
      * @return void
@@ -83,7 +24,7 @@ class PostArrivalPLKSUnitTest extends TestCase
     public function testForWorkersListSearchValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wo'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/postponed/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wo'], $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -99,7 +40,7 @@ class PostArrivalPLKSUnitTest extends TestCase
     public function testForWorkersListWithSearch(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wor'], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/postponed/workersList', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wor'], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -118,52 +59,6 @@ class PostArrivalPLKSUnitTest extends TestCase
                     'to',
                     'total'
                 ]
-        ]);
-    }
-    /**
-     * Functional test for export worker list search validation
-     * 
-     * @return void
-     */
-    public function testForExportWorkersListSearchValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/workersListExport', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wo'], $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'search' => ['The search must be at least 3 characters.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for worker list for export
-     * 
-     * @return void
-     */
-    public function testForWorkersListForExport(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/workersListExport', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => ''], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' =>
-                [
-                ]
-        ]);
-    }
-    /**
-     * Functional test for update special pass
-     * 
-     * @return void
-     */
-    public function testForSpecialPassUpdate(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updateSpecialPass', ['application_id' => 1, 'onboarding_country_id' => 1, 'workers' => [1]], $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Special Pass Updated Successfully']
         ]);
     }
     /**
@@ -497,52 +392,5 @@ class PostArrivalPLKSUnitTest extends TestCase
             'remarks' => 1
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/arrival/submit', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'arrived_date' => Carbon::now()->format('Y-m-d'),
-            'entry_visa_valid_until' => Carbon::now()->addYear()->format('Y-m-d'),
-            'workers' => [1]
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1,
-            'onboarding_country_id' => 1,
-            'jtk_submitted_on' => Carbon::now()->format('Y-m-d'),
-            'workers' => [1]
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateJTKSubmission', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'onboarding_country_id' => 1, 
-            'purchase_date' => Carbon::now()->format('Y-m-d'), 
-            'fomema_total_charge' => '111.99', 
-            'convenient_fee' => 3, 
-            'workers' => [1]
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/fomema/purchase', $payload, $this->getHeader(false));
-
-        $payload = [
-            'application_id' => 1, 
-            'onboarding_country_id' => 1, 
-            'clinic_name' => 'XYZ Clinic', 
-            'doctor_code' => 'AGV64873', 
-            'allocated_xray' => 'FGFSG VDHVG', 
-            'xray_code' => 'DTF783848', 
-            'fomema_valid_until' => Carbon::now()->addYear()->format('Y-m-d'), 
-            'workers' => 1, 
-            'file_url' => 'test'
-        ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/fomema/fomemaFit', $payload, $this->getHeader(false));
-    }
-    /**
-     * @return array
-     */
-    public function updateData(): array
-    {
-        return ['application_id' => 1, 'onboarding_country_id' => 1, 'plks_expiry_date' => Carbon::now()->addYear()->format('Y-m-d'), 'workers' => 1];
     }
 }

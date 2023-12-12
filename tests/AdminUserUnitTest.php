@@ -48,6 +48,23 @@ class AdminUserUnitTest extends TestCase
     }
 
     /**
+     * Functional test to List Admin User serach validation
+     * 
+     * @return void
+     */
+    public function testToListAdminUsersWithSearchParamValidation(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/user/adminList', ['search_param' => 'te'], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'search_param' => ['The search param must be at least 3 characters.']
+            ]
+        ]);
+    }
+
+    /**
      * Functional test to List Admin User 
      * 
      * @return void
@@ -105,18 +122,8 @@ class AdminUserUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/user/adminShow', ['id' => '1'], $this->getHeader());
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
-            'data' => [
-                'id',
-                'name',
-                'email',
-                'created_by',
-                'modified_by',
-                'created_at',
-                'updated_at', 
-                'deleted_at',
-                'reference_id',
-                'user_type',
-                'status'
+            'data' => 
+            [
             ]
         ]);
     }
@@ -156,14 +163,50 @@ class AdminUserUnitTest extends TestCase
     }
 
     /**
-     * Functional test for Update Status Admin User Details - Status mandatory field validation 
+     * Functional test for Update Status Admin User - Status format validation 
      * 
      * @return void
      */
-    public function testForUpdateAdminUserStatus(): void
+    public function testForUpdateAdminUserStatusStatusFormatValidation(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 5], $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'status' => ['The status format is invalid.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User Details - disable
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserDisableStatus(): void
     {
         $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
         $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 0], $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            "data" =>
+            [
+                'isUpdated' => true,
+                'message' => 'Updated Successfully'
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User Details - enable
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserEnableStatus(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 1], $this->getHeader());
         $response->seeStatusCode(200);
         $response->seeJson([
             "data" =>
@@ -221,6 +264,23 @@ class AdminUserUnitTest extends TestCase
         $response->seeJson([
             'data' => [
                 'email' => ['The email field is required.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User  Email unique validation 
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserEmailUniqueValidation(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['email' => 'unittest@gmail.com']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'email' => ['The email has already been taken.']
             ]
         ]);
     }

@@ -12,15 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('worker_employment', function (Blueprint $table) {
-            $table->string('work_start_date')->change();
-            $table->string('work_end_date')->change();
             // transfer_flag 1 means, worker transferred to another project
-            $table->tinyInteger('transfer_flag')->default(0)->unsigned()->index()->after('service_type');
-            
-            if (DB::getDriverName() !== 'sqlite') {
-                $table->dropColumn('transfer_start_date');
-                $table->dropColumn('transfer_end_date');
-            }
+            $table->tinyInteger('transfer_flag')->default(0)->after('service_type');
         });
     }
 
