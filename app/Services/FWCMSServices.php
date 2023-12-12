@@ -98,7 +98,7 @@ class FWCMSServices
           })
         ->where('fwcms.application_id', $request['application_id'])
         ->select('fwcms.id', 'fwcms.application_id', 'fwcms.submission_date', 'fwcms.applied_quota', 'fwcms.status', 'fwcms.ksm_reference_number', 'fwcms.updated_at', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
-        ->orderBy('id', 'desc')
+        ->orderBy('fwcms.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**

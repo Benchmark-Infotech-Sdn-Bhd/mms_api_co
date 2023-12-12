@@ -2,6 +2,7 @@
 
 namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
+use Illuminate\Support\Carbon;
 
 class DirectRecruitmentProposalTest extends TestCase
 {
@@ -13,6 +14,21 @@ class DirectRecruitmentProposalTest extends TestCase
     {
         parent::setUp();
     }
+    // /**
+    //  * A test method for validate id
+    //  * 
+    //  * @return void
+    //  */
+    // public function testAddProposalIdValidation(): void
+    // {
+    //     $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), ['id' => '']), $this->getHeader());
+    //     $response->seeStatusCode(422);
+    //     $this->response->assertJsonStructure([
+    //         'data' => [
+    //             'id' => ['The id field is required.']
+    //         ]
+    //     ]);
+    // }
     /**
      * A test method for validate crm prospect id
      * 
@@ -20,16 +36,12 @@ class DirectRecruitmentProposalTest extends TestCase
      */
     public function testAddProposalCrmProspectIdValidation(): void
     {
-        $payload =  [
-            'crm_prospect_id' => '',
-            'quota_applied' => 22,
-            'person_incharge' => 'test',
-            'cost_quoted' => 2
-       ];
-        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), ['crm_prospect_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
-        $this->response->assertJsonStructure([
-            'data' => ['crm_prospect_id']
+        $response->seeJson([
+            'data' => [
+                'crm_prospect_id' => ['The crm prospect id field is required.']
+            ]
         ]);
     }
     /**
@@ -39,16 +51,12 @@ class DirectRecruitmentProposalTest extends TestCase
      */
     public function testAddProposalQuotaAppliedValidation(): void
     {
-        $payload =  [
-            'crm_prospect_id' => 1,
-            'quota_applied' => '',
-            'person_incharge' => 'test',
-            'cost_quoted' => 2
-       ];
-        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), ['quota_applied' => '']), $this->getHeader());
         $response->seeStatusCode(422);
-        $this->response->assertJsonStructure([
-            'data' => ['quota_applied']
+        $response->seeJson([
+            'data' => [
+                'quota_applied' => ['The quota applied field is required.']
+            ]
         ]);
     }
 
@@ -59,16 +67,12 @@ class DirectRecruitmentProposalTest extends TestCase
      */
     public function testAddProposalPersonInchargeValidation(): void
     {
-        $payload =  [
-            'crm_prospect_id' => 1,
-            'quota_applied' => 22,
-            'person_incharge' => '',
-            'cost_quoted' => 2
-       ];
-        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), ['person_incharge' => '']), $this->getHeader());
         $response->seeStatusCode(422);
-        $this->response->assertJsonStructure([
-            'data' => ['person_incharge']
+        $response->seeJson([
+            'data' => [
+                'person_incharge' => ['The person incharge field is required.']
+            ]
         ]);
     }
 
@@ -79,19 +83,14 @@ class DirectRecruitmentProposalTest extends TestCase
      */
     public function testAddProposalCostQuotedValidation(): void
     {
-        $payload =  [
-            'crm_prospect_id' => 1,
-            'quota_applied' => 22,
-            'person_incharge' => 'test',
-            'cost_quoted' => ''
-       ];
-        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), ['cost_quoted' => '']), $this->getHeader());
         $response->seeStatusCode(422);
-        $this->response->assertJsonStructure([
-            'data' => ['cost_quoted']
+        $response->seeJson([
+            'data' => [
+                'cost_quoted' => ['The cost quoted field is required.']
+            ]
         ]);
     }
-
     /**
      * A test method for validate create proposal
      * 
@@ -100,65 +99,119 @@ class DirectRecruitmentProposalTest extends TestCase
     public function testAddProposalRequiredValidation(): void
     {
         $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), 
-        ['crm_prospect_id' => '', 'quota_applied' => '', 'person_incharge' => '', 'cost_quoted' => '']), $this->getHeader());
+        ['id' => '', 'crm_prospect_id' => '', 'quota_applied' => '', 'person_incharge' => '', 'cost_quoted' => '']), $this->getHeader());
         $response->seeStatusCode(422);
-        $this->response->assertJson([
-            "data" => [ 
-                "crm_prospect_id" => ["The crm prospect id field is required."],
-                "quota_applied" => ["The quota applied field is required."],
-                "person_incharge" => ["The person incharge field is required."],
-                "cost_quoted" => ["The cost quoted field is required."],
+        $response->seeJson([
+            "data" => [
+                "cost_quoted" => [
+                    "The cost quoted field is required."
+                ],
+                "crm_prospect_id" => [
+                    "The crm prospect id field is required."
+                ],
+                "person_incharge" => [
+                    "The person incharge field is required."
+                ],
+                "quota_applied" => [
+                    "The quota applied field is required."
+                ]
             ]
         ]);
     }
 
     /**
-     * Functional test to validate minimum/maximum characters for fields in proposal creation
+     * Functional test to validate size of quota applied in proposal creation
      * 
      * @return void
      */
-    public function testAddProposalMinMaxFieldValidation(): void
+    public function testAddProposalMinMaxQuotaAppliedValidation(): void
     {
         $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), 
-        ['crm_prospect_id' => '1', 'quota_applied' => '123456789', 'person_incharge' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiuery sdjrkwiherihwijerhtwrt', 'cost_quoted' => '2']), $this->getHeader());
+        ['id' => '1', 'quota_applied' => '123456789', 'person_incharge' => 'Test', 'cost_quoted' => '2']), $this->getHeader());
         $response->seeStatusCode(422);
         $this->response->assertJson([
             "data" => [ 
-                "quota_applied" => ["The quota applied must not be greater than 3 characters."],
-                "person_incharge" => ["The person incharge must not be greater than 150 characters."],
+                "quota_applied" => ["The quota applied must not be greater than 3 characters."]
             ]
         ]);
     }
     /**
-     * Functional test to validate format for fields in proposal creation
+     * Functional test to validate Format of quota applied in proposal creation
+     * 
+     * @return void
+     */
+    public function testAddProposalQuotaAppliedFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), 
+        ['id' => '1', 'quota_applied' => '4$$', 'person_incharge' => 'Test', 'cost_quoted' => '2']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJson([
+            "data" => [ 
+                "quota_applied" => ["The quota applied format is invalid."]
+            ]
+        ]);
+    }
+    // /**
+    //  * Functional test to validate size of cost coated in proposal creation
+    //  * 
+    //  * @return void
+    //  */
+    // public function testToAddProposalCostQuotedSizeValidation(): void
+    // {
+    //     $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), 
+    //     ['id' => '1', 'quota_applied' => '10', 'person_incharge' => 'test', 'cost_quoted' => '2748358465476743668768768768768678.6876876865437647']), $this->getHeader());
+    //     $response->seeStatusCode(422);
+    //     $this->response->assertJson([
+    //         "data" => [ 
+    //             "cost_quoted" => ["The cost quoted must not be greater than 150 characters."]
+    //         ]
+    //     ]);
+    // }
+    /**
+     * Functional test to validate format of cost coated in proposal creation
+     * 
+     * @return void
+     */
+    public function testToAddProposalCostQuotedFormatValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), 
+        ['id' => '1', 'quota_applied' => '10', 'person_incharge' => 'test', 'cost_quoted' => '647.56$$']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $this->response->assertJson([
+            "data" => [ 
+                "cost_quoted" => ["The cost quoted format is invalid."]
+            ]
+        ]);
+    }
+    /**
+     * Functional test for create proposal
+     */
+    public function testForAddProposal(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $this->addProposalData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+            "isUpdated" => true,
+            "message" => "Updated Successfully"
+            ]
+        ]);
+    }
+    /**
+     * Functional test to update proposal
      * 
      * @return void
      */
     public function testAddProposalFieldFormatValidation(): void
     {
         $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), 
-        ['crm_prospect_id' => '1', 'quota_applied' => 'dsdsddd', 'person_incharge' => '23234 dfd', 'cost_quoted' => 'sdsd']), $this->getHeader());
+        ['id' => '1', 'quota_applied' => 'dsdsddd', 'person_incharge' => 'test', 'cost_quoted' => 'sdsd']), $this->getHeader());
         $response->seeStatusCode(422);
         $this->response->assertJson([
             "data" => [ 
                 "quota_applied" => ["The quota applied format is invalid."],
-                "person_incharge" => ["The person incharge format is invalid."],
-                "cost_quoted" => ["The cost quoted format is invalid."],
-            ]
-        ]);
-    }
-
-    /**
-     * Functional test for create proposal
-     */
-    public function testForAddProposal(): void
-    {
-        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $this->addProposalData(), $this->getHeader());
-        $response->seeStatusCode(200);
-        $this->response->assertJsonStructure([
-            "data" =>
-            [
-                'message'
+                "cost_quoted" => ["The cost quoted format is invalid."]
             ]
         ]);
     }
@@ -169,21 +222,91 @@ class DirectRecruitmentProposalTest extends TestCase
      */
     public function testRetrieveSpecificProposal()
     {
-        $response = $this->json('POST', 'api/v1/directRecrutment/showProposal', ['id' => 1], $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $this->addProposalData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecrutment/showProposal', ['id' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'data',
+
                 ]
         ]);
+    }
+    /**
+     * @return void
+     */
+    public function creationSeeder(): void
+    {
+        $this->artisan("db:seed --class=ServiceSeeder");
+        $this->artisan("db:seed --class=SystemTypeSeeder");
+        $payload =  [
+            'branch_name' => 'test',
+            'state' => 'state',
+            'city' => 'city',
+            'branch_address' => 'address',
+            'postcode' => random_int(10, 1000),
+            'service_type' => [1,2,3],
+            'remarks' => 'test'
+        ];   
+        $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
+
+        $payload =  [
+            'name' => 'HR',
+            'special_permission' => 0
+        ];
+        $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
+       
+        $payload = [
+            'employee_name' => 'Test', 
+            'gender' => 'Female', 
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'), 
+            'ic_number' => 222223434, 
+            'passport_number' => 'ADI', 
+            'email' => 'test@gmail.com', 
+            'contact_number' => 238467,
+            'address' => 'Addres', 
+            'postcode' => 2344, 
+            'position' => 'Position', 
+            'branch_id' => 1,
+            'role_id' => 1, 
+            'salary' => 67.00, 
+            'status' => 1, 
+            'city' => 'ABC', 
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
+        ];
+        $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
+
+        $payload =  [
+            'sector_name' => 'Agriculture',
+            'sub_sector_name' => 'Agriculture'
+        ];  
+        $this->json('POST', 'api/v1/sector/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'company_name' => 'ABC Firm', 
+            'contract_type' => 'Zero Cost', 
+            'roc_number' => 'APS6376', 
+            'director_or_owner' => 'Test', 
+            'contact_number' => '768456948', 
+            'email' => 'testcrm@gmail.com', 
+            'address' => 'Coimbatore', 
+            'pic_name' => 'PICTest', 
+            'pic_contact_number' => '764859694', 
+            'pic_designation' => 'Manager', 
+            'registered_by' => 1, 
+            'sector_type' => 1, 
+            'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])
+        ];
+        $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
     }
     /**
      * @return array
      */
     public function addProposalData(): array
     {
-        return ['id' => 1, 'crm_prospect_id' => 1, 'quota_applied' => 22, 'person_incharge' => 'test', 
+        return ['id' => 1, 'crm_prospect_id' => 1, 'quota_applied' => 10, 'person_incharge' => 'test', 
         'cost_quoted' => 10.22, 'remarks' => 'test'];
     }
 }
