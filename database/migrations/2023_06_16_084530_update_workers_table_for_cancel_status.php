@@ -15,7 +15,11 @@ return new class extends Migration
             // Column for calling visa cancel status
             $table->tinyInteger('cancel_status')->default(0)->after('status');
             // Column for calling visa cancellation remarks
-            $table->text('remarks')->after('cancel_status');
+            if (DB::getDriverName() === 'sqlite') {
+                $table->text('remarks')->default('')->after('cancel_status');
+            } else {
+                $table->text('remarks')->after('cancel_status');
+            }
         });
     }
 

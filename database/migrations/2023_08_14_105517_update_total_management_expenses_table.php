@@ -21,9 +21,14 @@ return new class extends Migration
                 $table->integer('quantity')->nullable()->change();
             }
 
-            $table->bigInteger('worker_id')->unsigned();
+            if (DB::getDriverName() === 'sqlite') {
+                $table->bigInteger('worker_id')->default(0)->unsigned();
+                $table->enum('type', ['Advance', 'Deposit', 'Payroll'])->default('')->index();
+            } else {
+                $table->bigInteger('worker_id')->unsigned();
+                $table->enum('type', ['Advance', 'Deposit', 'Payroll'])->index();
+            }
             $table->foreign('worker_id')->references('id')->on('workers')->onDelete('cascade');
-            $table->enum('type', ['Advance', 'Deposit', 'Payroll'])->index();
             $table->decimal('deduction', 8, 2)->default(0);
         });
     }

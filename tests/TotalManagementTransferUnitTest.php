@@ -104,9 +104,9 @@ class TotalManagementTransferUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for Total Management Transfer cproject listing
+     * Functional test for Total Management Transfer project listing
      * 
-     * @return void
+     * @return void 
      */
     public function testForTotalManagementTransferProjectListing(): void
     {
@@ -164,7 +164,8 @@ class TotalManagementTransferUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Supervisor'
+            'name' => 'Supervisor',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -184,7 +185,8 @@ class TotalManagementTransferUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -206,10 +208,12 @@ class TotalManagementTransferUnitTest extends TestCase
        $payload =  [
         'driver_name' => 'name',
         'driver_contact_number' => random_int(10, 1000),
+        'driver_email' => 'test@gmail.com',
         'vehicle_type' => 'type',
         'number_plate' => random_int(10, 1000),
         'vehicle_capacity' => random_int(10, 1000),
-        'vendor_id' => 1
+        'vendor_id' => 1,
+        'file_url' => 'test'
    ];
    $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
 
@@ -249,7 +253,7 @@ class TotalManagementTransferUnitTest extends TestCase
             'crm_prospect_id' => 1, 
             'quota_applied' => 100, 
             'person_incharge' => 'test', 
-            'cost_quoted' => 10.22, 
+            'cost_quoted' => 10, 
             'remarks' => 'test'
         ];
         $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
@@ -300,7 +304,7 @@ class TotalManagementTransferUnitTest extends TestCase
 
         $payload = [
             'application_id' => 1, 
-            'ksm_reference_number' => 'My/643/7684548', 
+            'ksm_reference_number' => 'My/992/095648000', 
             'received_date' => Carbon::now()->format('Y-m-d'), 
             'valid_until' => Carbon::now()->addYear()->format('Y-m-d')
         ];
@@ -309,10 +313,11 @@ class TotalManagementTransferUnitTest extends TestCase
         $payload = [
             'application_id' => 1, 
             'country_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648000', 
             'quota' => 20
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $payload, $this->getHeader(false));
-        
+               
         $payload = [
             'agent_name' => 'ABC', 
             'country_id' => 1, 
@@ -339,7 +344,7 @@ class TotalManagementTransferUnitTest extends TestCase
             "file_url" => "google.com",
             "remarks" => "remarks testing"
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/update', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $payload, $this->getHeader(false));
 
         $payload = [
             'application_id' => 1,
@@ -357,7 +362,7 @@ class TotalManagementTransferUnitTest extends TestCase
             'kin_name' => 'Kin name',
             'kin_relationship_id' => 1,
             'kin_contact_number' => 1234567890,
-            'ksm_reference_number' => 'My/643/7684548',
+            'ksm_reference_number' => 'My/992/095648000',
             'calling_visa_reference_number' => '',
             'calling_visa_valid_until' => '',
             'entry_visa_valid_until' => '',
@@ -439,7 +444,7 @@ class TotalManagementTransferUnitTest extends TestCase
             'dispatch_method' => 'Courier',
             'dispatch_consignment_number' => '123456789',
             'dispatch_acknowledgement_number' => '123456789',
-            'workers' => 1
+            'workers' => [1]
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/dispatch/update', $payload, $this->getHeader(false));
 
@@ -523,29 +528,33 @@ class TotalManagementTransferUnitTest extends TestCase
             "state" => "state test",
             "city" => "city test",
             "address" => "test address",
-            "employee_id" => 1,
+            //"employee_id" => 1,
             "transportation_provider_id" => 1,
             "driver_id" => 1,
-            "assign_as_supervisor" => 0,
+            //"assign_as_supervisor" => 0,
             "annual_leave" => 10,
             "medical_leave" => 10,
-            "hospitalization_leave" => 10
+            "hospitalization_leave" => 10,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee"
         ];
         $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
-
+        
         $payload = [
             "application_id" => 1,
             "name" => "project two",
             "state" => "state test",
             "city" => "city test",
             "address" => "test address",
-            "employee_id" => 1,
+            //"employee_id" => 1,
             "transportation_provider_id" => 1,
             "driver_id" => 1,
-            "assign_as_supervisor" => 0,
+            //"assign_as_supervisor" => 0,
             "annual_leave" => 10,
             "medical_leave" => 10,
-            "hospitalization_leave" => 10
+            "hospitalization_leave" => 10,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee"
         ];
         $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
 
@@ -570,7 +579,7 @@ class TotalManagementTransferUnitTest extends TestCase
             "current_project_id" => 1,
             "new_prospect_id" => 1,
             "new_project_id" => 2,
-            "service_type" => "Total Management",
+            "service_type" => 2,
             "last_working_day" => Carbon::now()->format('Y-m-d'),
             "new_joining_date"=>  Carbon::now()->format('Y-m-d'),
             "accommodation_provider_id"=>  1,
