@@ -155,7 +155,6 @@ class TransportationTest extends TestCase
     public function testUpdateTransportation()
     {
         $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
-        $this->json('POST', 'api/v1/transportation/update', $this->creationTransportationData(), $this->getHeader());
         $response = $this->json('POST', 'api/v1/transportation/update', $this->updateTransportationData(), $this->getHeader());
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
