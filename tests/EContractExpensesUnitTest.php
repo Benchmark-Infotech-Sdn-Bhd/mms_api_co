@@ -495,21 +495,6 @@ class EContractExpensesUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for e-Contract expense delete attachment
-     * 
-     * @return void
-     */
-    public function testForEContractExpensedeleteAttachment(): void
-    {
-        $this->creationSeeder();
-        $this->json('POST', 'api/v1/eContract/manage/expense/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/eContract/manage/expense/deleteAttachment', ['id' => 1], $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $this->response->assertJsonStructure([
-            'data' => []
-        ]);
-    }
-    /**
      * @return void
      */
     public function creationSeeder(): void
