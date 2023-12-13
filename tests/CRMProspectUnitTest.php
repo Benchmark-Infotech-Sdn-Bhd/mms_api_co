@@ -1050,7 +1050,7 @@ class CRMProspectUnitTest extends TestCase
      */
     public function testForProspectListSearchValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/crm/list', ['search' => 'XY', 'filter' => ''], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/crm/list', ['search' => 'XY', 'filter' => ''], $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
