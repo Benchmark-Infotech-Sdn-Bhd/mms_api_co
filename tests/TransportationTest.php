@@ -131,20 +131,13 @@ class TransportationTest extends TestCase
     public function testCreateTransportation()
     {
         $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
-        $payload =  [
-             'driver_name' => 'name',
-             'driver_contact_number' => random_int(10, 1000),
-             'vehicle_type' => 'type',
-             'number_plate' => random_int(10, 1000),
-             'vehicle_capacity' => random_int(10, 1000),
-             'vendor_id' => 1
-        ];
-        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/transportation/create', $this->creationTransportationData(), $this->getHeader());
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
                 [
                     'driver_name',
+                    'driver_email',
                     'driver_contact_number',
                     'vehicle_type',
                     'number_plate',
@@ -162,17 +155,8 @@ class TransportationTest extends TestCase
     public function testUpdateTransportation()
     {
         $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
-        $this->json('POST', 'api/v1/transportation/create', $this->creationTransportationData(), $this->getHeader());
-        $payload =  [
-            'id' => 1,
-            'driver_name' => 'name',
-            'driver_contact_number' => random_int(10, 1000),
-            'vehicle_type' => 'type',
-            'number_plate' => random_int(10, 1000),
-            'vehicle_capacity' => random_int(10, 1000),
-            'vendor_id' => 1
-        ];
-        $response = $this->json('POST', 'api/v1/transportation/update', $payload, $this->getHeader());
+        $this->json('POST', 'api/v1/transportation/update', $this->creationTransportationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/transportation/update', $this->updateTransportationData(), $this->getHeader());
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
@@ -274,6 +258,23 @@ class TransportationTest extends TestCase
     {
         return [
             'driver_name' => 'name',
+            'driver_email' => 'test@gmail.com',
+            'driver_contact_number' => random_int(10, 1000),
+            'vehicle_type' => 'type',
+            'number_plate' => random_int(10, 1000),
+            'vehicle_capacity' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+    }
+    /**
+     * @return array
+     */
+    public function updateTransportationData(): array
+    {
+        return [
+            'id' => 1,
+            'driver_name' => 'name',
+            'driver_email' => 'test@gmail.com',
             'driver_contact_number' => random_int(10, 1000),
             'vehicle_type' => 'type',
             'number_plate' => random_int(10, 1000),
