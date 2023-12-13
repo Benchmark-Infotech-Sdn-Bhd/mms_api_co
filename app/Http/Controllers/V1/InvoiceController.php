@@ -258,7 +258,7 @@ class InvoiceController extends Controller
     public function getAccessToken(): JsonResponse
     {
         try {
-            $data = $this->invoiceServices->getAccessToken();            
+        $data = $this->invoiceServices->getAccessToken();            
             return $this->sendSuccess($data->original);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
