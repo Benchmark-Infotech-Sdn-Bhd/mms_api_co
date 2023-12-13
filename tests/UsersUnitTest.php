@@ -141,6 +141,7 @@ class UsersUnitTest extends TestCase
      */
     public function testForValidLogin(): void
     {
+        $this->getToken();
         $response = $this->call('POST', 'api/v1/login', $this->loginData());
         $this->assertEquals(200, $response->status());
         $response->assertJsonStructure([

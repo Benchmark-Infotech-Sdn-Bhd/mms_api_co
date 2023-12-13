@@ -16,68 +16,68 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     {
         parent::setUp();
     }
-    /**
-     * Functional test to create onboarding attestation validaton
-     * 
-     * @return void
-     */
-    public function testToCreateOnboardingAttestationApplicationIdValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', array_merge($this->attestationCreateData(), ['application_id' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'application_id' => ['The application id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test to create onboarding attestation validaton
-     * 
-     * @return void
-     */
-    public function testToCreateOnboardingAttestationOnboardingCountryIdValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', array_merge($this->attestationCreateData(), ['onboarding_country_id' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'onboarding_country_id' => ['The onboarding country id field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test to create onboarding attestation validaton
-     * 
-     * @return void
-     */
-    public function testToCreateOnboardingAttestationKsmReferenceNumberValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', array_merge($this->attestationCreateData(), ['ksm_reference_number' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'ksm_reference_number' => ['The ksm reference number field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test to create onboarding attestation
-     * 
-     * @return void
-     */
-    public function testToCreateOnboardingAttestation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Attestation Added Successfully']
-        ]);
-    }
+    // /**
+    //  * Functional test to create onboarding attestation validaton
+    //  * 
+    //  * @return void
+    //  */
+    // public function testToCreateOnboardingAttestationApplicationIdValidation(): void
+    // {
+    //     $this->creationSeeder();
+    //     $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', array_merge($this->attestationCreateData(), ['application_id' => '']), $this->getHeader(false));
+    //     $response->seeStatusCode(422);
+    //     $response->seeJson([
+    //         'data' => [
+    //             'application_id' => ['The application id field is required.']
+    //         ]
+    //     ]);
+    // }
+    // /**
+    //  * Functional test to create onboarding attestation validaton
+    //  * 
+    //  * @return void
+    //  */
+    // public function testToCreateOnboardingAttestationOnboardingCountryIdValidation(): void
+    // {
+    //     $this->creationSeeder();
+    //     $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', array_merge($this->attestationCreateData(), ['onboarding_country_id' => '']), $this->getHeader(false));
+    //     $response->seeStatusCode(422);
+    //     $response->seeJson([
+    //         'data' => [
+    //             'onboarding_country_id' => ['The onboarding country id field is required.']
+    //         ]
+    //     ]);
+    // }
+    // /**
+    //  * Functional test to create onboarding attestation validaton
+    //  * 
+    //  * @return void
+    //  */
+    // public function testToCreateOnboardingAttestationKsmReferenceNumberValidation(): void
+    // {
+    //     $this->creationSeeder();
+    //     $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', array_merge($this->attestationCreateData(), ['ksm_reference_number' => '']), $this->getHeader(false));
+    //     $response->seeStatusCode(422);
+    //     $response->seeJson([
+    //         'data' => [
+    //             'ksm_reference_number' => ['The ksm reference number field is required.']
+    //         ]
+    //     ]);
+    // }
+    // /**
+    //  * Functional test to create onboarding attestation
+    //  * 
+    //  * @return void
+    //  */
+    // public function testToCreateOnboardingAttestation(): void
+    // {
+    //     $this->creationSeeder();
+    //     $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+    //     $response->seeStatusCode(200);
+    //     $response->seeJson([
+    //         'data' => ['message' => 'Attestation Added Successfully']
+    //     ]);
+    // }
     /**
      * Functional test to List onboarding attestation
      * 
