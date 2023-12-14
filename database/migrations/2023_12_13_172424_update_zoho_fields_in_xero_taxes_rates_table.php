@@ -17,8 +17,10 @@ return new class extends Migration
             // Foreign key from user table
             $table->foreign('company_id')->references('id')->on('company')->onDelete('cascade');
 
+            // Column for tax_id
+            $table->string('tax_id')->nullable()->after('status');
             // Column for tax_specific_type
-            $table->string('tax_specific_type')->nullable()->after('status');
+            $table->string('tax_specific_type')->nullable()->after('tax_id');
             // Column for output_tax_account_name
             $table->string('output_tax_account_name')->nullable()->after('tax_specific_type');
             // Column for purchase_tax_account_name

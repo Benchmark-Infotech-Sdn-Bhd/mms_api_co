@@ -16,6 +16,8 @@ return new class extends Migration
             $table->bigInteger('company_id')->default(0)->unsigned();
             // Foreign key from user table
             $table->foreign('company_id')->references('id')->on('company')->onDelete('cascade');
+            // Column for redirect_url
+            $table->string('redirect_url')->nullable()->after('company_id');   
         });
     }
 

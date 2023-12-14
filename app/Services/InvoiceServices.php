@@ -396,38 +396,91 @@ class InvoiceServices
     public function saveTaxRates() : mixed
     {
         $http = new Client();
-        $xeroConfig = $this->getXeroSettings();
+        $cronConfig = $this->getCronSettings();
         try {
-            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_TAX_RATES_URL'), [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
-                    'Accept' => 'application/json',
-                ],
-                'form_params' => [
-                ],
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
+            foreach($cronConfig as $clients){
+                switch($clients['title']) {
+                    case 'XERO':
+                        $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_TAX_RATES_URL'), [
+                            'headers' => [
+                                'Authorization' => 'Bearer ' . $clients['access_token'],
+                                'Xero-Tenant-Id' => $clients['tenant_id'],
+                                'Accept' => 'application/json',
+                            ],
+                            'form_params' => [
+                            ],
+                        ]);
+                        $result = json_decode((string)$response->getBody(), true);
 
-            if(isset($result['TaxRates'])){
-                foreach ($result['TaxRates'] as $row) {
-                    $this->xeroTaxRates->updateOrCreate(
-                        [
-                            'name' => $row['Name'] ?? null, 
-                             'tax_type' => $row['TaxType'] ?? null, 
-                             'report_tax_type' => $row['ReportTaxType'] ?? null, 
-                             'display_tax_rate' => $row['DisplayTaxRate'] ?? 0, 
-                             'effective_rate' => $row['EffectiveRate'] ?? 0, 
-                             'status' => $row['Status'] ?? null
-                        ],
-                        [
-                            'can_applyto_assets' => $row['CanApplyToAssets'] ?? null, 
-                             'can_applyto_equity' => $row['CanApplyToEquity'] ?? null, 
-                             'can_applyto_expenses' => $row['CanApplyToExpenses'] ?? null, 
-                             'can_applyto_liabilities' => $row['CanApplyToLiabilities'] ?? null, 
-                             'can_applyto_revenue' => $row['CanApplyToRevenue'] ?? null
-                        ]
-                    );
+                        if(isset($result['TaxRates'])){
+                            foreach ($result['TaxRates'] as $row) {
+                                $this->xeroTaxRates->updateOrCreate(
+                                    [
+                                        'company_id' => $clients['company_id'],
+                                        'name' => $row['Name'] ?? null, 
+                                        'tax_type' => $row['TaxType'] ?? null, 
+                                        'report_tax_type' => $row['ReportTaxType'] ?? null, 
+                                        'display_tax_rate' => $row['DisplayTaxRate'] ?? 0, 
+                                        'effective_rate' => $row['EffectiveRate'] ?? 0, 
+                                        'status' => $row['Status'] ?? null
+                                    ],
+                                    [
+                                        'can_applyto_assets' => $row['CanApplyToAssets'] ?? null, 
+                                        'can_applyto_equity' => $row['CanApplyToEquity'] ?? null, 
+                                        'can_applyto_expenses' => $row['CanApplyToExpenses'] ?? null, 
+                                        'can_applyto_liabilities' => $row['CanApplyToLiabilities'] ?? null, 
+                                        'can_applyto_revenue' => $row['CanApplyToRevenue'] ?? null
+                                    ]
+                                );
+                            }
+                        }
+                        break;                  
+                    case 'ZOHO':
+                        $response = $http->request('GET', $clients['url'] . Config::get('services.ZOHO_TAX_RATES_URL'). '?organization_id=' . $clients['tenant_id'], [
+                            'headers' => [
+                                'Authorization' => 'Bearer ' . $clients['access_token'],
+                                'Content-Type' => 'application/json',
+                                'Accept' => '*/*'
+                            ], 
+                        ]);
+                        $result = json_decode((string)$response->getBody(), true);
+                            if(isset($result['taxes'])){
+                                foreach ($result['taxes'] as $row) {
+                                    $this->xeroTaxRates->updateOrCreate(
+                                        [
+                                            'company_id' => $clients['company_id'],
+                                            'tax_id' => $row['tax_id'] ?? null, 
+                                            'name' => $row['tax_name'] ?? null, 
+                                            'tax_type' => $row['tax_type'] ?? null, 
+                                            'report_tax_type' => $row['ReportTaxType'] ?? null, 
+                                            'display_tax_rate' => $row['tax_percentage'] ?? 0, 
+                                            'effective_rate' => $row['tax_percentage'] ?? 0, 
+                                            'status' => $row['status'] ?? null
+                                        ],
+                                        [
+                                            'can_applyto_assets' => $row['CanApplyToAssets'] ?? null, 
+                                            'can_applyto_equity' => $row['CanApplyToEquity'] ?? null, 
+                                            'can_applyto_expenses' => $row['CanApplyToExpenses'] ?? null, 
+                                            'can_applyto_liabilities' => $row['CanApplyToLiabilities'] ?? null, 
+                                            'can_applyto_revenue' => $row['CanApplyToRevenue'] ?? null,
+
+                                            'tax_specific_type' => $row['tax_specific_type'] ?? null,
+                                            'output_tax_account_name' => $row['output_tax_account_name'] ?? null,
+                                            'purchase_tax_account_name' => $row['purchase_tax_account_name'] ?? null,
+                                            'tax_account_id' => $row['tax_account_id'] ?? null,
+                                            'purchase_tax_account_id' => $row['purchase_tax_account_id'] ?? null,
+                                            'is_inactive' => $row['is_inactive'] ?? null,
+                                            'is_value_added' => $row['is_value_added'] ?? null,
+                                            'is_default_tax' => $row['is_default_tax'] ?? null,
+                                            'is_editable' => $row['is_editable'] ?? null,
+                                            'last_modified_time' => $row['last_modified_time'] ?? null,
+                                        ]
+                                    );
+                                }
+                            }
+                        break; 
+                    default:
+                        $response = '';
                 }
             }
             
@@ -445,7 +498,7 @@ class InvoiceServices
     public function xeroGetTaxRates($request) : mixed
     {
         return $this->xeroTaxRates
-            ->select('id', 'name', 'tax_type', 'report_tax_type', 'can_applyto_assets', 'can_applyto_equity', 'can_applyto_expenses', 'can_applyto_liabilities', 'can_applyto_revenue', 'display_tax_rate', 'effective_rate', 'status')
+            ->select('id', 'name', 'tax_type', 'report_tax_type', 'can_applyto_assets', 'can_applyto_equity', 'can_applyto_expenses', 'can_applyto_liabilities', 'can_applyto_revenue', 'display_tax_rate', 'effective_rate', 'status', 'company_id', 'tax_id', 'tax_specific_type', 'output_tax_account_name', 'purchase_tax_account_name', 'tax_account_id', 'purchase_tax_account_id', 'is_inactive', 'is_value_added', 'is_default_tax', 'is_editable', 'last_modified_time')
             ->distinct('id')
             ->orderBy('id', 'asc')
             ->get();
@@ -703,46 +756,119 @@ class InvoiceServices
     {
         $http = new Client();
         $xeroConfig = $this->getXeroSettings();
-        if(isset($request['ContactID']) && !empty($request['ContactID'])){
-            $data = [
-                'ContactID'=>$request['ContactID'] ?? '',
-                'Name'=>$request['company_name'],
-                'ContactNumber'=> $request['contact_number'],
-                'AccountNumber' => $request['bank_account_number'],
-                'EmailAddress' => $request['email'],
-                'BankAccountDetails' => $request['bank_account_number'],
-                'TaxNumber' => $request['tax_id'],
-                'AccountsReceivableTaxType' => $request['account_receivable_tax_type'],
-                'AccountsPayableTaxType' => $request['account_payable_tax_type']
-                ];
-        } else {
-            $data = [
-                'Name'=>$request['company_name'],
-                'ContactNumber'=> $request['contact_number'],
-                'AccountNumber' => $request['bank_account_number'],
-                'EmailAddress' => $request['email'],
-                'BankAccountDetails' => $request['bank_account_number'],
-                'TaxNumber' => $request['tax_id'],
-                'AccountsReceivableTaxType' => $request['account_receivable_tax_type'],
-                'AccountsPayableTaxType' => $request['account_payable_tax_type']
-            ];
+
+        switch($clients['title']) {
+            case 'XERO':
+                if(isset($request['ContactID']) && !empty($request['ContactID'])){
+                    $data = [
+                        'ContactID'=>$request['ContactID'] ?? '',
+                        'Name'=>$request['company_name'],
+                        'ContactNumber'=> $request['contact_number'],
+                        'AccountNumber' => $request['bank_account_number'],
+                        'EmailAddress' => $request['email'],
+                        'BankAccountDetails' => $request['bank_account_number'],
+                        'TaxNumber' => $request['tax_id'],
+                        'AccountsReceivableTaxType' => $request['account_receivable_tax_type'],
+                        'AccountsPayableTaxType' => $request['account_payable_tax_type']
+                        ];
+                } else {
+                    $data = [
+                        'Name'=>$request['company_name'],
+                        'ContactNumber'=> $request['contact_number'],
+                        'AccountNumber' => $request['bank_account_number'],
+                        'EmailAddress' => $request['email'],
+                        'BankAccountDetails' => $request['bank_account_number'],
+                        'TaxNumber' => $request['tax_id'],
+                        'AccountsReceivableTaxType' => $request['account_receivable_tax_type'],
+                        'AccountsPayableTaxType' => $request['account_payable_tax_type']
+                    ];
+                }
+                
+                try {
+                    $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_CONTACTS_URL'), [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
+                            'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
+                            'Accept' => 'application/json',
+                        ],
+                        'json' => $data,
+                    ]);
+                    $result = json_decode((string)$response->getBody(), true);
+                    return response()->json($result);
+                } catch (Exception $e) {
+                    Log::error('Exception in submitting contact details' . $e);
+                    return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
+                }
+                break;                  
+            case 'ZOHO':
+                if(isset($request['ContactID']) && !empty($request['ContactID'])){
+                    $data = [
+                        'ContactID'=>$request['ContactID'] ?? '',
+                        'contact_name'=>$request['company_name'],
+                        'shipping_address' => '',
+                        'contact_persons' => [
+                            'first_name' => $request['company_name'],
+                            'last_name' => '',
+                            'mobile' => $request['contact_number'],
+                            'phone' => '',
+                            'email' => $request['email'],
+                            'salutation' => '',
+                            'is_primary_contact' => true,
+                            'enable_portal' => false
+                        ],
+                        'default_templates' => '',
+                        'is_portal_enabled' => '',
+                        'custom_fields' => '',
+                        'language_code' => '',
+                        'tags' => '',
+                        'twitter' => '',
+                        'facebook' => ''
+                        ];
+                } else {
+                    $data = [
+                        'contact_name'=>$request['company_name'],
+                        'shipping_address' => '',
+                        'contact_persons' => [
+                            'first_name' => $request['company_name'],
+                            'last_name' => '',
+                            'mobile' => $request['contact_number'],
+                            'phone' => '',
+                            'email' => $request['email'],
+                            'salutation' => '',
+                            'is_primary_contact' => true,
+                            'enable_portal' => false
+                        ],
+                        'default_templates' => '',
+                        'is_portal_enabled' => '',
+                        'custom_fields' => '',
+                        'language_code' => '',
+                        'tags' => '',
+                        'twitter' => '',
+                        'facebook' => ''
+                    ];
+                }                
+                
+                try {
+                    $response = $http->request('POST', $xeroConfig['url'] . Config::get('services.ZOHO_CONTACTS_URL'). '?organization_id=' . $xeroConfig['tenant_id'], [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
+                            'Content-Type' => 'application/json',
+                            'Accept' => '*/*'
+                        ],
+                        'json' => $data,
+                    ]);
+                    $result = json_decode((string)$response->getBody(), true);
+                    return response()->json($result);
+                } catch (Exception $e) {
+                    Log::error('Exception in submitting contact details' . $e);
+                    return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
+                }
+                break; 
+            default:
+                return false;
         }
+
         
-        try {
-            $response = $http->request('POST', Config::get('services.XERO_URL') . Config::get('services.XERO_CONTACTS_URL'), [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
-                    'Accept' => 'application/json',
-                ],
-                'json' => $data,
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
-            return response()->json($result);
-        } catch (Exception $e) {
-            Log::error('Exception in submitting contact details' . $e);
-            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
-        }
     }
 
     /**
@@ -752,28 +878,46 @@ class InvoiceServices
     public function getAccessToken() : mixed
     {
         $http = new Client();
-        $xeroConfig = $this->getXeroSettings();
+        $cronConfig = $this->getCronSettings();
 
         try {
-            $response = $http->request('POST', Config::get('services.XERO_TOKEN_URL'), [
-                'headers' => [
-                    'Authorization' => 'Basic ' . base64_encode($xeroConfig['client_id'] . ":" . $xeroConfig['client_secret']),
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                    'Accept' => 'application/json',
-                ], 
-                'form_params' => [
-                    'grant_type' => 'refresh_token',
-                    'client_id' => $xeroConfig['client_id'],
-                    'refresh_token' => $xeroConfig['refresh_token'],
-                ],
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
-
-            $xeroConfig->refresh_token = $result['refresh_token'];
-            $xeroConfig->access_token = $result['access_token'];
-            $xeroConfig->save();
-
-            return response()->json($result);
+            foreach($cronConfig as $clients){
+                switch($clients['title']) {
+                    case 'XERO':
+                        $response = $http->request('POST', Config::get('services.XERO_TOKEN_URL'), [
+                            'headers' => [
+                                'Authorization' => 'Basic ' . base64_encode($clients['client_id'] . ":" . $clients['client_secret']),
+                                'Content-Type' => 'application/x-www-form-urlencoded',
+                                'Accept' => 'application/json',
+                            ], 
+                            'form_params' => [
+                                'grant_type' => 'refresh_token',
+                                'client_id' => $clients['client_id'],
+                                'refresh_token' => $clients['refresh_token'],
+                            ],
+                        ]);
+                        break;                  
+                    case 'ZOHO':
+                        $response = $http->request('POST', Config::get('services.ZOHO_TOKEN_URL'). '?refresh_token=' . $clients['refresh_token'] . '&client_id=' . $clients['client_id'] . '&client_secret=' . $clients['client_secret'] . '&redirect_uri=' . $clients['redirect_url'] . '&grant_type=refresh_token', [
+                            'headers' => [
+                                'Content-Type' => 'multipart/form-data; boundary=XXX',
+                                'Accept' => '*/*'
+                            ], 
+                        ]);
+                        
+                        break; 
+                    default:
+                        $response = '';                    
+                }
+                if(isset($response) && !empty($response)){
+                    $result = json_decode((string)$response->getBody(), true);
+                    $newConfig = $this->xeroSettings->find($clients['id']);
+                    $newConfig->refresh_token = $result['refresh_token'] ?? $clients['refresh_token'];
+                    $newConfig->access_token = $result['access_token'];
+                    $newConfig->save();
+                }                    
+            }
+            return true;
         } catch (Exception $e) {
             Log::channel('cron_activity_logs')->info('Exception in getting refresh token' . $e);
             return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
@@ -787,7 +931,19 @@ class InvoiceServices
     public function getXeroSettings() : mixed
     {
         //return $this->xeroSettings->find(1);
-        return $this->xeroSettings->where('title','ZOHO')->first();
+        $user = JWTAuth::parseToken()->authenticate();
+        $companyId = $this->authServices->getCompanyIds($user);
+
+        return $this->xeroSettings->where('company_id',$companyId)->first();
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function getCronSettings() : mixed
+    {
+        return $this->xeroSettings->whereNull('deleted_at')->get();
     }
 
 }
