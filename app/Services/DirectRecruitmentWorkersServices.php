@@ -116,7 +116,6 @@ class DirectRecruitmentWorkersServices
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->levy = $levy;
         $this->OnboardingCountriesKSMReferenceNumber = $OnboardingCountriesKSMReferenceNumber;
-        $this->onboardingAttestation = $onboardingAttestation;
         $this->agent = $agent;
     }
     /**
