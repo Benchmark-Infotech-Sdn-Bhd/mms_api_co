@@ -217,11 +217,17 @@ class DirectRecruitmentOnboardingAttestationServices
         }
         if(isset($request['collection_date']) && !empty($request['collection_date'])){
             $onboardingAttestation->collection_date =  $request['collection_date'];
-            
-            $onBoardingStatus['application_id'] = $onboardingAttestation->application_id;
-            $onBoardingStatus['country_id'] = $onboardingAttestation->onboarding_country_id;
-            $onBoardingStatus['onboarding_status'] = 3; //Agent Added
-            $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+
+            $attestationCount = $this->onboardingAttestation->where('application_id', $onboardingAttestation->application_id)
+                                    ->where('onboarding_country_id', $onboardingAttestation->onboarding_country_id)
+                                    ->where('status', 'Collected')
+                                    ->count();
+            if($attestationCount == 0) {
+                $onBoardingStatus['application_id'] = $onboardingAttestation->application_id;
+                $onBoardingStatus['country_id'] = $onboardingAttestation->onboarding_country_id;
+                $onBoardingStatus['onboarding_status'] = 3; //Agent Added
+                $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+            }
         }
         $onboardingAttestation->file_url =  $request['file_url'] ?? $onboardingAttestation->file_url;
         $onboardingAttestation->remarks =  $request['remarks'] ?? $onboardingAttestation->remarks;

@@ -12,6 +12,7 @@ use App\Models\WorkerBulkUpload;
 use App\Models\DirectrecruitmentApplications;
 use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Models\Levy;
+use App\Models\Agent;
 use App\Models\OnboardingCountriesKSMReferenceNumber;
 use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Services\ValidationServices;
@@ -55,7 +56,10 @@ class DirectRecruitmentWorkersServices
     /**
      * @var OnboardingCountriesKSMReferenceNumber
      */
-    private OnboardingCountriesKSMReferenceNumber $OnboardingCountriesKSMReferenceNumber;
+    /**
+     * @var Agent
+     */
+    private Agent $agent;
     /**
      * DirectRecruitmentWorkersServices constructor.
      * @param Workers $workers
@@ -74,6 +78,7 @@ class DirectRecruitmentWorkersServices
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      * @param Levy $levy
      * @param OnboardingCountriesKSMReferenceNumber $OnboardingCountriesKSMReferenceNumber
+     * @param Agent $agent
      */
     public function __construct(
             Workers                                     $workers,
@@ -91,7 +96,8 @@ class DirectRecruitmentWorkersServices
             DirectrecruitmentApplications               $directrecruitmentApplications,
             DirectRecruitmentOnboardingCountry          $directRecruitmentOnboardingCountry,
             Levy                                        $levy,
-            OnboardingCountriesKSMReferenceNumber       $OnboardingCountriesKSMReferenceNumber
+            OnboardingCountriesKSMReferenceNumber       $OnboardingCountriesKSMReferenceNumber,
+            Agent                                       $agent
     )
     {
         $this->workers = $workers;
@@ -110,6 +116,8 @@ class DirectRecruitmentWorkersServices
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->levy = $levy;
         $this->OnboardingCountriesKSMReferenceNumber = $OnboardingCountriesKSMReferenceNumber;
+        $this->onboardingAttestation = $onboardingAttestation;
+        $this->agent = $agent;
     }
     /**
      * @return array
@@ -167,11 +175,6 @@ class DirectRecruitmentWorkersServices
                 ];    
             }
         }
-
-        // $approvedCount = $this->levy->where('application_id', $request['application_id'])
-        //                      ->where('new_ksm_reference_number', $request['ksm_reference_number'])
-        //                      ->select('approved_quota')
-        //                      ->first()->toArray();
 
         $approvedCount = $this->OnboardingCountriesKSMReferenceNumber->where('application_id', $request['application_id'])
                             ->where('onboarding_country_id', $request['onboarding_country_id'])
@@ -541,13 +544,15 @@ class DirectRecruitmentWorkersServices
      */
     public function onboardingAgent($request) : mixed
     {
-        return $this->directRecruitmentOnboardingAgent
-        ->join('agent', 'agent.id', '=', 'directrecruitment_onboarding_agent.agent_id')
-        ->where('directrecruitment_onboarding_agent.status', 1)
-        ->where('directrecruitment_onboarding_agent.application_id', $request['application_id'])
-        ->where('directrecruitment_onboarding_agent.onboarding_country_id', $request['onboarding_country_id'])
-        ->select('agent.id','agent.agent_name')
-        ->orderBy('agent.id','ASC')->get();
+        return $this->agent
+        ->leftJoin('directrecruitment_onboarding_agent', 'directrecruitment_onboarding_agent.agent_id', 'agent.id')
+        ->leftJoin('onboarding_attestation', 'onboarding_attestation.onboarding_agent_id', 'directrecruitment_onboarding_agent.id')
+        ->where('onboarding_attestation.application_id', $request['application_id'])
+        ->where('onboarding_attestation.onboarding_country_id', $request['onboarding_country_id'])
+        ->where('onboarding_attestation.status', 'Collected')
+        ->select('onboarding_attestation.onboarding_agent_id as id', 'agent.agent_name')
+        ->distinct('agent.id', 'agent.agent_name')
+        ->get();
     }
     /**
      * @param $request
@@ -593,12 +598,7 @@ class DirectRecruitmentWorkersServices
         $params['created_by'] = $user['id'];
         $params['modified_by'] = $user['id'];
         $params['company_id'] = $user['company_id'];
-        /* if(!($this->validationServices->validate($request->toArray(),$this->bulkUploadValidation()))){
-            return [
-              'validate' => $this->validationServices->errors()
-            ];
-        } */
-
+        
         $workerBulkUpload = $this->workerBulkUpload->create([
                 'onboarding_country_id' => $request['onboarding_country_id'] ?? '',
                 'agent_id' => $request['agent_id'] ?? NULL,
