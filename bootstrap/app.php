@@ -87,6 +87,7 @@ $app->middleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'dbSelection' => DBSelectionMiddleware::class,
     'jwt.verify' => App\Http\Middleware\JWTMiddleware::class,
+    'accessControl' => App\Http\Middleware\AccessControlMiddleware::class,
  ]);
 
 /*
