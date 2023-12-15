@@ -65,6 +65,14 @@ class DirectRecruitmentExpensesServices
     {
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
+        
+        $rolePermission = $this->authServices->userWithRolePermission($user['id'], $moduleId = 5, 'Add');        
+        if($rolePermission == 0){
+            return [
+                'validate' => 'You have restricted to perform this action! Please contact Admin',
+            ];
+        }
+
         $params['created_by'] = $user['id'];
         if(!($this->validationServices->validate($request->toArray(),$this->directRecruitmentExpenses->rules))){
             return [
@@ -112,6 +120,13 @@ class DirectRecruitmentExpensesServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['modified_by'] = $user['id'];
+
+        $rolePermission = $this->authServices->userWithRolePermission($user['id'], $moduleId = 5, 'Edit');        
+        if($rolePermission == 0){
+            return [
+                'validate' => 'You have restricted to perform this action! Please contact Admin',
+            ];
+        }
 
         if(!($this->validationServices->validate($request->toArray(),$this->directRecruitmentExpenses->rulesForUpdation($request['id'])))){
             return [

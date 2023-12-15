@@ -6,6 +6,8 @@ namespace App\Services;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserRoleType;
+use App\Models\Permission;
+use App\Models\RolePermission;
 use App\Models\Company;
 use App\Models\UserCompany;
 use Illuminate\Support\Facades\Hash;
@@ -27,6 +29,14 @@ class AuthServices extends Controller
      */
     private $userRoleType;
     /**
+     * @var Permission
+     */
+    private $permission;
+    /**
+     * @var RolePermission
+     */
+    private $rolePermission;
+    /**
      * @var PasswordResets
      */
     private $passwordResets;
@@ -42,15 +52,19 @@ class AuthServices extends Controller
      * AuthServices constructor.
      * @param User $user
      * @param UserRoleType $uesrRoleType
+     * @param Permission $permission
+     * @param RolePermission $rolePermission
      * @param EmailServices $emailServices
      * @param PasswordResets $passwordResets
      * @param Company $company
      * @param UserCompany $userCompany
      */
-    public function __construct(User $user, UserRoleType $uesrRoleType, EmailServices $emailServices, PasswordResets $passwordResets, Company $company, UserCompany $userCompany)
+    public function __construct(User $user, UserRoleType $uesrRoleType, Permission $permission, RolePermission $rolePermission, EmailServices $emailServices, PasswordResets $passwordResets, Company $company, UserCompany $userCompany)
     {
         $this->user = $user;
         $this->uesrRoleType = $uesrRoleType;
+        $this->permission = $permission;
+        $this->rolePermission = $rolePermission;
         $this->emailServices = $emailServices;
         $this->passwordResets = $passwordResets;
         $this->company = $company;
@@ -344,5 +358,23 @@ class AuthServices extends Controller
         // }
         array_push($companyIds, $user['company_id']);
         return $companyIds;
+    }
+    /**
+     * @param $user
+     * @return array
+     */
+    public function userWithRolePermission($userId, $moduleId, $permissionName): mixed
+    {
+        $userRole = $this->userWithRoles(['id' => $userId]);
+        $permissionId = $this->permission->where('permission_name', $permissionName)->first('id');
+        $rolePermission = $this->rolePermission
+        ->where('role_id', $userRole['role_id'])
+        ->where('module_id', $moduleId)
+        ->where(function ($query) use ($permissionId) {
+            $query->where('permission_id', '=', $permissionId['id'])
+                  ->orWhere('permission_id', '=', 1);
+        })
+        ->count();
+        return $rolePermission;
     }
 }
