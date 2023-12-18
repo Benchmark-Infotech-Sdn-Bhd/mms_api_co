@@ -25,11 +25,11 @@ class WorkerImportAgentSheetExport implements FromQuery, WithHeadings, WithTitle
         return DirectRecruitmentOnboardingAgent::query()
             ->leftJoin('agent', 'directrecruitment_onboarding_agent.agent_id', 'agent.id')
             ->where('directrecruitment_onboarding_agent.application_id', $applicationId)
-            ->select('directrecruitment_onboarding_agent.id', 'agent.agent_name');
+            ->select('agent.agent_code', 'agent.agent_name');
     }
     public function headings(): array
     {
-        return ['id', 'name'];
+        return ['code', 'name'];
     }
     public function title(): string
     {

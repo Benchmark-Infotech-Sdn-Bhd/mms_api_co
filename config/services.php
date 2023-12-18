@@ -139,4 +139,6 @@ return [
     'ACCESS_MODULE_TYPE' => ['Dashboard', 'Maintain Masters', 'Branches', 'CRM', 'Direct Recruitment', 'e-Contract', 'Total Management', 'Employee', 'Access Management', 'Workers', 'Dispatch Management', 'Invoice', 'Reports'],
 
     'NOT_UTILISED_STATUS_TYPE' => ['Pending', 'Rejected', 'Repatriated', 'Cancelled', 'Expired'],
+
+    'WORKER_BIODATA_TEMPLATE' => ['import_sheet' => 'IMPORT', 'reference_sheet' => 'REFERENCE'],
 ];

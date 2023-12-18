@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Illuminate\Support\Facades\Config;
 
 class WorkerImportParentSheetExport implements FromArray, WithMultipleSheets
 {
@@ -22,13 +23,17 @@ class WorkerImportParentSheetExport implements FromArray, WithMultipleSheets
 
     public function sheets(): array
     {
-        return [
-            new WorkerImportFirstSheetExport($this->param),
-            new WorkerImportGenderSheetExport(),
-            new WorkerImportKinRelationshipSheetExport(),       
-            new WorkerImportKsmReferenceSheetExport($this->param), 
-            new WorkerImportAgentSheetExport($this->param), 
-        ];
-
+        if(isset($this->param['template_type']) && $this->param['template_type'] == Config::get('services.WORKER_BIODATA_TEMPLATE')['import_sheet']){
+            return [
+                new WorkerImportFirstSheetExport($this->param) 
+            ];
+        }elseif(isset($this->param['template_type']) && $this->param['template_type'] == Config::get('services.WORKER_BIODATA_TEMPLATE')['reference_sheet']){
+            return [
+                new WorkerImportGenderSheetExport(),
+                new WorkerImportKinRelationshipSheetExport(),       
+                new WorkerImportKsmReferenceSheetExport($this->param), 
+                new WorkerImportAgentSheetExport($this->param), 
+            ];
+        }
     }
 }
