@@ -586,12 +586,12 @@ class ManageWorkersServices
         $user = JWTAuth::parseToken()->authenticate(); 
         $fileUrl = '';
 
-        if(isset($params['template_type']) && $params['template_type'] == Config::get('services.WORKER_BIODATA_TEMPLATE')[0]){
+        if(isset($params['template_type']) && $params['template_type'] == Config::get('services.WORKER_BIODATA_TEMPLATE')['import_sheet']){
             $fileName = "importWorker".$params['application_id'].".xlsx";
             $filePath = '/upload/worker/' . $fileName; 
             Excel::store(new WorkerImportParentSheetExport($params, []), $filePath, 'linode');
             $fileUrl = $this->storage::disk('linode')->url($filePath); 
-        }elseif(isset($params['template_type']) && $params['template_type'] == Config::get('services.WORKER_BIODATA_TEMPLATE')[1]){
+        }elseif(isset($params['template_type']) && $params['template_type'] == Config::get('services.WORKER_BIODATA_TEMPLATE')['reference_sheet']){
             $fileName = "importWorkerReference".$params['application_id'].".xlsx";
             $filePath = '/upload/worker/' . $fileName; 
             Excel::store(new WorkerImportParentSheetExport($params, []), $filePath, 'linode');

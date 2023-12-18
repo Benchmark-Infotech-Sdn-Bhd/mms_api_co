@@ -23,11 +23,11 @@ class WorkerImportParentSheetExport implements FromArray, WithMultipleSheets
 
     public function sheets(): array
     {
-        if(isset($this->param['template_type']) && $this->param['template_type'] == Config::get('services.WORKER_BIODATA_TEMPLATE')[0]){
+        if(isset($this->param['template_type']) && $this->param['template_type'] == Config::get('services.WORKER_BIODATA_TEMPLATE')['import_sheet']){
             return [
                 new WorkerImportFirstSheetExport($this->param) 
             ];
-        }elseif(isset($this->param['template_type']) && $this->param['template_type'] == Config::get('services.WORKER_BIODATA_TEMPLATE')[1]){
+        }elseif(isset($this->param['template_type']) && $this->param['template_type'] == Config::get('services.WORKER_BIODATA_TEMPLATE')['reference_sheet']){
             return [
                 new WorkerImportGenderSheetExport(),
                 new WorkerImportKinRelationshipSheetExport(),       

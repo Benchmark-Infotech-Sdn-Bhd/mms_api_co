@@ -140,5 +140,5 @@ return [
 
     'NOT_UTILISED_STATUS_TYPE' => ['Pending', 'Rejected', 'Repatriated', 'Cancelled', 'Expired'],
 
-    'WORKER_BIODATA_TEMPLATE' => ['IMPORT', 'REFERENCE'],
+    'WORKER_BIODATA_TEMPLATE' => ['import_sheet' => 'IMPORT', 'reference_sheet' => 'REFERENCE'],
 ];
