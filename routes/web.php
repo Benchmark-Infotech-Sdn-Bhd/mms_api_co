@@ -143,6 +143,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('list', 'V1\AgentController@list');
             $router->post('updateStatus', 'V1\AgentController@updateStatus');
             $router->post('dropdown', 'V1\AgentController@dropdown');
+            $router->post('updateAgentCode', 'V1\AgentController@updateAgentCode');
         });
         /**
          * Routes for Employees.
