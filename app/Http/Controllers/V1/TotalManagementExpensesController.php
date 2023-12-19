@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\TotalManagementExpensesServices;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 use Exception;
 
 class TotalManagementExpensesController extends Controller
@@ -15,14 +17,20 @@ class TotalManagementExpensesController extends Controller
      * @var totalManagementExpensesServices
      */
     private TotalManagementExpensesServices $totalManagementExpensesServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementExpensesController constructor.
      * @param TotalManagementExpensesServices $totalManagementExpensesServices
+     * @param AuthServices $authServices
      */
-    public function __construct(TotalManagementExpensesServices $totalManagementExpensesServices)
+    public function __construct(TotalManagementExpensesServices $totalManagementExpensesServices, AuthServices $authServices)
     {
         $this->totalManagementExpensesServices = $totalManagementExpensesServices;
+        $this->authServices = $authServices;
     }
      /**
      * Expense list
@@ -54,6 +62,8 @@ class TotalManagementExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementExpensesServices->show($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -109,6 +119,8 @@ class TotalManagementExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $this->totalManagementExpensesServices->delete($params);
             return $this->sendSuccess(['message' => 'Expense Deleted Successfully']);
         } catch (Exception $e) {
@@ -143,6 +155,8 @@ class TotalManagementExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementExpensesServices->payBack($params);
             if(isset($data['error'])){
                 return $this->validationError($data['error']); 

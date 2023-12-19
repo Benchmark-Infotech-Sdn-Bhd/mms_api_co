@@ -129,7 +129,8 @@ class TotalManagementExpensesServices
     {
         return $this->totalManagementExpenses::with(['totalManagementExpensesAttachments' => function ($query) {
             $query->orderBy('created_at', 'desc');
-        }])->findOrFail($request['id']);
+        }])->leftJoin('workers', 'workers.id', 'total_management_expenses.worker_id')
+        ->whereIn('workers.company_id', $request['company_id'])->findOrFail($request['id']);
     }
     /**
      * @param $request
@@ -194,7 +195,11 @@ class TotalManagementExpensesServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['modified_by'] = $user['id'];
-        $expense = $this->totalManagementExpenses->findOrFail($request['id']);
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        $expense = $this->totalManagementExpenses
+        ->leftJoin('workers', 'workers.id', 'total_management_expenses.worker_id')
+        ->whereIn('workers.company_id', $params['company_id'])
+        ->findOrFail($request['id']);
         $expense->worker_id = $params['worker_id'] ?? $expense->worker_id;
         $expense->application_id = $params['application_id'] ?? $expense->application_id;
         $expense->project_id = $params['project_id'] ?? $expense->project_id;
@@ -232,7 +237,8 @@ class TotalManagementExpensesServices
      */
     public function delete($request) : bool
     {
-        $expense = $this->totalManagementExpenses->findOrFail($request['id']);
+        $expense = $this->totalManagementExpenses->leftJoin('workers', 'workers.id', 'total_management_expenses.worker_id')
+        ->whereIn('workers.company_id', $request['company_id'])->findOrFail($request['id']);
         $expense->delete();
         return true;
     }
@@ -261,7 +267,9 @@ class TotalManagementExpensesServices
         }
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
-        $expense = $this->totalManagementExpenses->findOrFail($request['id']);
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        $expense = $this->totalManagementExpenses->leftJoin('workers', 'workers.id', 'total_management_expenses.worker_id')
+        ->whereIn('workers.company_id', $params['company_id'])->findOrFail($request['id']);
         $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;
         if($totalPayBack > $expense->amount) {

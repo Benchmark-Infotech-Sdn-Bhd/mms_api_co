@@ -98,6 +98,7 @@ class TotalManagementCostManagementServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['modified_by'] = $user['id'];
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
 
         if(!($this->validationServices->validate($request->toArray(),$this->totalManagementCostManagement->rulesForUpdation($request['id'])))){
             return [
@@ -105,7 +106,12 @@ class TotalManagementCostManagementServices
             ];
         }
 
-        $costManagement = $this->totalManagementCostManagement->findOrFail($request['id']);
+        $costManagement = $this->totalManagementCostManagement
+        ->leftJoin('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+        ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+        ->whereIn('total_management_applications.company_id', $params['company_id'])
+        ->findOrFail($request['id']);
+
         $costManagement->application_id = $request['application_id'] ?? $costManagement->application_id;
         $costManagement->project_id = $request['project_id'] ?? $costManagement->project_id;
         $costManagement->title = $request['title'] ?? $costManagement->title;
@@ -152,7 +158,11 @@ class TotalManagementCostManagementServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->totalManagementCostManagement->with('totalManagementCostManagementAttachments')->findOrFail($request['id']);
+        return $this->totalManagementCostManagement->with('totalManagementCostManagementAttachments')
+        ->leftJoin('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+        ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+        ->whereIn('total_management_applications.company_id', $request['company_id'])
+        ->findOrFail($request['id']);
     }
     
     /**
@@ -198,7 +208,11 @@ class TotalManagementCostManagementServices
      */    
     public function delete($request): mixed
     {   
-        $totalManagementCostManagement = $this->totalManagementCostManagement::find($request['id']);
+        $totalManagementCostManagement = $this->totalManagementCostManagement
+        ->leftJoin('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+        ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+        ->whereIn('total_management_applications.company_id', $request['company_id'])
+        ->find($request['id']);
 
         if(is_null($totalManagementCostManagement)){
             return [
