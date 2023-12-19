@@ -9,7 +9,6 @@ use App\Services\AuthServices;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Validator;
 use Exception;
 
 class CompanyController extends Controller
@@ -294,52 +293,26 @@ class CompanyController extends Controller
             return $this->sendError(['message' => 'Failed to List Modules']);
         }
     }
-
     /**
-     * Add Company Module.
+     * Assign Module.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function moduleCreate(Request $request) : JsonResponse
+    public function assignModule(Request $request) : JsonResponse
     {
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
-            $validator = Validator::make($params, $this->companyServices->moduleCreateValidation());
-            if ($validator->fails()) {
-                return $this->validationError($validator->errors());
+            $response = $this->companyServices->assignModule($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
             }
-            $this->companyServices->moduleCreate($params);
-            return $this->sendSuccess(['message' => 'Module Added Successfully']);
+            return $this->sendSuccess(['message' => 'Module Assigned Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Add Module']);
-        }
-    }
-
-    /**
-     * Update Company Module.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function moduleUpdate(Request $request) : JsonResponse
-    {
-        try {
-            $params = $this->getRequest($request);
-            $user = JWTAuth::parseToken()->authenticate();
-            $params['modified_by'] = $user['id'];
-            $validator = Validator::make($params, $this->companyServices->moduleUpdateValidation());
-            if ($validator->fails()) {
-                return $this->validationError($validator->errors());
-            }
-            $this->companyServices->moduleUpdate($params);
-            return $this->sendSuccess(['message' => 'Module Updated Successfully']);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Update Module']);
+            return $this->sendError(['message' => 'Failed to Assign Module']);
         }
     }
 }

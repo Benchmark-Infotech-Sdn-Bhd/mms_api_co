@@ -66,18 +66,7 @@ class CompanyServices
     /**
      * @return array
      */
-    public function moduleCreateValidation(): array
-    {
-        return [
-            'company_id' => 'required',
-            'modules' => 'required'
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public function moduleUpdateValidation(): array
+    public function assignModuleValidation(): array
     {
         return [
             'company_id' => 'required',
@@ -336,32 +325,27 @@ class CompanyServices
             ->select('modules.id', 'modules.module_name', 'company_module_permission.id as company_module_permission_id')
             ->get();
     }
-
-
     /**
      * @param $request
-     * @return bool
+     * @return bool|array
      */
-    public function moduleCreate($request): bool
+    public function assignModule($request): bool|array
     {
+        $validator = Validator::make($request, $this->assignModuleValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        $this->companyModulePermission->where('company_id', $request['company_id'])->delete();
         foreach ($request['modules'] as $moduleId) {
             $this->companyModulePermission->create([
                 'company_id'       => $request['company_id'],
                 'module_id'     => $moduleId,
                 'created_by'    => $request['created_by'] ?? 0,
-                'modified_by'   => $request['modified_by'] ?? 0
+                'modified_by'   => $request['created_by'] ?? 0
             ]);   
         }
         return true;
-    }
-
-    /**
-     * @param $request
-     * @return bool
-     */
-    public function moduleUpdate($request): bool
-    {
-        $this->companyModulePermission->where('company_id', $request['company_id'])->delete();
-        return $this->moduleCreate($request);
     }
 }
