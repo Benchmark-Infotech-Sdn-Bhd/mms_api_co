@@ -108,7 +108,8 @@ class TotalManagementProjectServices
      */   
     public function show($request): mixed
     {
-        return $this->totalManagementProject->find($request['id']);
+        //return $this->totalManagementProject->find($request['id']);
+        return $this->totalManagementProject->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')->whereIn('total_management_applications.company_id', $request['company_id'])->find($request['id']);
     }
     /**
      * @param $request
@@ -155,7 +156,7 @@ class TotalManagementProjectServices
             ];
         }
 
-        $totalManagementProject = $this->totalManagementProject->findOrFail($request['id']);
+        $totalManagementProject = $this->totalManagementProject->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')->whereIn('total_management_applications.company_id', $request['company_id'])->findOrFail($request['id']);
         
         $totalManagementProject->name =  $request['name'] ?? $totalManagementProject->name;
         $totalManagementProject->state =  $request['state'] ?? $totalManagementProject->state;

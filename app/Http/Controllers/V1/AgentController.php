@@ -68,6 +68,7 @@ class AgentController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->agentServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -89,6 +90,8 @@ class AgentController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->agentServices->delete($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -110,6 +113,8 @@ class AgentController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->agentServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
