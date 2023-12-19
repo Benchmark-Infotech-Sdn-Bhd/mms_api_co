@@ -26,5 +26,7 @@ class ModuleSeeder extends Seeder
         Module::create(['id' => 11, 'module_name' => 'Dispatch Management', 'module_url' => '', 'parent_id' => 0, 'order_id' => 11, 'status' => 1]);
         Module::create(['id' => 12, 'module_name' => 'Invoice', 'module_url' => '', 'parent_id' => 0, 'order_id' => 12, 'status' => 1]);
         Module::create(['id' => 13, 'module_name' => 'Reports', 'module_url' => '', 'parent_id' => 0, 'order_id' => 13, 'status' => 1]);
+        Module::create(['id' => 14, 'module_name' => 'User', 'module_url' => '', 'parent_id' => 0, 'order_id' => 14, 'status' => 1]);
+        Module::create(['id' => 15, 'module_name' => 'Company', 'module_url' => '', 'parent_id' => 0, 'order_id' => 15, 'status' => 1]);
     }
 }

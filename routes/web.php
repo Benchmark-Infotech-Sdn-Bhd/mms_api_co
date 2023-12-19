@@ -29,33 +29,37 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('register', 'V1\AuthController@register');
             $router->get('logout', 'V1\AuthController@logout');
             $router->post('refresh', 'V1\AuthController@refresh');
-            $router->post('adminList', 'V1\UserController@adminList');
-            $router->post('adminShow', 'V1\UserController@adminShow');
-            $router->post('adminUpdate', 'V1\UserController@adminUpdate');
-            $router->post('adminUpdateStatus', 'V1\UserController@adminUpdateStatus');
             $router->post('resetPassword', 'V1\UserController@resetPassword');
             $router->post('showUser', 'V1\UserController@showUser');
             $router->post('updateUser', 'V1\UserController@updateUser');
+            $router->group(['middleware' => 'accessControl:14'], function () use ($router) {  
+                $router->post('adminList', 'V1\UserController@adminList');
+                $router->post('adminShow', 'V1\UserController@adminShow');
+                $router->post('adminUpdate', 'V1\UserController@adminUpdate');
+                $router->post('adminUpdateStatus', 'V1\UserController@adminUpdateStatus');
+            });
         });
         /**
          * Routes for Company.
          */
-        $router->group(['prefix' => 'company'], function () use ($router) {
-            $router->post('list', 'V1\CompanyController@list');
-            $router->post('show', 'V1\CompanyController@show');
-            $router->post('create', 'V1\CompanyController@create');
-            $router->post('update', 'V1\CompanyController@update');
-            $router->post('updateStatus', 'V1\CompanyController@updateStatus');
-            $router->post('subsidiaryDropDown', 'V1\CompanyController@subsidiaryDropDown');
-            $router->post('assignSubsidiary', 'V1\CompanyController@assignSubsidiary');
-            $router->post('parentDropDown', 'V1\CompanyController@parentDropDown');
-            $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');
-            $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
-            $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');
-            $router->post('dropdown', 'V1\CompanyController@dropdown');
-            $router->post('deleteAttachment', 'V1\CompanyController@deleteAttachment');
-            $router->post('moduleList', 'V1\CompanyController@moduleList');
-            $router->post('assignModule', 'V1\CompanyController@assignModule');
+        $router->group(['middleware' => 'accessControl:15'], function () use ($router) {  
+            $router->group(['prefix' => 'company'], function () use ($router) {
+                $router->post('list', 'V1\CompanyController@list');
+                $router->post('show', 'V1\CompanyController@show');
+                $router->post('create', 'V1\CompanyController@create');
+                $router->post('update', 'V1\CompanyController@update');
+                $router->post('updateStatus', 'V1\CompanyController@updateStatus');
+                $router->post('subsidiaryDropDown', 'V1\CompanyController@subsidiaryDropDown');
+                $router->post('assignSubsidiary', 'V1\CompanyController@assignSubsidiary');
+                $router->post('parentDropDown', 'V1\CompanyController@parentDropDown');
+                $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');
+                $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
+                $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');
+                $router->post('deleteAttachment', 'V1\CompanyController@deleteAttachment');
+                $router->post('moduleList', 'V1\CompanyController@moduleList');
+                $router->post('assignModule', 'V1\CompanyController@assignModule');
+                $router->post('dropdown', 'V1\CompanyController@dropdown'); 
+            });
         });
         // /**
         //  * Routes for Admin details
