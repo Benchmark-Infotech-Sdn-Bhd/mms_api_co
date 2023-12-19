@@ -54,6 +54,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');
             $router->post('dropdown', 'V1\CompanyController@dropdown');
             $router->post('deleteAttachment', 'V1\CompanyController@deleteAttachment');
+            $router->post('moduleList', 'V1\CompanyController@moduleList');
+            $router->post('moduleCreate', 'V1\CompanyController@moduleCreate');
+            $router->post('moduleUpdate', 'V1\CompanyController@moduleUpdate');
         });
          /**
          * Routes for Roles.

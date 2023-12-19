@@ -9,6 +9,7 @@ use App\Services\AuthServices;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Validator;
 use Exception;
 
 class CompanyController extends Controller
@@ -274,6 +275,71 @@ class CompanyController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Delete Attachment'], 400);
+        }
+    }
+    /**
+     * List Company Module.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function moduleList(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->moduleList($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Modules']);
+        }
+    }
+
+    /**
+     * Add Company Module.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function moduleCreate(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['created_by'] = $user['id'];
+            $validator = Validator::make($params, $this->companyServices->moduleCreateValidation());
+            if ($validator->fails()) {
+                return $this->validationError($validator->errors());
+            }
+            $this->companyServices->moduleCreate($params);
+            return $this->sendSuccess(['message' => 'Module Added Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Add Module']);
+        }
+    }
+
+    /**
+     * Update Company Module.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function moduleUpdate(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $validator = Validator::make($params, $this->companyServices->moduleUpdateValidation());
+            if ($validator->fails()) {
+                return $this->validationError($validator->errors());
+            }
+            $this->companyServices->moduleUpdate($params);
+            return $this->sendSuccess(['message' => 'Module Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update Module']);
         }
     }
 }
