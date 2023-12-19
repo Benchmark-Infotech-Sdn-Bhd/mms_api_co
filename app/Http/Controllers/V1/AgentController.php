@@ -183,4 +183,22 @@ class AgentController extends Controller
             return $this->sendError(['message' => $data['error']]);
         }
     }
+    /**
+     * Update the Agent code.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateAgentCode(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $data = $this->agentServices->updateAgentCode($params);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Updation failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
 }

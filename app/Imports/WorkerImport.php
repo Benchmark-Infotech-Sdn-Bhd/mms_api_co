@@ -47,7 +47,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow, WithMul
                 
                 $workerParameter = [
                     'onboarding_country_id' => $this->parameters['onboarding_country_id'],
-                    'agent_id' => $row['agent_id'],
+                    'agent_code' => $row['agent_code'],
                     'application_id' => $this->parameters['application_id'],
                     'name' => $row['name'] ?? '',
                     'date_of_birth' => $this->dateConvert($row['date_of_birth']),
@@ -57,7 +57,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow, WithMul
                     'address' => $row['address'] ?? '',
                     'state' => $row['state'] ?? '',
                     'kin_name' => $row['kin_name'] ?? '',
-                    'kin_relationship_id' => $row['kin_relationship_id'] ?? '',
+                    'kin_relationship' => $row['kin_relationship'] ?? '',
                     'kin_contact_number' => $row['kin_contact_number'] ?? '',
                     'ksm_reference_number' => $row['ksm_reference_number'] ?? '',
                     'bio_medical_reference_number' => $row['bio_medical_reference_number'] ?? '',
@@ -68,7 +68,6 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow, WithMul
                 ];
 
                 $workerNonMandatory = [
-                    'kin_relationship' => $row['kin_relationship'] ?? '',
                     'city' => $row['city'] ?? '',
                 ];
                 

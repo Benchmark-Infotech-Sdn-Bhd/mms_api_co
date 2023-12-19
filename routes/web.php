@@ -54,6 +54,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');
             $router->post('dropdown', 'V1\CompanyController@dropdown');
             $router->post('deleteAttachment', 'V1\CompanyController@deleteAttachment');
+            $router->post('moduleList', 'V1\CompanyController@moduleList');
+            $router->post('assignModule', 'V1\CompanyController@assignModule');
         });
          /**
          * Routes for Roles.
@@ -145,6 +147,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('list', 'V1\AgentController@list');
             $router->post('updateStatus', 'V1\AgentController@updateStatus');
             $router->post('dropdown', 'V1\AgentController@dropdown');
+            $router->post('updateAgentCode', 'V1\AgentController@updateAgentCode');
         });
         /**
          * Routes for Employees.
