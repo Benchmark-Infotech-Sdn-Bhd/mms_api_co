@@ -22,7 +22,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
     $router->post('forgotPassword', 'V1\AuthController@forgotPassword');
     $router->post('forgotPasswordUpdate', 'V1\AuthController@forgotPasswordUpdate');
     $router->group(['middleware' => ['jwt.verify']], function () use ($router) {  
-    $router->group(['middleware' => ['accessControl']], function () use ($router) {  
         /**
          * Routes for Users.
          */
@@ -77,10 +76,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         /**
          * Routes for Access Management.
          */
-        $router->group(['prefix' => 'accessManagement'], function () use ($router) {
-            $router->post('list', 'V1\AccessManagementController@list');
-            $router->post('create', 'V1\AccessManagementController@create');
-            $router->post('update', 'V1\AccessManagementController@update');
+        $router->group(['middleware' => 'accessControl:9'], function () use ($router) {  
+            $router->group(['prefix' => 'accessManagement'], function () use ($router) {
+                $router->post('list', 'V1\AccessManagementController@list');
+                $router->post('create', 'V1\AccessManagementController@create');
+                $router->post('update', 'V1\AccessManagementController@update');
+            });
         });
         /**
          * Routes for Services.
@@ -771,6 +772,5 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'audits'], function () use ($router) {
             $router->post('list', 'V1\AuditsController@list');
         });
-    });
     });
 });

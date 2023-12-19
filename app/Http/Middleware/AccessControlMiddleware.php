@@ -18,12 +18,13 @@ class AccessControlMiddleware
      * @param  Closure  $next
      * @return mixed
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next, int $moduleId)
     {
         try {
-            $urll = URL::current();
-            print_r($urll);exit;
-            print_r($request);exit;
+            // $urll = URL::current();
+            // print_r($urll);exit;
+            // print_r($request);exit;
+            echo($moduleId);exit;
             JWTAuth::parseToken()->authenticate();
         } catch (Exception $e) {
             Log::error('Exception - ' . print_r($e->getMessage(), true));
