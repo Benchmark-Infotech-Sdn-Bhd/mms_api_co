@@ -255,54 +255,70 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
          */
         $router->group(['prefix' => 'directRecruitment'], function () use ($router) {
             $router->post('addService', 'V1\DirectRecruitmentController@addService');
-            $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
-            $router->post('dropDownFilter', 'V1\DirectRecruitmentController@dropDownFilter');
-            $router->post('totalManagementListing', 'V1\DirectRecruitmentController@totalManagementListing');
+            $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
+                $router->post('dropDownFilter', 'V1\DirectRecruitmentController@dropDownFilter');
+                $router->post('totalManagementListing', 'V1\DirectRecruitmentController@totalManagementListing');
+            });
             /**
             * Routes for Onboarding
             */
             $router->group(['prefix' => 'onboarding'], function () use ($router) {
                 $router->group(['prefix' => 'countries'], function () use ($router) {
-                    $router->post('list', 'V1\DirectRecruitmentOnboardingCountryController@list');
-                    $router->post('show', 'V1\DirectRecruitmentOnboardingCountryController@show');
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                        $router->post('list', 'V1\DirectRecruitmentOnboardingCountryController@list');
+                        $router->post('show', 'V1\DirectRecruitmentOnboardingCountryController@show');
+                        $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
+                        $router->post('ksmDropDownForOnboarding', 'V1\DirectRecruitmentOnboardingCountryController@ksmDropDownForOnboarding');
+                    });
                     $router->post('create', 'V1\DirectRecruitmentOnboardingCountryController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingCountryController@update');
                     $router->post('addKSM', 'V1\DirectRecruitmentOnboardingCountryController@addKSM');
                     $router->post('ksmQuotaUpdate', 'V1\DirectRecruitmentOnboardingCountryController@ksmQuotaUpdate');
                     $router->post('deleteKSM', 'V1\DirectRecruitmentOnboardingCountryController@deleteKSM');
-                    $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
-                    $router->post('ksmDropDownForOnboarding', 'V1\DirectRecruitmentOnboardingCountryController@ksmDropDownForOnboarding');
                     $router->post('onboarding_status_update', 'V1\DirectRecruitmentOnboardingCountryController@onboarding_status_update');
                 });
                 $router->group(['prefix' => 'agent'], function () use ($router) {
-                    $router->post('list', 'V1\DirectRecruitmentOnboardingAgentController@list');
-                    $router->post('show', 'V1\DirectRecruitmentOnboardingAgentController@show');
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                        $router->post('list', 'V1\DirectRecruitmentOnboardingAgentController@list');
+                        $router->post('show', 'V1\DirectRecruitmentOnboardingAgentController@show');
+                        $router->post('ksmDropDownBasedOnOnboarding', 'V1\DirectRecruitmentOnboardingAgentController@ksmDropDownBasedOnOnboarding');
+                    });
                     $router->post('create', 'V1\DirectRecruitmentOnboardingAgentController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingAgentController@update');
-                    $router->post('ksmDropDownBasedOnOnboarding', 'V1\DirectRecruitmentOnboardingAgentController@ksmDropDownBasedOnOnboarding');
+                    
                 });
                 $router->group(['prefix' => 'attestation'], function () use ($router) {
+                    
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                        //Attestation
+                        $router->post('list', 'V1\DirectRecruitmentOnboardingAttestationController@list');
+                        $router->post('show', 'V1\DirectRecruitmentOnboardingAttestationController@show');
+                        //Dispatch
+                        $router->post('showDispatch', 'V1\DirectRecruitmentOnboardingAttestationController@showDispatch');
+                        //Embassy Attestation Costing
+                        $router->post('listEmbassy', 'V1\DirectRecruitmentOnboardingAttestationController@listEmbassy');
+                        $router->post('showEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@showEmbassyFile');
+                    });
                     //Attestation
-                    $router->post('list', 'V1\DirectRecruitmentOnboardingAttestationController@list');
-                    $router->post('show', 'V1\DirectRecruitmentOnboardingAttestationController@show');
                     $router->post('create', 'V1\DirectRecruitmentOnboardingAttestationController@create');
                     $router->post('update', 'V1\DirectRecruitmentOnboardingAttestationController@update');
                     //Dispatch
-                    $router->post('showDispatch', 'V1\DirectRecruitmentOnboardingAttestationController@showDispatch');
                     $router->post('updateDispatch', 'V1\DirectRecruitmentOnboardingAttestationController@updateDispatch');
                     //Embassy Attestation Costing
-                    $router->post('listEmbassy', 'V1\DirectRecruitmentOnboardingAttestationController@listEmbassy');
-                    $router->post('showEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@showEmbassyFile');
                     $router->post('uploadEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@uploadEmbassyFile');
                     $router->post('deleteEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@deleteEmbassyFile');
                 });
                 $router->group(['prefix' => 'workers'], function () use ($router) {
-                    $router->post('list', 'V1\DirectRecruitmentWorkersController@list');
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                        $router->post('list', 'V1\DirectRecruitmentWorkersController@list');
+                        $router->post('show', 'V1\DirectRecruitmentWorkersController@show');
+                    });
                     $router->post('create', 'V1\DirectRecruitmentWorkersController@create');
                     $router->post('update', 'V1\DirectRecruitmentWorkersController@update');
                     $router->post('export', 'V1\DirectRecruitmentWorkersController@export');
                     $router->post('dropdown', 'V1\DirectRecruitmentWorkersController@dropdown');
-                    $router->post('show', 'V1\DirectRecruitmentWorkersController@show');
+                    
                     $router->post('kinRelationship', 'V1\DirectRecruitmentWorkersController@kinRelationship');
                     $router->post('onboardingAgent', 'V1\DirectRecruitmentWorkersController@onboardingAgent');
                     $router->post('replaceWorker', 'V1\DirectRecruitmentWorkersController@replaceWorker');
@@ -412,7 +428,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         */
         $router->group(['prefix' => 'directRecrutment'], function () use ($router) {
             $router->post('submitProposal', 'V1\DirectRecruitmentController@submitProposal');
-            $router->post('showProposal', 'V1\DirectRecruitmentController@showProposal');
+            $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                $router->post('showProposal', 'V1\DirectRecruitmentController@showProposal');
+            });
             $router->post('deleteAttachment', 'V1\DirectRecruitmentController@deleteAttachment');
         });
 
@@ -430,16 +448,20 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         */
         $router->group(['prefix' => 'directRecruitmentApplicationChecklist'], function () use ($router) {
             $router->post('update', 'V1\DirectRecruitmentApplicationChecklistController@update');
-            $router->post('show', 'V1\DirectRecruitmentApplicationChecklistController@show');
-            $router->post('showBasedOnApplication', 'V1\DirectRecruitmentApplicationChecklistController@showBasedOnApplication');
+            $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                $router->post('show', 'V1\DirectRecruitmentApplicationChecklistController@show');
+                $router->post('showBasedOnApplication', 'V1\DirectRecruitmentApplicationChecklistController@showBasedOnApplication');
+            });
         });
 
         /**
          * Routes for FWCMS.
          */
         $router->group(['prefix' => 'fwcms'], function () use ($router) {
-            $router->post('list', 'V1\FWCMSController@list');
-            $router->post('show', 'V1\FWCMSController@show');
+            $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                $router->post('list', 'V1\FWCMSController@list');
+                $router->post('show', 'V1\FWCMSController@show');
+            });
             $router->post('create', 'V1\FWCMSController@create');
             $router->post('update', 'V1\FWCMSController@update');
         });
@@ -447,8 +469,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
          * Routes for Levy.
          */
         $router->group(['prefix' => 'levy'], function () use ($router) {
-            $router->post('list', 'V1\LevyController@list');
-            $router->post('show', 'V1\LevyController@show');
+            $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                $router->post('list', 'V1\LevyController@list');
+                $router->post('show', 'V1\LevyController@show');
+            });
             $router->post('create', 'V1\LevyController@create');
             $router->post('update', 'V1\LevyController@update');
         });
@@ -457,8 +481,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
          * Routes for Application Interview.
          */
         $router->group(['prefix' => 'applicationInterview'], function () use ($router) {
-            $router->post('list', 'V1\ApplicationInterviewController@list');
-            $router->post('show', 'V1\ApplicationInterviewController@show');
+            $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                $router->post('list', 'V1\ApplicationInterviewController@list');
+                $router->post('show', 'V1\ApplicationInterviewController@show');
+            });
             $router->post('create', 'V1\ApplicationInterviewController@create');
             $router->post('update', 'V1\ApplicationInterviewController@update');
             $router->post('deleteAttachment', 'V1\ApplicationInterviewController@deleteAttachment');
@@ -469,8 +495,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         * Routes for DirectRecruitmentApplicationApproval.
         */
         $router->group(['prefix' => 'directRecruitmentApplicationApproval'], function () use ($router) {
-            $router->post('list', 'V1\DirectRecruitmentApplicationApprovalController@list');
-            $router->post('show', 'V1\DirectRecruitmentApplicationApprovalController@show');
+            $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                $router->post('list', 'V1\DirectRecruitmentApplicationApprovalController@list');
+                $router->post('show', 'V1\DirectRecruitmentApplicationApprovalController@show');
+            });
             $router->post('create', 'V1\DirectRecruitmentApplicationApprovalController@create');
             $router->post('update', 'V1\DirectRecruitmentApplicationApprovalController@update');
             $router->post('deleteAttachment', 'V1\DirectRecruitmentApplicationApprovalController@deleteAttachment');
@@ -524,11 +552,19 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         * Routes for Application Summary.
         */
         $router->group(['prefix' => 'directRecrutmentExpenses'], function () use ($router) {
-            $router->post('list', 'V1\DirectRecruitmentExpensesController@list');
-            $router->post('show', 'V1\DirectRecruitmentExpensesController@show');
-            $router->post('create', 'V1\DirectRecruitmentExpensesController@create');
-            $router->post('update', 'V1\DirectRecruitmentExpensesController@update');
-            $router->post('deleteAttachment', 'V1\DirectRecruitmentExpensesController@deleteAttachment');
+            $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,View']], function () use ($router) {
+                $router->post('list', 'V1\DirectRecruitmentExpensesController@list');
+                $router->post('show', 'V1\DirectRecruitmentExpensesController@show');
+            });
+            $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,Add']], function () use ($router) {
+                $router->post('create', 'V1\DirectRecruitmentExpensesController@create');
+            });
+            $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,Edit']], function () use ($router) {
+                $router->post('update', 'V1\DirectRecruitmentExpensesController@update');
+            });
+            $router->group(['prefix' => '', 'middleware' => ['permissions:Direct Recruitment,Delete']], function () use ($router) {
+                $router->post('deleteAttachment', 'V1\DirectRecruitmentExpensesController@deleteAttachment');
+            });
         });
         /**
         * Routes for Total Management.
