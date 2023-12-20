@@ -34,12 +34,12 @@ class AccessControlMiddleware
                     'module_id' => $moduleId
                 ])->count('id');
                 if($checkModule == 0) {
-                    return response()->json($this->frameResponse(['message' => 'Unauthorized']));
+                    return response()->json($this->frameResponse(['message' => 'Access Denied!']));
                 }
             }
         } catch (Exception $e) {
             Log::error('Exception - ' . print_r($e->getMessage(), true));
-            return response()->json($this->frameResponse(['message' => 'Unauthorized']));
+            return response()->json($this->frameResponse(['message' => 'Access Denied!']));
         }
         return $next($request);
     }
