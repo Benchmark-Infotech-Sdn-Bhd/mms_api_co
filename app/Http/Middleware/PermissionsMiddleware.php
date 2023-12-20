@@ -44,7 +44,7 @@ class PermissionsMiddleware
                 ->where(function ($query) use ($permissionId) {
                     $query->where('permission_id', '=', $permissionId->id)
                         ->orWhere('permission_id', '=', 1);
-                })
+                }) 
                 ->count();
 
                 if ($rolePermission == 0) {
