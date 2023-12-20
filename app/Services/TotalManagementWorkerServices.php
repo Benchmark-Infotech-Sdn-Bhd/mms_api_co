@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\TotalManagementProject;
+use App\Services\AuthServices;
 
 class TotalManagementWorkerServices
 {
@@ -48,6 +49,10 @@ class TotalManagementWorkerServices
      * @var TotalManagementProject
      */
     private TotalManagementProject $totalManagementProject;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementWorkerServices constructor.
@@ -59,8 +64,9 @@ class TotalManagementWorkerServices
      * @param CRMProspectService $crmProspectService
      * @param DirectrecruitmentApplications $directrecruitmentApplications
      * @param TotalManagementProject $totalManagementProject
+     * @param AuthServices $authServices
      */
-    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, TotalManagementProject $totalManagementProject)
+    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, TotalManagementProject $totalManagementProject, AuthServices $authServices)
     {
         $this->workers = $workers;
         $this->vendor = $vendor;
@@ -70,6 +76,7 @@ class TotalManagementWorkerServices
         $this->crmProspectService = $crmProspectService;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->totalManagementProject = $totalManagementProject;
+        $this->authServices = $authServices;
     }
     /**
      * @return array
@@ -417,6 +424,8 @@ class TotalManagementWorkerServices
     public function removeWorker($request): array|bool
     {
         $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         $request['modified_by'] = $user['id'];
 
         $validator = Validator::make($request, $this->removeValidation());
@@ -426,10 +435,18 @@ class TotalManagementWorkerServices
             ];
         }
 
-        $workerDetails = $this->workerEmployment->where("worker_id", $request['worker_id'])
+        $workerDetails = $this->workerEmployment->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'worker_employment.worker_id')
+                 ->whereIn('workers.company_id', $request['company_id']);
+        })->where("worker_id", $request['worker_id'])
                         ->where("project_id", $request['project_id'])
                         ->where("service_type", "Total Management")
-                        ->get();
+                        ->count();
+            if($workerDetails == 0){
+                return [
+                    'noRecords' => true
+                ];
+            }
 
         $this->workerEmployment->where("worker_id", $request['worker_id'])
         ->where("project_id", $request['project_id'])

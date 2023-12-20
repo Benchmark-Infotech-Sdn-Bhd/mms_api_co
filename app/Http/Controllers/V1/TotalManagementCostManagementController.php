@@ -67,6 +67,8 @@ class TotalManagementCostManagementController extends Controller
             $data = $this->totalManagementCostManagementServices->update($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }else if(isset($data['noRecords'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -91,6 +93,8 @@ class TotalManagementCostManagementController extends Controller
             $data = $this->totalManagementCostManagementServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }elseif(is_null($data)){
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -152,7 +156,10 @@ class TotalManagementCostManagementController extends Controller
     public function deleteAttachment(Request $request): JsonResponse
     {   
         try {
-            $response = $this->totalManagementCostManagementServices->deleteAttachment($request);
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $response = $this->totalManagementCostManagementServices->deleteAttachment($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

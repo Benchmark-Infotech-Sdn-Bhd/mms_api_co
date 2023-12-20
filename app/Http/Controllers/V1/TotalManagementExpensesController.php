@@ -65,6 +65,9 @@ class TotalManagementExpensesController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementExpensesServices->show($params);
+            if(is_null($data)){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -102,6 +105,8 @@ class TotalManagementExpensesController extends Controller
             $data = $this->totalManagementExpensesServices->update($request);
             if(isset($data['error'])){
                 return $this->validationError($data['error']); 
+            }else if(isset($data['noRecords'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Expense Updated Successfully']);
         } catch (Exception $e) {
@@ -121,7 +126,10 @@ class TotalManagementExpensesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
-            $this->totalManagementExpensesServices->delete($params);
+            $data = $this->totalManagementExpensesServices->delete($params);
+            if($data === false) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess(['message' => 'Expense Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -138,7 +146,12 @@ class TotalManagementExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $this->totalManagementExpensesServices->deleteAttachment($params);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $data = $this->totalManagementExpensesServices->deleteAttachment($params);
+            if($data === false) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess(['message' => 'Attachment Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

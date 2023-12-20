@@ -107,10 +107,18 @@ class TotalManagementCostManagementServices
         }
 
         $costManagement = $this->totalManagementCostManagement
-        ->leftJoin('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
-        ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-        ->whereIn('total_management_applications.company_id', $params['company_id'])
-        ->findOrFail($request['id']);
+        ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+        ->join('total_management_applications', function ($join) use ($params) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                ->whereIn('total_management_applications.company_id', $params['company_id']);
+        })
+        ->find($request['id']);
+
+        if(is_null($costManagement)){
+            return [
+                'noRecords' => true
+            ];
+        }
 
         $costManagement->application_id = $request['application_id'] ?? $costManagement->application_id;
         $costManagement->project_id = $request['project_id'] ?? $costManagement->project_id;
@@ -159,10 +167,13 @@ class TotalManagementCostManagementServices
             ];
         }
         return $this->totalManagementCostManagement->with('totalManagementCostManagementAttachments')
-        ->leftJoin('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
-        ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-        ->whereIn('total_management_applications.company_id', $request['company_id'])
-        ->findOrFail($request['id']);
+        ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+        ->join('total_management_applications', function ($join) use ($request) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                ->whereIn('total_management_applications.company_id', $request['company_id']);
+        })
+        ->select('total_management_cost_management.*')
+        ->find($request['id']);
     }
     
     /**
@@ -209,9 +220,11 @@ class TotalManagementCostManagementServices
     public function delete($request): mixed
     {   
         $totalManagementCostManagement = $this->totalManagementCostManagement
-        ->leftJoin('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
-        ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-        ->whereIn('total_management_applications.company_id', $request['company_id'])
+        ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+        ->join('total_management_applications', function ($join) use ($request) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                ->whereIn('total_management_applications.company_id', $request['company_id']);
+        })
         ->find($request['id']);
 
         if(is_null($totalManagementCostManagement)){
@@ -235,7 +248,12 @@ class TotalManagementCostManagementServices
      */    
     public function deleteAttachment($request): mixed
     {   
-        $data = $this->totalManagementCostManagementAttachments::find($request['id']); 
+        $data = $this->totalManagementCostManagementAttachments::join('total_management_cost_management', 'total_management_cost_management.id', 'total_management_cost_management_attachments.file_id')
+        ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+        ->join('total_management_applications', function ($join) use ($request) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                ->whereIn('total_management_applications.company_id', $request['company_id']);
+        })->find($request['id']); 
         if(is_null($data)){
             return [
                 "isDeleted" => false,

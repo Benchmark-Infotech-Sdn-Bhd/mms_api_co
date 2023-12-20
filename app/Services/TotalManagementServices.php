@@ -15,6 +15,7 @@ use App\Models\TotalManagementApplications;
 use App\Models\TotalManagementApplicationAttachments;
 use App\Models\DirectrecruitmentApplications;
 use App\Models\DirectRecruitmentOnboardingCountry;
+use App\Services\AuthServices;
 
 class TotalManagementServices
 {
@@ -59,6 +60,10 @@ class TotalManagementServices
      */
     private Storage $storage;
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
      * TotalManagementServices constructor.
      * @param CRMProspect $crmProspect
      * @param CRMProspectService $crmProspectService
@@ -70,9 +75,10 @@ class TotalManagementServices
      * @param DirectrecruitmentApplications $directrecruitmentApplications
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      * @param Storage $storage
+     * @param AuthServices $authServices
      */
     public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, 
-    CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors, TotalManagementApplications $totalManagementApplications, TotalManagementApplicationAttachments $totalManagementApplicationAttachments, DirectrecruitmentApplications $directrecruitmentApplications, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage)
+    CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors, TotalManagementApplications $totalManagementApplications, TotalManagementApplicationAttachments $totalManagementApplicationAttachments, DirectrecruitmentApplications $directrecruitmentApplications, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage, AuthServices $authServices)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -84,6 +90,7 @@ class TotalManagementServices
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->storage = $storage;
+        $this->authServices = $authServices;
     }
     /**
      * @return array
@@ -215,7 +222,7 @@ class TotalManagementServices
      */
     public function getQuota($request): int
     {
-        $directrecruitmentApplicationIds = $this->directrecruitmentApplications->where('crm_prospect_id', $request['prospect_id'])
+        $directrecruitmentApplicationIds = $this->directrecruitmentApplications->whereIn('company_id', $request['company_id'])->where('crm_prospect_id', $request['prospect_id'])
                                             ->select('id')
                                             ->get()
                                             ->toArray();
@@ -233,6 +240,7 @@ class TotalManagementServices
         return $this->totalManagementApplications
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'total_management_applications.service_id')
         ->where('total_management_applications.id', $request['id'])
+        ->whereIn('total_management_applications.company_id', $request['company_id'])
         ->with(['applicationAttachment' => function ($query) {
             $query->orderBy('created_at', 'desc');
         }])->select('total_management_applications.id', 'total_management_applications.quota_applied', 'total_management_applications.person_incharge', 'total_management_applications.cost_quoted', 'total_management_applications.remarks', 'crm_prospect_services.sector_name')->get();
@@ -249,7 +257,14 @@ class TotalManagementServices
                 'error' => $validator->errors()
             ];
         }
-        $applicationDetails = $this->totalManagementApplications->findOrFail($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        $applicationDetails = $this->totalManagementApplications->whereIn('company_id', $params['company_id'])->find($request['id']);
+        if(is_null($applicationDetails)){
+            return [
+                'noRecords' => true
+            ];
+        }
         $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
         if($serviceDetails->from_existing == 0) {
             $totalQuota = $serviceDetails->client_quota + $serviceDetails->fomnext_quota;
@@ -259,7 +274,7 @@ class TotalManagementServices
                 ];
             }
         }
-        $user = JWTAuth::parseToken()->authenticate();
+        
         $params = $request->all();
         $params['modified_by'] = $user['id'];
         $applicationDetails->quota_applied = $params['quota_requested'] ?? $applicationDetails->quota_applied;
@@ -300,7 +315,15 @@ class TotalManagementServices
                 ];
             }
         }
-        $prospectService = $this->crmProspectService->findOrFail($request['prospect_service_id']);
+        $prospectService = $this->crmProspectService->join('crm_prospects', function ($join) use ($request) {
+            $join->on('crm_prospects.id', '=', 'crm_prospect_services.crm_prospect_id')
+                 ->whereIn('crm_prospects.company_id', $request['company_id']);
+        })->find($request['prospect_service_id']);
+        if(is_null($prospectService)){
+            return [
+                'noRecords' => true
+            ];
+        }
         $prospectService->from_existing =  $request['from_existing'] ?? 0;
         $prospectService->client_quota = $request['client_quota'] ?? $prospectService->client_quota;
         $prospectService->fomnext_quota = $request['fomnext_quota'] ?? $prospectService->fomnext_quota;
@@ -308,7 +331,12 @@ class TotalManagementServices
         $prospectService->service_quota = $request['service_quota'] ?? $prospectService->service_quota;
         $prospectService->save();
 
-        $applicationDetails = $this->totalManagementApplications->findOrFail($request['id']);
+        $applicationDetails = $this->totalManagementApplications->whereIn('company_id', $request['company_id'])->find($request['id']);
+        if(is_null($applicationDetails)){
+            return [
+                'noRecords' => true
+            ];
+        }
         $applicationDetails->quota_applied = ($request['from_existing'] == 0) ? ($prospectService->client_quota + $prospectService->fomnext_quota) : $prospectService->service_quota;
         $applicationDetails->save();
         return true;
@@ -320,6 +348,12 @@ class TotalManagementServices
      */
     public function showService($request) : mixed
     {
-        return $this->crmProspectService->findOrFail($request['prospect_service_id']);
+        return $this->crmProspectService
+        ->join('crm_prospects', function ($join) use ($request) {
+            $join->on('crm_prospects.id', '=', 'crm_prospect_services.crm_prospect_id')
+                 ->whereIn('crm_prospects.company_id', $request['company_id']);
+        })
+        ->select('crm_prospect_services.*')
+        ->find($request['prospect_service_id']);
     }
 }

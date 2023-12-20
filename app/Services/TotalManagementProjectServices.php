@@ -108,8 +108,13 @@ class TotalManagementProjectServices
      */   
     public function show($request): mixed
     {
-        //return $this->totalManagementProject->find($request['id']);
-        return $this->totalManagementProject->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')->whereIn('total_management_applications.company_id', $request['company_id'])->find($request['id']);
+        return $this->totalManagementProject
+        ->join('total_management_applications', function ($join) use ($request) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                 ->whereIn('total_management_applications.company_id', $request['company_id']);
+        })
+        ->select('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.supervisor_id','total_management_project.supervisor_type', 'total_management_project.employee_id','total_management_project.transportation_provider_id', 'total_management_project.driver_id','total_management_project.assign_as_supervisor', 'total_management_project.annual_leave','total_management_project.medical_leave', 'total_management_project.hospitalization_leave','total_management_project.created_by', 'total_management_project.modified_by','total_management_project.created_at', 'total_management_project.updated_at','total_management_project.deleted_at')
+        ->find($request['id']);
     }
     /**
      * @param $request
@@ -156,7 +161,11 @@ class TotalManagementProjectServices
             ];
         }
 
-        $totalManagementProject = $this->totalManagementProject->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')->whereIn('total_management_applications.company_id', $request['company_id'])->findOrFail($request['id']);
+        $totalManagementProject = $this->totalManagementProject
+        ->join('total_management_applications', function ($join) use ($request) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                 ->whereIn('total_management_applications.company_id', $request['company_id']);
+        })->findOrFail($request['id']);
         
         $totalManagementProject->name =  $request['name'] ?? $totalManagementProject->name;
         $totalManagementProject->state =  $request['state'] ?? $totalManagementProject->state;

@@ -84,6 +84,8 @@ class TotalManagementController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementServices->getQuota($params);
             return $this->sendSuccess(['approvedQuota' => $response]);
         } catch(Exception $e) {
@@ -100,6 +102,8 @@ class TotalManagementController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementServices->showProposal($params);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
@@ -123,6 +127,8 @@ class TotalManagementController extends Controller
                 return $this->validationError($response['error']);
             } else if(isset($response['quotaError'])) {
                 return $this->validationError(['message' => 'Quota for service should not exceed to Initail quota']);
+            }else if(isset($response['noRecords'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Proposal Submitted Successfully.']);
         } catch(Exception $e) {
@@ -139,9 +145,13 @@ class TotalManagementController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementServices->allocateQuota($params);
             if(isset($response['quotaError'])) {
                 return $this->validationError(['message' => 'Quota for service should not exceed to Initail quota']);
+            }else if(isset($response['noRecords'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Quota Allocated Successfully.']);
         } catch(Exception $e) {
@@ -158,7 +168,12 @@ class TotalManagementController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementServices->showService($params);
+            if(is_null($response)){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($response);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

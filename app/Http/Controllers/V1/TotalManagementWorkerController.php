@@ -241,6 +241,8 @@ class TotalManagementWorkerController extends Controller
             $data = $this->totalManagementWorkerServices->removeWorker($params);
             if(isset($data['error'])) {
                 return $this->validationError($data['error']);
+            }else if(isset($data['noRecords'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Worker Removed Successfully']);
         } catch (Exception $e) {

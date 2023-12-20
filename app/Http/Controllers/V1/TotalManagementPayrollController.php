@@ -244,6 +244,8 @@ class TotalManagementPayrollController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementPayrollServices->authorizePayroll($params);
             if(isset($response['existsError'])) {
                 return $this->sendError(['message' => 'Failed to Upload Total Management Payroll to Expenses Due to Expense Exists for This Month'], 422);
