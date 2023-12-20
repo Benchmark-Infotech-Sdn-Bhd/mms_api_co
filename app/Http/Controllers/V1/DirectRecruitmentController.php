@@ -66,7 +66,12 @@ class DirectRecruitmentController extends Controller
     {     
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentServices->showProposal($params); 
+            if(is_null($response)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -126,7 +131,10 @@ class DirectRecruitmentController extends Controller
     public function deleteAttachment(Request $request): JsonResponse
     {   
         try {
-            $response = $this->directRecruitmentServices->deleteAttachment($request);
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $response = $this->directRecruitmentServices->deleteAttachment($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

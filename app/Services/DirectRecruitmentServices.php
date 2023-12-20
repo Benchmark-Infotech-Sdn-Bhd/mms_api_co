@@ -276,7 +276,9 @@ class DirectRecruitmentServices
     {
         return $this->directrecruitmentApplications::with(['applicationAttachment' => function ($query) {
             $query->orderBy('created_at', 'desc');
-        }])->find($request['id']);
+        }])->where('id', $request['id'])
+        ->whereIn('company_id', $request['company_id'])
+        ->first();
     }
     /**
      *
@@ -355,7 +357,18 @@ class DirectRecruitmentServices
      */    
     public function deleteAttachment($request): mixed
     {   
-        $data = $this->directrecruitmentApplicationAttachments::find($request['id']); 
+        $data = $this->directrecruitmentApplicationAttachments::join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_application_attachments.file_id', '=', 'directrecruitment_applications.id')
+                 ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })->find($request['id']); 
+
+        // $data = $this->directrecruitmentApplicationAttachments::leftJoin('directrecruitment_applications', function ($join) {
+        //     $join->on('directrecruitment_application_attachments.file_id', '=', 'directrecruitment_applications.id');
+        // })
+        // ->whereIn('directrecruitment_applications.company_id', $request['company_id'])
+        // ->where('directrecruitment_application_attachments.id', $request['id'])
+        // ->first(); 
+
         if(is_null($data)){
             return [
                 "isDeleted" => false,
