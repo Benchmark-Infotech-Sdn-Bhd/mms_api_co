@@ -150,6 +150,8 @@ class UserController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['id'] = $user['id'];
             $data = $this->userServices->showUser($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 

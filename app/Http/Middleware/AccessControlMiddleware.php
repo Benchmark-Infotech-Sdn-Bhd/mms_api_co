@@ -22,12 +22,20 @@ class AccessControlMiddleware
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
-            $checkModule = CompanyModulePermission::where([
-                'company_id' => $user['company_id'],
-                'module_id' => $moduleId
-            ])->count('id');
-            if($checkModule == 0) {
-                return response()->json($this->frameResponse(['message' => 'Unauthorized']));
+            if($user['user_type'] == 'Super Admin') {
+                if(in_array($moduleId, [14,15])) {
+                    return $next($request);
+                } else {
+                return response()->json($this->emptyFrameResponse());
+                }
+            } else {
+                $checkModule = CompanyModulePermission::where([
+                    'company_id' => $user['company_id'],
+                    'module_id' => $moduleId
+                ])->count('id');
+                if($checkModule == 0) {
+                    return response()->json($this->frameResponse(['message' => 'Unauthorized']));
+                }
             }
         } catch (Exception $e) {
             Log::error('Exception - ' . print_r($e->getMessage(), true));
@@ -46,6 +54,20 @@ class AccessControlMiddleware
             'statusCode' => 400,
             'statusMessage' => 'Bad Request',
             'data' => (object)$data,
+            'responseTime' => time()
+        ];
+    }
+    /**
+     * @param array|object $data
+     * @return array
+     */
+    protected function emptyFrameResponse(): array
+    {
+        return [
+            'error' => false,
+            'statusCode' => 200,
+            'statusMessage' => 'OK',
+            'data' => '',
             'responseTime' => time()
         ];
     }
