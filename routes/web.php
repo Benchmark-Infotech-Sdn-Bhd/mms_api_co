@@ -72,21 +72,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('deleteAttachment', 'V1\CompanyController@deleteAttachment');
                 });                
             });
-        });
-        // /**
-        //  * Routes for Admin details
-        //  */
-        // $router->group(['prefix' => 'user'], function () use ($router) {
-        //     $router->post('adminList', 'V1\UserController@adminList');
-        //     $router->post('adminShow', 'V1\UserController@adminShow');
-        //     $router->post('adminUpdate', 'V1\UserController@adminUpdate');
-        //     $router->post('adminUpdateStatus', 'V1\UserController@adminUpdateStatus');
-        // });
-        /**
-         * Routes for Modules.
-         */
-        $router->group(['prefix' => 'module'], function () use ($router) {
-            $router->post('dropDown', 'V1\ModulesController@dropDown');
+            /**
+             * Routes for Modules.
+             */
+            $router->group(['prefix' => 'module'], function () use ($router) {
+                $router->post('dropDown', 'V1\ModulesController@dropDown');
+            });
         });
         /**
          * Routes for Services.
