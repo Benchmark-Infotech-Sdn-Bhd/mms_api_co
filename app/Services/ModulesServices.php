@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Module;
+use Illuminate\Support\Facades\Config;
 
 class ModulesServices
 {
@@ -26,6 +27,7 @@ class ModulesServices
     public function dropDown(): mixed
     {
         return $this->module->where('status', 1)
+            ->whereNotIn('id', Config::get('services.SUPER_ADMIN_MODULES'))
             ->select('id', 'module_name')
             ->get();
     }
