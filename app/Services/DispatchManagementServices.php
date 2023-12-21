@@ -12,6 +12,7 @@ use App\Services\AuthServices;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use App\Models\Employee;
 
 class DispatchManagementServices
 {
@@ -35,6 +36,10 @@ class DispatchManagementServices
      * @var NotificationServices
      */
     private NotificationServices $notificationServices;
+    /**
+     * @var Employee
+     */
+    private Employee $employee;
 
     /**
      * dispatchManagementServices constructor.
@@ -43,14 +48,16 @@ class DispatchManagementServices
      * @param Storage $storage
      * @param AuthServices $authServices
      * @param NotificationServices $notificationServices
+     * @param Employee $employee
      */
-    public function __construct(OnboardingDispatch $onboardingDispatch, OnboardingDispatchAttachments $onboardingDispatchAttachments, Storage $storage, AuthServices $authServices, NotificationServices $notificationServices)
+    public function __construct(OnboardingDispatch $onboardingDispatch, OnboardingDispatchAttachments $onboardingDispatchAttachments, Storage $storage, AuthServices $authServices, NotificationServices $notificationServices, Employee $employee)
     {
         $this->onboardingDispatch = $onboardingDispatch;
         $this->onboardingDispatchAttachments = $onboardingDispatchAttachments;
         $this->storage = $storage;
         $this->authServices = $authServices;
         $this->notificationServices = $notificationServices;
+        $this->employee = $employee;
     }
     /**
      * @return array
@@ -146,7 +153,13 @@ class DispatchManagementServices
      */   
     public function show($request): mixed
     {
-        return $this->onboardingDispatch->with('dispatchAttachments')->find($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $this->onboardingDispatch->join('employee', function ($join) use ($request) {
+            $join->on('employee.id', '=', 'onboarding_dispatch.employee_id')
+                 ->whereIn('employee.company_id', $request['company_id']);
+        })->select('onboarding_dispatch.*')->with('dispatchAttachments')->find($request['id']);
     }
     /**
      * @param $request
@@ -157,6 +170,7 @@ class DispatchManagementServices
         $user = JWTAuth::parseToken()->authenticate();
         $params = $request->all();
         $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
 
         $onboardingDispatchCount = $this->onboardingDispatch->count();
 
@@ -166,6 +180,13 @@ class DispatchManagementServices
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+
+        $employeeData = $this->employee::where('company_id', $params['company_id'])->find($request['employee_id']);
+        if(is_null($employeeData)) {
+            return [
+                'unauthorizedError' => true
             ];
         }
         
@@ -258,11 +279,19 @@ class DispatchManagementServices
         $user = JWTAuth::parseToken()->authenticate();
         $params = $request->all();
         $params['modified_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
 
         $validator = Validator::make($request->toArray(), $this->updateValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+
+        $employeeData = $this->employee::where('company_id', $params['company_id'])->find($request['employee_id']);
+        if(is_null($employeeData)) {
+            return [
+                'unauthorizedError' => true
             ];
         }
 
@@ -359,7 +388,17 @@ class DispatchManagementServices
      */    
     public function deleteAttachment($request): array
     {   
-        $data = $this->onboardingDispatchAttachments::find($request['attachment_id']); 
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+        
+        $data = $this->onboardingDispatchAttachments::join('onboarding_dispatch', 'onboarding_dispatch.id', '=', 'onboarding_dispatch_attachments.file_id')
+        ->join('employee', function ($join) use ($request) {
+            $join->on('employee.id', '=', 'onboarding_dispatch.employee_id')
+                 ->whereIn('employee.company_id', $request['company_id']);
+        })
+        ->select('onboarding_dispatch_attachments.id')
+        ->find($request['attachment_id']);
+
         if(is_null($data)){
             return [
                 "isDeleted" => false,

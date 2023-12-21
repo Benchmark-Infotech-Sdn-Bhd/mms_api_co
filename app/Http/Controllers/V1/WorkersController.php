@@ -63,6 +63,8 @@ class WorkersController extends Controller
                 return $this->validationError($data['validate']); 
             } else if(isset($data['ksmError'])) {
                 return $this->sendError(['message' => 'KSM reference number does not matched.'], 422);
+            }else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -85,6 +87,8 @@ class WorkersController extends Controller
             $data = $this->workersServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }elseif(is_null($data)){
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -281,6 +285,8 @@ class WorkersController extends Controller
                 return $this->validationError($data['validate']); 
             } else if(isset($data['workerCountError'])) {
                 return $this->sendError(['message' => 'Reached Max Limit to Add the Bank Details'], 422);
+            }else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -305,6 +311,8 @@ class WorkersController extends Controller
                 return $this->validationError($data['validate']); 
             } else if(isset($data['workerCountError'])) {
                 return $this->sendError(['message' => 'Reached Max Limit to Add the Bank Details'], 422);
+            }else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -327,6 +335,8 @@ class WorkersController extends Controller
             $data = $this->workersServices->showBankDetails($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }elseif(is_null($data)){
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {

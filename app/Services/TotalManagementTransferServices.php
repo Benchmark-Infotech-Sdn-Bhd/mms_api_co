@@ -205,6 +205,14 @@ class TotalManagementTransferServices
 
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        $workerData = $this->workers::whereIn('company_id', $request['company_id'])->find($request['worker_id']);
+        if(is_null($workerData)){
+                return [
+                    'unauthorizedError' => true
+                ];
+            }
 
         // CHECK WORKER EMPLOYMENT DATA - SAME PROJECT ID
         $workerEmployment = $this->workerEmployment->where([
@@ -237,7 +245,12 @@ class TotalManagementTransferServices
                     }
                 }
                 $projectDetails = $this->eContractProject->findOrFail($request['new_project_id']);
-                $applicationDeatils = $this->eContractApplications->findOrFail($projectDetails->application_id);
+                $applicationDeatils = $this->eContractApplications::whereIn('company_id', $request['company_id'])->find($projectDetails->application_id);
+                if(is_null($applicationDeatils)){
+                    return [
+                        'unauthorizedError' => true
+                    ];
+                }
                 $projectIds = $this->eContractProject->where('application_id', $projectDetails->application_id)
                                 ->select('id')
                                 ->get()
@@ -264,7 +277,12 @@ class TotalManagementTransferServices
             }
         } else if($request['service_type'] == 'Total Management') {
             $projectDetails = $this->totalManagementProject->findOrFail($request['new_project_id']);
-            $applicationDetails = $this->totalManagementApplications->findOrFail($projectDetails->application_id);
+            $applicationDetails = $this->totalManagementApplications::whereIn('company_id', $request['company_id'])->find($projectDetails->application_id);
+            if(is_null($applicationDetails)){
+                return [
+                    'unauthorizedError' => true
+                ];
+            }
             $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
             
             if($serviceDetails->from_existing == 1) {

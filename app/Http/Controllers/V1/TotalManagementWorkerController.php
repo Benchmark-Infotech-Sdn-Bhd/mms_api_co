@@ -107,6 +107,8 @@ class TotalManagementWorkerController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementWorkerServices->accommodationUnitDropDown($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -133,6 +135,8 @@ class TotalManagementWorkerController extends Controller
                 return $this->sendError(['message' => 'The number of Fomnext worker cannot exceed the Fomnext Quota'], 422);
             } else if(isset($data['clientQuotaError'])) {
                 return $this->sendError(['message' => 'The number of Client worker cannot exceed the Client Quota'], 422);
+            }else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Workers are Assigned Successfully']);
         } catch (Exception $e) {
@@ -150,7 +154,12 @@ class TotalManagementWorkerController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementWorkerServices->getBalancedQuota($params);
+            if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -167,6 +176,8 @@ class TotalManagementWorkerController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementWorkerServices->getCompany($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -184,6 +195,8 @@ class TotalManagementWorkerController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementWorkerServices->ksmRefereneceNUmberDropDown($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -201,6 +214,8 @@ class TotalManagementWorkerController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementWorkerServices->getSectorAndValidUntil($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -241,7 +256,7 @@ class TotalManagementWorkerController extends Controller
             $data = $this->totalManagementWorkerServices->removeWorker($params);
             if(isset($data['error'])) {
                 return $this->validationError($data['error']);
-            }else if(isset($data['noRecords'])) {
+            }else if(isset($data['unauthorizedError'])) {
                 return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Worker Removed Successfully']);
