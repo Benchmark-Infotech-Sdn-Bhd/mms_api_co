@@ -178,7 +178,7 @@ class EContractServices
         }
 
         $prospectCompany = $this->crmProspect
-        ->whereIn('company_id', $request['company_ids'])
+        ->where('company_id', $request['company_id'])
         ->find($request['prospect_id']);
         if(is_null($prospectCompany)){
             return [

@@ -36,6 +36,9 @@ class EContractPayrollController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->eContractPayrollServices->projectDetails($params);
+            if(is_null($response) || count($response->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
@@ -52,7 +55,7 @@ class EContractPayrollController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $response = $this->eContractPayrollServices->list($params);
+            $response = $this->eContractPayrollServices->list($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
@@ -70,6 +73,9 @@ class EContractPayrollController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->eContractPayrollServices->export($params);
+            if(is_null($response) || count($response->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
@@ -87,6 +93,9 @@ class EContractPayrollController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->eContractPayrollServices->show($params);
+            if(is_null($response) || count($response->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
@@ -109,6 +118,9 @@ class EContractPayrollController extends Controller
             $fileName = 'A-' . time() . '.' . $fileExt;
             $request->file('payroll_file')->move($destinationPath, $fileName);
             $data = $this->eContractPayrollServices->import($request, $destinationPath . $fileName);
+            if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             if(isset($data['error'])){
                 return $this->validationError($data['error']); 
             }
@@ -156,6 +168,9 @@ class EContractPayrollController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
             $response = $this->eContractPayrollServices->update($params);
+            if(isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -176,6 +191,9 @@ class EContractPayrollController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->eContractPayrollServices->listTimesheet($params);
+            if(is_null($response) || count($response->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
@@ -193,6 +211,9 @@ class EContractPayrollController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->eContractPayrollServices->viewTimesheet($params);
+            if(is_null($response) || count($response->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
@@ -215,6 +236,8 @@ class EContractPayrollController extends Controller
                 return $this->sendError(['message' => 'Failed to Upload E-Contract Payroll Timesheet due to Timesheet exists for this month'], 422);
             }elseif($response == false) {
                 return $this->sendError(['message' => 'Failed to Upload E-Contract Payroll Timesheet'], 422);
+            }elseif(isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'E-Contract Payroll Timesheet Uploaded Sucessfully']);
         } catch (Exception $e) {

@@ -182,7 +182,7 @@ class EContractWorkerServices
                     ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
                 }
             })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number')
+            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.created_at')
             ->distinct()
             ->orderBy('workers.created_at','DESC')
             ->paginate(Config::get('services.paginate_worker_row'));
@@ -204,7 +204,19 @@ class EContractWorkerServices
 
         if(isset($request['workers']) && !empty($request['workers'])) {
 
-            $projectDetails = $this->eContractProject->findOrFail($request['project_id']);
+            $projectDetails = $this->eContractProject->join('e-contract_applications', function($query) use($user) {
+                $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+                    ->where('e-contract_applications.company_id', $user['company_id']);
+                })
+            ->select('e-contract_project.*')
+            ->find($request['project_id']);
+
+            if(is_null($projectDetails)){
+                return [
+                    'unauthorizedError' => true
+                ];
+            }
+
             $applicationDeatils = $this->eContractApplications->findOrFail($projectDetails->application_id);
             $projectIds = $this->eContractProject->where('application_id', $projectDetails->application_id)
                             ->select('id')
@@ -264,6 +276,19 @@ class EContractWorkerServices
         }
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
+
+        $projectDetails = $this->eContractProject->join('e-contract_applications', function($query) use($user) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+                ->where('e-contract_applications.company_id', $user['company_id']);
+            })
+        ->select('e-contract_project.*')
+        ->find($request['project_id']);
+
+        if(is_null($projectDetails)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
 
         $workerDetails = $this->workerEmployment->where("worker_id", $request['worker_id'])
                         ->where("project_id", $request['project_id'])

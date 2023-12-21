@@ -35,6 +35,9 @@ class EContractCostManagementController extends Controller
     {
         try {
             $data = $this->eContractCostManagementServices->create($request);
+            if(isset($data['unauthorizedError'])) {
+                return $this->sendError($data['unauthorizedError']);
+            }
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -56,6 +59,9 @@ class EContractCostManagementController extends Controller
     {
         try {
             $data = $this->eContractCostManagementServices->update($request);
+            if(isset($data['unauthorizedError'])) {
+                return $this->sendError($data['unauthorizedError']);
+            }
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }
@@ -78,6 +84,9 @@ class EContractCostManagementController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->eContractCostManagementServices->show($params);
+            if(is_null($data) || count($data->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             }

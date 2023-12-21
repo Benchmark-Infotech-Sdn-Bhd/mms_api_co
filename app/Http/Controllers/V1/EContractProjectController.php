@@ -110,7 +110,7 @@ class EContractProjectController extends Controller
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
-            $request['company_id'] = $this->authServices->getCompanyIds($user);
+            //$request['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->eContractProjectServices->update($request);
             if (isset($response['unauthorizedError'])) {
                 return $this->sendError($response['unauthorizedError']);
