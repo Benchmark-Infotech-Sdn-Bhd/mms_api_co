@@ -9,6 +9,7 @@ use App\Services\DirectRecruitmentOnboardingCountryServices;
 use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Models\OnboardingCountriesKSMReferenceNumber;
 use App\Models\OnboardingAttestation;
+use App\Models\DirectrecruitmentApplications;
 
 class DirectRecruitmentOnboardingAgentServices
 {
@@ -39,6 +40,10 @@ class DirectRecruitmentOnboardingAgentServices
      * @var OnboardingAttestation
      */
     private OnboardingAttestation $onboardingAttestation;
+    /**
+     * @var DirectrecruitmentApplications
+     */
+    private DirectrecruitmentApplications $directrecruitmentApplications;
 
     /**
      * DirectRecruitmentOnboardingAgentServices constructor.
@@ -48,8 +53,9 @@ class DirectRecruitmentOnboardingAgentServices
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
      * @param OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber
      * @param OnboardingAttestation $onboardingAttestation
+     * @param DirectrecruitmentApplications $directrecruitmentApplications
      */
-    public function __construct(DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent, DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber, OnboardingAttestation $onboardingAttestation)
+    public function __construct(DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent, DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber, OnboardingAttestation $onboardingAttestation, DirectrecruitmentApplications $directrecruitmentApplications)
     {
         $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
         $this->directRecruitmentOnboardingAttestationServices = $directRecruitmentOnboardingAttestationServices;
@@ -57,6 +63,7 @@ class DirectRecruitmentOnboardingAgentServices
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->onboardingCountriesKSMReferenceNumber = $onboardingCountriesKSMReferenceNumber;
         $this->onboardingAttestation = $onboardingAttestation;
+        $this->directrecruitmentApplications = $directrecruitmentApplications;
     }
     /**
      * @return array
@@ -90,6 +97,10 @@ class DirectRecruitmentOnboardingAgentServices
     public function list($request): mixed
     {
         return $this->directRecruitmentOnboardingAgent->leftJoin('agent', 'agent.id', 'directrecruitment_onboarding_agent.agent_id')
+            ->join('directrecruitment_applications', function ($join) use($request) {
+                $join->on('directrecruitment_onboarding_agent.application_id', '=', 'directrecruitment_applications.id')
+                    ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+            })
             ->where([
                 ['directrecruitment_onboarding_agent.application_id', $request['application_id']],
                 ['directrecruitment_onboarding_agent.onboarding_country_id', $request['onboarding_country_id']],
@@ -104,7 +115,10 @@ class DirectRecruitmentOnboardingAgentServices
      */   
     public function show($request): mixed
     {
-        return $this->directRecruitmentOnboardingAgent->find($request['id']);
+        return $this->directRecruitmentOnboardingAgent->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_onboarding_agent.application_id', '=', 'directrecruitment_applications.id')
+                ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })->where('directrecruitment_onboarding_agent.id', $request['id'])->first('directrecruitment_onboarding_agent.*');
     }
     /**
      * @param $request
@@ -118,7 +132,17 @@ class DirectRecruitmentOnboardingAgentServices
                 'error' => $validator->errors()
             ];
         }
-
+        $onboardingCheck = $this->directRecruitmentOnboardingCountry->find($request['onboarding_country_id']);
+        $applicationCheck = $this->directrecruitmentApplications->find($request['application_id']);
+        if($onboardingCheck->application_id != $request['application_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $checkAgent = $this->directRecruitmentOnboardingAgent
                         ->where('agent_id', $request['agent_id'])
                         ->where('application_id', $request['application_id'])
@@ -181,7 +205,25 @@ class DirectRecruitmentOnboardingAgentServices
                 'error' => $validator->errors()
             ];
         }
-        $onboardingAgent = $this->directRecruitmentOnboardingAgent->findOrFail($request['id']);
+        $onboardingAgent = $this->directRecruitmentOnboardingAgent
+                        ->join('directrecruitment_applications', function ($join) use($request) {
+                            $join->on('directrecruitment_onboarding_agent.application_id', '=', 'directrecruitment_applications.id')
+                                ->where('directrecruitment_applications.company_id', $request['company_id']);
+                        })->find($request['id']);
+        if(is_null($onboardingAgent)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        if($onboardingAgent->application_id != $request['application_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($onboardingAgent->onboarding_country_id != $request['onboarding_country_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $request['old_ksm_reference_number'] = $onboardingAgent->ksm_reference_number;
         
         $attestationDetails = $this->onboardingAttestation
@@ -247,8 +289,11 @@ class DirectRecruitmentOnboardingAgentServices
      */
     public function ksmDropDownBasedOnOnboarding($request): mixed
     {
-        return $this->onboardingCountriesKSMReferenceNumber->where('onboarding_country_id', $request['onboarding_country_id'])
-        ->select('id', 'ksm_reference_number')
+        return $this->onboardingCountriesKSMReferenceNumber->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('onboarding_countries_ksm_reference_number.application_id', '=', 'directrecruitment_applications.id')
+                ->where('directrecruitment_applications.company_id', $request['company_id']);
+        })->where('onboarding_countries_ksm_reference_number.onboarding_country_id', $request['onboarding_country_id'])
+        ->select('onboarding_countries_ksm_reference_number.id', 'onboarding_countries_ksm_reference_number.ksm_reference_number')
         ->get(); 
     }
 }
