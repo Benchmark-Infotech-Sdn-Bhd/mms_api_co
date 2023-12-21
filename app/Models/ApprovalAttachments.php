@@ -26,6 +26,6 @@ class ApprovalAttachments extends Model implements Auditable
      */
     public function directRecruitmentApplicationApproval()
     {
-        return $this->belongsTo(DirectRecruitmentApplicationApproval::class);
+        return $this->belongsTo(DirectRecruitmentApplicationApproval::class, 'file_id');
     }
 }

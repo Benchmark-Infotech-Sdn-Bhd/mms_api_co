@@ -146,6 +146,12 @@ class DirectRecruitmentServices
      */
     public function addService($request): bool|array
     {
+        $crmCompany = $this->crmProspect->find($request['id']);
+        if($crmCompany['company_id'] != $request['company_id']) {
+            return [
+                'InvalidUser' => true 
+            ];
+        }
         $validator = Validator::make($request->toArray(), $this->addServiceValidation());
         if($validator->fails()) {
             return [

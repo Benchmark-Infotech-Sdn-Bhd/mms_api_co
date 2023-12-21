@@ -92,6 +92,8 @@ class DirectRecruitmentController extends Controller
             $response = $this->directRecruitmentServices->addService($request);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'Service Added Successfully']);
         } catch(Exception $e) {

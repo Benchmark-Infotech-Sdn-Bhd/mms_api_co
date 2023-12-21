@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Services\ApplicationSummaryServices;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
+use App\Services\AuthServices;
 use Exception;
 
 class ApplicationSummaryController extends Controller
@@ -16,14 +17,20 @@ class ApplicationSummaryController extends Controller
      * @var ApplicationSummaryServices
      */
     private $applicationSummaryServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * ApplicationSummaryController constructor.
      * @param ApplicationSummaryServices $applicationSummaryServices
+     * @param AuthServices $authServices
      */
-    public function __construct(ApplicationSummaryServices $applicationSummaryServices) 
+    public function __construct(ApplicationSummaryServices $applicationSummaryServices, AuthServices $authServices) 
     {
         $this->applicationSummaryServices = $applicationSummaryServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display a listing of the Application Summary.
@@ -35,6 +42,8 @@ class ApplicationSummaryController extends Controller
     {
         try {
             $param = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $param['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->applicationSummaryServices->list($param);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -52,6 +61,8 @@ class ApplicationSummaryController extends Controller
     {   
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->applicationSummaryServices->listKsmReferenceNumber($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
