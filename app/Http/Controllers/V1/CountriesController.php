@@ -70,6 +70,7 @@ class CountriesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->countriesServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -91,6 +92,8 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->countriesServices->delete($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -112,6 +115,8 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->countriesServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -195,6 +200,8 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->countriesServices->updateStatus($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
