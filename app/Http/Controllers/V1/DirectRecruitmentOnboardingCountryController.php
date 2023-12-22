@@ -259,29 +259,4 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             return $this->sendError(['message' => 'Failed to List KSM Reference Numbers'], 400);
         }
     }
-    /**
-     * Update country to Onboarding Process Status Update
-     * 
-     * @param Request $request
-     * @return JsonResponse   
-     */
-    public function onboarding_status_update(Request $request): JsonResponse
-    {
-        try {
-            $params = $this->getRequest($request);
-            $user = JWTAuth::parseToken()->authenticate();
-            $params['modified_by'] = $user['id'];
-            $params['company_id'] = $user['company_id'];
-            $response = $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($params);
-            if(isset($response['error'])) {
-                return $this->validationError($response['error']);
-            } else if(isset($response['InvalidUser'])) {
-                return $this->sendError(['message' => 'Unauthorized.']);
-            }
-            return $this->sendSuccess(['message' => 'Status Updated Successfully']);
-        } catch (Exception $e) {
-            Log::error('Error = ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Faild to Update Status'], 400);
-        }
-    }
 }
