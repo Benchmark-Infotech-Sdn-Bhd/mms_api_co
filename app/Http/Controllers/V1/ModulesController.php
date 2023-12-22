@@ -7,7 +7,6 @@ use App\Services\ModulesServices;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Exception;
-use App\Services\AuthServices;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Http\Request;
 
@@ -17,20 +16,14 @@ class ModulesController extends Controller
      * @var ModulesServices
      */
     private $modulesServices;
-    /**
-     * @var AuthServices
-     */
-    private AuthServices $authServices;
 
     /**
      * ModulesController constructor.
      * @param ModulesServices $modulesServices
-     * @param AuthServices $authServices
      */
-    public function __construct(ModulesServices $modulesServices, AuthServices $authServices) 
+    public function __construct(ModulesServices $modulesServices) 
     {
         $this->modulesServices = $modulesServices;
-        $this->authServices = $authServices;
     }
 
     /**
