@@ -215,15 +215,8 @@ class DirectRecruitmentOnboardingAgentServices
                 'InvalidUser' => true
             ];
         }
-        if($onboardingAgent->application_id != $request['application_id']) {
-            return [
-                'InvalidUser' => true
-            ];
-        } else if($onboardingAgent->onboarding_country_id != $request['onboarding_country_id']) {
-            return [
-                'InvalidUser' => true
-            ];
-        }
+        $request['application_id'] = $onboardingAgent->application_id;
+        $request['onboarding_country_id'] = $onboardingAgent->onboarding_country_id;
         $request['old_ksm_reference_number'] = $onboardingAgent->ksm_reference_number;
         
         $attestationDetails = $this->onboardingAttestation
