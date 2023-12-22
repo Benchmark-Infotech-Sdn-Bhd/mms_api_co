@@ -72,13 +72,14 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('deleteAttachment', 'V1\CompanyController@deleteAttachment');
                 });                
             });
+            
+        });
             /**
              * Routes for Modules.
              */
             $router->group(['prefix' => 'module'], function () use ($router) {
                 $router->post('dropDown', 'V1\ModulesController@dropDown');
             });
-        });
         /**
          * Routes for Services.
          */
