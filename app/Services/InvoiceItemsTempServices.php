@@ -87,7 +87,7 @@ class InvoiceItemsTempServices
         }
 
         return $invoiceItemsTemp;
-    }
+    } 
 
     /**
      * @param $request
@@ -104,7 +104,12 @@ class InvoiceItemsTempServices
             ];
         }
 
-        $invoiceItemsTemp = $this->invoiceItemsTemp->findOrFail($request['id']);
+        $invoiceItemsTemp = $this->invoiceItemsTemp->where('created_by', $user['id'] )->findOrFail($request['id']);
+        if(is_null($invoiceItemsTemp)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
 
         if(($invoiceItemsTemp->crm_prospect_id != $request['crm_prospect_id']) || ($invoiceItemsTemp->service_id != $request['service_id'])){
             return [
@@ -138,6 +143,7 @@ class InvoiceItemsTempServices
      */
     public function show($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
@@ -145,7 +151,7 @@ class InvoiceItemsTempServices
         }
         $data = $this->invoiceItemsTemp->with(['crm_prospect' => function ($query) {
                 $query->select(['id', 'company_name']);
-            }])->find($request['id']);
+            }])->where('created_by',$user['id'])->find($request['id']);
 
         if(is_null($data)){
             return [
@@ -181,7 +187,7 @@ class InvoiceItemsTempServices
                 ->orWhere('description', 'like', '%'.$request['search_param'].'%');
             }            
         })
-        ->where('created_by',$user['id'])->select('id','crm_prospect_id','service_id','expense_id','invoice_number','item','description','quantity','price','account','tax_rate','total_price','created_by','modified_by')
+        ->where('created_by',$user['id'])->select('id','crm_prospect_id','service_id','expense_id','invoice_number','item','description','quantity','price','account','tax_rate','total_price','created_by','modified_by', 'created_at')
         ->distinct()
         ->orderBy('created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
@@ -195,7 +201,8 @@ class InvoiceItemsTempServices
      */    
     public function delete($request): mixed
     {   
-        $invoiceItemsTemp = $this->invoiceItemsTemp::find($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $invoiceItemsTemp = $this->invoiceItemsTemp::where('created_by',$user['id'])->find($request['id']);
 
         if(is_null($invoiceItemsTemp)){
             return [

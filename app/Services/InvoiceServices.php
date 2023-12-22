@@ -294,13 +294,14 @@ class InvoiceServices
      */
     public function show($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
 
-        $invoiceData = $this->invoice->find($request['id']);
+        $invoiceData = $this->invoice->where('company_id', $user['company_id'])->find($request['id']);
         
         if(isset($invoiceData) && !empty($invoiceData)){
             $invoiceXeroData = $this->getInvoices($invoiceData);
@@ -312,7 +313,7 @@ class InvoiceServices
             }
         }
 
-        $data = $this->invoice->with('invoiceItems')->find($request['id']);
+        $data = $this->invoice->with('invoiceItems')->where('company_id', $user['company_id'])->find($request['id']);
 
         if(is_null($data)){
             return [
@@ -444,8 +445,10 @@ class InvoiceServices
      */
     public function xeroGetTaxRates($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         return $this->xeroTaxRates
             ->select('id', 'name', 'tax_type', 'report_tax_type', 'can_applyto_assets', 'can_applyto_equity', 'can_applyto_expenses', 'can_applyto_liabilities', 'can_applyto_revenue', 'display_tax_rate', 'effective_rate', 'status')
+            ->where('company_id', $user['company_id'])
             ->distinct('id')
             ->orderBy('id', 'asc')
             ->get();
@@ -530,8 +533,10 @@ class InvoiceServices
      */
     public function xeroGetItems($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         return $this->xeroItems
             ->select('id', 'item_id', 'code', 'description', 'purchase_description', 'name', 'is_tracked_as_inventory', 'is_sold', 'is_purchased')
+            ->where('company_id', $user['company_id'])
             ->distinct('id')
             ->orderBy('id', 'asc')
             ->get();

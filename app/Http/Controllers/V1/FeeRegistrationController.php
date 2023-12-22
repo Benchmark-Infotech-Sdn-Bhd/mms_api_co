@@ -14,7 +14,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class FeeRegistrationController extends Controller
 {
     /**
-     * @var feeRegistrationServices
+     * @var feeRegistrationServices 
      */
     private FeeRegistrationServices $feeRegistrationServices;
     /**
@@ -80,6 +80,8 @@ class FeeRegistrationController extends Controller
     {    
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->feeRegistrationServices->show($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -96,6 +98,8 @@ class FeeRegistrationController extends Controller
     public function update(Request $request): JsonResponse
     {             
         try {   
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_id'] = $user['company_id'];
             $validation = $this->feeRegistrationServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
@@ -117,6 +121,8 @@ class FeeRegistrationController extends Controller
     {      
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $response = $this->feeRegistrationServices->delete($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {

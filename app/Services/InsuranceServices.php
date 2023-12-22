@@ -1,9 +1,10 @@
 <?php
 
 
-namespace App\Services;
+namespace App\Services; 
 
 use App\Models\Insurance;
+use App\Models\Vendor;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -15,9 +16,15 @@ class InsuranceServices
      */
     private Insurance $insurance;
 
-    public function __construct(Insurance $insurance)
+    /**
+     * @var Vendor
+     */
+    private Vendor $vendor;
+
+    public function __construct(Insurance $insurance, Vendor $vendor)
     {
         $this->insurance = $insurance;
+        $this->vendor = $vendor;
     }
     /**
      * @param $request
@@ -47,6 +54,16 @@ class InsuranceServices
     public function create($request): mixed
     {   
         $user = JWTAuth::parseToken()->authenticate();
+        $vendor = $this->vendor
+        ->where('company_id', $request['company_id'])
+        ->find($request['vendor_id']);
+
+        if(is_null($vendor)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
+
         $request['created_by'] = $user['id'];
         return $this->insurance::create([
             'no_of_worker_from' => $request["no_of_worker_from"],
@@ -63,6 +80,10 @@ class InsuranceServices
     public function list($request): mixed
     {
         return $this->insurance::with('vendor')
+        ->join('vendors', function($query) use($request) {
+            $query->on('vendors.id','=','insurance.vendor_id')
+            ->where('vendors.company_id', $request['company_id']);
+        })
         ->where(function ($query) use ($request) {
             if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
                 $query->where('vendor_id', '=', $request['vendor_id']);
@@ -74,6 +95,7 @@ class InsuranceServices
                 ->orWhere('fee_per_pax', 'like', '%' . $request['search_param'] . '%');
             }
         })
+        ->select('insurance.*')
         ->orderBy('insurance.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -84,7 +106,13 @@ class InsuranceServices
      */
     public function show($request) : mixed
     {
-        return $this->insurance::with('vendor')->find($request['id']);
+        return $this->insurance::with('vendor')
+        ->join('vendors', function($query) use($request) {
+            $query->on('vendors.id','=','insurance.vendor_id')
+            ->whereIn('vendors.company_id', $request['company_id']);
+        })
+        ->select('insurance.*')
+        ->find($request['id']);
     }
 	 /**
      *
@@ -93,7 +121,20 @@ class InsuranceServices
      */
     public function update($request): mixed
     {           
-        $data = $this->insurance::findorfail($request['id']);
+        $data = $this->insurance
+        ->join('vendors', function($query) use($request) {
+            $query->on('vendors.id','=','insurance.vendor_id')
+            ->where('vendors.company_id', $request['company_id']);
+        })
+        ->select('insurance.*')
+        ->find($request['id']);
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
         return  [
@@ -108,7 +149,13 @@ class InsuranceServices
      */    
     public function delete($request) : mixed
     {     
-        $data = $this->insurance::find($request['id']);
+        $data = $this->insurance
+        ->join('vendors', function($query) use($request) {
+            $query->on('vendors.id','=','insurance.vendor_id')
+            ->where('vendors.company_id', $request['company_id']);
+        })
+        ->select('insurance.*')
+        ->find($request['id']);
         if(is_null($data)){
             return [
                 "isDeleted" => false,

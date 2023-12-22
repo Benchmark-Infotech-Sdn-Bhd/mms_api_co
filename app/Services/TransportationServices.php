@@ -13,6 +13,7 @@ use App\Services\AuthServices;
 use App\Services\RolesServices;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Vendor;
 use Illuminate\Support\Str;
 
 class TransportationServices
@@ -42,11 +43,15 @@ class TransportationServices
      */
     private User $user;
     /**
+     * @var Vendor
+     */
+    private Vendor $vendor;
+    /**
      * @var RolesServices
      */
     private RolesServices $rolesServices;
 
-    public function __construct(Transportation $transportation, TransportationAttachments $transportationAttachments, Storage $storage, AuthServices $authServices, Role $role, User $user, RolesServices $rolesServices)
+    public function __construct(Transportation $transportation, TransportationAttachments $transportationAttachments, Storage $storage, AuthServices $authServices, Role $role, User $user, Vendor $vendor, RolesServices $rolesServices)
     {
         $this->transportation = $transportation;
         $this->transportationAttachments = $transportationAttachments;
@@ -54,6 +59,7 @@ class TransportationServices
         $this->authServices = $authServices;
         $this->role = $role;
         $this->user = $user;
+        $this->vendor = $vendor;
         $this->rolesServices = $rolesServices;
     }
     /**
@@ -85,6 +91,16 @@ class TransportationServices
     {   
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
+        $vendor = $this->vendor
+        ->where('company_id', $user['company_id'])
+        ->find($request['vendor_id']);
+
+        if(is_null($vendor)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
+
         $transportationData = $this->transportation::create([
             'driver_name' => $request["driver_name"],
             'driver_contact_number' => $request["driver_contact_number"],
@@ -173,7 +189,12 @@ class TransportationServices
      */
     public function list($request): mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         return $this->transportation::with('vendor','transportationAttachments')
+        ->join('vendors', function($query) use($user) {
+            $query->on('vendors.id','=','transportation.vendor_id')
+            ->where('vendors.company_id', $user['company_id']);
+        })
         ->where(function ($query) use ($request) {
             if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
                 $query->where('vendor_id', '=', $request['vendor_id']);
@@ -184,6 +205,7 @@ class TransportationServices
                 ->orWhere('vehicle_type', 'like', '%' . $request['search_param'] . '%');
             }
         })
+        ->select('transportation.*')
         ->orderBy('transportation.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -195,7 +217,15 @@ class TransportationServices
      */
     public function show($request) : mixed
     {
-        return $this->transportation::with('vendor','transportationAttachments')->findorfail($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $user['company_id'] = $this->authServices->getCompanyIds($user);
+        return $this->transportation::with('vendor','transportationAttachments')
+        ->join('vendors', function($query) use($user) {
+            $query->on('vendors.id','=','transportation.vendor_id')
+            ->whereIn('vendors.company_id', $user['company_id']);
+        })
+        ->select('transportation.*')
+        ->find($request['id']);
     }
 	 /**
      *
@@ -204,8 +234,21 @@ class TransportationServices
      */
     public function update($request): mixed
     {     
-        $data = $this->transportation::find($request['id']);
         $user = JWTAuth::parseToken()->authenticate();
+        $data = $this->transportation
+        ->join('vendors', function($query) use($user) {
+            $query->on('vendors.id','=','transportation.vendor_id')
+            ->where('vendors.company_id', $user['company_id']);
+        })
+        ->select('transportation.*')
+        ->find($request['id']);
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        
         $request['modified_by'] = $user['id'];
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){                
@@ -298,7 +341,15 @@ class TransportationServices
      */    
     public function delete($request): mixed
     {     
-        $data = $this->transportation::find($request['id']);
+    
+        $user = JWTAuth::parseToken()->authenticate();
+        $data = $this->transportation
+        ->join('vendors', function($query) use($user) {
+            $query->on('vendors.id','=','transportation.vendor_id')
+            ->where('vendors.company_id', $user['company_id']);
+        })
+        ->select('transportation.*')
+        ->find($request['id']);
 
         if(is_null($data)){
             return [
@@ -328,7 +379,17 @@ class TransportationServices
      */    
     public function deleteAttachment($request): mixed
     {   
-        $data = $this->transportationAttachments::find($request['id']); 
+
+        $user = JWTAuth::parseToken()->authenticate();
+        $data = $this->transportationAttachments
+        ->join('transportation', 'transportation.id', 'transportation_attachments.file_id')
+        ->join('vendors', function($query) use($user) {
+            $query->on('vendors.id','=','transportation.vendor_id')
+            ->where('vendors.company_id', $user['company_id']);
+        })
+        ->select('transportation_attachments.*')
+        ->find($request['id']);
+
         if(is_null($data)){
             return [
                 "isDeleted" => false,
@@ -346,10 +407,16 @@ class TransportationServices
      */
     public function dropdown($request): mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         return $this->transportation
-        ->where('vendor_id', '=', $request['vendor_id'])
-        ->select('id', 'driver_name')
-        ->orderBy('id','DESC')
+        ->join('vendors', function($query) use($user) {
+            $query->on('vendors.id','=','transportation.vendor_id')
+            ->where('vendors.company_id', $user['company_id']);
+        })
+        ->where('transportation.vendor_id', '=', $request['vendor_id'])
+        ->select('transportation.id', 'transportation.driver_name')
+        ->orderBy('transportation.id','DESC')
         ->get();
+
     }
 }

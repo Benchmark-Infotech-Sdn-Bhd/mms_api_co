@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Services\InsuranceServices;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 
 class InsuranceController extends Controller
 {
@@ -16,12 +18,18 @@ class InsuranceController extends Controller
      */
     private InsuranceServices $insuranceServices;
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
      * InsuranceServices constructor.
      * @param InsuranceServices $insuranceServices
+     * @param AuthServices $authServices
      */
-    public function __construct(InsuranceServices $insuranceServices)
+    public function __construct(InsuranceServices $insuranceServices, AuthServices $authServices)
     {
         $this->insuranceServices = $insuranceServices;
+        $this->authServices = $authServices;
     }
 	 /**
      * Show the form for creating a new Insurance.
@@ -32,11 +40,16 @@ class InsuranceController extends Controller
     public function create(Request $request): JsonResponse
     {
         try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_id'] = $user['company_id'];
             $validation = $this->insuranceServices->inputValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
             $response = $this->insuranceServices->create($request);
+            if (isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => $response['unauthorizedError']]);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -52,6 +65,8 @@ class InsuranceController extends Controller
     {     
         try {              
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];  
             $response = $this->insuranceServices->list($params); 
             return $this->sendSuccess($response); 
         } catch (Exception $e) {
@@ -68,8 +83,8 @@ class InsuranceController extends Controller
     public function show(Request $request): JsonResponse
     {   
         try {
-            // $insurance = Insurance::find($id);
-            // $vendors = $insurance->vendor;
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->insuranceServices->show($request); 
             return $this->sendSuccess($response);  
         } catch (Exception $e) {
@@ -85,7 +100,9 @@ class InsuranceController extends Controller
      */
     public function update(Request $request): JsonResponse
     {    
-        try {    
+        try {  
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_id'] = $user['company_id'];  
             $validation = $this->insuranceServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
@@ -107,6 +124,8 @@ class InsuranceController extends Controller
     {     
         try { 
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];  
             $response = $this->insuranceServices->delete($params);
             return $this->sendSuccess($response); 
         } catch (Exception $e) {

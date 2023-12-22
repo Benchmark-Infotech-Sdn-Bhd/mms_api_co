@@ -5,10 +5,12 @@ namespace App\Services;
 
 use App\Models\Accommodation;
 use App\Models\AccommodationAttachments;
+use App\Models\Vendor;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 
 class AccommodationServices
 {
@@ -21,15 +23,25 @@ class AccommodationServices
      */
     private AccommodationAttachments $accommodationAttachments;
     /**
+     * @var Vendor
+     */
+    private Vendor $vendor;
+    /**
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
-    public function __construct(Accommodation $accommodation, AccommodationAttachments $accommodationAttachments, Storage $storage)
+    public function __construct(Accommodation $accommodation, AccommodationAttachments $accommodationAttachments, Vendor $vendor, Storage $storage, AuthServices $authServices)
     {
         $this->accommodation = $accommodation;
         $this->accommodationAttachments = $accommodationAttachments;
+        $this->vendor = $vendor;
         $this->storage = $storage;
+        $this->authServices = $authServices;
     }
     /**
      * @param $request
@@ -62,6 +74,17 @@ class AccommodationServices
         $input = $request->all();  
         $user = JWTAuth::parseToken()->authenticate();
         $input['created_by'] = $user['id'];      
+
+        $vendor = $this->vendor
+        ->where('company_id', $user['company_id'])
+        ->find($request['vendor_id']);
+
+        if(is_null($vendor)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
+
         $accommodationData = $this->accommodation::create([
             'name' => $input["name"],
             'location' => $input["location"],
@@ -97,8 +120,13 @@ class AccommodationServices
      * @return LengthAwarePaginator
      */
     public function list($request)
-    {
+    {   
+        $user = JWTAuth::parseToken()->authenticate();
         return $this->accommodation::with('vendor','accommodationAttachments')
+        ->join('vendors', function($query) use($user) {
+            $query->on('vendors.id','=','accommodation.vendor_id')
+            ->where('vendors.company_id', $user['company_id']);
+        })
         ->where(function ($query) use ($request) {
             if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
                 $query->where('vendor_id', '=', $request['vendor_id']);
@@ -109,6 +137,7 @@ class AccommodationServices
                 ->orWhere('location', 'like', '%' . $request['search_param'] . '%');
             }
         })
+        ->select('accommodation.*')
         ->orderBy('accommodation.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -119,9 +148,19 @@ class AccommodationServices
      */
     public function show($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $user['company_id'] = $this->authServices->getCompanyIds($user);
+
         return $this->accommodation::with(['accommodationAttachments' => function ($query) {
             $query->orderBy('created_at', 'desc');
-        }])->findorfail($request['id']);
+        }])
+        ->join('vendors', function($query) use($user) {
+            $query->on('vendors.id','=','accommodation.vendor_id')
+            ->whereIn('vendors.company_id', $user['company_id']);
+        })
+        ->select('accommodation.*')
+        ->find($request['id']);
+
     }
     /**
      *
@@ -130,9 +169,25 @@ class AccommodationServices
      */
     public function update($request): mixed
     {    
-        $data = $this->accommodation::findorfail($request['id']);
+
         $input = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
+
+        $data = $this->accommodation
+        ->join('vendors', function($query) use($user) {
+            $query->on('vendors.id','=','accommodation.vendor_id')
+            ->where('vendors.company_id', $user['company_id']);
+        })
+        ->select('accommodation.*')
+        ->find($request['id']);
+        
+        if(is_null($data)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+        
         $input['modified_by'] = $user['id']; 
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
@@ -163,14 +218,23 @@ class AccommodationServices
      */    
     public function delete($request): mixed
     {   
-        $data = $this->accommodation::find($request['id']);        
+        $user = JWTAuth::parseToken()->authenticate();
 
+        $data = $this->accommodation
+        ->join('vendors', function($query) use($user) {
+            $query->on('vendors.id','=','accommodation.vendor_id')
+            ->where('vendors.company_id', $user['company_id']);
+        })
+        ->select('accommodation.*')
+        ->find($request['id']);
+        
         if(is_null($data)){
             return [
                 "isDeleted" => false,
                 "message" => "Data not found"
             ];
         }
+
         $data->accommodationAttachments()->delete();
         $data->delete();
         return [
@@ -185,13 +249,23 @@ class AccommodationServices
      */    
     public function deleteAttachment($request): mixed
     {   
-        $data = $this->accommodationAttachments::find($request['id']); 
+        $user = JWTAuth::parseToken()->authenticate();
+        $data = $this->accommodationAttachments
+        ->join('accommodation', 'accommodation.id', 'accommodation_attachments.file_id')
+        ->join('vendors', function($query) use($user) {
+            $query->on('vendors.id','=','accommodation.vendor_id')
+            ->where('vendors.company_id', $user['company_id']);
+        })
+        ->select('accommodation_attachments.*')
+        ->find($request['id']);
+
         if(is_null($data)){
             return [
                 "isDeleted" => false,
                 "message" => "Data not found"
             ];
         }
+
         return [
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"

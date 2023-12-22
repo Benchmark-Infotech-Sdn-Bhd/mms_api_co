@@ -139,7 +139,7 @@ class FeeRegistrationServices
      */
     public function show($request) : mixed
     {
-        return $this->feeRegistration::with('feeRegistrationServices', 'feeRegistrationSectors')->find($request['id']);
+        return $this->feeRegistration::whereIn('company_id', $request['company_id'])->with('feeRegistrationServices', 'feeRegistrationSectors')->find($request['id']);
     }
 	 /**
      *
@@ -148,7 +148,14 @@ class FeeRegistrationServices
      */
     public function update($request): mixed
     {
-        $data = $this->feeRegistration::findorfail($request['id']);
+        $data = $this->feeRegistration::where('company_id', $request['company_id'])->find($request['id']);
+        if(is_null($data)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
         if(strtolower($request["fee_type"]) != 'standard'){
@@ -215,8 +222,8 @@ class FeeRegistrationServices
      * @return mixed
      */    
     public function delete($request): mixed
-    {     
-        $data = $this->feeRegistration::find($request['id']);
+    { 
+        $data = $this->feeRegistration::where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($data)){
             return [
                 "isDeleted" => false,

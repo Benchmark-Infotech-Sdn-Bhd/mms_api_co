@@ -12,7 +12,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class InvoiceItemsTempController extends Controller
 {
-    /**
+    /** 
      * @var invoiceItemsTempServices
      */
     private InvoiceItemsTempServices $invoiceItemsTempServices;
@@ -59,6 +59,9 @@ class InvoiceItemsTempController extends Controller
         try {
             
             $data = $this->invoiceItemsTempServices->update($request);
+            if (isset($data['unauthorizedError'])) {
+                return $this->sendError($data['unauthorizedError']);
+            }
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
             } else if(isset($data['isExists'])) {
