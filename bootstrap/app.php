@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\DBSelectionMiddleware;
+use App\Http\Middleware\PermissionsMiddleware;
 
 require_once __DIR__.'/../vendor/autoload.php';
 
@@ -88,6 +89,7 @@ $app->middleware([
     'dbSelection' => DBSelectionMiddleware::class,
     'jwt.verify' => App\Http\Middleware\JWTMiddleware::class,
     'accessControl' => App\Http\Middleware\AccessControlMiddleware::class,
+    'permissions' => PermissionsMiddleware::class,
  ]);
 
 /*
