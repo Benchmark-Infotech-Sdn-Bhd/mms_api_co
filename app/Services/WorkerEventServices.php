@@ -198,10 +198,10 @@ class WorkerEventServices
         $workerEvent = $this->workerEvent->join('workers', function ($join) use ($request) {
             $join->on('workers.id', '=', 'worker_event.worker_id')
                  ->whereIn('workers.company_id', $request['company_id']);
-        })->find($request['id']);
+        })->select('worker_event.*')->find($request['id']);
         if(is_null($workerEvent)){
             return [
-                'noRecords' => true
+                'unauthorizedError' => true
             ];
         }
         $workerEvent->worker_id = $request['worker_id'] ?? $workerEvent->worker_id;
@@ -287,7 +287,7 @@ class WorkerEventServices
         ->join('workers', function ($join) use ($request) {
             $join->on('workers.id', '=', 'worker_event.worker_id')
                  ->whereIn('workers.company_id', $request['company_id']);
-        })->find($request['id']);
+        })->select('worker_event_attachments.id')->find($request['id']);
         if(is_null($data)) {
             return false;
         }

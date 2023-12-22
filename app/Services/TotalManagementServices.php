@@ -262,7 +262,7 @@ class TotalManagementServices
         $applicationDetails = $this->totalManagementApplications->whereIn('company_id', $params['company_id'])->find($request['id']);
         if(is_null($applicationDetails)){
             return [
-                'noRecords' => true
+                'unauthorizedError' => true
             ];
         }
         $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
@@ -318,10 +318,10 @@ class TotalManagementServices
         $prospectService = $this->crmProspectService->join('crm_prospects', function ($join) use ($request) {
             $join->on('crm_prospects.id', '=', 'crm_prospect_services.crm_prospect_id')
                  ->whereIn('crm_prospects.company_id', $request['company_id']);
-        })->find($request['prospect_service_id']);
+        })->select('crm_prospect_services.*')->find($request['prospect_service_id']);
         if(is_null($prospectService)){
             return [
-                'noRecords' => true
+                'unauthorizedError' => true
             ];
         }
         $prospectService->from_existing =  $request['from_existing'] ?? 0;
@@ -334,7 +334,7 @@ class TotalManagementServices
         $applicationDetails = $this->totalManagementApplications->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($applicationDetails)){
             return [
-                'noRecords' => true
+                'unauthorizedError' => true
             ];
         }
         $applicationDetails->quota_applied = ($request['from_existing'] == 0) ? ($prospectService->client_quota + $prospectService->fomnext_quota) : $prospectService->service_quota;

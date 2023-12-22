@@ -127,7 +127,7 @@ class TotalManagementController extends Controller
                 return $this->validationError($response['error']);
             } else if(isset($response['quotaError'])) {
                 return $this->validationError(['message' => 'Quota for service should not exceed to Initail quota']);
-            }else if(isset($response['noRecords'])) {
+            }else if(isset($response['unauthorizedError'])) {
                 return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Proposal Submitted Successfully.']);
@@ -150,7 +150,7 @@ class TotalManagementController extends Controller
             $response = $this->totalManagementServices->allocateQuota($params);
             if(isset($response['quotaError'])) {
                 return $this->validationError(['message' => 'Quota for service should not exceed to Initail quota']);
-            }else if(isset($response['noRecords'])) {
+            }else if(isset($response['unauthorizedError'])) {
                 return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Quota Allocated Successfully.']);

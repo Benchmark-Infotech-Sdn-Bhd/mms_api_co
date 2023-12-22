@@ -161,7 +161,7 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $agent = $this->agent->with('countries')->find($request['id']);
+        $agent = $this->agent->with('countries')->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($agent)){
             return [
                 "isUpdated" => false,

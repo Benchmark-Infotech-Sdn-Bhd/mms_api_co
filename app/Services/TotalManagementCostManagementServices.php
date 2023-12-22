@@ -112,11 +112,11 @@ class TotalManagementCostManagementServices
             $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                 ->whereIn('total_management_applications.company_id', $params['company_id']);
         })
-        ->find($request['id']);
+        ->select('total_management_cost_management.*')->find($request['id']);
 
         if(is_null($costManagement)){
             return [
-                'noRecords' => true
+                'unauthorizedError' => true
             ];
         }
 
@@ -225,6 +225,7 @@ class TotalManagementCostManagementServices
             $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                 ->whereIn('total_management_applications.company_id', $request['company_id']);
         })
+        ->select('total_management_cost_management.id')
         ->find($request['id']);
 
         if(is_null($totalManagementCostManagement)){
@@ -253,7 +254,7 @@ class TotalManagementCostManagementServices
         ->join('total_management_applications', function ($join) use ($request) {
             $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                 ->whereIn('total_management_applications.company_id', $request['company_id']);
-        })->find($request['id']); 
+        })->select('total_management_cost_management_attachments.id')->find($request['id']); 
         if(is_null($data)){
             return [
                 "isDeleted" => false,

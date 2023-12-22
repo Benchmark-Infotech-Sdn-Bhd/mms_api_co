@@ -84,7 +84,7 @@ class TotalManagementWorkerEventController extends Controller
                 return $this->validationError($response['error']);
             } else if(isset($response['maxIdError'])) {
                 return $this->sendError(['message' => 'Sorry! Cannot Update the Past Events'], 422);
-            }else if(isset($response['noRecords'])) {
+            }else if(isset($response['unauthorizedError'])) {
                 return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Event Updated Sussessfully']);

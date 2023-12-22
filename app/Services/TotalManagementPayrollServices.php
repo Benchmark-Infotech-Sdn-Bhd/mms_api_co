@@ -356,7 +356,12 @@ class TotalManagementPayrollServices
         ->join('total_management_applications', function ($join) use ($request) {
             $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                  ->whereIn('total_management_applications.company_id', $request['company_id']);
-        })->findOrFail($request['id']);
+        })->select('total_management_payroll.*')->find($request['id']);
+        if(is_null($totalManagementPayroll)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
 
         $totalManagementPayroll->basic_salary =  $request['basic_salary'] ?? $totalManagementPayroll->basic_salary;
         $totalManagementPayroll->ot_1_5 =  $request['ot_1_5'] ?? $totalManagementPayroll->ot_1_5;

@@ -170,6 +170,8 @@ class TotalManagementPayrollController extends Controller
             $response = $this->totalManagementPayrollServices->update($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            }else if(isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Total Management Payroll Updated Successfully']);
         } catch (Exception $e) {

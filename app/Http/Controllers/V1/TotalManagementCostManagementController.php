@@ -67,7 +67,7 @@ class TotalManagementCostManagementController extends Controller
             $data = $this->totalManagementCostManagementServices->update($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
-            }else if(isset($data['noRecords'])) {
+            }else if(isset($data['unauthorizedError'])) {
                 return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);

@@ -105,7 +105,7 @@ class TotalManagementExpensesController extends Controller
             $data = $this->totalManagementExpensesServices->update($request);
             if(isset($data['error'])){
                 return $this->validationError($data['error']); 
-            }else if(isset($data['noRecords'])) {
+            }else if(isset($data['unauthorizedError'])) {
                 return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Expense Updated Successfully']);

@@ -206,10 +206,11 @@ class TotalManagementExpensesServices
             $join->on('workers.id', '=', 'total_management_expenses.worker_id')
                 ->whereIn('workers.company_id', $params['company_id']);
         })
+        ->select('total_management_expenses.*')
         ->find($request['id']);
         if(is_null($expense)){
             return [
-                'noRecords' => true
+                'unauthorizedError' => true
             ];
         }
         $expense->worker_id = $params['worker_id'] ?? $expense->worker_id;
@@ -254,6 +255,7 @@ class TotalManagementExpensesServices
             $join->on('workers.id', '=', 'total_management_expenses.worker_id')
                 ->whereIn('workers.company_id', $request['company_id']);
         })
+        ->select('total_management_expenses.id')
         ->find($request['id']);
 
         if(is_null($expense)){
@@ -275,6 +277,7 @@ class TotalManagementExpensesServices
             $join->on('workers.id', '=', 'total_management_expenses.worker_id')
                 ->whereIn('workers.company_id', $request['company_id']);
         })
+        ->select('total_management_expenses.id')
         ->find($request['id']); 
         if(is_null($data)){
             return false;

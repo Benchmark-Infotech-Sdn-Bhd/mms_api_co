@@ -118,6 +118,8 @@ class AgentController extends Controller
             $data = $this->agentServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }else if(is_null($data)){
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -159,6 +161,8 @@ class AgentController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->agentServices->updateStatus($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
