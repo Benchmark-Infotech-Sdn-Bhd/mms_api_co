@@ -67,11 +67,14 @@ class DirectRecruitmentCallingVisaApprovalController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentCallingVisaApprovalServices->approvalStatusUpdate($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             } else if(isset($response['visaReferenceNumberCountError'])) {
                 return $this->sendError(['message' => 'Please select workers from same calling visa reference number'], 422);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'Approval Status Updated Successfully']);
         } catch (Exception $e) {
@@ -89,7 +92,12 @@ class DirectRecruitmentCallingVisaApprovalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentCallingVisaApprovalServices->show($params);
+            if(count($response) == 0) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

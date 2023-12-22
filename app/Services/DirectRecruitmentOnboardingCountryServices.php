@@ -279,7 +279,7 @@ class DirectRecruitmentOnboardingCountryServices
     public function ksmReferenceNumberList($request): mixed
     {
         $applicationCheck = $this->directrecruitmentApplications->find($request['application_id']);
-        if(!in_array($applicationCheck->company_id, $request['company_id'])) {
+        if($applicationCheck->company_id != $request['company_id']) {
             return [
                 'InvalidUser' =>true
             ];

@@ -226,7 +226,7 @@ class DirectRecruitmentOnboardingCountryController extends Controller
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
             if(isset($response['InvalidUser'])) {
                 return $this->sendError(['message' => 'Unauthorized.']);

@@ -44,7 +44,11 @@ class DirectRecruitmentCallingVisaGenerateController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
-            $this->directRecruitmentCallingVisaGenerateServices->generatedStatusUpdate($params);
+            $params['company_id'] = $user['company_id'];
+            $response = $this->directRecruitmentCallingVisaGenerateServices->generatedStatusUpdate($params);
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess(['message' => 'Calling Visa Generated Status Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -104,7 +108,12 @@ class DirectRecruitmentCallingVisaGenerateController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentCallingVisaGenerateServices->show($params);
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\DirectRecruitmentOnboardingCountry;
 
 class DirectRecruitmentCallingVisaDispatchServices
 {
@@ -39,6 +40,10 @@ class DirectRecruitmentCallingVisaDispatchServices
      * @var WorkerImmigration
      */
     private WorkerImmigration $workerImmigration;
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
 
     /**
      * DirectRecruitmentCallingVisaDispatchServices constructor.
@@ -48,8 +53,9 @@ class DirectRecruitmentCallingVisaDispatchServices
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
      * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param WorkerImmigration $workerImmigration
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, WorkerInsuranceDetails $workerInsuranceDetails, WorkerImmigration $workerImmigration)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, WorkerInsuranceDetails $workerInsuranceDetails, WorkerImmigration $workerImmigration, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
         $this->workers                                      = $workers;
         $this->workerVisa                                   = $workerVisa;
@@ -57,6 +63,7 @@ class DirectRecruitmentCallingVisaDispatchServices
         $this->directRecruitmentCallingVisaStatus           = $directRecruitmentCallingVisaStatus;
         $this->workerInsuranceDetails                       = $workerInsuranceDetails;
         $this->workerImmigration                            = $workerImmigration;
+        $this->directRecruitmentOnboardingCountry           = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -91,7 +98,27 @@ class DirectRecruitmentCallingVisaDispatchServices
                 ];
             }
         if(isset($request['workers']) && !empty($request['workers'])) {
-            //$request['workers'] = explode(',', $request['workers']);
+            
+            $workerCompanyCount = $this->workers->whereIn('id', $request['workers'])
+                                ->where('company_id', $request['company_id'])
+                                ->count();
+                                
+            if($workerCompanyCount != count($request['workers'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($request) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                        ->where('directrecruitment_applications.company_id', $request['company_id']);
+                    })->find($request['onboarding_country_id']);
+            if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
             $this->workerVisa->whereIn('worker_id', $request['workers'])
             ->update(
                 ['dispatch_method' => $request['dispatch_method'], 
@@ -207,6 +234,14 @@ class DirectRecruitmentCallingVisaDispatchServices
      */
     public function show($request): mixed
     {
+        $workerCheck = $this->workerVisa->leftJoin('workers', 'workers.id', 'worker_visa.worker_id')
+                            ->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number'])
+                            ->first(['workers.company_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on']);
+        if(!in_array($workerCheck->company_id, $request['company_id'])) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $processCallingVisa = $this->workerVisa
                             ->where('calling_visa_reference_number', $request['calling_visa_reference_number'])
                             ->first(['calling_visa_reference_number', 'submitted_on']);

@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use App\Models\DirectRecruitmentOnboardingCountry;
 
 class DirectRecruitmentInsurancePurchaseServices
 {
@@ -53,7 +54,10 @@ class DirectRecruitmentInsurancePurchaseServices
      * @var DirectRecruitmentExpensesServices
      */
     private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
-    
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;    
 
     /**
      * DirectRecruitmentInsurancePurchaseServices constructor.
@@ -65,8 +69,9 @@ class DirectRecruitmentInsurancePurchaseServices
      * @param Vendor $vendor
      * @param Storage $storage;
      * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, WorkerInsuranceAttachments $workerInsuranceAttachments, Vendor $vendor, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
+    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, WorkerInsuranceAttachments $workerInsuranceAttachments, Vendor $vendor, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->workers                            = $workers;
@@ -76,6 +81,7 @@ class DirectRecruitmentInsurancePurchaseServices
         $this->vendor                             = $vendor;
         $this->storage = $storage;
         $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
+        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -174,6 +180,7 @@ class DirectRecruitmentInsurancePurchaseServices
             ['workers.id', $request['id']]
         ])
         ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
+        ->whereIn('workers.company_id', $request['company_id'])
         ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.agent_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on', 'worker_visa.status', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_provider_id', 'worker_insurance_details.ig_amount', 'worker_insurance_details.hospitalization_amount', 'worker_insurance_details.insurance_submitted_on', 'worker_insurance_details.insurance_expiry_date', 'worker_insurance_details.insurance_status')->distinct('workers.id')
         ->with(['workerInsuranceAttachments' => function ($query) {
             $query->orderBy('created_at', 'desc');
@@ -200,6 +207,27 @@ class DirectRecruitmentInsurancePurchaseServices
         if(isset($request['workers']) && !empty($request['workers'])) {
 
             $workers = explode(",", $request['workers']);
+
+            $workerCompanyCount = $this->workers->whereIn('id', $workers)
+                                ->where('company_id', $params['company_id'])
+                                ->count();
+                                
+            if($workerCompanyCount != count($workers)) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($request) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $request['company_id']);
+                    })->find($request['onboarding_country_id']);
+            if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
 
             if(is_array($workers)){
 
@@ -304,7 +332,7 @@ class DirectRecruitmentInsurancePurchaseServices
     {
         return $this->vendor
         ->where('type', 'Insurance')
-        ->whereIn('company_id', $request['company_id'])
+        ->where('company_id', $request['company_id'])
         ->select('id', 'name')
         ->distinct('id')
         ->get();
