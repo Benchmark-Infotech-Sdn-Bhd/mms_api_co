@@ -24,31 +24,40 @@ class PermissionsMiddleware
 
             if($user['user_type'] != 'Admin'){
 
-                $userRole = DB::table('user_role_type')->join('roles',function($join){
-                    $join->on('roles.id','=','user_role_type.role_id');
-                    $join->where('roles.status','=',1);
-                })
-                ->where('user_id',$user['id'])->first();
+                if($user['user_type'] == 'Super Admin') {
+                    if(in_array($module, [14,15])) {
+                        return $next($request);
+                    } else {
+                    return response()->json($this->emptyFrameResponse());
+                    }
+                } else {
 
-                if(is_null($userRole)){
-                    return response()->json($this->frameResponse($this->sendResponse(['message' => 'Unauthorized to perform this action!'])), 400);
-                }
+                    $userRole = DB::table('user_role_type')->join('roles',function($join){
+                        $join->on('roles.id','=','user_role_type.role_id');
+                        $join->where('roles.status','=',1);
+                    })
+                    ->where('user_id',$user['id'])->first();
 
-                //$module = DB::table('modules')->where('module_name', $module)->first();
+                    if(is_null($userRole)){
+                        return response()->json($this->frameResponse($this->sendResponse(['message' => 'Unauthorized to perform this action!'])), 400);
+                    }
 
-                $permissionId = DB::table('permissions')->where('permission_name', $permissionName)->first('id');
+                    //$module = DB::table('modules')->where('module_name', $module)->first();
 
-                $rolePermission = DB::table('role_permission')
-                ->where('role_id', $userRole->role_id)
-                ->where('module_id', $module)
-                ->where(function ($query) use ($permissionId) {
-                    $query->where('permission_id', '=', $permissionId->id)
-                        ->orWhere('permission_id', '=', 1);
-                })
-                ->count();
+                    $permissionId = DB::table('permissions')->where('permission_name', $permissionName)->first('id');
 
-                if ($rolePermission == 0) {
-                    return response()->json($this->frameResponse($this->sendResponse(['message' => 'Unauthorized to perform this action!'])), 400);
+                    $rolePermission = DB::table('role_permission')
+                    ->where('role_id', $userRole->role_id)
+                    ->where('module_id', $module)
+                    ->where(function ($query) use ($permissionId) {
+                        $query->where('permission_id', '=', $permissionId->id)
+                            ->orWhere('permission_id', '=', 1);
+                    })
+                    ->count();
+
+                    if ($rolePermission == 0) {
+                        return response()->json($this->frameResponse($this->sendResponse(['message' => 'Unauthorized to perform this action!'])), 400);
+                    }
                 }
 
             }
