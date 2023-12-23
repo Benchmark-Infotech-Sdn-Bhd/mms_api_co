@@ -50,8 +50,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->group(['prefix' => 'company'], function () use ($router) {
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,View']], function () use ($router) {
                     $router->post('list', 'V1\CompanyController@list');
-                    $router->post('show', 'V1\CompanyController@show');
-                    $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');                    
+                    $router->post('show', 'V1\CompanyController@show');    
+                    $router->post('moduleList', 'V1\CompanyController@moduleList');                                    
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Add']], function () use ($router) {
                     $router->post('create', 'V1\CompanyController@create');
@@ -61,7 +61,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Edit']], function () use ($router) {
                     $router->post('update', 'V1\CompanyController@update');
                     $router->post('updateStatus', 'V1\CompanyController@updateStatus');
-                    $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Delete']], function () use ($router) {
                     $router->post('deleteAttachment', 'V1\CompanyController@deleteAttachment');
@@ -74,10 +73,11 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             
         });
         /**
-         * Routes for Modules List - Using this API To Display the Left Menu for All the Users types in Front-End.
+         * Routes for Modules List - Using this API To Display the company list dropdown selection for All the Users types in Front-End.
          */
         $router->group(['prefix' => 'company'], function () use ($router) {
-            $router->post('moduleList', 'V1\CompanyController@moduleList');
+            $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');
+            $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
         });  
         /**
          * Routes for Modules.
@@ -1093,9 +1093,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
              * Routes for Access Management.
              */
             $router->group(['prefix' => 'accessManagement'], function () use ($router) {
-                $router->group(['prefix' => '', 'middleware' => ['permissions:9,View']], function () use ($router) {
-                    $router->post('list', 'V1\AccessManagementController@list');
-                });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:9,Add']], function () use ($router) {
                     $router->post('create', 'V1\AccessManagementController@create');
                 });
@@ -1104,6 +1101,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 });
             });
         });
+        /**
+         * Routes for Modules List - Using this API To Display the Left Menu for All the Users types in Front-End.
+         */
+        $router->group(['prefix' => 'accessManagement'], function () use ($router) {
+            $router->post('list', 'V1\AccessManagementController@list');
+        });
+
         /**
         * Routes for Application Summary.
         */
