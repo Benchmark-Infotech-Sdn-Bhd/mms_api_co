@@ -51,8 +51,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,View']], function () use ($router) {
                     $router->post('list', 'V1\CompanyController@list');
                     $router->post('show', 'V1\CompanyController@show');
-                    $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');
-                    $router->post('moduleList', 'V1\CompanyController@moduleList');
+                    $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');                    
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Add']], function () use ($router) {
                     $router->post('create', 'V1\CompanyController@create');
@@ -74,12 +73,18 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             });
             
         });
-            /**
-             * Routes for Modules.
-             */
-            $router->group(['prefix' => 'module'], function () use ($router) {
-                $router->post('dropDown', 'V1\ModulesController@dropDown');
-            });
+        /**
+         * Routes for Modules List - Using this API To Display the Left Menu for All the Users types in Front-End.
+         */
+        $router->group(['prefix' => 'company'], function () use ($router) {
+            $router->post('moduleList', 'V1\CompanyController@moduleList');
+        });  
+        /**
+         * Routes for Modules.
+         */
+        $router->group(['prefix' => 'module'], function () use ($router) {
+            $router->post('dropDown', 'V1\ModulesController@dropDown');
+        });
         /**
          * Routes for Services.
          */
