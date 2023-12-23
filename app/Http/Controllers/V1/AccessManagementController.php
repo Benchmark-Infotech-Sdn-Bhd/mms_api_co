@@ -37,6 +37,9 @@ class AccessManagementController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['user_type'] = $user['user_type'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->accessManagementServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
