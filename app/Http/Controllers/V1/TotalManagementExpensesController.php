@@ -127,7 +127,7 @@ class TotalManagementExpensesController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementExpensesServices->delete($params);
-            if($data === false) {
+            if($data == false) {
                 return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Expense Deleted Successfully']);
@@ -149,7 +149,7 @@ class TotalManagementExpensesController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementExpensesServices->deleteAttachment($params);
-            if($data === false) {
+            if($data == false) {
                 return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Attachment Deleted Successfully']);
