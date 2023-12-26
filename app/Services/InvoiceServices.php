@@ -142,6 +142,7 @@ class InvoiceServices
     {
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
+        $accountSystem = $this->getXeroSettings();
         $params['created_by'] = $user['id'];
         if(!($this->validationServices->validate($request->toArray(),$this->invoice->rules))){
             return [
@@ -162,47 +163,97 @@ class InvoiceServices
             'remarks' => $request['remarks'] ?? ''
         ]);
 
-        $generateInvoice['Type'] = 'ACCREC';
+        /*$generateInvoice['Type'] = 'ACCREC';
         $issuedateConverted = (Carbon::parse($params['due_date'])->timestamp * 1000)."+0000";
         $generateInvoice['Date'] = '/Date('.$issuedateConverted.')/';
         $duedateConverted = (Carbon::parse($params['due_date'])->timestamp * 1000)."+0000";
         $generateInvoice['DueDate'] = '/Date('.$duedateConverted.')/';
         $generateInvoice['DateString'] = $params['issue_date']."T00:00:00";
         $generateInvoice['DueDateString'] = $params['due_date']."T00:00:00";
-        $generateInvoice['LineAmountTypes'] = 'Exclusive';
+        $generateInvoice['LineAmountTypes'] = 'Exclusive';*/
 
         $crmProspect = $this->crmProspect->findOrFail($request['crm_prospect_id']);
-        $generateInvoice['Contact']['ContactID'] = $crmProspect->xero_contact_id;
 
-        $lineItems = json_decode($request['invoice_items']);
-        
-        if ($request['invoice_items']){
-            $increment = 0;
-            foreach($lineItems as $item){
-                $this->invoiceItems::create([
-                    "invoice_id" => $invoice['id'],
-                    "item" => $item->item ?? '',
-                    "description" => $item->description,
-                    "quantity" => $item->quantity,
-                    "price" => $item->price,
-                    "account" => $item->account,
-                    "tax" => $item->tax_rate,
-                    "total_price" => $item->total_price
-                ]);
+        if($accountSystem['title'] == 'XERO'){
+            $generateInvoice['Type'] = 'ACCREC';
+            $issuedateConverted = (Carbon::parse($params['due_date'])->timestamp * 1000)."+0000";
+            $generateInvoice['Date'] = '/Date('.$issuedateConverted.')/';
+            $duedateConverted = (Carbon::parse($params['due_date'])->timestamp * 1000)."+0000";
+            $generateInvoice['DueDate'] = '/Date('.$duedateConverted.')/';
+            $generateInvoice['DateString'] = $params['issue_date']."T00:00:00";
+            $generateInvoice['DueDateString'] = $params['due_date']."T00:00:00";
+            $generateInvoice['LineAmountTypes'] = 'Exclusive';
 
-                $generateInvoice['LineItems'][$increment] = new \stdClass();
-                $generateInvoice['LineItems'][$increment]->Description = 'Expense';
-                //$generateInvoice['LineItems'][$increment]->Item = $item->item ?? '';
-                $generateInvoice['LineItems'][$increment]->Description = $item->description;
-                $generateInvoice['LineItems'][$increment]->Quantity = $item->quantity;
-                $generateInvoice['LineItems'][$increment]->UnitAmount = $item->price;
-                $generateInvoice['LineItems'][$increment]->AccountCode = $item->account ?? '';
-                $generateInvoice['LineItems'][$increment]->DiscountRate = $item->tax_rate ?? 0;
-                $increment++;
+            $generateInvoice['Contact']['ContactID'] = $crmProspect->xero_contact_id;
+
+            $lineItems = json_decode($request['invoice_items']);
+            
+            if ($request['invoice_items']){
+                $increment = 0;
+                foreach($lineItems as $item){
+                    $this->invoiceItems::create([
+                        "invoice_id" => $invoice['id'],
+                        "item" => $item->item ?? '',
+                        "description" => $item->description,
+                        "quantity" => $item->quantity,
+                        "price" => $item->price,
+                        "account" => $item->account,
+                        "tax" => $item->tax_rate,
+                        "total_price" => $item->total_price
+                    ]);
+
+                    $generateInvoice['LineItems'][$increment] = new \stdClass();
+                    $generateInvoice['LineItems'][$increment]->Description = 'Expense';
+                    //$generateInvoice['LineItems'][$increment]->Item = $item->item ?? '';
+                    $generateInvoice['LineItems'][$increment]->Description = $item->description;
+                    $generateInvoice['LineItems'][$increment]->Quantity = $item->quantity;
+                    $generateInvoice['LineItems'][$increment]->UnitAmount = $item->price;
+                    $generateInvoice['LineItems'][$increment]->AccountCode = $item->account ?? '';
+                    $generateInvoice['LineItems'][$increment]->DiscountRate = $item->tax_rate ?? 0;
+                    $increment++;
+                }
             }
-        }
 
-        $generateInvoiceXero = $this->generateInvoices($generateInvoice);        
+            $generateInvoiceXero = $this->generateInvoices($generateInvoice);    
+
+        } else if ($accountSystem['title'] == 'ZOHO') {
+            $generateInvoice['date'] = $params['issue_date'] ?? null;
+            $generateInvoice['due_date'] = $params['due_date'] ?? null;
+            $generateInvoice['reference_number'] = $params['reference_number'] ?? null;
+            $generateInvoice['customer_id'] = $crmProspect->xero_contact_id;
+            $generateInvoice['is_inclusive_tax'] = '';
+
+            $lineItems = json_decode($request['invoice_items']);
+        
+            if ($request['invoice_items']){
+                $increment = 0;
+                foreach($lineItems as $item){
+                    $this->invoiceItems::create([
+                        "invoice_id" => $invoice['id'],
+                        "item" => $item->item ?? '',
+                        "description" => $item->description,
+                        "quantity" => $item->quantity,
+                        "price" => $item->price,
+                        "account" => $item->account,
+                        "tax" => $item->tax_rate,
+                        "total_price" => $item->total_price
+                    ]);
+
+                    $generateInvoice['line_items'][$increment] = new \stdClass();
+                    $generateInvoice['line_items'][$increment]->item_order = $item->item_order ?? '';
+                    $generateInvoice['line_items'][$increment]->item_id = $item->item_id ?? '';
+                    $generateInvoice['line_items'][$increment]->name = $item->item ?? '';
+                    $generateInvoice['line_items'][$increment]->rate = $item->price;
+                    $generateInvoice['line_items'][$increment]->description = $item->description;
+                    $generateInvoice['line_items'][$increment]->quantity = $item->quantity;
+                    $generateInvoice['line_items'][$increment]->tax_id = $item->tax_id ?? '';
+                    $generateInvoice['line_items'][$increment]->account_id = $item->account_id ?? ''; 
+                    $increment++;
+                }
+            }
+
+            $generateInvoiceXero = $this->generateInvoicesZoho($generateInvoice);    
+        }
 
         if(isset($generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'])){
 
@@ -624,41 +675,97 @@ class InvoiceServices
     public function saveAccounts() : mixed
     {
         $http = new Client();
-        $xeroConfig = $this->getXeroSettings();
+        $xeroConfig = $this->getCronSettings();
         try {
-            $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ACCOUNTS_URL'), [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
-                    'Accept' => 'application/json',
-                ],
-                'form_params' => [
-                ],
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
-            
-            if(isset($result['Accounts'])){
-                foreach ($result['Accounts'] as $row) {
-                    $this->xeroAccounts->updateOrCreate(
-                        [
-                            'account_id' => $row['AccountID'] ?? null, 
-                             'code' => $row['Code'] ?? null
+            foreach($xeroConfig as $clients){
+                //Log::channel('cron_activity_logs')->info('Exception in getting Account details ' . $clients['company_id']);
+                switch($clients['title']) {
+                    case 'XERO':
+                    $response = $http->request('GET', Config::get('services.XERO_URL') . Config::get('services.XERO_ACCOUNTS_URL'), [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
+                            'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
+                            'Accept' => 'application/json',
                         ],
-                        [
-                            'name' => $row['Name'] ?? null, 
-                             'status' => $row['Status'] ?? null, 
-                             'type' => $row['Type'] ?? null, 
-                             'tax_type' => $row['TaxType'] ?? null, 
-                             'class' => $row['Class'] ?? null,
-                             'enable_payments_to_account' => $row['EnablePaymentsToAccount'] ?? null,
-                             'show_in_expense_claims' => $row['ShowInExpenseClaims'] ?? null,
-                             'bank_account_number' => $row['BankAccountNumber'] ?? null,
-                             'bank_account_type' => $row['BankAccountType'] ?? null,
-                             'currency_code' => $row['CurrencyCode'] ?? null,
-                             'reporting_code' => $row['ReportingCode'] ?? null,
-                             'reporting_code_name' => $row['ReportingCodeName'] ?? null,
-                        ]
-                    );
+                        'form_params' => [
+                        ],
+                    ]);
+                    $result = json_decode((string)$response->getBody(), true);
+                    
+                    if(isset($result['Accounts'])){
+                        foreach ($result['Accounts'] as $row) {
+                            $this->xeroAccounts->updateOrCreate(
+                                [
+                                    'account_id' => $row['AccountID'] ?? null, 
+                                    'code' => $row['Code'] ?? null
+                                ],
+                                [
+                                    'name' => $row['Name'] ?? null, 
+                                    'status' => $row['Status'] ?? null, 
+                                    'type' => $row['Type'] ?? null, 
+                                    'tax_type' => $row['TaxType'] ?? null, 
+                                    'class' => $row['Class'] ?? null,
+                                    'enable_payments_to_account' => $row['EnablePaymentsToAccount'] ?? null,
+                                    'show_in_expense_claims' => $row['ShowInExpenseClaims'] ?? null,
+                                    'bank_account_number' => $row['BankAccountNumber'] ?? null,
+                                    'bank_account_type' => $row['BankAccountType'] ?? null,
+                                    'currency_code' => $row['CurrencyCode'] ?? null,
+                                    'reporting_code' => $row['ReportingCode'] ?? null,
+                                    'reporting_code_name' => $row['ReportingCodeName'] ?? null,
+                                    'company_id' => $clients['company_id'],
+                                ]
+                            );
+                        }
+                    }
+                    break;                  
+                    case 'ZOHO':
+                        $response = $http->request('GET', $clients['url'] . Config::get('services.ZOHO_ACCOUNTS_URL'). '?organization_id=' . $clients['tenant_id'], [
+                            'headers' => [
+                                'Authorization' => 'Bearer ' . $clients['access_token'],
+                                'Content-Type' => 'application/json',
+                                'Accept' => '*/*'
+                            ], 
+                        ]);
+                        $result = json_decode((string)$response->getBody(), true);
+                            if(isset($result['chartofaccounts'])){
+                                foreach ($result['chartofaccounts'] as $row) {
+                                    $this->xeroAccounts->updateOrCreate(
+                                        [
+                                            'account_id' => $row['account_id'] ?? null,                                             
+                                        ],
+                                        [
+                                            'company_id' => $clients['company_id'],
+                                            'code' => $row['Code'] ?? null,
+                                            'name' => $row['account_name'] ?? null, 
+                                            'status' => ($row['is_active'] == true) ? 'ACTIVE' : 'INACTIVE', 
+                                            'type' => $row['account_type'] ?? null, 
+                                            'tax_type' => $row['TaxType'] ?? null, 
+                                            'class' => $row['Class'] ?? null,
+                                            'enable_payments_to_account' => $row['EnablePaymentsToAccount'] ?? null,
+                                            'show_in_expense_claims' => $row['ShowInExpenseClaims'] ?? null,
+                                            'bank_account_number' => $row['BankAccountNumber'] ?? null,
+                                            'bank_account_type' => $row['BankAccountType'] ?? null,
+                                            'currency_code' => $row['CurrencyCode'] ?? null,
+                                            'reporting_code' => $row['ReportingCode'] ?? null,
+                                            'reporting_code_name' => $row['ReportingCodeName'] ?? null,
+                                            
+                                            'description' => $row['description'] ?? null,
+                                            'is_user_created' => $row['is_user_created'] ?? null,
+                                            'is_system_account' => $row['is_system_account'] ?? null,
+                                            'can_show_in_ze' => $row['can_show_in_ze'] ?? null,
+                                            'parent_account_id' => $row['parent_account_id'] ?? null,
+                                            'parent_account_name' => $row['parent_account_name'] ?? null,
+                                            'depth' => $row['depth'] ?? null,
+                                            'has_attachment' => $row['has_attachment'] ?? null,
+                                            'is_child_present' => $row['is_child_present'] ?? null,
+                                            'child_count' => $row['child_count'] ?? null,
+                                        ]
+                                    );
+                                }
+                            }
+                        break; 
+                    default:
+                        $response = '';
                 }
             }
 
@@ -676,7 +783,7 @@ class InvoiceServices
     public function xeroGetaccounts($request) : mixed
     {
         return $this->xeroAccounts
-            ->select('id', 'account_id', 'code', 'name', 'status', 'type', 'tax_type','class','enable_payments_to_account','show_in_expense_claims', 'bank_account_number','bank_account_type', 'currency_code', 'reporting_code', 'reporting_code_name')
+            ->select('id', 'account_id', 'code', 'name', 'status', 'type', 'tax_type','class','enable_payments_to_account','show_in_expense_claims', 'bank_account_number','bank_account_type', 'currency_code', 'reporting_code', 'reporting_code_name', 'company_id', 'description', 'is_user_created', 'is_system_account', 'can_show_in_ze', 'parent_account_id', 'parent_account_name', 'depth', 'has_attachment', 'is_child_present')
             ->distinct('id')
             ->orderBy('id', 'asc')
             ->get();
@@ -747,6 +854,40 @@ class InvoiceServices
             return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
         }
     }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function generateInvoicesZoho($request) : mixed
+    {
+        $http = new Client();
+        $xeroConfig = $this->getXeroSettings();
+        try {
+
+            $response = $http->request('POST', $xeroConfig['url'] . Config::get('services.ZOHO_INVOICES_URL'). '?organization_id=' . $xeroConfig['tenant_id'], [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
+                    'Content-Type' => 'application/json',
+                    'Accept' => '*/*'
+                ],
+                'json' => [    
+                    'reference_number' => $request['reference_number'],              
+                    'customer_id' => $request['customer_id'],
+                    'date' => $request['date'],
+                    'due_date' => $request['due_date'],
+                    'is_inclusive_tax' => $request['is_inclusive_tax'],
+                    'line_items' => $request['line_items']
+                ],
+            ]);
+            $result = json_decode((string)$response->getBody(), true);
+
+            return response()->json($result);
+        } catch (Exception $e) {
+            Log::error('Exception in submitting invoice details' . $e);
+            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
+        }
+    }    
 
     /**
      * @param $request

@@ -47,7 +47,7 @@ class XeroGetAccounts extends Command
     public function handle()
     {
         Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Save Accounts Generation');
-        $data = $this->invoiceServices->saveAccounts();
+        $data = $this->invoiceServices->saveAccounts(); 
         Log::channel('cron_activity_logs')->info('Cron Job Ended - InvoiceServices Save accounts Generation');
     }
 }

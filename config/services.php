@@ -104,7 +104,7 @@ return [
     'ZOHO_CLIENT_SECRET' => env('ZOHO_CLIENT_SECRET', "462c552560ed9781ab9788d098f55dece6856fff3b"),
     'ZOHO_TAX_RATES_URL' => env('ZOHO_TAX_RATES_URL', "settings/taxes"),
     'ZOHO_ITEMS_URL' => env('ZOHO_ITEMS_URL', "Items"),
-    'ZOHO_ACCOUNTS_URL' => env('ZOHO_ACCOUNTS_URL', "accounts"),
+    'ZOHO_ACCOUNTS_URL' => env('ZOHO_ACCOUNTS_URL', "chartofaccounts"),
     'ZOHO_CONTACTS_URL' => env('ZOHO_CONTACTS_URL', "contacts"),
     'ZOHO_INVOICES_URL' => env('ZOHO_INVOICES_URL', "invoices"),
     'ZOHO_TOKEN_URL' => env('ZOHO_TOKEN_URL', "https://accounts.zoho.com/oauth/v2/token"),
