@@ -66,9 +66,12 @@ class DirectRecruitmentSpecialPassController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $request['modified_by'] = $user['id'];
+            $request['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentSpecialPassServices->updateSubmission($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess(['message' => 'Submission Date Updated Successfully']);
         } catch (Exception $e) {
@@ -87,11 +90,14 @@ class DirectRecruitmentSpecialPassController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $request['modified_by'] = $user['id'];
+            $request['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentSpecialPassServices->updateValidity($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
             } else if(isset($response['submissionError']) && !empty($response['submissionError'])) {
                 return $this->validationError(["message" => "Please select the submission date before updating validity details"]);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess(['message' => 'Validity Updated Successfully']);
         } catch (Exception $e) {

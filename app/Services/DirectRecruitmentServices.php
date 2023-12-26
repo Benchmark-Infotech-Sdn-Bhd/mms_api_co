@@ -251,28 +251,6 @@ class DirectRecruitmentServices
         ->orderBy('directrecruitment_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }        
-    /**
-     * @param $request
-     * @return mixed | boolean
-     */
-    public function inputValidation($request)
-    {
-        if(!($this->directrecruitmentApplications->validate($request->all()))){
-            return $this->directrecruitmentApplications->errors();
-        }
-        return false;
-    }
-    /**
-     * @param $request
-     * @return mixed | boolean
-     */
-    public function updateValidation($request)
-    {
-        if(!($this->directrecruitmentApplications->validateUpdation($request->all()))){
-            return $this->directrecruitmentApplications->errors();
-        }
-        return false;
-    }
      /**
      *
      * @param $request
@@ -299,19 +277,25 @@ class DirectRecruitmentServices
                 'error' => $validator->errors()
             ];
         }
-        $data = $this->directrecruitmentApplications::findorfail($request['id']);
+        $input = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $input['modified_by'] = $user['id']; 
+        $data = $this->directrecruitmentApplications::find($request['id']);
+        if(is_null($data) || $data->company_id != $user['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+
         $activeServiceCount = $this->crmProspectService->where('crm_prospect_id', $data->crm_prospect_id)
                             ->where('status', 1)
                             ->where('service_id', 1)
                             ->count('id');
         if($activeServiceCount > 0) {
             return [
-                'error' => true
+                'activeServiceerror' => true
             ];
         }
-        $input = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $input['modified_by'] = $user['id']; 
         if($data->status != Config::get('services.APPROVAL_COMPLETED')){
             $input['status'] = Config::get('services.PROPOSAL_SUBMITTED');
         }

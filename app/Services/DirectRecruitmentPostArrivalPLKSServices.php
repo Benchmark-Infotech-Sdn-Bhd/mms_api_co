@@ -6,6 +6,7 @@ use App\Models\DirectRecruitmentPostArrivalStatus;
 use App\Models\WorkerPLKSAttachments;
 use App\Models\Workers;
 use App\Models\DirectrecruitmentApplications;
+use App\Models\DirectRecruitmentOnboardingCountry;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -33,6 +34,10 @@ class DirectRecruitmentPostArrivalPLKSServices
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
 
     /**
      * DirectRecruitmentPostArrivalFomemaServices constructor.
@@ -41,14 +46,16 @@ class DirectRecruitmentPostArrivalPLKSServices
      * @param WorkerPLKSAttachments $workerPLKSAttachments
      * @param Workers $workers
      * @param Storage $storage
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(DirectrecruitmentApplications $directrecruitmentApplications, DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerPLKSAttachments $workerPLKSAttachments, Workers $workers, Storage $storage)
+    public function __construct(DirectrecruitmentApplications $directrecruitmentApplications, DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerPLKSAttachments $workerPLKSAttachments, Workers $workers, Storage $storage, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
         $this->directrecruitmentApplications        = $directrecruitmentApplications;
         $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
         $this->workerPLKSAttachments                = $workerPLKSAttachments;
         $this->workers                              = $workers;
         $this->storage                              = $storage;
+        $this->directRecruitmentOnboardingCountry   = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -135,6 +142,28 @@ class DirectRecruitmentPostArrivalPLKSServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
             $request['workers'] = explode(',', $request['workers']);
+
+            $workerCompanyCount = $this->workers->whereIn('id', $request['workers'])
+                                ->where('company_id', $request['company_id'])
+                                ->count();
+                                
+            if($workerCompanyCount != count($request['workers'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($request) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $request['company_id']);
+                    })->find($request['onboarding_country_id']);
+            if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+            
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
                     'directrecruitment_status' => 'Processed',

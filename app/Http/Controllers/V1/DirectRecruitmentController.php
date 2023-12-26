@@ -41,12 +41,12 @@ class DirectRecruitmentController extends Controller
     public function submitProposal(Request $request): JsonResponse
     {     
         try {   
-            $validation = $this->directRecruitmentServices->inputValidation($request);
-            if ($validation) {
-                return $this->validationError($validation);
-            }
             $response = $this->directRecruitmentServices->submitProposal($request); 
-            if(isset($response['error'])) {
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            } else if(isset($response['activeServiceerror'])) {
                 return $this->sendError(['message' => 'Please finish the previous process before submitting a new application as this company service is still in progress.']);
             }      
             return $this->sendSuccess($response);

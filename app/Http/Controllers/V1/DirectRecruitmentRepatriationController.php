@@ -66,9 +66,12 @@ class DirectRecruitmentRepatriationController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $request['modified_by'] = $user['id'];
+            $request['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentRepatriationServices->updateRepatriation($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess(['message' => 'Repatriation Updated Successfully']);
         } catch (Exception $e) {
