@@ -388,6 +388,10 @@ class CRMServices
                 $prospectData = $this->crmProspect->findOrFail($prospect['id']);
                 $prospectData->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
                 $prospectData->save();
+            } else if (isset($createContactXero->original['contact']['contact_id']) && !empty($createContactXero->original['contact']['contact_id'])) {
+                $prospectData = $this->crmProspect->findOrFail($prospect['id']);
+                $prospectData->xero_contact_id = $createContactXero->original['contact']['contact_id'];
+                $prospectData->save();
             }
         }
         return true;
@@ -450,9 +454,11 @@ class CRMServices
         if(isset($createContactXero->original['Contacts'][0]['ContactID']) && !empty($createContactXero->original['Contacts'][0]['ContactID'])){
             $prospect->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
             $prospect->save();
+        } else if (isset($createContactXero->original['contact']['contact_id']) && !empty($createContactXero->original['contact']['contact_id'])) {
+            $prospectData = $this->crmProspect->findOrFail($prospect['id']);
+            $prospectData->xero_contact_id = $createContactXero->original['contact']['contact_id'];
+            $prospectData->save();
         }
-        
-
         return true;
     }
     /**

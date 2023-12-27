@@ -51,6 +51,11 @@ $app->singleton(
     App\Console\Kernel::class
 );
 
+$app->singleton(
+    'thirdPartyLogServices',
+    App\Services\ThirdPartyLogServices::class
+);
+
 /*
 |--------------------------------------------------------------------------
 | Register Config Files
