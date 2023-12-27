@@ -72,10 +72,32 @@ class AccessManagementServices
 
     /**
      * @param $request
-     * @return bool
+     * @return mixed
      */
-    public function create($request): bool
+    public function create($request): mixed
     {
+        $roleCheck =  $this->rolePermission->join('roles', 'roles.id', 'role_permission.role_id')
+                        ->where('roles.company_id', $request['company_id'])
+                        ->where('role_permission.role_id', $request['role_id'])
+                        ->count();
+        if($roleCheck > 0) {
+            return [
+                'roleError' => true
+            ];
+        }
+
+        $companyModules = $this->companyModulePermission->where('company_id', $request['company_id'])
+                            ->select('module_id')
+                            ->get()
+                            ->toArray();
+        $companyModules = array_column($companyModules, 'module_id');
+        $diffModules = array_diff($request['modules'], $companyModules);
+        if(count($diffModules) > 0) {
+            return [
+                'moduleError' => true
+            ];
+        }
+       
         foreach ($request['modules'] as $moduleId) {
             $this->rolePermission->create([
                 'role_id'       => $request['role_id'],
@@ -90,10 +112,22 @@ class AccessManagementServices
 
     /**
      * @param $request
-     * @return bool
+     * @return mixed
      */
-    public function update($request): bool
+    public function update($request): mixed
     {
+        $companyModules = $this->companyModulePermission->where('company_id', $request['company_id'])
+                            ->select('module_id')
+                            ->get()
+                            ->toArray();
+        $companyModules = array_column($companyModules, 'module_id');
+        $diffModules = array_diff($request['modules'], $companyModules);
+        if(count($diffModules) > 0) {
+            return [
+                'moduleError' => true
+            ];
+        }
+        
         $this->rolePermission->where('role_id', $request['role_id'])->delete();
         return $this->create($request);
     }

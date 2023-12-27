@@ -14,7 +14,7 @@ class ModuleSeeder extends Seeder
     public function run(): void
     {
         Module::create(['id' => 1, 'module_name' => 'Dashboard', 'module_url' => '', 'parent_id' => 0, 'order_id' => 1, 'status' => 1]);
-        Module::create(['id' => 2, 'module_name' => 'Maintain Masters', 'module_url' => '', 'parent_id' => 0, 'order_id' => 2, 'status' => 0]);
+        Module::create(['id' => 2, 'module_name' => 'Maintain Masters', 'module_url' => '', 'parent_id' => 0, 'order_id' => 2, 'status' => 1]);
         Module::create(['id' => 3, 'module_name' => 'Branches', 'module_url' => '', 'parent_id' => 0, 'order_id' => 3, 'status' => 1]);
         Module::create(['id' => 4, 'module_name' => 'CRM', 'module_url' => '', 'parent_id' => 0, 'order_id' => 4, 'status' => 1]);
         Module::create(['id' => 5, 'module_name' => 'Direct Recruitment', 'module_url' => '', 'parent_id' => 0, 'order_id' => 5, 'status' => 1]);
