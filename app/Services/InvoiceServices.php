@@ -723,8 +723,8 @@ class InvoiceServices
                     case 'XERO':
                     $response = $http->request('GET', $clients['url'] . Config::get('services.XERO_ACCOUNTS_URL'), [
                         'headers' => [
-                            'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                            'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
+                            'Authorization' => 'Bearer ' . $clients['access_token'],
+                            'Xero-Tenant-Id' => $clients['tenant_id'],
                             'Accept' => 'application/json',
                         ],
                         'form_params' => [
