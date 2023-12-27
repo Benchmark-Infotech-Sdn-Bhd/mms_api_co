@@ -62,7 +62,10 @@ class AccessManagementServices
             ->select('modules.id', 'modules.module_name', 'company_module_permission.id as role_permission_id')
             ->get();
         } else {
-            return $this->rolePermission->leftJoin('modules', 'modules.id', 'role_permission.module_id')
+            return $this->rolePermission
+            ->join('roles', 'roles.id', 'role_permission.role_id')
+            ->join('modules', 'modules.id', 'role_permission.module_id')
+            ->where('roles.company_id', $request['company_id'])
             ->where('role_permission.role_id', $request['role_id'])
             ->select('modules.id', 'modules.module_name', 'role_permission.id as role_permission_id')
             ->get();
