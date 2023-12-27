@@ -12,8 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('directrecruitment_expenses', function (Blueprint $table) {
-            // Quantity column
-            $table->integer('quantity')->after('payment_date');
+            
+            if (DB::getDriverName() === 'sqlite') {
+                // Quantity column
+                $table->integer('quantity')->default(0)->after('payment_date');
+            } else {
+                // Quantity column
+                $table->integer('quantity')->after('payment_date');
+            }
         });
     }
 

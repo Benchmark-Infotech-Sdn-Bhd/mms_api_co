@@ -45,6 +45,9 @@ class CRMController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->crmServices->list($params);
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -61,6 +64,8 @@ class CRMController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->crmServices->show($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -101,9 +106,12 @@ class CRMController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $request['modified'] = $user['id'];
+            $request['company_id'] = $user['company_id'];
             $response = $this->crmServices->update($request);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            }else if(isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Prospect Updated Successfully']);
         } catch (Exception $e) {
@@ -121,7 +129,12 @@ class CRMController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->crmServices->deleteAttachment($params);
+            if($response == false) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess(['message' => 'Prospect Attachment Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -156,6 +169,8 @@ class CRMController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->crmServices->getProspectDetails($params);
             return $this->sendSuccess($response);
         } catch(Exception $e) {

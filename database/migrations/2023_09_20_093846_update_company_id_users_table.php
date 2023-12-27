@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Column for company id
-            $table->bigInteger('company_id')->unsigned();
+            if (DB::getDriverName() === 'sqlite') {
+                // Column for company id
+                $table->bigInteger('company_id')->default(0)->unsigned();
+            } else {
+                // Column for company id
+                $table->bigInteger('company_id')->unsigned();
+            }
         });
     }
 

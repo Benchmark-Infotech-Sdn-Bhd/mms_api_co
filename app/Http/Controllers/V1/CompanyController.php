@@ -276,4 +276,43 @@ class CompanyController extends Controller
             return $this->sendError(['message' => 'Failed to Delete Attachment'], 400);
         }
     }
+    /**
+     * List Company Module.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function moduleList(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->moduleList($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Modules']);
+        }
+    }
+    /**
+     * Assign Module.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function assignModule(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['created_by'] = $user['id'];
+            $response = $this->companyServices->assignModule($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess(['message' => 'Module Assigned Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Assign Module']);
+        }
+    }
 }

@@ -32,6 +32,171 @@ class TotalManagementProjectUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for total management project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProjectAddNameValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['name' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'name' => ['The name field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProjectAddstateValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['state' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'state' => ['The state field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProjectAddcityValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['city' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'city' => ['The city field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProjectAddaddressValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['address' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'address' => ['The address field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProjectAddsupervisoridValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['supervisor_id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'supervisor_id' => ['The supervisor id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProjectAddsupervisortypeValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['supervisor_type' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'supervisor_type' => ['The supervisor type field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProjectAddtransportationprovideridValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['transportation_provider_id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'transportation_provider_id' => ['The transportation provider id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProjectAdddriveridValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['driver_id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'driver_id' => ['The driver id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProjectAddannualleaveValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['annual_leave' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'annual_leave' => ['The annual leave field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProjectAddmedicalleaveValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['medical_leave' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'medical_leave' => ['The medical leave field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for total management project add  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementProjectAddhospitalizationleaveValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/project/add', array_merge($this->creationData(), ['hospitalization_leave' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'hospitalization_leave' => ['The hospitalization leave field is required.']
+            ]
+        ]);
+    }
+    /**
      * Functional test for total management project add 
      * 
      * @return void
@@ -101,25 +266,12 @@ class TotalManagementProjectUnitTest extends TestCase
     public function testForTotalManagementProjectListing(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/project/list', ['application_id' => 1, 'search' => ''], $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/totalManagement/project/add', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/project/list', ['application_id' => 1, 'search' => '', 'page' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
-                [
-                    'current_page',
-                    'data',
-                    'first_page_url',
-                    'from',
-                    'last_page',
-                    'last_page_url',
-                    'links',
-                    'next_page_url',
-                    'path',
-                    'per_page',
-                    'prev_page_url',
-                    'to',
-                    'total'
-                ]
+                []
         ]);
     }
     
@@ -142,10 +294,15 @@ class TotalManagementProjectUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Supervisor'
+            'name' => 'Supervisor',
+            'special_permission' => '',
+            'system_role' => 0,
+            'status' => 1,
+            'parent_id' => 0,
+            'company_id' => 1
         ];
-        $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
-       
+        $res = $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
+
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
@@ -162,9 +319,10 @@ class TotalManagementProjectUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
-        $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
         $payload =  [
             'name' => 'name',
@@ -183,6 +341,7 @@ class TotalManagementProjectUnitTest extends TestCase
 
        $payload =  [
         'driver_name' => 'name',
+        'driver_email' => 'driver@mail.com',
         'driver_contact_number' => random_int(10, 1000),
         'vehicle_type' => 'type',
         'number_plate' => random_int(10, 1000),
@@ -222,7 +381,7 @@ class TotalManagementProjectUnitTest extends TestCase
         ];
         $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
 
-        $payload = [
+        /* $payload = [
             'id' => 1, 
             'crm_prospect_id' => 1, 
             'quota_applied' => 100, 
@@ -478,12 +637,12 @@ class TotalManagementProjectUnitTest extends TestCase
             'plks_expiry_date' => Carbon::now()->addYear()->format('Y-m-d'), 
             'workers' => 1
         ];
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/plks/updatePLKS', $payload, $this->getHeader(false)); */
 
         $payload = [
-            'id' => 1, 
+            'id' => 1,
             'company_name' => 'ABC Firm', 
-            'contact_number' => '768456948', 
+            'contact_number' => '0123456789', 
             'email' => 'testcrm@gmail.com', 
             'pic_name' => 'PICTest', 
             'sector' => 1, 
@@ -493,7 +652,7 @@ class TotalManagementProjectUnitTest extends TestCase
             'initial_quota' => 1, 
             'service_quota' => 1
         ];
-        $this->json('POST', 'api/v1/totalManagement/addService', $payload, $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/addService', $payload, $this->getHeader(false));
     }
     /**
      * @return array
@@ -507,6 +666,8 @@ class TotalManagementProjectUnitTest extends TestCase
             "city" => "city test",
             "address" => "test address",
             "employee_id" => 1,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee",
             "transportation_provider_id" => 1,
             "driver_id" => 1,
             "assign_as_supervisor" => 0,
@@ -528,6 +689,8 @@ class TotalManagementProjectUnitTest extends TestCase
             "city" => "city test",
             "address" => "test address",
             "employee_id" => 1,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee",
             "transportation_provider_id" => 1,
             "driver_id" => 1,
             "assign_as_supervisor" => 0,

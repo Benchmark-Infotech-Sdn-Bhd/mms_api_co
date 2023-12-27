@@ -7,7 +7,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\SectorsServices;
-use App\Services\AuthServices;
+use App\Services\AuthServices; 
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -68,6 +68,7 @@ class SectorsController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->sectorsServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -89,6 +90,8 @@ class SectorsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->sectorsServices->delete($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -110,6 +113,9 @@ class SectorsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->sectorsServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -193,6 +199,8 @@ class SectorsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->sectorsServices->updateStatus($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 

@@ -73,7 +73,7 @@ class RolesServices
      */
     public function show($request): mixed
     {
-        return $this->role->findOrFail($request['id']);
+        return $this->role::whereIn('company_id', $request['company_id'])->find($request['id']);
     }
 
     /**
@@ -116,11 +116,16 @@ class RolesServices
 
     /**
      * @param $request
-     * @return bool
+     * @return bool|array
      */
-    public function update($request): bool
+    public function update($request): bool|array
     {
-        $role = $this->role->findOrFail($request['id']);
+        $role = $this->role::where('company_id', $request['company_id'])->find($request['id']);
+        if(is_null($role)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
         $role->role_name    = $request['name'] ?? $role->role_name;
         $role->system_role  = $request['system_role'] ?? $role->system_role;
         $role->status       = $request['status'] ?? $role->status;
@@ -136,7 +141,7 @@ class RolesServices
      */
     public function delete($request): bool
     {
-        return $this->role->where('id', $request['id'])->delete();
+        return $this->role::where('company_id', $request['company_id'])->where('id', $request['id'])->delete();
     }
 
     /**
@@ -156,7 +161,7 @@ class RolesServices
      */
     public function updateStatus($request) : array
     {
-        $role = $this->role->find($request['id']);
+        $role = $this->role::where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($role)){
             return [
                 "isUpdated" => false,

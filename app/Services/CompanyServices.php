@@ -7,6 +7,8 @@ use App\Models\CompanyAttachments;
 use App\Models\UserCompany;
 use App\Models\User;
 use App\Models\FeeRegistration;
+use App\Models\CompanyModulePermission;
+use App\Models\RolePermission;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -34,9 +36,17 @@ class CompanyServices
      */
     private FeeRegistration $feeRegistration;
     /**
+     * @var companyModulePermission
+     */
+    private CompanyModulePermission $companyModulePermission;
+    /**
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var RolePermission
+     */
+    private RolePermission $rolePermission;
 
     /**
      * CompanyServices constructor
@@ -45,16 +55,30 @@ class CompanyServices
      * @param UserCompany $userCompany
      * @param User $user
      * @param FeeRegistration $feeRegistration
+     * @param CompanyModulePermission $companyModulePermission
      * @param Storage $storage
+     * @param RolePermission $rolePermission
      */
-    public function __construct(Company $company, CompanyAttachments $companyAttachments, UserCompany $userCompany, User $user, FeeRegistration $feeRegistration, Storage $storage) 
+    public function __construct(Company $company, CompanyAttachments $companyAttachments, UserCompany $userCompany, User $user, FeeRegistration $feeRegistration, Storage $storage, CompanyModulePermission $companyModulePermission, RolePermission $rolePermission) 
     {
         $this->company = $company;
         $this->companyAttachments = $companyAttachments;
         $this->userCompany = $userCompany;
         $this->user = $user;
         $this->feeRegistration = $feeRegistration;
+        $this->companyModulePermission = $companyModulePermission;
         $this->storage = $storage;
+        $this->rolePermission = $rolePermission;
+    }
+    /**
+     * @return array
+     */
+    public function assignModuleValidation(): array
+    {
+        return [
+            'company_id' => 'required',
+            'modules' => 'required'
+        ];
     }
     /**
      * @param $request
@@ -295,6 +319,52 @@ class CompanyServices
             return false;
         }
         $data->delete();
+        return true;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function moduleList($request) 
+    {
+        return $this->companyModulePermission->leftJoin('modules', 'modules.id', 'company_module_permission.module_id')
+            ->where('company_module_permission.company_id', $request['company_id'])
+            ->select('modules.id', 'modules.module_name', 'company_module_permission.id as company_module_permission_id')
+            ->get();
+    }
+    /**
+     * @param $request
+     * @return bool|array
+     */
+    public function assignModule($request): bool|array
+    {
+        $validator = Validator::make($request, $this->assignModuleValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        $existingModules = $this->companyModulePermission->where('company_id', $request['company_id'])
+                            ->select('module_id')
+                            ->get()
+                            ->toArray();
+        $existingModules = array_column($existingModules, 'module_id');
+        $diffModules = array_diff($existingModules,$request['modules']);
+
+        $this->companyModulePermission->where('company_id', $request['company_id'])->delete();
+        foreach ($request['modules'] as $moduleId) {
+            $this->companyModulePermission->create([
+                'company_id'    => $request['company_id'],
+                'module_id'     => $moduleId,
+                'created_by'    => $request['created_by'] ?? 0,
+                'modified_by'   => $request['created_by'] ?? 0
+            ]);   
+        }
+
+        $roleIds = $this->rolePermission->join('roles', 'roles.id', 'role_permission.role_id')
+        ->where('roles.company_id', $request['company_id'])
+        ->whereIn('role_permission.module_id', $diffModules)
+        ->delete();
         return true;
     }
 }

@@ -153,7 +153,7 @@ class CRMServices
             'roc_number' => 'required|regex:/^[a-zA-Z0-9 ]*$/|unique:crm_prospects,roc_number,'.$params['id'].',id,deleted_at,NULL',
             'director_or_owner' => 'required|regex:/^[a-zA-Z ]*$/',
             'contact_number' => 'required|regex:/^[0-9]+$/|max:11',
-            'email' => 'required|unique:crm_prospects,email,'.$params['id'].',id,deleted_at,NULL',
+            'email' => 'required|email|unique:crm_prospects,email,'.$params['id'].',id,deleted_at,NULL',
             'address' => 'required',
             'pic_name' => 'required|regex:/^[a-zA-Z ]*$/',
             'pic_contact_number' => 'required|regex:/^[0-9]+$/|max:11',
@@ -182,11 +182,28 @@ class CRMServices
         ];
     }
     /**
+     * @return array
+     */
+    public function searchValidation(): array
+    {
+        return [
+            'search' => 'required|min:3'
+        ];
+    }
+    /**
      * @param $request
      * @return mixed 
      */
     public function list($request): mixed
     {
+        if(isset($request['search']) && !empty($request['search'])){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
         return $this->crmProspect
             ->leftJoin('employee', 'employee.id', 'crm_prospects.registered_by')
             ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
@@ -219,7 +236,7 @@ class CRMServices
      */
     public function show($request): mixed
     {
-        return $this->crmProspect->where('crm_prospects.id', $request['id'])
+        return $this->crmProspect->whereIn('crm_prospects.company_id', $request['company_id'])->where('crm_prospects.id', $request['id'])
             ->leftJoin('employee', 'employee.id', 'crm_prospects.registered_by')
             ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospects.director_or_owner', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospects.address', 'crm_prospects.pic_name', 'crm_prospects.pic_contact_number', 'crm_prospects.pic_designation', 'employee.id as registered_by', 'employee.employee_name as registered_by_name','crm_prospects.bank_account_number','crm_prospects.bank_account_name','crm_prospects.tax_id','crm_prospects.account_receivable_tax_type','crm_prospects.account_payable_tax_type','crm_prospects.xero_contact_id')
             ->with(['prospectServices', 'prospectServices.prospectAttachment', 'prospectLoginCredentials'])
@@ -408,7 +425,12 @@ class CRMServices
                 'error' => $validator->errors()
             ];
         }
-        $prospect = $this->crmProspect->findOrFail($request['id']);
+        $prospect = $this->crmProspect::where('company_id', $request['company_id'])->find($request['id']);
+        if(is_null($prospect)) {
+            return [
+                'unauthorizedError' => true
+            ];
+        }
         $prospect['company_name'] = $request['company_name'] ?? $prospect['company_name'];
         $prospect['roc_number'] = $request['roc_number'] ?? $prospect['roc_number'];
         $prospect['director_or_owner'] = $request['director_or_owner'] ?? $prospect['director_or_owner'];
@@ -448,16 +470,18 @@ class CRMServices
                 ->update([
                     'name' => $request['pic_name']
                 ]);
-        }        
-        $request['ContactID'] = $prospect['xero_contact_id'];
-        $createContactXero = $this->invoiceServices->createContacts($request);
-        if(isset($createContactXero->original['Contacts'][0]['ContactID']) && !empty($createContactXero->original['Contacts'][0]['ContactID'])){
-            $prospect->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
-            $prospect->save();
-        } else if (isset($createContactXero->original['contact']['contact_id']) && !empty($createContactXero->original['contact']['contact_id'])) {
-            $prospectData = $this->crmProspect->findOrFail($prospect['id']);
-            $prospectData->xero_contact_id = $createContactXero->original['contact']['contact_id'];
-            $prospectData->save();
+        }    
+        if (\DB::getDriverName() !== 'sqlite') {    
+            $request['ContactID'] = $prospect['xero_contact_id'];
+            $createContactXero = $this->invoiceServices->createContacts($request);
+            if(isset($createContactXero->original['Contacts'][0]['ContactID']) && !empty($createContactXero->original['Contacts'][0]['ContactID'])){
+                $prospect->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
+                $prospect->save();
+            } else if (isset($createContactXero->original['contact']['contact_id']) && !empty($createContactXero->original['contact']['contact_id'])) {
+                $prospectData = $this->crmProspect->findOrFail($prospect['id']);
+                $prospectData->xero_contact_id = $createContactXero->original['contact']['contact_id'];
+                $prospectData->save();
+            }
         }
         return true;
     }
@@ -467,7 +491,10 @@ class CRMServices
      */
     public function deleteAttachment($request): bool
     {
-        return $this->crmProspectAttachment->where('id', $request['id'])->delete();
+        return $this->crmProspectAttachment::join('crm_prospects', function ($join) use ($request) {
+            $join->on('crm_prospects.id', '=', 'crm_prospect_attachments.file_id')
+                 ->whereIn('crm_prospects.company_id', $request['company_id']);
+        })->where('crm_prospect_attachments.id', $request['id'])->delete();
     }
     /**
      * @return mixed
@@ -493,7 +520,7 @@ class CRMServices
      */
     public function getProspectDetails($request): mixed
     {
-        return $this->crmProspect->where('id', $request['id'])
+        return $this->crmProspect->where('id', $request['id'])->whereIn('company_id', $request['company_id'])
             ->select('id', 'company_name', 'contact_number', 'email', 'pic_name')
             ->get();
     }

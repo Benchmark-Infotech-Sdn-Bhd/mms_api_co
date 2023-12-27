@@ -44,15 +44,20 @@ class ApplicationSummaryServices
      */
     public function list($request): mixed
     {
-        return $this->applicationSummary->where('application_id', $request['application_id'])
+        return $this->applicationSummary
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'application_summary.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        ->where('application_summary.application_id', $request['application_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['ksm_reference_number']) && !empty($request['ksm_reference_number'])) {
-                $query->where('ksm_reference_number', $request['ksm_reference_number']);
-                $query->orWhere('ksm_reference_number', null);
+                $query->where('application_summary.ksm_reference_number', $request['ksm_reference_number']);
+                $query->orWhere('application_summary.ksm_reference_number', null);
             }
         })
-        ->select('id', 'application_id', 'action', 'status', 'created_at', 'updated_at', 'ksm_reference_number')
-        ->orderBy('id', 'asc')
+        ->select('application_summary.id', 'application_summary.application_id', 'application_summary.action', 'application_summary.status', 'application_summary.created_at', 'application_summary.updated_at', 'application_summary.ksm_reference_number')
+        ->orderBy('application_summary.id', 'asc')
         ->paginate(Config::get('services.paginate_row'));
     }
 
@@ -153,6 +158,10 @@ class ApplicationSummaryServices
         })
         ->leftJoin('levy', 'levy.ksm_reference_number', 'application_interviews.ksm_reference_number')
         ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.ksm_reference_number', 'levy.new_ksm_reference_number')
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'fwcms.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
         ->where([
             ['fwcms.application_id', $request['application_id']],
             ['fwcms.status', 'Approved']

@@ -14,8 +14,13 @@ return new class extends Migration
         Schema::table('bulk_upload_records', function (Blueprint $table) {
             // Column for success flag
             $table->tinyInteger('success_flag')->default(0)->after('status');
-            // Column for company id
-            $table->bigInteger('company_id')->unsigned()->after('success_flag');
+            if (DB::getDriverName() === 'sqlite') {
+                // Column for company id
+                $table->bigInteger('company_id')->default(0)->unsigned()->after('success_flag');
+            } else {
+                // Column for company id
+                $table->bigInteger('company_id')->unsigned()->after('success_flag');
+            }
             // Foreign key from user table
             $table->foreign('company_id')->references('id')->on('company')->onDelete('cascade');
         });

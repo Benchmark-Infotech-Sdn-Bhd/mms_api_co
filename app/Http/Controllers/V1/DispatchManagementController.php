@@ -53,6 +53,9 @@ class DispatchManagementController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->dispatchManagementServices->show($params);
+            if(is_null($response)){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
@@ -71,6 +74,8 @@ class DispatchManagementController extends Controller
             $response = $this->dispatchManagementServices->create($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            }else if(isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Dispatch Created Successfully']);
         } catch (Exception $e) {
@@ -90,6 +95,8 @@ class DispatchManagementController extends Controller
             $response = $this->dispatchManagementServices->update($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            }else if(isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Dispatch Updated Successfully']);
         } catch (Exception $e) {

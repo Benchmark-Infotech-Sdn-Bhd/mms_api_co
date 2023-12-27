@@ -37,6 +37,9 @@ class AccessManagementController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['user_type'] = $user['user_type'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->accessManagementServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -57,11 +60,17 @@ class AccessManagementController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $validator = Validator::make($params, $this->accessManagementServices->createValidation());
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());
             }
-            $this->accessManagementServices->create($params);
+            $response = $this->accessManagementServices->create($params);
+            if(isset($response['roleError'])) {
+                return $this->sendError(['message' => 'Role Permission Already Exists.']); 
+            } else if(isset($response['moduleError'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
+            }
             return $this->sendSuccess(['message' => 'Role Permission Created Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -81,11 +90,15 @@ class AccessManagementController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $validator = Validator::make($params, $this->accessManagementServices->updateValidation());
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());
             }
-            $this->accessManagementServices->update($params);
+            $response = $this->accessManagementServices->update($params);
+            if(isset($response['moduleError'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
+            }
             return $this->sendSuccess(['message' => 'Role Permission Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

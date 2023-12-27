@@ -188,7 +188,7 @@ class LevyUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'payment_amount' => ['The payment amount field must have 0-2 decimal places.']
+                'payment_amount' => ['The payment amount format is invalid.']
             ]
         ]);
     }
@@ -474,7 +474,7 @@ class LevyUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'payment_amount' => ['The payment amount field must have 0-2 decimal places.']
+                'payment_amount' => ['The payment amount format is invalid.']
             ]
         ]);
     }
@@ -655,7 +655,12 @@ class LevyUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => '',
+            'system_role' => 0,
+            'status' => 1,
+            'parent_id' => 0,
+            'company_id' => 1
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -675,7 +680,8 @@ class LevyUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 

@@ -140,12 +140,16 @@ class DirectRecruitmentOnboardingAttestationServices
     public function list($request): mixed
     {
         return $this->onboardingAttestation
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+                ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
         ->where([
-            ['application_id', $request['application_id']],
-            ['onboarding_country_id', $request['onboarding_country_id']],
+            ['onboarding_attestation.application_id', $request['application_id']],
+            ['onboarding_attestation.onboarding_country_id', $request['onboarding_country_id']],
         ])
-        ->select('id', 'application_id', 'onboarding_country_id', 'onboarding_agent_id', 'ksm_reference_number', 'item_name', 'status', 'submission_date', 'collection_date', 'created_at', 'updated_at')
-        ->orderBy('id', 'desc')
+        ->select('onboarding_attestation.id', 'onboarding_attestation.application_id', 'onboarding_attestation.onboarding_country_id', 'onboarding_attestation.onboarding_agent_id', 'onboarding_attestation.ksm_reference_number', 'onboarding_attestation.item_name', 'onboarding_attestation.status', 'onboarding_attestation.submission_date', 'onboarding_attestation.collection_date', 'onboarding_attestation.created_at', 'onboarding_attestation.updated_at')
+        ->orderBy('onboarding_attestation.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
@@ -154,7 +158,12 @@ class DirectRecruitmentOnboardingAttestationServices
      */   
     public function show($request): mixed
     {
-        return $this->onboardingAttestation->find($request['id']);
+        return $this->onboardingAttestation->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+                ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+            })
+            ->where('onboarding_attestation.id', $request['id'])
+            ->first('onboarding_attestation.*');
     }
     /**
      * @param $request
@@ -205,7 +214,16 @@ class DirectRecruitmentOnboardingAttestationServices
                 'error' => $validator->errors()
             ];
         }
-        $onboardingAttestation = $this->onboardingAttestation->findOrFail($request['id']);
+        $onboardingAttestation = $this->onboardingAttestation
+            ->join('directrecruitment_applications', function ($join) use($request) {
+                $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+                ->where('directrecruitment_applications.company_id', $request['company_id']);
+            })->find($request['id']);
+        if(is_null($onboardingAttestation)) {
+            return[
+                'InvalidUser' => true
+            ];
+        }
         if (isset($request['submission_date']) && !empty($request['submission_date'])) {
             $request['status'] = 'Submitted';
         }
@@ -217,11 +235,17 @@ class DirectRecruitmentOnboardingAttestationServices
         }
         if(isset($request['collection_date']) && !empty($request['collection_date'])){
             $onboardingAttestation->collection_date =  $request['collection_date'];
-            
-            $onBoardingStatus['application_id'] = $onboardingAttestation->application_id;
-            $onBoardingStatus['country_id'] = $onboardingAttestation->onboarding_country_id;
-            $onBoardingStatus['onboarding_status'] = 3; //Agent Added
-            $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+
+            $attestationCount = $this->onboardingAttestation->where('application_id', $onboardingAttestation->application_id)
+                                    ->where('onboarding_country_id', $onboardingAttestation->onboarding_country_id)
+                                    ->where('status', 'Collected')
+                                    ->count();
+            if($attestationCount == 0) {
+                $onBoardingStatus['application_id'] = $onboardingAttestation->application_id;
+                $onBoardingStatus['country_id'] = $onboardingAttestation->onboarding_country_id;
+                $onBoardingStatus['onboarding_status'] = 3; //Agent Added
+                $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+            }
         }
         $onboardingAttestation->file_url =  $request['file_url'] ?? $onboardingAttestation->file_url;
         $onboardingAttestation->remarks =  $request['remarks'] ?? $onboardingAttestation->remarks;
@@ -237,7 +261,14 @@ class DirectRecruitmentOnboardingAttestationServices
      */   
     public function showDispatch($request): mixed
     {
-        return $this->onboardingDispatch->where('onboarding_attestation_id', $request['onboarding_attestation_id'])->get();
+        return $this->onboardingDispatch
+        ->join('onboarding_attestation', 'onboarding_attestation.id', 'onboarding_dispatch.onboarding_attestation_id')
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })->where('onboarding_dispatch.onboarding_attestation_id', $request['onboarding_attestation_id'])
+        ->select('onboarding_dispatch.*')
+        ->get();
     }
     /**
      * update dispatch
@@ -246,6 +277,18 @@ class DirectRecruitmentOnboardingAttestationServices
      */
     public function updateDispatch($request): bool|array
     {
+        $attestationCheck = $this->onboardingAttestation->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+                ->where('directrecruitment_applications.company_id', $request['company_id']);
+            })
+            ->where('onboarding_attestation.id', $request['onboarding_attestation_id'])
+            ->first('onboarding_attestation.*');
+            
+        if(is_null($attestationCheck)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $onboardingDispatch = $this->onboardingDispatch->where(
             'onboarding_attestation_id', $request['onboarding_attestation_id']
         )->first(['id', 'onboarding_attestation_id', 'date', 'time', 'reference_number', 'employee_id', 'from', 'calltime', 'area', 'employer_name', 'phone_number', 'remarks']);
@@ -317,10 +360,19 @@ class DirectRecruitmentOnboardingAttestationServices
     {
         $onboardingAttestation = $this->onboardingAttestation
         ->leftJoin('directrecruitment_onboarding_countries', 'directrecruitment_onboarding_countries.id', 'onboarding_attestation.onboarding_country_id')
-            ->where('onboarding_attestation.id', $request['onboarding_attestation_id'])
-            ->select('directrecruitment_onboarding_countries.country_id')
-            ->distinct('directrecruitment_onboarding_countries.country_id')
-            ->get();
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+                ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        ->where('onboarding_attestation.id', $request['onboarding_attestation_id'])
+        ->select('directrecruitment_onboarding_countries.country_id')
+        ->distinct('directrecruitment_onboarding_countries.country_id')
+        ->get();
+        if(count($onboardingAttestation) == 0) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $request['country_id'] = $onboardingAttestation[0]['country_id'] ?? 0;
 
         return $this->embassyAttestationFileCosting
@@ -346,6 +398,18 @@ class DirectRecruitmentOnboardingAttestationServices
      */   
     public function showEmbassyFile($request): mixed
     {
+        $attestationCheck = $this->onboardingAttestation->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+                ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+            })
+            ->where('onboarding_attestation.id', $request['onboarding_attestation_id'])
+            ->first('onboarding_attestation.*');
+
+        if(is_null($attestationCheck)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         return $this->embassyAttestationFileCosting
         ->leftJoin('onboarding_embassy', function ($join) use ($request) {
             $join->on('onboarding_embassy.embassy_attestation_id', '=', 'embassy_attestation_file_costing.id')
@@ -372,6 +436,7 @@ class DirectRecruitmentOnboardingAttestationServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
 
         $validator = Validator::make($request->toArray(), $this->uploadEmbassyFileValidation());
         if($validator->fails()) {
@@ -380,10 +445,19 @@ class DirectRecruitmentOnboardingAttestationServices
             ];
         }
 
-        $onboardingAttestation = $this->onboardingAttestation->where([
-            ['id', $request['onboarding_attestation_id']]
-        ])->first(['application_id']);
+        $onboardingAttestation = $this->onboardingAttestation
+        ->join('directrecruitment_applications', function ($join) use($params) {
+            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+                ->where('directrecruitment_applications.company_id', $params['company_id']);
+        })
+        ->where('onboarding_attestation.id', $params['onboarding_attestation_id'])
+        ->first(['onboarding_attestation.application_id']);
 
+        if(is_null($onboardingAttestation)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $request['application_id'] = isset($onboardingAttestation['application_id']) ? $onboardingAttestation['application_id'] : 0;
 
         $onboardingEmbassy = $this->onboardingEmbassy->where([
@@ -466,7 +540,12 @@ class DirectRecruitmentOnboardingAttestationServices
      */    
     public function deleteEmbassyFile($request): array
     {   
-        $data = $this->onboardingEmbassy::find($request['onboarding_embassy_id']); 
+        $data = $this->onboardingEmbassy
+        ->join('onboarding_attestation', 'onboarding_attestation.id', 'onboarding_embassy.onboarding_attestation_id')
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+            ->where('directrecruitment_applications.company_id', $request['company_id']);
+        })->find($request['onboarding_embassy_id']); 
         if(is_null($data)){
             return [
                 "isDeleted" => false,

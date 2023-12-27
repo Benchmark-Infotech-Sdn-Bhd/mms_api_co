@@ -38,6 +38,8 @@ class DirectRecruitmentExpensesController extends Controller
             $data = $this->directRecruitmentExpensesServices->create($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -60,6 +62,8 @@ class DirectRecruitmentExpensesController extends Controller
             $data = $this->directRecruitmentExpensesServices->update($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -82,6 +86,8 @@ class DirectRecruitmentExpensesController extends Controller
             $data = $this->directRecruitmentExpensesServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }else if(is_null($data)){
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -123,8 +129,12 @@ class DirectRecruitmentExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $this->directRecruitmentExpensesServices->deleteAttachment($params);
-            return $this->sendSuccess(['message' => 'Attachment Deleted Successfully']);
+            $response = $this->directRecruitmentExpensesServices->deleteAttachment($params);
+            if ($response == true) {
+                return $this->sendSuccess(['message' => 'Attachment Deleted Sussessfully']);
+            } else {
+                return $this->sendError(['message' => 'Data Not Found'], 400);
+            }
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Delete Attachment']);

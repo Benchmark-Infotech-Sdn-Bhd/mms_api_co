@@ -43,12 +43,12 @@ class WorkerImportFirstSheetExport implements FromCollection,WithHeadings,WithEv
             'city',
             'state',
             'kin_name',
-            'kin_relationship_id',
+            'kin_relationship',
             'kin_contact_number',
             'ksm_reference_number',
             'bio_medical_reference_number',
             'bio_medical_valid_until',
-            'agent_id'
+            'agent_code'
         ];
     }
 

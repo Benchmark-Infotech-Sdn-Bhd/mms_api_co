@@ -81,6 +81,8 @@ class VendorController extends Controller
     {     
         try {   
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->vendorServices->show($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -97,6 +99,8 @@ class VendorController extends Controller
     public function update(Request $request): JsonResponse
     {    
         try {    
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_id'] = $user['company_id'];
             $validation = $this->vendorServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
@@ -118,6 +122,8 @@ class VendorController extends Controller
     {  
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $response = $this->vendorServices->delete($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -135,6 +141,8 @@ class VendorController extends Controller
     {   
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $response = $this->vendorServices->deleteAttachment($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {

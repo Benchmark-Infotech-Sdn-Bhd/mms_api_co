@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Services\DirectRecruitmentOnboardingAttestationServices;
 use Illuminate\Support\Facades\Log;
+use App\Services\AuthServices;
 use Exception;
 
 class DirectRecruitmentOnboardingAttestationController extends Controller
@@ -16,15 +17,21 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
      * @var DirectRecruitmentOnboardingAttestationServices
      */
     private $directRecruitmentOnboardingAttestationServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentOnboardingAttestationController Constructor
      * @param DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices
+     * @param AuthServices $authServices
      */
     
-    public function __construct(DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices)
+    public function __construct(DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices, AuthServices $authServices)
     {
         $this->directRecruitmentOnboardingAttestationServices = $directRecruitmentOnboardingAttestationServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display list of Attestation
@@ -36,6 +43,8 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentOnboardingAttestationServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -53,33 +62,16 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentOnboardingAttestationServices->show($params);
+            if(is_null($response)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Faild to Display Onboarding Attestation'], 400);
-        }
-    }
-    /**
-     * Add Attestation to Onboarding Process
-     * 
-     * @param Request $request
-     * @return JsonResponse   
-     */
-    public function create(Request $request): JsonResponse
-    {
-        try {
-            $params = $this->getRequest($request);
-            $user = JWTAuth::parseToken()->authenticate();
-            $params['created_by'] = $user['id'];
-            $response = $this->directRecruitmentOnboardingAttestationServices->create($params);
-            if(isset($response['error'])) {
-                return $this->validationError($response['error']);
-            }
-            return $this->sendSuccess(['message' => 'Attestation Added Successfully']);
-        } catch (Exception $e) {
-            Log::error('Error = ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Faild to Add Attestation'], 400);
         }
     }
     /**
@@ -94,9 +86,12 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentOnboardingAttestationServices->update($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'Attestation Updated Successfully']);
         } catch (Exception $e) {
@@ -114,7 +109,12 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentOnboardingAttestationServices->showDispatch($params);
+            if(is_null($response) || count($response) == 0) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
@@ -137,6 +137,8 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
             $response = $this->directRecruitmentOnboardingAttestationServices->updateDispatch($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'Dispatch Updated Successfully']);
         } catch (Exception $e) {
@@ -154,7 +156,12 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentOnboardingAttestationServices->listEmbassy($params);
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
@@ -171,7 +178,12 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentOnboardingAttestationServices->showEmbassyFile($params);
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
@@ -190,6 +202,8 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
             $response = $this->directRecruitmentOnboardingAttestationServices->uploadEmbassyFile($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             if($response == true) {
                 return $this->sendSuccess(['message' => 'Embassy Attestation Costing Updated Successfully']);
@@ -210,7 +224,10 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
     public function deleteEmbassyFile(Request $request): JsonResponse
     {   
         try {
-            $response = $this->directRecruitmentOnboardingAttestationServices->deleteEmbassyFile($request);
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
+            $response = $this->directRecruitmentOnboardingAttestationServices->deleteEmbassyFile($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

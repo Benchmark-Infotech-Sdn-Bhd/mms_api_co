@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use App\Models\DirectRecruitmentOnboardingCountry;
 
 class DirectRecruitmentImmigrationFeePaidServices
 {
@@ -51,7 +52,10 @@ class DirectRecruitmentImmigrationFeePaidServices
      * @var DirectRecruitmentExpensesServices
      */
     private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
-    
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;    
 
     /**
      * DirectRecruitmentImmigrationFeePaidServices constructor.
@@ -63,8 +67,9 @@ class DirectRecruitmentImmigrationFeePaidServices
      * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param Storage $storage;
      * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerImmigration $workerImmigration, WorkerImmigrationAttachments $workerImmigrationAttachments, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, Storage $storage,DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
+    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerImmigration $workerImmigration, WorkerImmigrationAttachments $workerImmigrationAttachments, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, Storage $storage,DirectRecruitmentExpensesServices $directRecruitmentExpensesServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
         $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
         $this->workers                            = $workers;
@@ -74,6 +79,7 @@ class DirectRecruitmentImmigrationFeePaidServices
         $this->workerInsuranceDetails             = $workerInsuranceDetails;
         $this->storage                            = $storage;
         $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
+        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -108,6 +114,7 @@ class DirectRecruitmentImmigrationFeePaidServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
 
         $validator = Validator::make($request->toArray(), $this->updateValidation());
         if($validator->fails()) {
@@ -116,8 +123,28 @@ class DirectRecruitmentImmigrationFeePaidServices
             ];
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
-
             $workers = explode(",", $request['workers']);
+
+            $workerCompanyCount = $this->workers->whereIn('id', $workers)
+                                ->where('company_id', $params['company_id'])
+                                ->count();
+                                
+            if($workerCompanyCount != count($workers)) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($params) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                        ->where('directrecruitment_applications.company_id', $params['company_id']);
+                    })->find($request['onboarding_country_id']);
+            if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
 
             if(is_array($workers)){
 
@@ -263,6 +290,14 @@ class DirectRecruitmentImmigrationFeePaidServices
      */
     public function show($request): mixed
     {
+        $workerCheck = $this->workerVisa->leftJoin('workers', 'workers.id', 'worker_visa.worker_id')
+                            ->where('worker_visa.calling_visa_reference_number', $request['calling_visa_reference_number'])
+                            ->first(['workers.company_id', 'worker_visa.calling_visa_reference_number', 'worker_visa.submitted_on']);
+        if(!in_array($workerCheck->company_id, $request['company_id'])) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $processCallingVisa = $this->workerVisa
                             ->where('calling_visa_reference_number', $request['calling_visa_reference_number'])
                             ->first(['calling_visa_reference_number', 'submitted_on']);

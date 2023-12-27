@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ApplicationChecklistAttachments;
 use App\Models\DirectRecruitmentApplicationChecklist;
 use App\Models\DocumentChecklist;
+use App\Models\DirectrecruitmentApplications;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\DirectRecruitmentServices;
@@ -23,6 +24,7 @@ class ApplicationChecklistAttachmentsServices
     private DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices;
     private DirectRecruitmentServices $directRecruitmentServices;
     private ApplicationSummaryServices $applicationSummaryServices;
+    private DirectrecruitmentApplications $directrecruitmentApplications;
     /**
      * ApplicationChecklistAttachmentsServices constructor.
      * @param ApplicationChecklistAttachments $applicationChecklistAttachments
@@ -33,10 +35,11 @@ class ApplicationChecklistAttachmentsServices
      * @param Storage $storage
      * @param DirectRecruitmentServices $directRecruitmentServices
      * @param ApplicationSummaryServices $applicationSummaryServices;
+     * @param DirectrecruitmentApplications $directrecruitmentApplications
      */
     public function __construct(ApplicationChecklistAttachments $applicationChecklistAttachments, DirectRecruitmentApplicationChecklist $directRecruitmentApplicationChecklist, DocumentChecklist $documentChecklist, ValidationServices $validationServices,
     Storage $storage,DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices,
-    DirectRecruitmentServices $directRecruitmentServices, ApplicationSummaryServices $applicationSummaryServices)
+    DirectRecruitmentServices $directRecruitmentServices, ApplicationSummaryServices $applicationSummaryServices, DirectrecruitmentApplications $directrecruitmentApplications)
     {
         $this->applicationChecklistAttachments = $applicationChecklistAttachments;
         $this->directRecruitmentApplicationChecklist = $directRecruitmentApplicationChecklist;
@@ -46,6 +49,7 @@ class ApplicationChecklistAttachmentsServices
         $this->directRecruitmentApplicationChecklistServices = $directRecruitmentApplicationChecklistServices;
         $this->directRecruitmentServices = $directRecruitmentServices;
         $this->applicationSummaryServices = $applicationSummaryServices;
+        $this->directrecruitmentApplications = $directrecruitmentApplications;
     }
 
     /**
@@ -55,14 +59,35 @@ class ApplicationChecklistAttachmentsServices
     public function create($request) : mixed
     {
         $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
         if(!($this->validationServices->validate($params,$this->applicationChecklistAttachments->rules))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" => $params['application_id']]);
+        $companyArray = [];
+        array_push($companyArray, $params['company_id']);
+        
+        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" => $params['application_id'], "company_id" => $companyArray]);
+       
+        if(is_null($directRecruitmentApplicationChecklist)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        $documentChecklistCheck = $this->documentChecklist->with(['sectors' => function ($query) {
+            $query->select('id', 'company_id');
+        }])->find($request['document_checklist_id']);
+    
+        if(is_null($documentChecklistCheck)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        if($documentChecklistCheck['sectors']['company_id'] != $params['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
@@ -121,15 +146,24 @@ class ApplicationChecklistAttachmentsServices
             ];
         }
         $user = JWTAuth::parseToken()->authenticate();
-        $directrecruitmentApplicationAttachment = $this->applicationChecklistAttachments->find($request['id']);
+       
+        $directrecruitmentApplicationAttachment = $this->applicationChecklistAttachments
+                                    ->join('directrecruitment_applications', function ($join) use($request) {
+                                        $join->on('directrecruitment_applications.id', '=', 'application_checklist_attachments.application_id')
+                                        ->where('directrecruitment_applications.company_id', $request['company_id']);
+                                    })->find($request['id']);
         if(is_null($directrecruitmentApplicationAttachment)){
             return [
                 "isDeleted" => false,
                 "message" => "Data not found"
             ];
         }
-        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" =>  $directrecruitmentApplicationAttachment['application_id']]);
-       
+
+        $companyArray = [];
+        array_push($companyArray, $request['company_id']);
+
+        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" =>  $directrecruitmentApplicationAttachment['application_id'], "company_id" => $companyArray]);
+        
         $deleteApplicationChecklistAttachment = $directrecruitmentApplicationAttachment->delete();
         $res = [
             "isDeleted" => true,
@@ -176,6 +210,10 @@ class ApplicationChecklistAttachmentsServices
             ->where('application_checklist_attachments.application_id', '=', $request['application_id']);
           })
           ->leftJoin('directrecruitment_application_checklist', 'directrecruitment_application_checklist.id', 'application_checklist_attachments.application_checklist_id')
+          ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'application_checklist_attachments.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+          })
           ->with(["applicationChecklistAttachments" => function($attachment) use ($request){
                 $attachment->where('application_id',$request['application_id']);
             }])->orderBy('document_checklist.created_at','DESC')

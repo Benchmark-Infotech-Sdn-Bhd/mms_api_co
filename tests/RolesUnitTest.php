@@ -197,13 +197,13 @@ class RolesUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['name' => 'Manager'];
+        return ['name' => 'Manager','special_permission' => '', 'system_role' => 0, 'status' => 1, 'parent_id' => 0, 'company_id' => 1];
     }
     /**
      * @return array
      */
     public function updationData(): array
     {
-        return ['id' => 1, 'name' => 'Manager'];
+        return ['id' => 1, 'name' => 'Manager', 'special_permission' => '', 'system_role' => 0, 'status' => 1, 'parent_id' => 0, 'company_id' => 1];
     }
 }

@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Laravel\Lumen\Testing\DatabaseMigrations;
+use Illuminate\Support\Carbon;
 
 class DirectRecruitmentApplicationSummaryUnitTest extends TestCase
 {
@@ -106,7 +107,12 @@ class DirectRecruitmentApplicationSummaryUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Administrator'
+            'name' => 'Administrator',
+            'special_permission' => '',
+            'system_role' => 0,
+            'status' => 1,
+            'parent_id' => 0,
+            'company_id' => 1
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
 
@@ -126,7 +132,8 @@ class DirectRecruitmentApplicationSummaryUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -163,14 +170,65 @@ class DirectRecruitmentApplicationSummaryUnitTest extends TestCase
         $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
 
         $payload = [
+            'id' => 1, 
+            'crm_prospect_id' => 1, 
+            'quota_applied' => 100, 
+            'person_incharge' => 'test', 
+            'cost_quoted' => 10.22, 
+            'remarks' => 'test'
+        ];
+        $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
+
+        $payload = [
+            'id' => 1, 
             'application_id' => 1, 
-            'submission_date' => '2023-05-31', 
-            'applied_quota' => 10, 
-            'status' => 'Submitted', 
-            'ksm_reference_number' => 
-            'My/643/7684548', 
+            'item_name' => 'Document Checklist', 
+            'application_checklist_status' => 'Completed', 
+            'remarks' => 'test', 
+            'file_url' => 'test'
+        ];
+        $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/update', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'submission_date' => Carbon::now()->format('Y-m-d'), 
+            'applied_quota' => 50, 
+            'status' => 'Approved', 
+            'ksm_reference_number' => 'My/643/7684548', 
             'remarks' => 'test'
         ];
         $this->json('POST', 'api/v1/fwcms/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'ksm_reference_number' => 'My/643/7684548', 
+            'schedule_date' => Carbon::now()->format('Y-m-d'), 
+            'approved_quota' => 50, 
+            'approval_date' => Carbon::now()->format('Y-m-d'),
+            'status' => 'Approved',
+            'remarks' => 'test'
+        ];
+        $this->json('POST', 'api/v1/applicationInterview/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'payment_date' => Carbon::now()->format('Y-m-d'), 
+            'payment_amount' => 10.87, 
+            'approved_quota' => 50, 
+            'ksm_reference_number' => 'My/643/7684548', 
+            'payment_reference_number' => 'SVZ498787', 
+            'approval_number' => 'ADR4674', 
+            'new_ksm_reference_number' => 'My/992/095648000', 
+            'remarks' => 'test create'
+        ];
+        $this->json('POST', 'api/v1/levy/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'application_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648000', 
+            'received_date' => Carbon::now()->format('Y-m-d'), 
+            'valid_until' => Carbon::now()->addYear()->format('Y-m-d')
+        ];
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $payload, $this->getHeader(false));
     }
 }

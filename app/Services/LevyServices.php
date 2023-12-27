@@ -93,9 +93,12 @@ class LevyServices
      */
     public function list($request): mixed
     {
-        return $this->levy->where('application_id', $request['application_id'])
-        ->select('id', 'application_id', 'item', 'payment_date', 'payment_amount', 'approved_quota', 'status', \DB::raw('(CASE WHEN status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
-        ->orderBy('id', 'desc')
+        return $this->levy->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'levy.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })->where('levy.application_id', $request['application_id'])
+        ->select('levy.id', 'levy.application_id', 'levy.item', 'levy.payment_date', 'levy.payment_amount', 'levy.approved_quota', 'levy.status', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
+        ->orderBy('levy.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
@@ -105,7 +108,11 @@ class LevyServices
     public function show($request): mixed
     {
         return $this->levy
-        ->select('*', \DB::raw('(CASE WHEN status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'levy.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        ->select('levy.*', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
         ->find($request['id']);
     }
     /**
@@ -118,6 +125,13 @@ class LevyServices
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+
+        $applicationCheck = $this->directrecruitmentApplications->find($request['application_id']);
+        if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
             ];
         }
         $approvedInterviewQuota = $this->applicationInterviews->where('ksm_reference_number', $request['ksm_reference_number'])->sum('approved_quota');
@@ -187,6 +201,17 @@ class LevyServices
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+        $levyDetails = $this->levy->findOrFail($request['id']);
+        $applicationCheck = $this->directrecruitmentApplications->find($request['application_id']);
+        if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($request['application_id'] != $levyDetails->application_id) {
+            return [
+                'InvalidUser' => true
             ];
         }
         $approvedInterviewQuota = $this->applicationInterviews->where('ksm_reference_number', $request['ksm_reference_number'])->sum('approved_quota');

@@ -42,7 +42,7 @@ class TotalManagementSupervisorServices
         ->whereIn('employee.company_id', $request['company_id'])
         ->where('total_management_project.supervisor_id', '!=', 0)
         ->select('total_management_project.supervisor_id', 'total_management_project.supervisor_type')
-        ->selectRaw('IF(total_management_project.supervisor_type = "employee", employee.employee_name, supervisorTransportation.driver_name) as supervisor_name, IF(total_management_project.supervisor_type = "employee", users.email, supervisorTransportation.driver_email) as email, IF(total_management_project.supervisor_type = "employee", employee.contact_number, supervisorTransportation.driver_contact_number) as contact_number')
+        ->selectRaw("(CASE WHEN (total_management_project.supervisor_type = 'employee') THEN employee.employee_name WHEN (total_management_project.supervisor_type = 'driver') THEN supervisorTransportation.driver_name ELSE null END) as supervisor_name, (CASE WHEN (total_management_project.supervisor_type = 'employee') THEN users.email WHEN (total_management_project.supervisor_type = 'driver') THEN supervisorTransportation.driver_email ELSE null END) as email, (CASE WHEN (total_management_project.supervisor_type = 'employee') THEN employee.contact_number WHEN (total_management_project.supervisor_type = 'driver') THEN supervisorTransportation.driver_contact_number ELSE null END) as contact_number")
         ->distinct('total_management_project.supervisor_id')
         ->groupBy('total_management_project.supervisor_id', 'total_management_project.supervisor_type','employee.employee_name', 'supervisorTransportation.driver_name', 'users.email', 'employee.contact_number', 'supervisorTransportation.driver_email', 'supervisorTransportation.driver_contact_number')
         ->orderBy('total_management_project.id', 'desc')
@@ -80,7 +80,7 @@ class TotalManagementSupervisorServices
         })
         ->whereIn('employee.company_id', $request['company_id'])
         ->select('crm_prospects.company_name', 'total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.employee_id', 'employee.employee_name', 'employee.position', 'total_management_project.transportation_provider_id', 'vendors.name as vendor_name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.created_at','total_management_project.supervisor_id', 'total_management_project.supervisor_type')
-        ->selectRaw('IF(total_management_project.supervisor_type = "employee", employee.employee_name, supervisorTransportation.driver_name) as supervisor_name')
+        ->selectRaw("(CASE WHEN (total_management_project.supervisor_type = 'employee') THEN employee.employee_name WHEN (total_management_project.supervisor_type = 'driver') THEN supervisorTransportation.driver_name ELSE null END) as supervisor_name")
         ->distinct('total_management_project.id')
         ->orderBy('total_management_project.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));

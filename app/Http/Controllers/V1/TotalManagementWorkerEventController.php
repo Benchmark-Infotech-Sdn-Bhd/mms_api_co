@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Support\Facades\Config;
+use App\Services\AuthServices;
 
 class TotalManagementWorkerEventController extends Controller
 {
@@ -16,14 +17,20 @@ class TotalManagementWorkerEventController extends Controller
      * @var WorkerEventServices
      */
     private $workerEventServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementWorkerEventController constructor.
      * @param WorkerEventServices $workerEventServices
+     * @param AuthServices $authServices
      */
-    public function __construct(WorkerEventServices $workerEventServices) 
+    public function __construct(WorkerEventServices $workerEventServices, AuthServices $authServices) 
     {
         $this->workerEventServices = $workerEventServices;
+        $this->authServices = $authServices;
     }
     /**
      * Dispaly all events for a worker.
@@ -77,6 +84,8 @@ class TotalManagementWorkerEventController extends Controller
                 return $this->validationError($response['error']);
             } else if(isset($response['maxIdError'])) {
                 return $this->sendError(['message' => 'Sorry! Cannot Update the Past Events'], 422);
+            }else if(isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Event Updated Sussessfully']);
         } catch (Exception $e) {
@@ -95,6 +104,9 @@ class TotalManagementWorkerEventController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->workerEventServices->show($params);
+            if(is_null($response)){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

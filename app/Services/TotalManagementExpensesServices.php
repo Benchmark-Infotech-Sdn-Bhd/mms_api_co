@@ -129,7 +129,13 @@ class TotalManagementExpensesServices
     {
         return $this->totalManagementExpenses::with(['totalManagementExpensesAttachments' => function ($query) {
             $query->orderBy('created_at', 'desc');
-        }])->findOrFail($request['id']);
+        }])
+        ->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'total_management_expenses.worker_id')
+                ->whereIn('workers.company_id', $request['company_id']);
+        })
+        ->select('total_management_expenses.*')
+        ->find($request['id']);
     }
     /**
      * @param $request
@@ -194,7 +200,19 @@ class TotalManagementExpensesServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['modified_by'] = $user['id'];
-        $expense = $this->totalManagementExpenses->findOrFail($request['id']);
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        $expense = $this->totalManagementExpenses
+        ->join('workers', function ($join) use ($params) {
+            $join->on('workers.id', '=', 'total_management_expenses.worker_id')
+                ->whereIn('workers.company_id', $params['company_id']);
+        })
+        ->select('total_management_expenses.*')
+        ->find($request['id']);
+        if(is_null($expense)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
         $expense->worker_id = $params['worker_id'] ?? $expense->worker_id;
         $expense->application_id = $params['application_id'] ?? $expense->application_id;
         $expense->project_id = $params['project_id'] ?? $expense->project_id;
@@ -232,7 +250,18 @@ class TotalManagementExpensesServices
      */
     public function delete($request) : bool
     {
-        $expense = $this->totalManagementExpenses->findOrFail($request['id']);
+        $expense = $this->totalManagementExpenses
+        ->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'total_management_expenses.worker_id')
+                ->whereIn('workers.company_id', $request['company_id']);
+        })
+        ->select('total_management_expenses.id')
+        ->find($request['id']);
+
+        if(is_null($expense)){
+            return false;
+        }
+
         $expense->delete();
         return true;
     }
@@ -243,7 +272,16 @@ class TotalManagementExpensesServices
      */    
     public function deleteAttachment($request): bool
     {   
-        $data = $this->totalManagementExpensesAttachments::find($request['id']); 
+        $data = $this->totalManagementExpensesAttachments::join('total_management_expenses', 'total_management_expenses.id', 'total_management_expenses_attachments.file_id')
+        ->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'total_management_expenses.worker_id')
+                ->whereIn('workers.company_id', $request['company_id']);
+        })
+        ->select('total_management_expenses.id')
+        ->find($request['id']); 
+        if(is_null($data)){
+            return false;
+        }
         $data->delete();
         return true;
     }
@@ -261,7 +299,9 @@ class TotalManagementExpensesServices
         }
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
-        $expense = $this->totalManagementExpenses->findOrFail($request['id']);
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        $expense = $this->totalManagementExpenses->leftJoin('workers', 'workers.id', 'total_management_expenses.worker_id')
+        ->whereIn('workers.company_id', $params['company_id'])->findOrFail($request['id']);
         $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;
         if($totalPayBack > $expense->amount) {

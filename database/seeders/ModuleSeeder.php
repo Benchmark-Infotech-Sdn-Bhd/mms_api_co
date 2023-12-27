@@ -14,7 +14,7 @@ class ModuleSeeder extends Seeder
     public function run(): void
     {
         Module::create(['id' => 1, 'module_name' => 'Dashboard', 'module_url' => '', 'parent_id' => 0, 'order_id' => 1, 'status' => 1]);
-        Module::create(['id' => 2, 'module_name' => 'Maintain Masters', 'module_url' => '', 'parent_id' => 0, 'order_id' => 2, 'status' => 0]);
+        Module::create(['id' => 2, 'module_name' => 'Maintain Masters', 'module_url' => '', 'parent_id' => 0, 'order_id' => 2, 'status' => 1]);
         Module::create(['id' => 3, 'module_name' => 'Branches', 'module_url' => '', 'parent_id' => 0, 'order_id' => 3, 'status' => 1]);
         Module::create(['id' => 4, 'module_name' => 'CRM', 'module_url' => '', 'parent_id' => 0, 'order_id' => 4, 'status' => 1]);
         Module::create(['id' => 5, 'module_name' => 'Direct Recruitment', 'module_url' => '', 'parent_id' => 0, 'order_id' => 5, 'status' => 1]);
@@ -26,5 +26,7 @@ class ModuleSeeder extends Seeder
         Module::create(['id' => 11, 'module_name' => 'Dispatch Management', 'module_url' => '', 'parent_id' => 0, 'order_id' => 11, 'status' => 1]);
         Module::create(['id' => 12, 'module_name' => 'Invoice', 'module_url' => '', 'parent_id' => 0, 'order_id' => 12, 'status' => 1]);
         Module::create(['id' => 13, 'module_name' => 'Reports', 'module_url' => '', 'parent_id' => 0, 'order_id' => 13, 'status' => 1]);
+        Module::create(['id' => 14, 'module_name' => 'User', 'module_url' => '', 'parent_id' => 0, 'order_id' => 14, 'status' => 1]);
+        Module::create(['id' => 15, 'module_name' => 'Company', 'module_url' => '', 'parent_id' => 0, 'order_id' => 15, 'status' => 1]);
     }
 }

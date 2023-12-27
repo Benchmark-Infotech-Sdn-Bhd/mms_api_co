@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\EContractExpenses;
 use App\Models\EContractExpensesAttachments;
+use App\Models\EContractApplications;
+use App\Models\EContractProject;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
 use Illuminate\Support\Facades\Validator;
@@ -25,16 +27,33 @@ class EContractExpensesServices
      */
     private Storage $storage;
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
+     * @var EContractApplications
+     */
+    private EContractApplications $eContractApplications;
+    /**
+     * @var EContractProject    
+     */
+    private EContractProject $eContractProject;
+    /**
      * EContractExpensesServices constructor.
      * @param EContractExpenses $eContractExpenses
      * @param EContractExpensesAttachments $eContractExpensesAttachments
      * @param Storage $storage
+     * @param AuthServices $authServices
+     * @param EContractApplications $eContractApplications
      */
-    public function __construct(EContractExpenses $eContractExpenses, EContractExpensesAttachments $eContractExpensesAttachments, Storage $storage)
+    public function __construct(EContractExpenses $eContractExpenses, EContractExpensesAttachments $eContractExpensesAttachments, Storage $storage, AuthServices $authServices, EContractApplications $eContractApplications, EContractProject $eContractProject)
     {
         $this->eContractExpenses = $eContractExpenses;
         $this->eContractExpensesAttachments = $eContractExpensesAttachments;
         $this->storage = $storage;
+        $this->authServices = $authServices;
+        $this->eContractApplications = $eContractApplications;
+        $this->eContractProject = $eContractProject;
     }
     /**
      * @return array
@@ -97,6 +116,8 @@ class EContractExpensesServices
      */
     public function list($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
         if(isset($request['search']) && !empty($request['search'])){
             $validator = Validator::make($request, $this->searchValidation());
             if($validator->fails()) {
@@ -110,13 +131,18 @@ class EContractExpensesServices
                 $join->on('e-contract_expenses.id', '=', 'e-contract_expenses_attachments.file_id')
                 ->whereNull('e-contract_expenses_attachments.deleted_at');
             })
+            ->join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
+            ->join('e-contract_applications', function($query) use($params) {
+                $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+                ->where('e-contract_applications.company_id', $params['company_id']);
+            })
             ->where('e-contract_expenses.worker_id', $request['worker_id'])
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
                     $query->where('e-contract_expenses.title', 'like', '%'. $request['search']. '%');
                 }
             })
-            ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.amount', 'e-contract_expenses.deduction', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount_paid', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses_attachments.file_name','e-contract_expenses_attachments.file_url', 'e-contract_expenses.invoice_number')
+            ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.amount', 'e-contract_expenses.deduction', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount_paid', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses_attachments.file_name','e-contract_expenses_attachments.file_url', 'e-contract_expenses.invoice_number','e-contract_expenses.created_at')
             ->distinct()
             ->orderBy('e-contract_expenses.created_at','DESC')
             ->paginate(Config::get('services.paginate_row'));
@@ -127,9 +153,19 @@ class EContractExpensesServices
      */
     public function show($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
+
         return $this->eContractExpenses::with(['eContractExpensesAttachments' => function ($query) {
             $query->orderBy('created_at', 'desc');
-        }])->findOrFail($request['id']);
+        }])
+        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
+        ->join('e-contract_applications', function($query) use($params) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $params['company_id']);
+        })
+        ->select('e-contract_expenses.*')
+        ->find($request['id']);
     }
     /**
      * @param $request
@@ -137,6 +173,30 @@ class EContractExpensesServices
      */
     public function create($request): bool|array
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $applicationData = $this->eContractApplications->where('e-contract_applications.company_id', $user['company_id'])
+        ->select('e-contract_applications.id')
+        ->find($request['application_id']);
+        
+        if(is_null($applicationData)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
+        $projectData = $this->eContractProject
+        ->join('e-contract_applications', function($query) use($user) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $user['company_id']);
+        })
+        ->select('e-contract_project.application_id')
+        ->find($request['project_id']);
+        
+        if(is_null($projectData)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
+
         $validator = Validator::make($request->toArray(), $this->createValidation());
         if($validator->fails()) {
             return [
@@ -194,7 +254,19 @@ class EContractExpensesServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['modified_by'] = $user['id'];
-        $expense = $this->eContractExpenses->findOrFail($request['id']);
+        $expense = $this->eContractExpenses::join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
+        ->join('e-contract_applications', function($query) use($user) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $user['company_id']);
+        })
+        ->select('e-contract_expenses.*')
+        ->find($request['id']);
+        if(is_null($expense)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
+
         $expense->worker_id = $params['worker_id'] ?? $expense->worker_id;
         $expense->application_id = $params['application_id'] ?? $expense->application_id;
         $expense->project_id = $params['project_id'] ?? $expense->project_id;
@@ -232,7 +304,21 @@ class EContractExpensesServices
      */
     public function delete($request) : bool
     {
-        $expense = $this->eContractExpenses->findOrFail($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
+    
+        $expense = $this->eContractExpenses::join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
+        ->join('e-contract_applications', function($query) use($user) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $user['company_id']);
+        })
+        ->select('e-contract_expenses.*')
+        ->find($request['id']);
+
+        if(is_null($expense)){
+            return false;
+        }
+
         $expense->delete();
         return true;
     }
@@ -243,7 +329,24 @@ class EContractExpensesServices
      */    
     public function deleteAttachment($request): bool
     {   
-        $data = $this->eContractExpensesAttachments::find($request['id']); 
+        //$data = $this->eContractExpensesAttachments::find($request['id']); 
+
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
+    
+        $data = $this->eContractExpensesAttachments::join('e-contract_expenses', 'e-contract_expenses.id', 'e-contract_expenses_attachments.file_id')
+        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
+        ->join('e-contract_applications', function($query) use($user) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $user['company_id']);
+        })
+        ->select('e-contract_expenses_attachments.*')
+        ->find($request['id']);
+
+        if(is_null($data)){
+            return false;
+        }
+
         $data->delete();
         return true;
     }
@@ -261,7 +364,20 @@ class EContractExpensesServices
         }
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
-        $expense = $this->eContractExpenses->findOrFail($request['id']);
+        //$expense = $this->eContractExpenses->findOrFail($request['id']);
+        $expense = $this->eContractExpenses::join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
+        ->join('e-contract_applications', function($query) use($user) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $user['company_id']);
+        })
+        ->select('e-contract_expenses.*')
+        ->find($request['id']);
+
+        if(is_null($expense)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
         $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;
         if($totalPayBack > $expense->amount) {

@@ -403,7 +403,7 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmQuotaUpdate', $this->ksmQuotaUpdationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'An Agent has been assigned to this record; users cannot edit the records']
+            'data' => ['message' => 'An Agent has been assigned to this record; users cannot edit the records']
         ]);
     }
     /**

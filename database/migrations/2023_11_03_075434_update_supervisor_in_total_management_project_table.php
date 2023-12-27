@@ -11,11 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('total_management_project', function (Blueprint $table) {
-            // Column for supervisor id
-            $table->bigInteger('supervisor_id')->unsigned()->after('address');
-            // Column for supervisor type
-            $table->enum('supervisor_type', ['employee', 'driver'])->after('supervisor_id');
+        Schema::table('total_management_project', function (Blueprint $table) {            
+            if (DB::getDriverName() === 'sqlite') {
+                // Column for supervisor id
+                $table->bigInteger('supervisor_id')->default(0)->unsigned()->after('address');
+                // Column for supervisor type
+                $table->enum('supervisor_type', ['employee', 'driver'])->default('')->after('supervisor_id');
+            } else {
+                // Column for supervisor id
+                $table->bigInteger('supervisor_id')->unsigned()->after('address');
+                // Column for supervisor type
+                $table->enum('supervisor_type', ['employee', 'driver'])->after('supervisor_id');
+            }
+            
         });
     }
 

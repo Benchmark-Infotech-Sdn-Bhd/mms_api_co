@@ -340,10 +340,18 @@ class WorkersServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['modified_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
 
         if(!($this->validationServices->validate($request->toArray(),$this->workers->rulesForUpdation($request['id'])))){
             return [
                 'validate' => $this->validationServices->errors()
+            ];
+        }
+
+        $workerData = $this->workers::where('company_id', $params['company_id'])->find($request['id']);
+        if(is_null($workerData)){
+            return [
+                'unauthorizedError' => true
             ];
         }
 
@@ -599,6 +607,9 @@ class WorkersServices
                 'validate' => $this->validationServices->errors()
             ];
         }
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         return $this->workers
         ->select('workers.id', 'workers.onboarding_country_id','workers.agent_id','workers.application_id','workers.name','workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'workers.passport_valid_until', 'workers.fomema_valid_until','workers.address', 'workers.status', 'workers.cancel_status', 'workers.remarks','workers.city','workers.state', 'workers.special_pass', 'workers.special_pass_submission_date', 'workers.special_pass_valid_until', 'workers.plks_status', 'workers.plks_expiry_date', 'workers.directrecruitment_status', 'workers.created_by','workers.modified_by', 'workers.crm_prospect_id', 'workers.total_management_status', 'workers.econtract_status', 'workers.module_type')
         ->with(['directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails', 'workerFomemaAttachments', 'workerEmployment' => function ($query) {
@@ -636,7 +647,9 @@ class WorkersServices
         WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospect_services_dr.sector_name 
         ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_sector")
         ->distinct('worker_employment.worker_id', 'worker_employment.project_id');
-        }])->findOrFail($request['id']);
+        }])
+        ->whereIn('workers.company_id', $request['company_id'])
+        ->find($request['id']);
     }
     
     /**
@@ -783,8 +796,11 @@ class WorkersServices
      */
     public function updateStatus($request) : array
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $user['company_id'];
         $worker = $this->workers
         ->where('id', $request['id'])
+        ->where('company_id',$request['company_id'])
         ->update(['status' => $request['status']]);
         return  [
             "isUpdated" => $worker,
@@ -824,9 +840,11 @@ class WorkersServices
     public function replaceWorker($request) : array
     {
         $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $user['company_id'];
 
         $worker = $this->workers
         ->where('id', $request['id'])
+        ->where('company_id',$request['company_id'])
         ->update([
             'replace_worker_id' => $request['replace_worker_id'],
             'replace_by' => $user['id'],
@@ -940,16 +958,24 @@ class WorkersServices
     public function createBankDetails($request) : mixed
     {
 
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
+
+        $workerData = $this->workers::where('company_id', $params['company_id'])->find($request['worker_id']);
+        if(is_null($workerData)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
+
         $workerBankDetail = $this->workerBankDetails::where('worker_id', $request['worker_id'])->count();
         if(isset($workerBankDetail) && $workerBankDetail > 3){
             return [
                 'workerCountError' => true 
             ];
         }
-
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
 
         //$workerBankDetail = $this->workerBankDetails::findOrFail($request['id']);
         
@@ -969,6 +995,17 @@ class WorkersServices
      */
     public function updateBankDetails($request): bool|array
     {
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['modified_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
+
+        $workerData = $this->workers::where('company_id', $params['company_id'])->find($request['worker_id']);
+        if(is_null($workerData)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
 
         $workerBankDetail = $this->workerBankDetails::where('worker_id', $request['worker_id'])->count();
         
@@ -977,10 +1014,6 @@ class WorkersServices
                 'workerCountError' => true 
             ];
         }
-
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['modified_by'] = $user['id'];
 
         $workerBankDetail = $this->workerBankDetails::findOrFail($request['id']);
         $workerBankDetail->worker_id = $request['worker_id'] ?? $workerBankDetail->worker_id;
@@ -999,12 +1032,18 @@ class WorkersServices
      */
     public function showBankDetails($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->workerBankDetails->findOrFail($request['id']);
+        return $this->workerBankDetails->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'worker_bank_details.worker_id')
+                 ->whereIn('workers.company_id', $request['company_id']);
+        })->select('worker_bank_details.*')->find($request['id']);
     }
 
     /**
@@ -1043,7 +1082,13 @@ class WorkersServices
      */    
     public function deleteBankDetails($request): mixed
     {   
-        $workerBankDetail = $this->workerBankDetails::find($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        $workerBankDetail = $this->workerBankDetails->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'worker_bank_details.worker_id')
+                 ->whereIn('workers.company_id', $request['company_id']);
+        })->select('worker_bank_details.id')->find($request['id']);
 
         if(is_null($workerBankDetail)){
             return [
@@ -1067,6 +1112,7 @@ class WorkersServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
 
         $validator = Validator::make($request->toArray(), $this->addAttachmentValidation());
         if($validator->fails()) {
@@ -1074,7 +1120,7 @@ class WorkersServices
                 'error' => $validator->errors()
             ];
         }
-        $workerExists = $this->workers->find($request['worker_id']);
+        $workerExists = $this->workers::where('company_id', $params['company_id'])->find($request['worker_id']);
         if(is_null($workerExists)) {
             return ['workerError' => true];
         }
@@ -1119,7 +1165,13 @@ class WorkersServices
      */    
     public function deleteAttachment($request): bool
     {   
-        $data = $this->workerAttachments->find($request['attachment_id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        $data = $this->workerAttachments->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'worker_attachments.file_id')
+                 ->whereIn('workers.company_id', $request['company_id']);
+        })->select('worker_attachments.id')->find($request['attachment_id']);
         if(is_null($data)) {
             return false;
         }

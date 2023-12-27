@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\TotalManagementExpensesServices;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 use Exception;
 
 class TotalManagementExpensesController extends Controller
@@ -15,14 +17,20 @@ class TotalManagementExpensesController extends Controller
      * @var totalManagementExpensesServices
      */
     private TotalManagementExpensesServices $totalManagementExpensesServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementExpensesController constructor.
      * @param TotalManagementExpensesServices $totalManagementExpensesServices
+     * @param AuthServices $authServices
      */
-    public function __construct(TotalManagementExpensesServices $totalManagementExpensesServices)
+    public function __construct(TotalManagementExpensesServices $totalManagementExpensesServices, AuthServices $authServices)
     {
         $this->totalManagementExpensesServices = $totalManagementExpensesServices;
+        $this->authServices = $authServices;
     }
      /**
      * Expense list
@@ -54,7 +62,12 @@ class TotalManagementExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementExpensesServices->show($params);
+            if(is_null($data)){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -92,6 +105,8 @@ class TotalManagementExpensesController extends Controller
             $data = $this->totalManagementExpensesServices->update($request);
             if(isset($data['error'])){
                 return $this->validationError($data['error']); 
+            }else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Expense Updated Successfully']);
         } catch (Exception $e) {
@@ -109,7 +124,12 @@ class TotalManagementExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $this->totalManagementExpensesServices->delete($params);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $data = $this->totalManagementExpensesServices->delete($params);
+            if($data == false) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess(['message' => 'Expense Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -126,7 +146,12 @@ class TotalManagementExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $this->totalManagementExpensesServices->deleteAttachment($params);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $data = $this->totalManagementExpensesServices->deleteAttachment($params);
+            if($data == false) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess(['message' => 'Attachment Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -143,6 +168,8 @@ class TotalManagementExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementExpensesServices->payBack($params);
             if(isset($data['error'])){
                 return $this->validationError($data['error']); 

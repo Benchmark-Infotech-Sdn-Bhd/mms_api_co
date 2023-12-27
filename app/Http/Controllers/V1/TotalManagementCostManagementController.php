@@ -10,6 +10,7 @@ use App\Services\WorkersServices;
 use App\Services\TotalManagementCostManagementServices;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 
 class TotalManagementCostManagementController extends Controller
 {
@@ -17,14 +18,20 @@ class TotalManagementCostManagementController extends Controller
      * @var totalManagementCostManagementServices
      */
     private TotalManagementCostManagementServices $totalManagementCostManagementServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementCostManagementServices constructor.
      * @param TotalManagementCostManagementServices $totalManagementCostManagementServices
+     * @param AuthServices $authServices
      */
-    public function __construct(TotalManagementCostManagementServices $totalManagementCostManagementServices)
+    public function __construct(TotalManagementCostManagementServices $totalManagementCostManagementServices, AuthServices $authServices)
     {
         $this->totalManagementCostManagementServices = $totalManagementCostManagementServices;
+        $this->authServices = $authServices;
     }
     /**
      * Show the form for creating a new Cost Management.
@@ -60,6 +67,8 @@ class TotalManagementCostManagementController extends Controller
             $data = $this->totalManagementCostManagementServices->update($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -79,9 +88,13 @@ class TotalManagementCostManagementController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->totalManagementCostManagementServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }elseif(is_null($data)){
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -124,6 +137,8 @@ class TotalManagementCostManagementController extends Controller
     {  
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementCostManagementServices->delete($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -141,7 +156,10 @@ class TotalManagementCostManagementController extends Controller
     public function deleteAttachment(Request $request): JsonResponse
     {   
         try {
-            $response = $this->totalManagementCostManagementServices->deleteAttachment($request);
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $response = $this->totalManagementCostManagementServices->deleteAttachment($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

@@ -62,7 +62,14 @@ class EContractController extends Controller
     public function addService(Request $request): JsonResponse
     {
         try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_ids'] = $this->authServices->getCompanyIds($user);
+            $request['company_id'] = $user['company_id'];
+            $request['created_by'] = $user['id'];
             $response = $this->eContractServices->addService($request);
+            if (isset($response['unauthorizedError'])) {
+                return $this->sendError($response['unauthorizedError']);
+            }
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -80,7 +87,14 @@ class EContractController extends Controller
     public function proposalSubmit(Request $request): JsonResponse
     {
         try {
+            $user = JWTAuth::parseToken()->authenticate();
+            //$request['company_id'] = $this->authServices->getCompanyIds($user);
+            $request['created_by'] = $user['id'];
+            $request['company_id'] = $user['company_id'];
             $response = $this->eContractServices->submitProposal($request);
+            if (isset($response['unauthorizedError'])) {
+                return $this->sendError($response['unauthorizedError']);
+            }
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -99,7 +113,12 @@ class EContractController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->eContractServices->showProposal($params);
+            if(is_null($response) || count($response->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -118,7 +137,12 @@ class EContractController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->eContractServices->allocateQuota($params);
+            if (isset($response['unauthorizedError'])) {
+                return $this->sendError($response['unauthorizedError']);
+            }
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -137,7 +161,13 @@ class EContractController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->eContractServices->showService($params);
+            //dd($response->toArray()); exit;
+            if(is_null($response) || count($response->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             }

@@ -548,7 +548,7 @@ class EContractServiceUnitTest extends TestCase
      */
     public function getQuotaData(): array
     {
-        return ['prospect_service_id' => 1, 'fomnext_quota' => 10, 'air_ticket_deposit' => 1.11];
+        return ['id' => 1, 'prospect_service_id' => 1, 'fomnext_quota' => 10, 'air_ticket_deposit' => 1.11];
     }
     /**
      * @return array

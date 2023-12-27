@@ -99,7 +99,7 @@ class VendorServices
      *
      * @param $request
      * @return LengthAwarePaginator
-     */
+     */ 
     public function list($request)
     {
         return $this->vendor::with('accommodations', 'insurances', 'transportations')
@@ -130,7 +130,7 @@ class VendorServices
     {   
         return $this->vendor::with(['vendorAttachments' => function ($query) {
             $query->orderBy('created_at', 'desc');
-        }])->findOrFail($request['id']);
+        }])->where('company_id', $request['company_id'])->find($request['id']);
         // $accommodations = $vendors->accommodations;
         // $insurances = $vendors->insurances;
         // $transportations = $vendors->transportations;
@@ -145,7 +145,13 @@ class VendorServices
     public function update($request): mixed
     {  
         $input = $request->all();
-        $vendors = $this->vendor::findorfail($input['id']);
+        $vendors = $this->vendor::where('company_id', $input['company_id'])->find($input['id']);
+        if(is_null($vendors)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
         $user = JWTAuth::parseToken()->authenticate();
         $input["modified_by"] = $user['id'];
         if (request()->hasFile('attachment')){
@@ -178,7 +184,7 @@ class VendorServices
      */    
     public function delete($request): mixed
     {   
-        $vendors = $this->vendor::find($request['id']);
+        $vendors = $this->vendor::where('company_id', $request['company_id'])->find($request['id']);
 
         if(is_null($vendors)){
             return [
@@ -203,7 +209,13 @@ class VendorServices
      */    
     public function deleteAttachment($request): mixed
     {   
-        $data = $this->vendorAttachments::find($request['id']); 
+        $data = $this->vendorAttachments
+        ->join('vendors', function($query) use($request) {
+            $query->on('vendors.id','=','vendor_attachments.file_id')
+            ->where('vendors.company_id', $request['company_id']);
+        })
+        ->select('vendors.*')
+        ->find($request['id']); 
         if(is_null($data)){
             return [
                 "isDeleted" => false,

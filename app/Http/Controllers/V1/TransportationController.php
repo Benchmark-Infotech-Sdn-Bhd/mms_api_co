@@ -38,6 +38,9 @@ class TransportationController extends Controller
                 return $this->validationError($validation);
             }
             $response = $this->transportationServices->create($request); 
+            if (isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => $response['unauthorizedError']]);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

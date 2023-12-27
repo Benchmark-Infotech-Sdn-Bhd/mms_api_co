@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('worker_employment', function (Blueprint $table) {
-            $table->string('transfer_start_date')->change();
-            $table->string('transfer_end_date')->change();
+        Schema::table('agent', function (Blueprint $table) {
+            // Column for agent code
+            $table->string('agent_code')->nullable();
         });
     }
 

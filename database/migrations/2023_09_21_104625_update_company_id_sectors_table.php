@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sectors', function (Blueprint $table) {
-            // Column for company id
-            $table->bigInteger('company_id')->unsigned();
+            if (DB::getDriverName() === 'sqlite') {
+                // Column for company id
+                $table->bigInteger('company_id')->default(0)->unsigned();
+            } else {
+                // Column for company id
+                $table->bigInteger('company_id')->unsigned();
+            }
 
             // Foreign key from user table
             $table->foreign('company_id')->references('id')->on('company')->onDelete('cascade');

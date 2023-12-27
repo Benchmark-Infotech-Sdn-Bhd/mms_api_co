@@ -18,16 +18,23 @@ return new class extends Migration
                 $table->bigInteger('worker_id')->unsigned()->after('id')->change();
             }
             if (DB::getDriverName() === 'sqlite') {
-                $table->bigInteger('worker_id')->unsigned();
+                $table->bigInteger('worker_id')->default(0)->unsigned();
                 $table->string('type', 255)->nullable();
                 $table->decimal('deduction', 8,2)->default(0);
+                // Column for application id
+                $table->bigInteger('application_id')->default(0)->unsigned();
+                // Column for project id
+                $table->bigInteger('project_id')->default(0)->unsigned();
+            } else {
+                // Column for application id
+                $table->bigInteger('application_id')->unsigned();
+                // Column for project id
+                $table->bigInteger('project_id')->unsigned();
             }
-            // Column for application id
-            $table->bigInteger('application_id')->unsigned();
+            
             // Foreign key from total_management_applications table
             $table->foreign('application_id')->references('id')->on('total_management_applications')->onDelete('cascade');
-            // Column for project id
-            $table->bigInteger('project_id')->unsigned();
+            
             // Foreign key from total_management_project table
             $table->foreign('project_id')->references('id')->on('total_management_project')->onDelete('cascade');
             if (DB::getDriverName() !== 'sqlite') {

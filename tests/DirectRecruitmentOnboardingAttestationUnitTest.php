@@ -117,20 +117,20 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
             ]
         ]);
     }
-    // /**
-    //  * Functional test to Update dispatch onboarding attestation
-    //  * 
-    //  * @return void
-    //  */
-    // public function testToUpdateDispatchOnboardingAttestation(): void
-    // {
-    //     $this->creationSeeder();
-    //     $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/updateDispatch', $this->dipatchUpdateData(), $this->getHeader(false));
-    //     $response->seeStatusCode(200);
-    //     $response->seeJson([
-    //         'data' => ['message' => 'Dispatch Updated Successfully']
-    //     ]);
-    // }
+    /**
+     * Functional test to Update dispatch onboarding attestation
+     * 
+     * @return void
+     */
+    public function testToUpdateDispatchOnboardingAttestation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/updateDispatch', $this->dipatchUpdateData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Dispatch Updated Successfully']
+        ]);
+    }
     /**
      * Functional test to show embassy onboarding attestation
      * 
@@ -144,6 +144,72 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
         $this->response->assertJsonStructure([
             'data'
         ]);
+    }
+    /**
+     * Functional test to list embassy onboarding attestation
+     * 
+     * @return void
+     */
+    public function testToListEmbassyOnboardingAttestation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/listEmbassy', ['onboarding_attestation_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                []
+    ]);
+    }
+    /**
+     * Functional test to upload EmbassyFile onboarding attestation validation
+     * 
+     * @return void
+     */
+    public function testToUploadEmbassyFileEmbassyOnboardingAttestationValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/uploadEmbassyFile', array_merge($this->UploadEmbassyData(), ['onboarding_attestation_id' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'onboarding_attestation_id' => ['The onboarding attestation id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test to upload EmbassyFile onboarding attestation
+     * 
+     * @return void
+     */
+    public function testToUploadEmbassyFileEmbassyOnboardingAttestation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/uploadEmbassyFile', $this->UploadEmbassyData(), $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                []
+    ]);
+    }
+    /**
+     * Functional test to delete EmbassyFile onboarding attestation
+     * 
+     * @return void
+     */
+    public function testToDeleteEmbassyFileEmbassyOnboardingAttestation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/uploadEmbassyFile', $this->UploadEmbassyData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/deleteEmbassyFile', ['onboarding_embassy_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                []
+    ]);
     }
      /**
      * @return void
@@ -316,6 +382,17 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     /**
      * @return array
      */
+    public function attestationCreateData(): array
+    {
+        return [
+            "application_id" => 1,
+            "onboarding_country_id" => 1,
+            "ksm_reference_number" => "My/992/095648000"
+        ];
+    }
+    /**
+     * @return array
+     */
     public function attestationUpdateData(): array
     {
         return [
@@ -342,6 +419,18 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
                 "employer_name" => "test emp",
                 "phone_number" => "02123456789",
                 "remarks" => "remarks testing"
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function UploadEmbassyData(): array
+    {
+        return [
+            "onboarding_attestation_id" => 1,
+            "embassy_attestation_id" => 1,
+            "amount" => "100",
+            "attachment[]" => 'test.png'
         ];
     }
 }

@@ -489,6 +489,69 @@ class CompanyUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for Company assign module field validation 
+     * 
+     * @return void
+     */
+    public function testForCompanyAssignModuleCompanyIdFieldValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/assignModule', array_merge($this->assignModuleData(), ['company_id' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'company_id' => ['The company id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Company assign module field validation 
+     * 
+     * @return void
+     */
+    public function testForCompanyAssignModuleModulesFieldValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/assignModule', array_merge($this->assignModuleData(), ['modules' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'modules' => ['The modules field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Company assign module
+     * 
+     * @return void
+     */
+    public function testForCompanyAssignModule(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/assignModule', $this->assignModuleData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Module Assigned Successfully']
+        ]);
+    }
+    /**
+     * Functional test for Company assign module list
+     * 
+     * @return void
+     */
+    public function testForCompanyAssignModuleList(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/company/assignModule', $this->assignModuleData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/company/moduleList', ['company_id' => 1], $this->getHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+    /**
      * @return array
      */
     public function creationData(): array
@@ -501,5 +564,12 @@ class CompanyUnitTest extends TestCase
     public function updationData(): array
     {
         return ['id' => 2, 'company_name' => 'Test Company', 'register_number' => 'APS646-46876', 'country' => 'India', 'state' => 'TamilNadu', 'system_color' => '#cesser', 'file_url' => 'test.png'];
+    }
+    /**
+     * @return array
+     */
+    public function assignModuleData(): array
+    {
+        return ['company_id' => 1, 'modules' => [1]];
     }
 }

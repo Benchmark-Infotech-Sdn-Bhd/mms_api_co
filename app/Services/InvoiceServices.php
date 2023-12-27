@@ -368,13 +368,14 @@ class InvoiceServices
      */
     public function show($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
 
-        $invoiceData = $this->invoice->find($request['id']);
+        $invoiceData = $this->invoice->where('company_id', $user['company_id'])->find($request['id']);
         
         if(isset($invoiceData) && !empty($invoiceData)){
 
@@ -399,7 +400,7 @@ class InvoiceServices
             }
         }
 
-        $data = $this->invoice->with('invoiceItems')->find($request['id']);
+        $data = $this->invoice->with('invoiceItems')->where('company_id', $user['company_id'])->find($request['id']);
 
         if(is_null($data)){
             return [

@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 
 class AgentServices
 {
@@ -36,6 +37,9 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
+
+        $request['agent_code'] = $this->generateAgentCode();
+
         return $this->agent->create([
             'agent_name' => $request['agent_name'] ?? '',
             'country_id' => (int)$request['country_id'],
@@ -46,7 +50,8 @@ class AgentServices
             'company_address' => $request['company_address'] ?? '',
             'created_by'    => $request['created_by'] ?? 0,
             'modified_by'   => $request['created_by'] ?? 0,
-            'company_id' => $request['company_id'] ?? 0
+            'company_id' => $request['company_id'] ?? 0,
+            'agent_code' => $request['agent_code']
         ]);
     }
     /**
@@ -60,7 +65,7 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $agent = $this->agent->find($request['id']);
+        $agent = $this->agent->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($agent)){
             return [
                 "isUpdated" => false,
@@ -93,7 +98,7 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $agent = $this->agent->find($request['id']);
+        $agent = $this->agent->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($agent)){
             return [
                 "isDeleted" => false,
@@ -116,7 +121,8 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->agent->with('countries')->findOrFail($request['id']);
+        //return $this->agent->with('countries')->findOrFail($request['id']);
+        return $this->agent->with('countries')->whereIn('company_id', $request['company_id'])->where('id',$request['id'])->first();
     }
     /**
      * @param $request
@@ -140,7 +146,7 @@ class AgentServices
                     ->orWhere('city', 'like', '%'.$request['search_param'].'%')
                     ->orWhere('person_in_charge', 'like', '%'.$request['search_param'].'%');
             }
-        })->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge','agent.status')
+        })->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge','agent.status', 'agent.agent_code')
         ->orderBy('agent.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -155,7 +161,7 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $agent = $this->agent->with('countries')->find($request['id']);
+        $agent = $this->agent->with('countries')->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($agent)){
             return [
                 "isUpdated" => false,
@@ -207,5 +213,31 @@ class AgentServices
             }
         })
         ->select('id','agent_name')->orderBy('agent.created_at','DESC')->get();
+    }
+    /**
+     * @return
+     */
+    public function generateAgentCode()
+    {
+        $code = strtoupper(Str::random(8));
+        while (Agent::where('agent_code', $code)->exists()) {
+            $code = strtoupper(Str::random(8));
+        }
+        return $code;
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateAgentCode($request) : array
+    {
+        $request['agent_code'] = $this->generateAgentCode();
+        
+        $agent = $this->agent->where('id', $request['id'])
+        ->update(['agent_code' => $request['agent_code']]);
+        return  [
+            "isUpdated" => $agent,
+            "message" => "Updated Successfully"
+        ];
     }
 }

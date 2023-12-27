@@ -199,6 +199,10 @@ class TotalManagementPayrollServices
                 }
             })
             ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
+            ->join('total_management_applications', function ($join) use ($request) {
+                $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                    ->whereIn('total_management_applications.company_id', $request['company_id']);
+            })
             ->where('worker_employment.project_id', $request['project_id']) 
             ->where('worker_employment.service_type', 'Total Management')       
             ->where(function ($query) use ($request) {
@@ -241,6 +245,10 @@ class TotalManagementPayrollServices
             ->leftJoin('worker_bank_details', function($query) {
                 $query->on('worker_bank_details.worker_id','=','workers.id')
                     ->whereRaw('worker_bank_details.id IN (select MIN(WORKER_BANK.id) from worker_bank_details as WORKER_BANK JOIN workers as WORKER ON WORKER.id = WORKER_BANK.worker_id group by WORKER.id)');
+            })
+            ->join('total_management_applications', function ($join) use ($request) {
+                $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                     ->whereIn('total_management_applications.company_id', $request['company_id']);
             })
             ->where('total_management_payroll.id', $request['id'])       
             ->select('workers.id', 'workers.name', 'worker_bank_details.account_number', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'workers.passport_number', 'worker_employment.department', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
@@ -343,7 +351,17 @@ class TotalManagementPayrollServices
             ];
         }
 
-        $totalManagementPayroll = $this->totalManagementPayroll->findOrFail($request['id']);
+        $totalManagementPayroll = $this->totalManagementPayroll
+        ->join('total_management_project', 'total_management_project.id', 'total_management_payroll.project_id')
+        ->join('total_management_applications', function ($join) use ($request) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                 ->whereIn('total_management_applications.company_id', $request['company_id']);
+        })->select('total_management_payroll.*')->find($request['id']);
+        if(is_null($totalManagementPayroll)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
 
         $totalManagementPayroll->basic_salary =  $request['basic_salary'] ?? $totalManagementPayroll->basic_salary;
         $totalManagementPayroll->ot_1_5 =  $request['ot_1_5'] ?? $totalManagementPayroll->ot_1_5;
@@ -467,8 +485,13 @@ class TotalManagementPayrollServices
     public function authorizePayroll($request): bool|array
     {
 
-        $checkTotalManagementCostManagement = $this->totalManagementCostManagement->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
-
+        $checkTotalManagementCostManagement = $this->totalManagementCostManagement
+        ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+        ->join('total_management_applications', function ($join) use ($request) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                ->whereIn('total_management_applications.company_id', $request['company_id']);
+        })->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
+        
         if($checkTotalManagementCostManagement > 0) {
             return [
                 'existsError' => true
@@ -487,6 +510,10 @@ class TotalManagementPayrollServices
         })
         ->leftJoin('total_management_project', function($query) {
             $query->on('total_management_payroll.project_id','=','total_management_project.id');
+        })
+        ->join('total_management_applications', function ($join) use ($request) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                ->whereIn('total_management_applications.company_id', $request['company_id']);
         })
         ->where(function ($query) use ($request) {
             if (isset($request['month']) && !empty($request['month'])) {
