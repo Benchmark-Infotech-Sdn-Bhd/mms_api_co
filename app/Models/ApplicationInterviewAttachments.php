@@ -26,6 +26,6 @@ class ApplicationInterviewAttachments extends Model implements Auditable
      */
     public function ApplicationInterviews()
     {
-        return $this->belongsTo(ApplicationInterviews::class);
+        return $this->belongsTo(ApplicationInterviews::class, 'file_id');
     }
 }

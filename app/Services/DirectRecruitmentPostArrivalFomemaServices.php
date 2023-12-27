@@ -6,6 +6,7 @@ use App\Models\DirectRecruitmentPostArrivalStatus;
 use App\Models\WorkerFomema;
 use App\Models\FOMEMAAttachment;
 use App\Models\Workers;
+use App\Models\DirectRecruitmentOnboardingCountry;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -37,6 +38,10 @@ class DirectRecruitmentPostArrivalFomemaServices
      * @var DirectRecruitmentExpensesServices
      */
     private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
 
     /**
      * DirectRecruitmentPostArrivalFomemaServices constructor.
@@ -46,15 +51,17 @@ class DirectRecruitmentPostArrivalFomemaServices
      * @param Workers $workers
      * @param Storage $storage
      * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerFomema $workerFomema, FOMEMAAttachment $fomemaAttachment, Workers $workers, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerFomema $workerFomema, FOMEMAAttachment $fomemaAttachment, Workers $workers, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
         $this->directRecruitmentPostArrivalStatus   = $directRecruitmentPostArrivalStatus;
         $this->workerFomema                         = $workerFomema;
         $this->fomemaAttachment                     = $fomemaAttachment;
         $this->workers                              = $workers;
         $this->storage                              = $storage;
-        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
+        $this->directRecruitmentExpensesServices    = $directRecruitmentExpensesServices;
+        $this->directRecruitmentOnboardingCountry   = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -176,6 +183,28 @@ class DirectRecruitmentPostArrivalFomemaServices
             ];
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
+
+            $workerCompanyCount = $this->workers->whereIn('id', $request['workers'])
+                                ->where('company_id', $request['company_id'])
+                                ->count();
+                                
+            if($workerCompanyCount != count($request['workers'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($request) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $request['company_id']);
+                    })->find($request['onboarding_country_id']);
+            if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
             $this->workerFomema->whereIn('worker_id', $request['workers'])
                 ->update([
                     'purchase_date' => $request['purchase_date'], 
@@ -212,6 +241,28 @@ class DirectRecruitmentPostArrivalFomemaServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
             $request['workers'] = explode(',', $request['workers']);
+
+            $workerCompanyCount = $this->workers->whereIn('id', $request['workers'])
+                                ->where('company_id', $request['company_id'])
+                                ->count();
+                                
+            if($workerCompanyCount != count($request['workers'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($request) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $request['company_id']);
+                    })->find($request['onboarding_country_id']);
+            if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
             $this->workerFomema->whereIn('worker_id', $request['workers'])
                 ->update([
                     'clinic_name' => $request['clinic_name'], 
@@ -264,6 +315,28 @@ class DirectRecruitmentPostArrivalFomemaServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
             $request['workers'] = explode(',', $request['workers']);
+
+            $workerCompanyCount = $this->workers->whereIn('id', $request['workers'])
+                                ->where('company_id', $request['company_id'])
+                                ->count();
+                                
+            if($workerCompanyCount != count($request['workers'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($request) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $request['company_id']);
+                    })->find($request['onboarding_country_id']);
+            if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
             $this->workerFomema->whereIn('worker_id', $request['workers'])
                 ->update([
                     'fomema_status' => 'Unfit', 
@@ -299,6 +372,28 @@ class DirectRecruitmentPostArrivalFomemaServices
     public function updateSpecialPass($request): array|bool
     {
         if(isset($request['workers']) && !empty($request['workers'])) {
+
+            $workerCompanyCount = $this->workers->whereIn('id', $request['workers'])
+                                ->where('company_id', $request['company_id'])
+                                ->count();
+
+            if($workerCompanyCount != count($request['workers'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($request) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $request['company_id']);
+                    })->find($request['onboarding_country_id']);
+            if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
                     'special_pass' => 1, 
@@ -366,6 +461,8 @@ class DirectRecruitmentPostArrivalFomemaServices
         return $this->workers->with('workerFomema')
             ->with(['workerFomema' => function($query) {
                 $query->select('id', 'worker_id', 'fomema_total_charge', 'clinic_name', 'doctor_code', 'allocated_xray', 'xray_code');
-            }])->select('id','name', 'fomema_valid_until')->findOrFail($request['id']);
+            }])
+            ->whereIn('company_id', $request['company_id'])
+            ->select('id','name', 'fomema_valid_until')->find($request['id']);
     }
 }

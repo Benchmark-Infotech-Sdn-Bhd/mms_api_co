@@ -62,7 +62,12 @@ class DirectRecruitmentInsurancePurchaseController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentInsurancePurchaseServices->show($params);
+            if(count($response) == 0) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
@@ -78,6 +83,8 @@ class DirectRecruitmentInsurancePurchaseController extends Controller
     public function submit(Request $request): JsonResponse
     {
         try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentInsurancePurchaseServices->submit($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
@@ -85,6 +92,8 @@ class DirectRecruitmentInsurancePurchaseController extends Controller
                 return $this->sendError(['message' => 'Please select all worker names under the selected Calling Visa Number before submitting'], 422);
             } else if(isset($response['visaReferenceNumberCountError'])) {
                 return $this->sendError(['message' => 'Please check the calling visa reference number in selected worker name from the listing'], 422);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             } else if($response == true) {
                 return $this->sendSuccess(['message' => 'Insurance Purchase Submitted Successfully']);
             } else {
@@ -106,7 +115,7 @@ class DirectRecruitmentInsurancePurchaseController extends Controller
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['company_id'] = $user['company_id'];
             $params['user'] = $user;
             $response = $this->directRecruitmentInsurancePurchaseServices->insuranceProviderDropDown($params);
             return $this->sendSuccess($response);

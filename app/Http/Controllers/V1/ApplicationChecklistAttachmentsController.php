@@ -8,6 +8,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\ApplicationChecklistAttachmentsServices;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 
 class ApplicationChecklistAttachmentsController extends Controller
 {
@@ -15,14 +17,19 @@ class ApplicationChecklistAttachmentsController extends Controller
      * @var ApplicationChecklistAttachmentsServices
      */
     private ApplicationChecklistAttachmentsServices $applicationChecklistAttachmentsServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * ApplicationChecklistAttachmentsController constructor.
      * @param ApplicationChecklistAttachmentsServices $applicationtChecklistAttachmentsServices
      */
-    public function __construct(ApplicationChecklistAttachmentsServices $applicationChecklistAttachmentsServices)
+    public function __construct(ApplicationChecklistAttachmentsServices $applicationChecklistAttachmentsServices, AuthServices $authServices)
     {
         $this->applicationChecklistAttachmentsServices = $applicationChecklistAttachmentsServices;
+        $this->authServices = $authServices;
     }
     /**
      * Show the form for creating a new ApplicationChecklistAttachment.
@@ -33,9 +40,14 @@ class ApplicationChecklistAttachmentsController extends Controller
     public function create(Request $request): JsonResponse
     {
         try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['created_by'] = $user['id'];
+            $request['company_id'] = $user['company_id'];
             $data = $this->applicationChecklistAttachmentsServices->create($request);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -54,6 +66,9 @@ class ApplicationChecklistAttachmentsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['created_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->applicationChecklistAttachmentsServices->delete($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -75,6 +90,8 @@ class ApplicationChecklistAttachmentsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->applicationChecklistAttachmentsServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 

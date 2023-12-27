@@ -96,6 +96,10 @@ class FWCMSServices
             $join->on('levy.application_id', '=', 'fwcms.application_id')
             ->on('levy.ksm_reference_number', '=', 'fwcms.ksm_reference_number');
           })
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'fwcms.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
         ->where('fwcms.application_id', $request['application_id'])
         ->select('fwcms.id', 'fwcms.application_id', 'fwcms.submission_date', 'fwcms.applied_quota', 'fwcms.status', 'fwcms.ksm_reference_number', 'fwcms.updated_at', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
         ->orderBy('fwcms.id', 'desc')
@@ -112,6 +116,12 @@ class FWCMSServices
             $join->on('levy.application_id', '=', 'fwcms.application_id')
             ->on('levy.ksm_reference_number', '=', 'fwcms.ksm_reference_number');
           })
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'fwcms.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        // ->leftJoin('directrecruitment_applications', 'directrecruitment_applications.id', '=', 'fwcms.application_id')
+        // ->whereIn('directrecruitment_applications.company_id', $request['company_id'])
         ->where('fwcms.id', $request['id'])
                 ->first(['fwcms.id', 'fwcms.application_id', 'fwcms.submission_date', 'fwcms.applied_quota', 'fwcms.status', 'fwcms.ksm_reference_number', 'fwcms.remarks', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application')]);
     }
@@ -128,6 +138,13 @@ class FWCMSServices
             ];
         }
 
+        $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+        if($request['company_id'] != $applicationDetails->company_id) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+
         $proposalQuota = $this->directrecruitmentApplications->where('id', $request['application_id'])->sum('quota_applied');
         $fwcmsQuota = $this->fwcms
         ->where('application_id', $request['application_id'])
@@ -139,7 +156,6 @@ class FWCMSServices
                 'quotaError' => true
             ];
         }
-        $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
         if($applicationDetails->status == Config::get('services.APPROVAL_COMPLETED')) {
             return [
                 'processError' => true
@@ -184,6 +200,17 @@ class FWCMSServices
                 'error' => $validator->errors()
             ];
         }
+        $applicationDetails = $this->directrecruitmentApplications->find($request['application_id']);
+        $fwcmsDetails = $this->fwcms->find($request['id']);
+        if($request['company_id'] != $applicationDetails->company_id) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($request['application_id'] != $fwcmsDetails->application_id) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
 
         $proposalQuota = $this->directrecruitmentApplications->where('id', $request['application_id'])->sum('quota_applied');
         $fwcmsQuota = $this->fwcms
@@ -198,8 +225,6 @@ class FWCMSServices
             ];
         }
         
-        $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-        $fwcmsDetails = $this->fwcms->findOrFail($request['id']);
         $ksmReferenceNumbers = $this->levy->levyKSM($request['application_id']);
         if(count($ksmReferenceNumbers) > 0) {
             if(in_array($fwcmsDetails->ksm_reference_number, $ksmReferenceNumbers)) {

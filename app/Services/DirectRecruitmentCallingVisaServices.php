@@ -6,6 +6,7 @@ use App\Models\DirectRecruitmentCallingVisaStatus;
 use App\Models\Workers;
 use App\Models\WorkerVisa;
 use App\Models\CancellationAttachment;
+use App\Models\DirectRecruitmentOnboardingCountry;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -35,6 +36,10 @@ class DirectRecruitmentCallingVisaServices
      * @var Storage
      */
     private Storage $storage;
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
 
     /**
      * DirectRecruitmentCallingVisaServices constructor.
@@ -43,14 +48,16 @@ class DirectRecruitmentCallingVisaServices
      * @param WorkerVisa $workerVisa
      * @param CancellationAttachment $cancellationAttachment
      * @param Storage $storage
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, CancellationAttachment $cancellationAttachment, Storage $storage)
+    public function __construct(DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, Workers $workers, WorkerVisa $workerVisa, CancellationAttachment $cancellationAttachment, Storage $storage, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
         $this->directRecruitmentCallingVisaStatus           = $directRecruitmentCallingVisaStatus;
         $this->workers                                      = $workers;
         $this->workerVisa                                   = $workerVisa;
         $this->cancellationAttachment                       = $cancellationAttachment;
         $this->storage                                      = $storage;
+        $this->directRecruitmentOnboardingCountry           = $directRecruitmentOnboardingCountry;
 
     }
     /**
@@ -88,12 +95,16 @@ class DirectRecruitmentCallingVisaServices
     public function callingVisaStatusList($request): mixed
     {
         return $this->directRecruitmentCallingVisaStatus
-            ->select('id', 'item', 'updated_on', 'status')
+            ->join('directrecruitment_applications', function ($join) use($request) {
+                $join->on('direct_recruitment_calling_visa_status.application_id', '=', 'directrecruitment_applications.id')
+                        ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+            })
+            ->select('direct_recruitment_calling_visa_status.id', 'direct_recruitment_calling_visa_status.item', 'direct_recruitment_calling_visa_status.updated_on', 'direct_recruitment_calling_visa_status.status')
             ->where([
-                'application_id' => $request['application_id'],
-                'onboarding_country_id' => $request['onboarding_country_id']
+                'direct_recruitment_calling_visa_status.application_id' => $request['application_id'],
+                'direct_recruitment_calling_visa_status.onboarding_country_id' => $request['onboarding_country_id']
             ])
-            ->orderBy('id', 'desc')
+            ->orderBy('direct_recruitment_calling_visa_status.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
     /**
@@ -106,6 +117,24 @@ class DirectRecruitmentCallingVisaServices
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+        $workerCompanyCount = $this->workers->whereIn('id', $request['workers'])
+                                ->where('company_id', $request['company_id'])
+                                ->count();
+        if($workerCompanyCount != count($request['workers'])) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        $applicationCheck = $this->directRecruitmentOnboardingCountry
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                 ->where('directrecruitment_applications.company_id', $request['company_id']);
+        })->find($request['onboarding_country_id']);
+        if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
+            return [
+                'InvalidUser' => true
             ];
         }
         if(isset($request['workers']) && !empty($request['workers']) && !empty($request['calling_visa_reference_number'])) {
@@ -190,7 +219,8 @@ class DirectRecruitmentCallingVisaServices
             }])->with(['workerVisa' => function ($query) {
                 $query->select(['id', 'worker_id', 'ksm_reference_number', 'calling_visa_reference_number', 'submitted_on', 'status']);
             }])->where('workers.id', $request['worker_id'])
-            ->select('id', 'name', 'passport_number', 'application_id', 'onboarding_country_id', 'agent_id')
+            ->whereIn('company_id', $request['company_id'])
+            ->select('id', 'name', 'passport_number')
             ->get();
     }
     /**
@@ -207,6 +237,26 @@ class DirectRecruitmentCallingVisaServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
             $request['workers'] = explode(',', $request['workers']);
+
+            $workerCompanyCount = $this->workers->whereIn('id', $request['workers'])
+                                ->where('company_id', $request['company_id'])
+                                ->count();
+            if($workerCompanyCount != count($request['workers'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($request) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $request['company_id']);
+                    })->find($request['onboarding_country_id']);
+            if(is_null($applicationCheck) || $applicationCheck->application_id != $request['application_id']) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
             $this->workers->whereIn('id', $request['workers'])
                 ->update([
                     'directrecruitment_status' => 'Cancelled',

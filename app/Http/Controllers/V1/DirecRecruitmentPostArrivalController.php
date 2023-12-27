@@ -42,6 +42,8 @@ class DirecRecruitmentPostArrivalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->direcRecruitmentPostArrivalServices->postArrivalStatusList($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -84,9 +86,12 @@ class DirecRecruitmentPostArrivalController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->direcRecruitmentPostArrivalServices->updatePostArrival($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess(['message' => 'Post Arrival Details Updated Successfully']);
         } catch (Exception $e) {
@@ -106,9 +111,12 @@ class DirecRecruitmentPostArrivalController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->direcRecruitmentPostArrivalServices->UpdateJTKSubmission($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess(['message' => 'JDK Submission Updated Successfully']);
         } catch (Exception $e) {
@@ -127,9 +135,12 @@ class DirecRecruitmentPostArrivalController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $request['modified_by'] = $user['id'];
+            $request['company_id'] = $user['company_id'];
             $response = $this->direcRecruitmentPostArrivalServices->updateCancellation($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess(['message' => 'Cancellation Updated Successfully']);
         } catch (Exception $e) {
@@ -149,9 +160,12 @@ class DirecRecruitmentPostArrivalController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->direcRecruitmentPostArrivalServices->updatePostponed($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess(['message' => 'Postponed Status Updated Successfully']);
         } catch (Exception $e) {

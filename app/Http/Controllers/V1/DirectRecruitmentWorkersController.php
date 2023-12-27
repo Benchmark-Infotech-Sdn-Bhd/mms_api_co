@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Services\DirectRecruitmentWorkersServices;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 
 class DirectRecruitmentWorkersController extends Controller
 {
@@ -16,14 +17,20 @@ class DirectRecruitmentWorkersController extends Controller
      * @var DirectRecruitmentWorkersServices
      */
     private DirectRecruitmentWorkersServices $directRecruitmentWorkersServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentWorkersController constructor.
      * @param DirectRecruitmentWorkersServices $directRecruitmentWorkersServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentWorkersServices $directRecruitmentWorkersServices)
+    public function __construct(DirectRecruitmentWorkersServices $directRecruitmentWorkersServices, AuthServices $authServices)
     {
         $this->directRecruitmentWorkersServices = $directRecruitmentWorkersServices;
+        $this->authServices = $authServices;
     }
     /**
      * Show the form for creating a new Worker.
@@ -47,6 +54,8 @@ class DirectRecruitmentWorkersController extends Controller
                 return $this->sendError(['message' => 'The number of worker should not exceed to the Approved Quota of Agent'], 422);
             } else if($data == false) {
                 return $this->sendError(['message' => 'Creation failed. Please retry.'], 422);
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'Worker Created Successfully']);
         } catch (Exception $e) {
@@ -65,6 +74,8 @@ class DirectRecruitmentWorkersController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->directRecruitmentWorkersServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -86,6 +97,8 @@ class DirectRecruitmentWorkersController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->directRecruitmentWorkersServices->export($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -130,6 +143,8 @@ class DirectRecruitmentWorkersController extends Controller
                 return $this->validationError($data['validate']); 
             } else if(isset($data['ksmError'])) {
                 return $this->sendError(['message' => 'KSM reference number does not matched.'], 422);
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -162,7 +177,13 @@ class DirectRecruitmentWorkersController extends Controller
     public function onboardingAgent(Request $request): JsonResponse
     {
         try {
-            $data = $this->directRecruitmentWorkersServices->onboardingAgent($request);
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
+            $data = $this->directRecruitmentWorkersServices->onboardingAgent($params);
+            if(is_null($data) || count($data) == 0) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -179,6 +200,9 @@ class DirectRecruitmentWorkersController extends Controller
     {
         try {
             $data = $this->directRecruitmentWorkersServices->replaceWorker($request);
+            if($data['isUpdated'] == 0) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -196,9 +220,13 @@ class DirectRecruitmentWorkersController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->directRecruitmentWorkersServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(is_null($data)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -224,9 +252,11 @@ class DirectRecruitmentWorkersController extends Controller
             $fileName = 'A-' . time() . '.' . $fileExt;
             $request->file('worker_file')->move($destinationPath, $fileName);
             
-            $this->directRecruitmentWorkersServices->import($request, $destinationPath . $fileName);
+            $data = $this->directRecruitmentWorkersServices->import($request, $destinationPath . $fileName);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
 
             return $this->sendSuccess(['message' => "Successfully worker was imported"]);
@@ -247,6 +277,8 @@ class DirectRecruitmentWorkersController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->directRecruitmentWorkersServices->workerStatusList($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -266,7 +298,13 @@ class DirectRecruitmentWorkersController extends Controller
     public function updateStatus(Request $request): JsonResponse
     {
         try {
-            $data = $this->directRecruitmentWorkersServices->updateStatus($request);
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
+            $data = $this->directRecruitmentWorkersServices->updateStatus($params);
+            if($data['isUpdated'] == 0) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -303,7 +341,13 @@ class DirectRecruitmentWorkersController extends Controller
     public function ksmDropDownBasedOnOnboardingAgent(Request $request): JsonResponse
     {
         try {
-            $data = $this->directRecruitmentWorkersServices->ksmDropDownBasedOnOnboardingAgent($request);
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
+            $data = $this->directRecruitmentWorkersServices->ksmDropDownBasedOnOnboardingAgent($params);
+            if(is_null($data) || count($data) == 0) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -321,9 +365,13 @@ class DirectRecruitmentWorkersController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->directRecruitmentWorkersServices->failureExport($params);
             if (isset($data['queueError'])) {
                 return $this->sendError(['message' => 'Import is in Progress'], 400);
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
