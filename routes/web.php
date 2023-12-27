@@ -50,13 +50,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->group(['prefix' => 'company'], function () use ($router) {
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,View']], function () use ($router) {
                     $router->post('list', 'V1\CompanyController@list');
-                    $router->post('show', 'V1\CompanyController@show');
-                    $router->post('subsidiaryDropDown', 'V1\CompanyController@subsidiaryDropDown');
-                    $router->post('parentDropDown', 'V1\CompanyController@parentDropDown');
-                    $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');
-                    $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');
-                    $router->post('moduleList', 'V1\CompanyController@moduleList');                
-                    $router->post('dropdown', 'V1\CompanyController@dropdown'); 
+                    $router->post('show', 'V1\CompanyController@show');    
+                    $router->post('moduleList', 'V1\CompanyController@moduleList');                                    
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Add']], function () use ($router) {
                     $router->post('create', 'V1\CompanyController@create');
@@ -66,20 +61,30 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Edit']], function () use ($router) {
                     $router->post('update', 'V1\CompanyController@update');
                     $router->post('updateStatus', 'V1\CompanyController@updateStatus');
-                    $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Delete']], function () use ($router) {
                     $router->post('deleteAttachment', 'V1\CompanyController@deleteAttachment');
-                });                
+                });    
+                $router->post('subsidiaryDropDown', 'V1\CompanyController@subsidiaryDropDown');
+                $router->post('parentDropDown', 'V1\CompanyController@parentDropDown');  
+                $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');    
+                $router->post('dropdown', 'V1\CompanyController@dropdown');       
             });
             
         });
-            /**
-             * Routes for Modules.
-             */
-            $router->group(['prefix' => 'module'], function () use ($router) {
-                $router->post('dropDown', 'V1\ModulesController@dropDown');
-            });
+        /**
+         * Routes for Modules List - Using this API To Display the company list dropdown selection for All the Users types in Front-End.
+         */
+        $router->group(['prefix' => 'company'], function () use ($router) {
+            $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');
+            $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
+        });  
+        /**
+         * Routes for Modules.
+         */
+        $router->group(['prefix' => 'module'], function () use ($router) {
+            $router->post('dropDown', 'V1\ModulesController@dropDown');
+        });
         /**
          * Routes for Services.
          */
@@ -131,10 +136,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('delete', 'V1\CountriesController@delete');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:2,View']], function () use ($router) {
-                    $router->post('show', 'V1\CountriesController@show');
-                    $router->post('dropDown', 'V1\CountriesController@dropdown');
+                    $router->post('show', 'V1\CountriesController@show');                   
                     $router->post('list', 'V1\CountriesController@list');                
                 });
+                $router->post('dropDown', 'V1\CountriesController@dropdown');
             });
             /**
              * Routes for EmbassyAttestationFileCosting.
@@ -170,9 +175,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:2,View']], function () use ($router) {
                     $router->post('show', 'V1\SectorsController@show');
-                    $router->post('dropDown', 'V1\SectorsController@dropdown');
                     $router->post('list', 'V1\SectorsController@list');
-                });                
+                });    
+                $router->post('dropDown', 'V1\SectorsController@dropdown');            
             });
             /**
              * Routes for DocumentChecklist.
@@ -209,10 +214,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:2,View']], function () use ($router) {
                     $router->post('show', 'V1\AgentController@show');
-                    $router->post('list', 'V1\AgentController@list');                
-                    $router->post('dropdown', 'V1\AgentController@dropdown');
+                    $router->post('list', 'V1\AgentController@list');
                 });
-                
+                $router->post('dropdown', 'V1\AgentController@dropdown');
             });
             /**
              * Routes for FOMEMA Clinics.
@@ -324,9 +328,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:2,View']], function () use ($router) {
                     $router->post('show', 'V1\TransportationController@show');
-                    $router->post('list', 'V1\TransportationController@list');                
-                    $router->post('dropdown', 'V1\TransportationController@dropdown');
+                    $router->post('list', 'V1\TransportationController@list');
                 });
+                $router->post('dropdown', 'V1\TransportationController@dropdown');
             });
         });
         /**
@@ -347,8 +351,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:3,View']], function () use ($router) {
                     $router->post('show', 'V1\BranchController@show');
                     $router->post('list', 'V1\BranchController@list');
-                    $router->post('dropDown', 'V1\BranchController@dropdown');
                 });                
+                $router->post('dropDown', 'V1\BranchController@dropdown');
             });
         });
         /**
@@ -359,10 +363,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:4,View']], function () use ($router) {
                     $router->post('list', 'V1\CRMController@list');
                     $router->post('show', 'V1\CRMController@show');
-               
-                    $router->post('dropDownCompanies', 'V1\CRMController@dropDownCompanies');
-                    $router->post('getProspectDetails', 'V1\CRMController@getProspectDetails');
-                    $router->post('systemList', 'V1\CRMController@systemList');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:4,Add']], function () use ($router) {
                     $router->post('crmImport', 'V1\CRMController@crmImport');
@@ -373,7 +373,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:4,Delete']], function () use ($router) {
                     $router->post('deleteAttachment', 'V1\CRMController@deleteAttachment');               
-                });                
+                }); 
+                $router->post('dropDownCompanies', 'V1\CRMController@dropDownCompanies');       
+                $router->post('getProspectDetails', 'V1\CRMController@getProspectDetails');
+                $router->post('systemList', 'V1\CRMController@systemList');        
             });
         });
         /**
@@ -386,9 +389,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
                     $router->post('applicationListing', 'V1\DirectRecruitmentController@applicationListing');
-                    $router->post('dropDownFilter', 'V1\DirectRecruitmentController@dropDownFilter');
                     $router->post('totalManagementListing', 'V1\DirectRecruitmentController@totalManagementListing');
                 });
+                $router->post('dropDownFilter', 'V1\DirectRecruitmentController@dropDownFilter');
                 /**
                 * Routes for Onboarding
                 */
@@ -397,8 +400,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
                             $router->post('list', 'V1\DirectRecruitmentOnboardingCountryController@list');
                             $router->post('show', 'V1\DirectRecruitmentOnboardingCountryController@show');
-                            $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
-                            $router->post('ksmDropDownForOnboarding', 'V1\DirectRecruitmentOnboardingCountryController@ksmDropDownForOnboarding');
                         });
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Add']], function () use ($router) {
                             $router->post('create', 'V1\DirectRecruitmentOnboardingCountryController@create');
@@ -410,21 +411,22 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         });
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Delete']], function () use ($router) {
                             $router->post('deleteKSM', 'V1\DirectRecruitmentOnboardingCountryController@deleteKSM');
-                        });
-
+                        });   
+                        $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
+                        $router->post('ksmDropDownForOnboarding', 'V1\DirectRecruitmentOnboardingCountryController@ksmDropDownForOnboarding'); 
                     });
                     $router->group(['prefix' => 'agent'], function () use ($router) {
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
                             $router->post('list', 'V1\DirectRecruitmentOnboardingAgentController@list');
-                            $router->post('show', 'V1\DirectRecruitmentOnboardingAgentController@show');
-                            $router->post('ksmDropDownBasedOnOnboarding', 'V1\DirectRecruitmentOnboardingAgentController@ksmDropDownBasedOnOnboarding');
+                            $router->post('show', 'V1\DirectRecruitmentOnboardingAgentController@show');                            
                         });
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Add']], function () use ($router) {
                             $router->post('create', 'V1\DirectRecruitmentOnboardingAgentController@create');
                         });
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Edit']], function () use ($router) {
                             $router->post('update', 'V1\DirectRecruitmentOnboardingAgentController@update');
-                        });                        
+                        });     
+                        $router->post('ksmDropDownBasedOnOnboarding', 'V1\DirectRecruitmentOnboardingAgentController@ksmDropDownBasedOnOnboarding');                   
                     });
                     $router->group(['prefix' => 'attestation'], function () use ($router) {
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
@@ -453,14 +455,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
                             $router->post('list', 'V1\DirectRecruitmentWorkersController@list');
                             $router->post('export', 'V1\DirectRecruitmentWorkersController@export');
-                            $router->post('dropdown', 'V1\DirectRecruitmentWorkersController@dropdown');
                             $router->post('show', 'V1\DirectRecruitmentWorkersController@show');
                             $router->post('importHistory', 'V1\DirectRecruitmentWorkersController@importHistory');
                             $router->post('failureExport', 'V1\DirectRecruitmentWorkersController@failureExport');
                             $router->post('workerStatusList', 'V1\DirectRecruitmentWorkersController@workerStatusList');
                             $router->post('ksmDropDownBasedOnOnboardingAgent', 'V1\DirectRecruitmentWorkersController@ksmDropDownBasedOnOnboardingAgent');
                             $router->post('kinRelationship', 'V1\DirectRecruitmentWorkersController@kinRelationship');
-                            $router->post('onboardingAgent', 'V1\DirectRecruitmentWorkersController@onboardingAgent');   
+                            $router->post('onboardingAgent', 'V1\DirectRecruitmentWorkersController@onboardingAgent');
                         });
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Add']], function () use ($router) {
                             $router->post('create', 'V1\DirectRecruitmentWorkersController@create');
@@ -470,7 +471,11 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                             $router->post('update', 'V1\DirectRecruitmentWorkersController@update');
                             $router->post('replaceWorker', 'V1\DirectRecruitmentWorkersController@replaceWorker');
                             $router->post('updateStatus', 'V1\DirectRecruitmentWorkersController@updateStatus');
-                        });                  
+                        });  
+                        $router->post('dropdown', 'V1\DirectRecruitmentWorkersController@dropdown');     
+                        $router->post('ksmDropDownBasedOnOnboardingAgent', 'V1\DirectRecruitmentWorkersController@ksmDropDownBasedOnOnboardingAgent'); 
+                        $router->post('kinRelationship', 'V1\DirectRecruitmentWorkersController@kinRelationship');
+                        $router->post('onboardingAgent', 'V1\DirectRecruitmentWorkersController@onboardingAgent');           
                     });
                     $router->group(['prefix' => 'callingVisa'], function () use ($router) {
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
@@ -494,11 +499,11 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                             $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
                                 $router->post('workersList', 'V1\DirectRecruitmentInsurancePurchaseController@workersList');
                                 $router->post('show', 'V1\DirectRecruitmentInsurancePurchaseController@show');
-                                $router->post('insuranceProviderDropDown', 'V1\DirectRecruitmentInsurancePurchaseController@insuranceProviderDropDown');
                             });
                             $router->group(['prefix' => '', 'middleware' => ['permissions:5,Add']], function () use ($router) {
                                 $router->post('submit', 'V1\DirectRecruitmentInsurancePurchaseController@submit');
-                            });                            
+                            });
+                            $router->post('insuranceProviderDropDown', 'V1\DirectRecruitmentInsurancePurchaseController@insuranceProviderDropDown');                            
                         });
                         $router->group(['prefix' => 'approval'], function () use ($router) {
                             $router->group(['prefix' => '', 'middleware' => ['permissions:5,Edit']], function () use ($router) {
@@ -544,22 +549,20 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
                             $router->post('list', 'V1\DirectRecruitmentArrivalController@list');
                             $router->post('show', 'V1\DirectRecruitmentArrivalController@show');
-                            $router->post('callingvisaReferenceNumberList', 'V1\DirectRecruitmentArrivalController@callingvisaReferenceNumberList');
-                            $router->post('arrivalDateDropDown', 'V1\DirectRecruitmentArrivalController@arrivalDateDropDown');
+                            $router->post('workersListForUpdate', 'V1\DirectRecruitmentArrivalController@workersListForUpdate');
+                            $router->post('cancelWorkerDetail', 'V1\DirectRecruitmentArrivalController@cancelWorkerDetail');
                         });
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Add']], function () use ($router) {
                             $router->post('submit', 'V1\DirectRecruitmentArrivalController@submit');
                             $router->post('workersListForSubmit', 'V1\DirectRecruitmentArrivalController@workersListForSubmit');
                         });
-
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Edit']], function () use ($router) {
                             $router->post('update', 'V1\DirectRecruitmentArrivalController@update');
-                            $router->post('workersListForUpdate', 'V1\DirectRecruitmentArrivalController@workersListForUpdate');
                             $router->post('cancelWorker', 'V1\DirectRecruitmentArrivalController@cancelWorker');
                             $router->post('updateWorkers', 'V1\DirectRecruitmentArrivalController@updateWorkers');
-                            $router->post('cancelWorkerDetail', 'V1\DirectRecruitmentArrivalController@cancelWorkerDetail');
                         });
-                        
+                        $router->post('callingvisaReferenceNumberList', 'V1\DirectRecruitmentArrivalController@callingvisaReferenceNumberList');
+                        $router->post('arrivalDateDropDown', 'V1\DirectRecruitmentArrivalController@arrivalDateDropDown'); 
                     });
                     $router->group(['prefix' => 'postArrival'], function () use ($router) {
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
@@ -648,7 +651,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             * Routes for DirectRecruitmentApplicationDocumentChecklist.
             */
             $router->group(['prefix' => 'directRecruitmentApplicationChecklist'], function () use ($router) {
-                $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
+                $router->group(['prefix' => '', 'middleware' => ['permissions:5,Edit']], function () use ($router) {
                     $router->post('update', 'V1\DirectRecruitmentApplicationChecklistController@update');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
@@ -692,7 +695,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
                     $router->post('list', 'V1\ApplicationInterviewController@list');
                     $router->post('show', 'V1\ApplicationInterviewController@show');
-                    $router->post('dropdownKsmReferenceNumber', 'V1\ApplicationInterviewController@dropdownKsmReferenceNumber');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:5,Add']], function () use ($router) {
                     $router->post('create', 'V1\ApplicationInterviewController@create');
@@ -703,7 +705,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:5,Delete']], function () use ($router) {
                     $router->post('deleteAttachment', 'V1\ApplicationInterviewController@deleteAttachment');
                 });
-                
+                $router->post('dropdownKsmReferenceNumber', 'V1\ApplicationInterviewController@dropdownKsmReferenceNumber');
             });
             /**
              * Routes for Levy.
@@ -766,6 +768,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 });
             });
         });
+
+        $router->group(['prefix' => 'manageWorkers'], function () use ($router) {
+            $router->group(['prefix' => 'worker'], function () use ($router) {
+                $router->post('exportTemplate', 'V1\ManageWorkersController@exportTemplate');
+            });
+        });
+
         /**
         * Routes for Total Management.
         */
@@ -831,12 +840,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->group(['prefix' => 'transfer'], function () use ($router) {
                         $router->group(['prefix' => '', 'middleware' => ['permissions:6,View']], function () use ($router) {
                             $router->post('workerEmploymentDetail', 'V1\EContractTransferController@workerEmploymentDetail');
-                            $router->post('companyList', 'V1\EContractTransferController@companyList');
-                            $router->post('projectList', 'V1\EContractTransferController@projectList');
                         });
                         $router->group(['prefix' => '', 'middleware' => ['permissions:6,Add']], function () use ($router) {
                             $router->post('submit', 'V1\EContractTransferController@submit');
                         });
+                        $router->post('companyList', 'V1\EContractTransferController@companyList');
+                        $router->post('projectList', 'V1\EContractTransferController@projectList');
                     });
                     $router->group(['prefix' => 'expense'], function () use ($router) {
                         $router->group(['prefix' => '', 'middleware' => ['permissions:6,View']], function () use ($router) {
@@ -935,12 +944,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->group(['prefix' => 'workerAssign'], function () use ($router) {
                         $router->group(['prefix' => '', 'middleware' => ['permissions:7,View']], function () use ($router) {
                             $router->post('workerListForAssignWorker', 'V1\TotalManagementWorkerController@workerListForAssignWorker');
-                            $router->post('accommodationProviderDropDown', 'V1\TotalManagementWorkerController@accommodationProviderDropDown');
-                            $router->post('accommodationUnitDropDown', 'V1\TotalManagementWorkerController@accommodationUnitDropDown');
                             $router->post('getAssignedWorker', 'V1\TotalManagementWorkerController@getAssignedWorker');                        
                             $router->post('getBalancedQuota', 'V1\TotalManagementWorkerController@getBalancedQuota');
                             $router->post('getCompany', 'V1\TotalManagementWorkerController@getCompany');
-                            $router->post('ksmRefereneceNUmberDropDown', 'V1\TotalManagementWorkerController@ksmRefereneceNUmberDropDown');
                             $router->post('getSectorAndValidUntil', 'V1\TotalManagementWorkerController@getSectorAndValidUntil');
                         });
                         $router->group(['prefix' => '', 'middleware' => ['permissions:7,Add']], function () use ($router) {
@@ -949,6 +955,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->group(['prefix' => '', 'middleware' => ['permissions:7,Delete']], function () use ($router) {
                             $router->post('removeWorker', 'V1\TotalManagementWorkerController@removeWorker');
                         });
+                        $router->post('accommodationProviderDropDown', 'V1\TotalManagementWorkerController@accommodationProviderDropDown');
+                        $router->post('accommodationUnitDropDown', 'V1\TotalManagementWorkerController@accommodationUnitDropDown');
+                        $router->post('ksmRefereneceNUmberDropDown', 'V1\TotalManagementWorkerController@ksmRefereneceNUmberDropDown');
                     });
                     $router->group(['prefix' => 'workerEvent'], function () use ($router) {
                         $router->group(['prefix' => '', 'middleware' => ['permissions:7,View']], function () use ($router) {
@@ -1008,12 +1017,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->group(['prefix' => 'transfer'], function () use ($router) {
                 $router->group(['prefix' => '', 'middleware' => ['permissions:7,View']], function () use ($router) {
                     $router->post('workerEmploymentDetail', 'V1\TotalManagementTransferController@workerEmploymentDetail');
-                    $router->post('companyList', 'V1\TotalManagementTransferController@companyList');
-                    $router->post('projectList', 'V1\TotalManagementTransferController@projectList');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:7,Add']], function () use ($router) {
                     $router->post('submit', 'V1\TotalManagementTransferController@submit');
                 });
+                $router->post('companyList', 'V1\TotalManagementTransferController@companyList');
+                $router->post('projectList', 'V1\TotalManagementTransferController@projectList');
             });
 
             /**
@@ -1054,9 +1063,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:8,View']], function () use ($router) {
                     $router->post('list', 'V1\EmployeeController@list');
                     $router->post('show', 'V1\EmployeeController@show');
-                    $router->post('dropDown', 'V1\EmployeeController@dropdown');
-                    $router->post('supervisorList', 'V1\EmployeeController@supervisorList');
                 });
+                $router->post('dropDown', 'V1\EmployeeController@dropdown');
+                $router->post('supervisorList', 'V1\EmployeeController@supervisorList');
             });
         });
         /**
@@ -1067,7 +1076,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:9,View']], function () use ($router) {
                     $router->post('list', 'V1\RolesController@list');
                     $router->post('show', 'V1\RolesController@show');
-                    $router->post('dropDown', 'V1\RolesController@dropDown');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:9,Add']], function () use ($router) {
                     $router->post('create', 'V1\RolesController@create');
@@ -1079,14 +1087,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:9,Delete']], function () use ($router) {
                     $router->post('delete', 'V1\RolesController@delete');
                 });
+                $router->post('dropDown', 'V1\RolesController@dropDown');
             });
             /**
              * Routes for Access Management.
              */
             $router->group(['prefix' => 'accessManagement'], function () use ($router) {
-                $router->group(['prefix' => '', 'middleware' => ['permissions:9,View']], function () use ($router) {
-                    $router->post('list', 'V1\AccessManagementController@list');
-                });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:9,Add']], function () use ($router) {
                     $router->post('create', 'V1\AccessManagementController@create');
                 });
@@ -1096,6 +1102,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             });
         });
         /**
+         * Routes for Modules List - Using this API To Display the Left Menu for All the Users types in Front-End.
+         */
+        $router->group(['prefix' => 'accessManagement'], function () use ($router) {
+            $router->post('list', 'V1\AccessManagementController@list');
+        });
+
+        /**
         * Routes for Application Summary.
         */
         $router->group(['middleware' => 'accessControl:10'], function () use ($router) {  
@@ -1104,9 +1117,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('list', 'V1\WorkersController@list');
                     $router->post('show', 'V1\WorkersController@show');
                     $router->post('export', 'V1\WorkersController@export');
-                    $router->post('dropdown', 'V1\WorkersController@dropdown');
-                    $router->post('kinRelationship', 'V1\WorkersController@kinRelationship');
-                    $router->post('onboardingAgent', 'V1\WorkersController@onboardingAgent');
                     $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
                     $router->post('listAttachment', 'V1\WorkersController@listAttachment');
                 });
@@ -1126,7 +1136,10 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:10,Delete']], function () use ($router) {
                     $router->post('deleteAttachment', 'V1\WorkersController@deleteAttachment');
                 });
-                
+                $router->post('dropdown', 'V1\WorkersController@dropdown');
+                $router->post('kinRelationship', 'V1\WorkersController@kinRelationship');
+                $router->post('onboardingAgent', 'V1\WorkersController@onboardingAgent');
+
                 $router->group(['prefix' => 'workerEvent'], function () use ($router) {
                     $router->group(['prefix' => '', 'middleware' => ['permissions:10,View']], function () use ($router) {
                         $router->post('list', 'V1\WorkerEventController@list');
@@ -1186,12 +1199,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->group(['prefix' => 'invoice'], function () use ($router) {
                 $router->group(['prefix' => '', 'middleware' => ['permissions:12,View']], function () use ($router) {
                     $router->post('list', 'V1\InvoiceController@list');
-                    $router->post('show', 'V1\InvoiceController@show');
-                    $router->post('getTaxRates', 'V1\InvoiceController@getTaxRates');
-                    $router->post('getItems', 'V1\InvoiceController@getItems');
-                    $router->post('getAccounts', 'V1\InvoiceController@getAccounts');
-                    $router->post('getInvoices', 'V1\InvoiceController@getInvoices');
-                    $router->post('getAccessToken', 'V1\InvoiceController@getAccessToken');
+                    $router->post('show', 'V1\InvoiceController@show');  
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:12,Add']], function () use ($router) {
                     $router->post('create', 'V1\InvoiceController@create');
@@ -1199,7 +1207,11 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:12,Edit']], function () use ($router) {
                     $router->post('update', 'V1\InvoiceController@update');
                 });
-                
+                $router->post('getTaxRates', 'V1\InvoiceController@getTaxRates');
+                $router->post('getItems', 'V1\InvoiceController@getItems');
+                $router->post('getAccounts', 'V1\InvoiceController@getAccounts');
+                $router->post('getInvoices', 'V1\InvoiceController@getInvoices');
+                $router->post('getAccessToken', 'V1\InvoiceController@getAccessToken');
                 $router->post('xeroGetTaxRates', 'V1\InvoiceController@xeroGetTaxRates');
                 $router->post('xeroGetAccounts', 'V1\InvoiceController@xeroGetAccounts');
                 $router->post('xeroGetItems', 'V1\InvoiceController@xeroGetItems');
