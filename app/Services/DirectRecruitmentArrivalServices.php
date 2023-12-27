@@ -59,7 +59,11 @@ class DirectRecruitmentArrivalServices
     /**
      * @var Storage
      */
-    private Storage $storage;    
+    private Storage $storage;  
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;   
 
     /**
      * DirectRecruitmentArrivalServices constructor.
@@ -71,8 +75,9 @@ class DirectRecruitmentArrivalServices
      * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
      * @param DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus
      * @param Storage $storage;
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectrecruitmentArrival $directrecruitmentArrival, WorkerArrival $workerArrival, CancellationAttachment $cancellationAttachment, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, Storage $storage)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, DirectrecruitmentArrival $directrecruitmentArrival, WorkerArrival $workerArrival, CancellationAttachment $cancellationAttachment, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, Storage $storage, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
         $this->workers                                      = $workers;
         $this->workerVisa                                   = $workerVisa;
@@ -82,6 +87,7 @@ class DirectRecruitmentArrivalServices
         $this->directRecruitmentOnboardingCountryServices   = $directRecruitmentOnboardingCountryServices;
         $this->directRecruitmentPostArrivalStatus           = $directRecruitmentPostArrivalStatus;
         $this->storage                                      = $storage;
+        $this->directRecruitmentOnboardingCountry           = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -148,6 +154,10 @@ class DirectRecruitmentArrivalServices
             ['directrecruitment_arrival.application_id', $request['application_id']],
             ['directrecruitment_arrival.onboarding_country_id', $request['onboarding_country_id']]
         ])
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_arrival.application_id', '=', 'directrecruitment_applications.id')
+                 ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
         ->where('worker_arrival.arrival_status', '!=', 'Postponed')
         ->select('directrecruitment_arrival.id', 'directrecruitment_arrival.application_id', 'directrecruitment_arrival.onboarding_country_id', 'directrecruitment_arrival.item_name', 'directrecruitment_arrival.flight_date', 'directrecruitment_arrival.arrival_time', 'directrecruitment_arrival.flight_number', 'worker_arrival.arrival_status', DB::raw('COUNT(worker_arrival.worker_id) as workers'))
         ->groupBy('directrecruitment_arrival.id', 'directrecruitment_arrival.application_id', 'directrecruitment_arrival.onboarding_country_id', 'directrecruitment_arrival.item_name', 'directrecruitment_arrival.flight_date', 'directrecruitment_arrival.arrival_time', 'directrecruitment_arrival.flight_number', 'worker_arrival.arrival_status')
@@ -160,8 +170,14 @@ class DirectRecruitmentArrivalServices
      */
     public function show($request): mixed
     {
-        return $this->directrecruitmentArrival->where('id', $request['arrival_id'])
-        ->select('application_id', 'onboarding_country_id', 'item_name', 'flight_date', 'arrival_time', 'flight_number', 'status', 'remarks')->get();
+        return $this->directrecruitmentArrival
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_arrival.application_id', '=', 'directrecruitment_applications.id')
+                 ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        ->where('directrecruitment_arrival.id', $request['arrival_id'])
+        ->select('directrecruitment_arrival.application_id', 'directrecruitment_arrival.onboarding_country_id', 'directrecruitment_arrival.item_name', 'directrecruitment_arrival.flight_date', 'directrecruitment_arrival.arrival_time', 'directrecruitment_arrival.flight_number', 'directrecruitment_arrival.status', 'directrecruitment_arrival.remarks')
+        ->get();
     }
     /**
      * @param $request
@@ -269,6 +285,27 @@ class DirectRecruitmentArrivalServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
 
+            $workerCompanyCount = $this->workers->whereIn('id', $request['workers'])
+                                ->where('company_id', $request['company_id'])
+                                ->count();
+                                
+            if($workerCompanyCount != count($request['workers'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($request) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $request['company_id']);
+                    })->find($request['onboarding_country_id']);
+            if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
             $directrecruitmentArrival = $this->directrecruitmentArrival->create([
                 'application_id' => $request['application_id'] ?? 0,
                 'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
@@ -332,7 +369,17 @@ class DirectRecruitmentArrivalServices
                 'error' => $validator->errors()
             ];
         }
-        $directrecruitmentArrival = $this->directrecruitmentArrival->findOrFail($request['arrival_id']);
+        $directrecruitmentArrival = $this->directrecruitmentArrival
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_arrival.application_id', '=', 'directrecruitment_applications.id')
+                 ->where('directrecruitment_applications.company_id', $request['company_id']);
+        })->where('directrecruitment_arrival.id', $request['arrival_id'])->first('directrecruitment_arrival.*');
+        
+        if(is_null($directrecruitmentArrival)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         
         $directrecruitmentArrival->flight_date =  $request['flight_date'] ?? $directrecruitmentArrival->flight_date;
         $directrecruitmentArrival->arrival_time =  $request['arrival_time'] ?? $directrecruitmentArrival->arrival_time;
@@ -352,6 +399,7 @@ class DirectRecruitmentArrivalServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
 
         $validator = Validator::make($request->toArray(), $this->cancelValidation());
         if($validator->fails()) {
@@ -361,8 +409,28 @@ class DirectRecruitmentArrivalServices
         }
 
         if(isset($request['workers']) && !empty($request['workers'])) {
-
             $workers = explode(",", $request['workers']);
+
+            $workerCompanyCount = $this->workers->whereIn('id', $workers)
+                                ->where('company_id', $params['company_id'])
+                                ->count();
+                                
+            if($workerCompanyCount != count($workers)) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directrecruitmentArrival
+            ->join('directrecruitment_applications', function ($join) use($params) {
+                $join->on('directrecruitment_arrival.application_id', '=', 'directrecruitment_applications.id')
+                     ->where('directrecruitment_applications.company_id', $params['company_id']);
+            })->find($request['arrival_id']);
+            if(is_null($applicationCheck)) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
 
             if(is_array($workers)){
 
@@ -443,10 +511,12 @@ class DirectRecruitmentArrivalServices
     public function cancelWorkerDetail($request): mixed
     {
         return $this->cancellationAttachment
-        ->where('file_id', $request['worker_id'])
-        ->where('file_type', 'Arrival Cancellation Letter')
-        ->orWhere('file_type', 'Cancellation Letter')
-        ->select('file_id', 'file_name', 'file_url', 'remarks')
+        ->join('workers', 'workers.id', 'cancellation_attachment.file_id')
+        ->where('workers.company_id', $request['company_id'])
+        ->where('cancellation_attachment.file_id', $request['worker_id'])
+        ->where('cancellation_attachment.file_type', 'Arrival Cancellation Letter')
+        ->orWhere('cancellation_attachment.file_type', 'Cancellation Letter')
+        ->select('cancellation_attachment.file_id', 'cancellation_attachment.file_name', 'cancellation_attachment.file_url', 'cancellation_attachment.remarks')
         ->get();
     }
     /**
@@ -489,6 +559,27 @@ class DirectRecruitmentArrivalServices
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
 
+            $workerCompanyCount = $this->workers->whereIn('id', $request['workers'])
+                                ->where('company_id', $request['company_id'])
+                                ->count();
+                                
+            if($workerCompanyCount != count($request['workers'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directrecruitmentArrival
+            ->join('directrecruitment_applications', function ($join) use($request) {
+                $join->on('directrecruitment_arrival.application_id', '=', 'directrecruitment_applications.id')
+                        ->where('directrecruitment_applications.company_id', $request['company_id']);
+            })->find($request['arrival_id']);
+            if(is_null($applicationCheck)) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
             foreach ($request['workers'] as $workerId) {
                 $this->workerArrival->updateOrCreate(
                     [
@@ -514,9 +605,13 @@ class DirectRecruitmentArrivalServices
     public function arrivalDateDropDown($request): mixed
     {
         return $this->directrecruitmentArrival
-        ->where('application_id', $request['application_id'])
-        ->where('onboarding_country_id', $request['onboarding_country_id'])
-        ->select( 'flight_date')
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_arrival.application_id', '=', 'directrecruitment_applications.id')
+                 ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        ->where('directrecruitment_arrival.application_id', $request['application_id'])
+        ->where('directrecruitment_arrival.onboarding_country_id', $request['onboarding_country_id'])
+        ->select('directrecruitment_arrival.flight_date')
         ->distinct()
         ->get();
     }

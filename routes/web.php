@@ -408,14 +408,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Edit']], function () use ($router) {
                             $router->post('update', 'V1\DirectRecruitmentOnboardingCountryController@update');
                             $router->post('ksmQuotaUpdate', 'V1\DirectRecruitmentOnboardingCountryController@ksmQuotaUpdate');
-                            $router->post('onboarding_status_update', 'V1\DirectRecruitmentOnboardingCountryController@onboarding_status_update');
                         });
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Delete']], function () use ($router) {
                             $router->post('deleteKSM', 'V1\DirectRecruitmentOnboardingCountryController@deleteKSM');
                         });   
                         $router->post('ksmReferenceNumberList', 'V1\DirectRecruitmentOnboardingCountryController@ksmReferenceNumberList');
-                        $router->post('ksmDropDownForOnboarding', 'V1\DirectRecruitmentOnboardingCountryController@ksmDropDownForOnboarding');                  
-                        
+                        $router->post('ksmDropDownForOnboarding', 'V1\DirectRecruitmentOnboardingCountryController@ksmDropDownForOnboarding'); 
                     });
                     $router->group(['prefix' => 'agent'], function () use ($router) {
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,View']], function () use ($router) {
@@ -443,7 +441,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         });
 
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Add']], function () use ($router) {
-                            $router->post('create', 'V1\DirectRecruitmentOnboardingAttestationController@create');
                             $router->post('uploadEmbassyFile', 'V1\DirectRecruitmentOnboardingAttestationController@uploadEmbassyFile');
                         });
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Edit']], function () use ($router) {
@@ -462,6 +459,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                             $router->post('importHistory', 'V1\DirectRecruitmentWorkersController@importHistory');
                             $router->post('failureExport', 'V1\DirectRecruitmentWorkersController@failureExport');
                             $router->post('workerStatusList', 'V1\DirectRecruitmentWorkersController@workerStatusList');
+                            $router->post('ksmDropDownBasedOnOnboardingAgent', 'V1\DirectRecruitmentWorkersController@ksmDropDownBasedOnOnboardingAgent');
+                            $router->post('kinRelationship', 'V1\DirectRecruitmentWorkersController@kinRelationship');
+                            $router->post('onboardingAgent', 'V1\DirectRecruitmentWorkersController@onboardingAgent');
                         });
                         $router->group(['prefix' => '', 'middleware' => ['permissions:5,Add']], function () use ($router) {
                             $router->post('create', 'V1\DirectRecruitmentWorkersController@create');

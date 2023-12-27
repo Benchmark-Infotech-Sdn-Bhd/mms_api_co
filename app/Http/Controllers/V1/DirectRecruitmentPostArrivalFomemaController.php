@@ -67,9 +67,12 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentPostArrivalFomemaServices->purchase($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess(['message' => 'Purchase Details Updated Successfully']);
         } catch (Exception $e) {
@@ -88,9 +91,12 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $request['modified_by'] = $user['id'];
+            $request['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentPostArrivalFomemaServices->fomemaFit($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess(['message' => 'FOMEMA Status Updated Successfully']);
         } catch (Exception $e) {
@@ -109,9 +115,12 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             $request['modified_by'] = $user['id'];
+            $request['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentPostArrivalFomemaServices->fomemaUnfit($request);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess(['message' => 'FOMEMA Status Updated Successfully']);
         } catch (Exception $e) {
@@ -131,7 +140,11 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
-            $this->directRecruitmentPostArrivalFomemaServices->updateSpecialPass($params);
+            $params['company_id'] = $user['company_id'];
+            $response = $this->directRecruitmentPostArrivalFomemaServices->updateSpecialPass($params);
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
+            }
             return $this->sendSuccess(['message' => 'Special Pass Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -173,9 +186,12 @@ class DirectRecruitmentPostArrivalFomemaController extends Controller
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentPostArrivalFomemaServices->plksShow($params);
             if(isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(is_null($response)) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess($response);
         } catch (Exception $e) {

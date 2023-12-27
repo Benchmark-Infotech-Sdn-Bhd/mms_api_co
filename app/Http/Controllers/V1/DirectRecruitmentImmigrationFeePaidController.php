@@ -44,6 +44,8 @@ class DirectRecruitmentImmigrationFeePaidController extends Controller
             $response = $this->directRecruitmentImmigrationFeePaidServices->update($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             } else if($response == true) {
                 return $this->sendSuccess(['message' => 'Immigration Fee Paid Updated Successfully']);
             } else {
@@ -107,7 +109,12 @@ class DirectRecruitmentImmigrationFeePaidController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentImmigrationFeePaidServices->show($params);
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

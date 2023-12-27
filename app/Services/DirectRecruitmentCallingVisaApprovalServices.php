@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\Events\WorkerQuotaUpdated;
 use App\Events\KSMQuotaUpdated;
+use App\Models\DirectRecruitmentOnboardingCountry;
 
 class DirectRecruitmentCallingVisaApprovalServices
 {
@@ -30,6 +31,10 @@ class DirectRecruitmentCallingVisaApprovalServices
      * @var DirectRecruitmentCallingVisaStatus
      */
     private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry; 
 
     /**
      * DirectRecruitmentCallingVisaApprovalServices constructor.
@@ -37,13 +42,15 @@ class DirectRecruitmentCallingVisaApprovalServices
      * @param WorkerVisa $workerVisa
      * @param WorkerInsuranceDetails $workerInsuranceDetails
      * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus)
+    public function __construct(Workers $workers, WorkerVisa $workerVisa, WorkerInsuranceDetails $workerInsuranceDetails, DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
         $this->workers                                          = $workers;
         $this->workerVisa                                       = $workerVisa;
         $this->workerInsuranceDetails                           = $workerInsuranceDetails;
         $this->directRecruitmentCallingVisaStatus               = $directRecruitmentCallingVisaStatus;
+        $this->directRecruitmentOnboardingCountry               = $directRecruitmentOnboardingCountry;
     }
     /**
      * @return array
@@ -86,6 +93,28 @@ class DirectRecruitmentCallingVisaApprovalServices
             ];
         }
         if(isset($request['workers']) && !empty($request['workers'])) {
+
+            $workerCompanyCount = $this->workers->whereIn('id', $request['workers'])
+                                ->where('company_id', $request['company_id'])
+                                ->count();
+                                
+            if($workerCompanyCount != count($request['workers'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
+            $applicationCheck = $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($request) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $request['company_id']);
+                    })->find($request['onboarding_country_id']);
+            if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+
             $workerVisaProcessed = $this->workerInsuranceDetails
                             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'worker_insurance_details.worker_id')
                             ->whereIn('worker_insurance_details.worker_id', $request['workers'])
@@ -223,7 +252,8 @@ class DirectRecruitmentCallingVisaApprovalServices
             }])->with(['workerVisa' => function ($query) {
                 $query->select(['id', 'worker_id', 'ksm_reference_number', 'calling_visa_reference_number', 'approval_status', 'calling_visa_generated', 'calling_visa_valid_until', 'remarks']);
             }])->where('workers.id', $request['worker_id'])
-            ->select('id', 'name', 'passport_number', 'application_id', 'onboarding_country_id', 'agent_id')
+            ->whereIn('company_id', $request['company_id'])
+            ->select('id', 'name', 'passport_number')
             ->get();
     }
 }

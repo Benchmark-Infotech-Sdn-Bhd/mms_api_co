@@ -42,6 +42,8 @@ class DirectRecruitmentArrivalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentArrivalServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -59,7 +61,12 @@ class DirectRecruitmentArrivalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentArrivalServices->show($params);
+            if(count($response) == 0) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -118,9 +125,12 @@ class DirectRecruitmentArrivalController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentArrivalServices->submit($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'Arrival Submitted Successfully']);
         } catch (Exception $e) {
@@ -140,9 +150,12 @@ class DirectRecruitmentArrivalController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentArrivalServices->update($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'Arrival Updated Successfully']);
         } catch (Exception $e) {
@@ -162,6 +175,8 @@ class DirectRecruitmentArrivalController extends Controller
             $response = $this->directRecruitmentArrivalServices->cancelWorker($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             } else if($response == true ){
                 return $this->sendSuccess(['message' => 'Worker Cancellation Completed Successfully']);
             }else{
@@ -182,7 +197,12 @@ class DirectRecruitmentArrivalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentArrivalServices->cancelWorkerDetail($params);
+            if(count($response) == 0) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -221,9 +241,12 @@ class DirectRecruitmentArrivalController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $response = $this->directRecruitmentArrivalServices->updateWorkers($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             } else if($response == true ){
                 return $this->sendSuccess(['message' => 'Workers Updated Successfully']);
             }else{
@@ -244,7 +267,12 @@ class DirectRecruitmentArrivalController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentArrivalServices->arrivalDateDropDown($params);
+            if(count($response) == 0) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));

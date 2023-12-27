@@ -146,6 +146,12 @@ class DirectRecruitmentServices
      */
     public function addService($request): bool|array
     {
+        $crmCompany = $this->crmProspect->find($request['id']);
+        if($crmCompany['company_id'] != $request['company_id']) {
+            return [
+                'InvalidUser' => true 
+            ];
+        }
         $validator = Validator::make($request->toArray(), $this->addServiceValidation());
         if($validator->fails()) {
             return [
@@ -245,28 +251,6 @@ class DirectRecruitmentServices
         ->orderBy('directrecruitment_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }        
-    /**
-     * @param $request
-     * @return mixed | boolean
-     */
-    public function inputValidation($request)
-    {
-        if(!($this->directrecruitmentApplications->validate($request->all()))){
-            return $this->directrecruitmentApplications->errors();
-        }
-        return false;
-    }
-    /**
-     * @param $request
-     * @return mixed | boolean
-     */
-    public function updateValidation($request)
-    {
-        if(!($this->directrecruitmentApplications->validateUpdation($request->all()))){
-            return $this->directrecruitmentApplications->errors();
-        }
-        return false;
-    }
      /**
      *
      * @param $request
@@ -276,7 +260,9 @@ class DirectRecruitmentServices
     {
         return $this->directrecruitmentApplications::with(['applicationAttachment' => function ($query) {
             $query->orderBy('created_at', 'desc');
-        }])->find($request['id']);
+        }])->where('id', $request['id'])
+        ->whereIn('company_id', $request['company_id'])
+        ->first();
     }
     /**
      *
@@ -291,19 +277,25 @@ class DirectRecruitmentServices
                 'error' => $validator->errors()
             ];
         }
-        $data = $this->directrecruitmentApplications::findorfail($request['id']);
+        $input = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $input['modified_by'] = $user['id']; 
+        $data = $this->directrecruitmentApplications::find($request['id']);
+        if(is_null($data) || $data->company_id != $user['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+
         $activeServiceCount = $this->crmProspectService->where('crm_prospect_id', $data->crm_prospect_id)
                             ->where('status', 1)
                             ->where('service_id', 1)
                             ->count('id');
         if($activeServiceCount > 0) {
             return [
-                'error' => true
+                'activeServiceerror' => true
             ];
         }
-        $input = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $input['modified_by'] = $user['id']; 
         if($data->status != Config::get('services.APPROVAL_COMPLETED')){
             $input['status'] = Config::get('services.PROPOSAL_SUBMITTED');
         }
@@ -355,7 +347,18 @@ class DirectRecruitmentServices
      */    
     public function deleteAttachment($request): mixed
     {   
-        $data = $this->directrecruitmentApplicationAttachments::find($request['id']); 
+        $data = $this->directrecruitmentApplicationAttachments::join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_application_attachments.file_id', '=', 'directrecruitment_applications.id')
+                 ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })->find($request['id']); 
+
+        // $data = $this->directrecruitmentApplicationAttachments::leftJoin('directrecruitment_applications', function ($join) {
+        //     $join->on('directrecruitment_application_attachments.file_id', '=', 'directrecruitment_applications.id');
+        // })
+        // ->whereIn('directrecruitment_applications.company_id', $request['company_id'])
+        // ->where('directrecruitment_application_attachments.id', $request['id'])
+        // ->first(); 
+
         if(is_null($data)){
             return [
                 "isDeleted" => false,

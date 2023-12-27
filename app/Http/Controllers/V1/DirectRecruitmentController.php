@@ -41,12 +41,12 @@ class DirectRecruitmentController extends Controller
     public function submitProposal(Request $request): JsonResponse
     {     
         try {   
-            $validation = $this->directRecruitmentServices->inputValidation($request);
-            if ($validation) {
-                return $this->validationError($validation);
-            }
             $response = $this->directRecruitmentServices->submitProposal($request); 
-            if(isset($response['error'])) {
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            } else if(isset($response['activeServiceerror'])) {
                 return $this->sendError(['message' => 'Please finish the previous process before submitting a new application as this company service is still in progress.']);
             }      
             return $this->sendSuccess($response);
@@ -66,7 +66,12 @@ class DirectRecruitmentController extends Controller
     {     
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentServices->showProposal($params); 
+            if(is_null($response)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -87,6 +92,8 @@ class DirectRecruitmentController extends Controller
             $response = $this->directRecruitmentServices->addService($request);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'Service Added Successfully']);
         } catch(Exception $e) {
@@ -126,7 +133,10 @@ class DirectRecruitmentController extends Controller
     public function deleteAttachment(Request $request): JsonResponse
     {   
         try {
-            $response = $this->directRecruitmentServices->deleteAttachment($request);
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $response = $this->directRecruitmentServices->deleteAttachment($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
