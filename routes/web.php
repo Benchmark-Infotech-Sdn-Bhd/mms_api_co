@@ -50,7 +50,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->group(['prefix' => 'company'], function () use ($router) {
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,View']], function () use ($router) {
                     $router->post('list', 'V1\CompanyController@list');
-                    $router->post('show', 'V1\CompanyController@show');    
+                    $router->post('show', 'V1\CompanyController@show');   
+                    $router->post('moduleList', 'V1\CompanyController@moduleList');                                    
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Add']], function () use ($router) {
                     $router->post('create', 'V1\CompanyController@create');
@@ -77,7 +78,6 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'company'], function () use ($router) {
             $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');
             $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
-            $router->post('moduleList', 'V1\CompanyController@moduleList');                                    
         });  
         /**
          * Routes for Modules.
