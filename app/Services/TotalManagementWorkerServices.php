@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\TotalManagementProject;
+use App\Services\AuthServices;
 
 class TotalManagementWorkerServices
 {
@@ -48,6 +49,10 @@ class TotalManagementWorkerServices
      * @var TotalManagementProject
      */
     private TotalManagementProject $totalManagementProject;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementWorkerServices constructor.
@@ -59,8 +64,9 @@ class TotalManagementWorkerServices
      * @param CRMProspectService $crmProspectService
      * @param DirectrecruitmentApplications $directrecruitmentApplications
      * @param TotalManagementProject $totalManagementProject
+     * @param AuthServices $authServices
      */
-    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, TotalManagementProject $totalManagementProject)
+    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, TotalManagementProject $totalManagementProject, AuthServices $authServices)
     {
         $this->workers = $workers;
         $this->vendor = $vendor;
@@ -70,6 +76,7 @@ class TotalManagementWorkerServices
         $this->crmProspectService = $crmProspectService;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->totalManagementProject = $totalManagementProject;
+        $this->authServices = $authServices;
     }
     /**
      * @return array
@@ -245,7 +252,12 @@ class TotalManagementWorkerServices
      */
     public function accommodationUnitDropDown($request): mixed
     {
-        return $this->accommodation->where('vendor_id', $request['id'])->select('id', 'name')->get();
+        return $this->accommodation
+        ->join('vendors', function ($join) use ($request) {
+            $join->on('vendors.id', '=', 'accommodation.vendor_id')
+                 ->whereIn('vendors.company_id', $request['company_id']);
+        })
+        ->where('accommodation.vendor_id', $request['id'])->select('accommodation.id', 'accommodation.name')->get();
     }
     /**
      * @param $request
@@ -255,6 +267,7 @@ class TotalManagementWorkerServices
     {
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
 
         $validator = Validator::make($request, $this->createValidation());
         if($validator->fails()) {
@@ -266,7 +279,12 @@ class TotalManagementWorkerServices
         if(isset($request['workers']) && !empty($request['workers'])) 
         {
             $projectDetails = $this->totalManagementProject->findOrFail($request['project_id']);
-            $applicationDetails = $this->totalManagementApplications->findOrFail($projectDetails->application_id);
+            $applicationDetails = $this->totalManagementApplications::whereIn('company_id', $request['company_id'])->find($projectDetails->application_id);
+            if(is_null($applicationDetails)){
+                return [
+                    'unauthorizedError' => true
+                ];
+            }
             $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
             $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
             
@@ -329,7 +347,12 @@ class TotalManagementWorkerServices
      */
     public function getBalancedQuota($request): array
     {
-        $applicationDetails = $this->totalManagementApplications->findOrFail($request['application_id']);
+        $applicationDetails = $this->totalManagementApplications::whereIn('company_id', $request['company_id'])->find($request['application_id']);
+        if(is_null($applicationDetails)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
         $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
 
         $workerCount = $this->getWorkerCount($request['application_id'], $applicationDetails->crm_prospect_id);
@@ -357,6 +380,7 @@ class TotalManagementWorkerServices
         return $this->totalManagementApplications
                     ->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
                     ->where('total_management_applications.id', $request['application_id'])
+                    ->whereIn('total_management_applications.company_id', $request['company_id'])
                     ->select('crm_prospects.id', 'crm_prospects.company_name')
                     ->get();
     }
@@ -369,6 +393,7 @@ class TotalManagementWorkerServices
         $companyId = $this->totalManagementApplications
                     ->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
                     ->where('total_management_applications.id', $request['application_id'])
+                    ->whereIn('total_management_applications.company_id', $request['company_id'])
                     ->select('crm_prospects.id')
                     ->get()->toArray();
         $companyId = array_column($companyId, 'id');
@@ -391,6 +416,7 @@ class TotalManagementWorkerServices
                     ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
                     ->where('directrecruitment_applications.crm_prospect_id', $request['prospect_id'])
                     ->where('directrecruitment_application_approval.ksm_reference_number', $request['ksm_reference_number'])
+                    ->whereIn('directrecruitment_applications.company_id', $request['company_id'])
                     ->select('crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'directrecruitment_application_approval.valid_until')
                     ->get();
     }
@@ -417,6 +443,8 @@ class TotalManagementWorkerServices
     public function removeWorker($request): array|bool
     {
         $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         $request['modified_by'] = $user['id'];
 
         $validator = Validator::make($request, $this->removeValidation());
@@ -426,10 +454,18 @@ class TotalManagementWorkerServices
             ];
         }
 
-        $workerDetails = $this->workerEmployment->where("worker_id", $request['worker_id'])
+        $workerDetails = $this->workerEmployment->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'worker_employment.worker_id')
+                 ->whereIn('workers.company_id', $request['company_id']);
+        })->where("worker_id", $request['worker_id'])
                         ->where("project_id", $request['project_id'])
                         ->where("service_type", "Total Management")
-                        ->get();
+                        ->count();
+            if($workerDetails == 0){
+                return [
+                    'unauthorizedError' => true
+                ];
+            }
 
         $this->workerEmployment->where("worker_id", $request['worker_id'])
         ->where("project_id", $request['project_id'])

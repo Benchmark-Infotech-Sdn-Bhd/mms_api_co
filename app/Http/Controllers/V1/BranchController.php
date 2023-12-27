@@ -84,7 +84,10 @@ class BranchController extends Controller
     public function show(Request $request): JsonResponse
     {   
         try {
-            $response = $this->branchServices->show($request); 
+            $response = $this->branchServices->show($request);
+            if(is_null($response)){
+                return $this->sendError(['message' => 'Unauthorized']);
+            } 
             return $this->sendSuccess($response);  
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

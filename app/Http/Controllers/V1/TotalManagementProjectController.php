@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use App\Services\TotalManagementProjectServices;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 use Exception;
 
 class TotalManagementProjectController extends Controller
@@ -16,14 +17,20 @@ class TotalManagementProjectController extends Controller
      * @var TotalManagementProjectServices
      */
     private $totalManagementProjectServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementProjectController constructor.
      * @param TotalManagementProjectServices $totalManagementProjectServices
+     * @param AuthServices $authServices
      */
-    public function __construct(TotalManagementProjectServices $totalManagementProjectServices)
+    public function __construct(TotalManagementProjectServices $totalManagementProjectServices, AuthServices $authServices)
     {
         $this->totalManagementProjectServices = $totalManagementProjectServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display list of Project
@@ -52,6 +59,8 @@ class TotalManagementProjectController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementProjectServices->show($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -93,6 +102,7 @@ class TotalManagementProjectController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementProjectServices->update($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);

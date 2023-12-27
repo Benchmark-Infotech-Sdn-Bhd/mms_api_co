@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 use Carbon\Carbon;
 
 class WorkerEventServices
@@ -35,20 +36,26 @@ class WorkerEventServices
      */
     private WorkerEmployment $workerEmployment;
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
      * WorkerEventServices constructor.
      * @param Workers $workers
      * @param WorkerEvent $workerEvent;
      * @param WorkerEventAttachments $workerEventAttachments
      * @param Storage $storage
      * @param WorkerEmployment $workerEmployment
+     * @param AuthServices $authServices
      */
-    public function __construct(Workers $workers, WorkerEvent $workerEvent, WorkerEventAttachments $workerEventAttachments, Storage $storage, WorkerEmployment $workerEmployment)
+    public function __construct(Workers $workers, WorkerEvent $workerEvent, WorkerEventAttachments $workerEventAttachments, Storage $storage, WorkerEmployment $workerEmployment, AuthServices $authServices)
     {
         $this->workers                = $workers;
         $this->workerEvent            = $workerEvent;
         $this->workerEventAttachments = $workerEventAttachments;
         $this->storage                = $storage;
         $this->workerEmployment = $workerEmployment;
+        $this->authServices = $authServices;
     }
     /**
      * @return array
@@ -186,8 +193,17 @@ class WorkerEventServices
             ];
         }
         $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
         $request['modified_by'] = $user['id'];
-        $workerEvent = $this->workerEvent->findOrFail($request['id']);
+        $workerEvent = $this->workerEvent->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'worker_event.worker_id')
+                 ->whereIn('workers.company_id', $request['company_id']);
+        })->select('worker_event.*')->find($request['id']);
+        if(is_null($workerEvent)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
         $workerEvent->worker_id = $request['worker_id'] ?? $workerEvent->worker_id;
         $workerEvent->event_date = (isset($request['event_date']) && !empty($request['event_date'])) ? $request['event_date'] : $workerEvent->event_date;
         $workerEvent->event_type = $request['event_type'] ?? $workerEvent->event_type;
@@ -251,7 +267,12 @@ class WorkerEventServices
      */
     public function show($request): mixed
     {
-        return $this->workerEvent->with(['eventAttachments'])->findOrFail($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+        return $this->workerEvent->with(['eventAttachments'])->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'worker_event.worker_id')
+                 ->whereIn('workers.company_id', $request['company_id']);
+        })->select('worker_event.*')->find($request['id']);
     }
     /**
      *
@@ -260,7 +281,13 @@ class WorkerEventServices
      */    
     public function deleteAttachment($request): bool
     {   
-        $data = $this->workerEventAttachments::find($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+        $data = $this->workerEventAttachments::join('worker_event', 'worker_event.id', 'worker_event_attachments.file_id')
+        ->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'worker_event.worker_id')
+                 ->whereIn('workers.company_id', $request['company_id']);
+        })->select('worker_event_attachments.id')->find($request['id']);
         if(is_null($data)) {
             return false;
         }

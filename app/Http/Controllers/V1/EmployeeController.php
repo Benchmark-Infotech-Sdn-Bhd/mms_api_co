@@ -68,6 +68,7 @@ class EmployeeController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->employeeServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -89,6 +90,8 @@ class EmployeeController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->employeeServices->delete($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -131,6 +134,8 @@ class EmployeeController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->employeeServices->updateStatus($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 

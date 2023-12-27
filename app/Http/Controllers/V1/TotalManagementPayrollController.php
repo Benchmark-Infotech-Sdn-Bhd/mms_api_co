@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use App\Services\TotalManagementPayrollServices;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 use Exception;
 
 class TotalManagementPayrollController extends Controller
@@ -16,14 +17,20 @@ class TotalManagementPayrollController extends Controller
      * @var TotalManagementPayrollServices
      */
     private $totalManagementPayrollServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * TotalManagementPayrollController constructor.
      * @param TotalManagementPayrollServices $totalManagementPayrollServices
+     * @param AuthServices $authServices
      */
-    public function __construct(TotalManagementPayrollServices $totalManagementPayrollServices)
+    public function __construct(TotalManagementPayrollServices $totalManagementPayrollServices, AuthServices $authServices)
     {
         $this->totalManagementPayrollServices = $totalManagementPayrollServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display the Total Management Payroll
@@ -69,6 +76,8 @@ class TotalManagementPayrollController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementPayrollServices->export($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -86,6 +95,8 @@ class TotalManagementPayrollController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementPayrollServices->show($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -155,9 +166,12 @@ class TotalManagementPayrollController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementPayrollServices->update($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            }else if(isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Total Management Payroll Updated Successfully']);
         } catch (Exception $e) {
@@ -232,6 +246,8 @@ class TotalManagementPayrollController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->totalManagementPayrollServices->authorizePayroll($params);
             if(isset($response['existsError'])) {
                 return $this->sendError(['message' => 'Failed to Upload Total Management Payroll to Expenses Due to Expense Exists for This Month'], 422);

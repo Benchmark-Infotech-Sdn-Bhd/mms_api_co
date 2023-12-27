@@ -101,7 +101,7 @@ class EmployeeServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $employee = $this->employee->find($request['id']);
+        $employee = $this->employee->where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($employee)){
             return [
                 "isUpdated" => false,
@@ -149,11 +149,21 @@ class EmployeeServices
      */
     public function delete($request) : array
     {
+
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
+        
+        $employee = $this->employee->whereIn('company_id', $request['company_id'])->find($request['id']);
+        if(is_null($employee)){
+            return [
+                "isDeleted" => false,
+                "message" => "Data not found"
+            ];
+        }
+
         $res = $this->authServices->delete(['reference_id' => $request['id']]);
         if(!$res){
             return [
@@ -161,13 +171,7 @@ class EmployeeServices
                 "message" => "Data not found"
             ];
         }
-        $employee = $this->employee->find($request['id']);
-        if(is_null($employee)){
-            return [
-                "isDeleted" => false,
-                "message" => "Data not found"
-            ];
-        }
+
         return [
             "isDeleted" => $employee->delete(),
             "message" => "Deleted Successfully"
@@ -184,7 +188,7 @@ class EmployeeServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $emp = $this->employee->with(['branches', 'user'])->findOrFail($request['id']);
+        $emp = $this->employee->with(['branches', 'user'])->find($request['id']);
         $companies = $this->user->with('companies')->findOrFail($emp->user->id);
         if(isset($emp) && isset($emp['id'])){
             $user = $this->authServices->userWithRolesBasedOnReferenceId(['id' => $emp['id']]);
@@ -202,12 +206,13 @@ class EmployeeServices
      */
     public function updateStatus($request) : array
     {
+
         if(!($this->validationServices->validate($request,['id' => 'required','status' => 'required|regex:/^[0-1]+$/|max:1']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $employee = $this->employee->with('branches')->find($request['id']);
+        $employee = $this->employee->with('branches')->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($employee)){
             return [
                 "isUpdated" => false,

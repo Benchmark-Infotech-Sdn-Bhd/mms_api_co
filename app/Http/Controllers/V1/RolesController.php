@@ -64,7 +64,12 @@ class RolesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->rolesServices->show($params);
+            if(is_null($response)){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -116,12 +121,16 @@ class RolesController extends Controller
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $params['modified_by'] = $user['id'];
             $validator = Validator::make($params, $this->rolesServices->updateValidation());
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());
             }
-            $this->rolesServices->update($params);
+            $response = $this->rolesServices->update($params);
+            if(isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess(['message' => 'Role Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -141,7 +150,11 @@ class RolesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
-            $this->rolesServices->delete($params);
+            $params['company_id'] = $user['company_id'];
+            $response = $this->rolesServices->delete($params);
+            if($response == false) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess(['message' => 'Role Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -178,6 +191,7 @@ class RolesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $validator = Validator::make($params, ['id' => 'required','status' => 'required|regex:/^[0-1]+$/|max:1']);
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());

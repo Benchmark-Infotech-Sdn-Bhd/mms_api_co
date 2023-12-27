@@ -65,7 +65,7 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $agent = $this->agent->find($request['id']);
+        $agent = $this->agent->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($agent)){
             return [
                 "isUpdated" => false,
@@ -98,7 +98,7 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $agent = $this->agent->find($request['id']);
+        $agent = $this->agent->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($agent)){
             return [
                 "isDeleted" => false,
@@ -121,7 +121,8 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->agent->with('countries')->findOrFail($request['id']);
+        //return $this->agent->with('countries')->findOrFail($request['id']);
+        return $this->agent->with('countries')->whereIn('company_id', $request['company_id'])->where('id',$request['id'])->first();
     }
     /**
      * @param $request
@@ -160,7 +161,7 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $agent = $this->agent->with('countries')->find($request['id']);
+        $agent = $this->agent->with('countries')->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($agent)){
             return [
                 "isUpdated" => false,

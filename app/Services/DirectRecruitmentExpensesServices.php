@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\DirectRecruitmentExpenses;
 use App\Models\DirectRecruitmentExpensesAttachments;
+use App\Models\DirectrecruitmentApplications;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -35,19 +36,25 @@ class DirectRecruitmentExpensesServices
      */
     private Storage $storage;
     /**
+     * @var DirectrecruitmentApplications
+     */
+    private DirectrecruitmentApplications $directrecruitmentApplications;
+    /**
      * DirectRecruitmentExpensesServices constructor.
      * @param DirectRecruitmentExpenses $directRecruitmentExpenses
      * @param DirectRecruitmentExpensesAttachments $directRecruitmentExpensesAttachments
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
+     * @param DirectrecruitmentApplications $directrecruitmentApplications
      */
     public function __construct(
             DirectRecruitmentExpenses               $directRecruitmentExpenses,
             DirectRecruitmentExpensesAttachments    $directRecruitmentExpensesAttachments,
             ValidationServices                      $validationServices,
             AuthServices                            $authServices,
-            Storage                                 $storage
+            Storage                                 $storage,
+            DirectrecruitmentApplications           $directrecruitmentApplications
     )
     {
         $this->directRecruitmentExpenses = $directRecruitmentExpenses;
@@ -55,6 +62,7 @@ class DirectRecruitmentExpensesServices
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
+        $this->directrecruitmentApplications = $directrecruitmentApplications;
     }
 
     /**
@@ -66,11 +74,20 @@ class DirectRecruitmentExpensesServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
+
         if(!($this->validationServices->validate($request->toArray(),$this->directRecruitmentExpenses->rules))){
             return [
               'validate' => $this->validationServices->errors()
             ];
         }
+        $directrecruitmentApplications = $this->directrecruitmentApplications->where('company_id', $params['company_id'])->find($request['application_id']);
+        if(is_null($directrecruitmentApplications)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
+
         $expenses = $this->directRecruitmentExpenses->create([
             'application_id' => $request['application_id'],
             'title' => $request['title'] ?? '',
@@ -112,10 +129,18 @@ class DirectRecruitmentExpensesServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['modified_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
 
         if(!($this->validationServices->validate($request->toArray(),$this->directRecruitmentExpenses->rulesForUpdation($request['id'])))){
             return [
                 'validate' => $this->validationServices->errors()
+            ];
+        }
+
+        $directrecruitmentApplications = $this->directrecruitmentApplications->where('company_id', $params['company_id'])->find($request['application_id']);
+        if(is_null($directrecruitmentApplications)){
+            return [
+                'unauthorizedError' => true
             ];
         }
 
@@ -160,12 +185,18 @@ class DirectRecruitmentExpensesServices
      */
     public function show($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->directRecruitmentExpenses->with('directRecruitmentExpensesAttachments')->findOrFail($request['id']);
+        return $this->directRecruitmentExpenses->with(['directRecruitmentExpensesAttachments'])->join('directrecruitment_applications', function ($join) use ($request) {
+            $join->on('directrecruitment_applications.id', '=', 'directrecruitment_expenses.application_id')
+                 ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })->select('directrecruitment_expenses.*')->find($request['id']);
     }
     
     /**
@@ -230,8 +261,17 @@ class DirectRecruitmentExpensesServices
      * @return bool
      */    
     public function deleteAttachment($request): bool
-    {   
-        $data = $this->directRecruitmentExpensesAttachments::find($request['id']); 
+    {  
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+        $data = $this->directRecruitmentExpensesAttachments::join('directrecruitment_expenses', 'directrecruitment_expenses.id', 'directrecruitment_expenses_attachments.file_id')
+        ->join('directrecruitment_applications', function ($join) use ($request) {
+            $join->on('directrecruitment_applications.id', '=', 'directrecruitment_expenses.application_id')
+                 ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })->select('directrecruitment_expenses_attachments.id')->find($request['id']);
+        if(is_null($data)) {
+            return false;
+        }
         $data->delete();
         return true;
     }
