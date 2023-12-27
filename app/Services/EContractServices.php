@@ -176,9 +176,18 @@ class EContractServices
                 'error' => $validator->errors()
             ];
         }
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['created_by'] = $user['id'];
-        $service = $this->services->findOrFail($request['service_id']);
+
+        $prospectCompany = $this->crmProspect
+        ->where('company_id', $request['company_id'])
+        ->find($request['prospect_id']);
+        if(is_null($prospectCompany)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
+        
+
+        $service = $this->services->find($request['service_id']);
         $prospectService = $this->crmProspectService->create([
             'crm_prospect_id'    => $request['prospect_id'],
             'service_id'         => $service->id,
@@ -188,7 +197,7 @@ class EContractServices
             'status'             => $request['status'] ?? 0,
             'fomnext_quota'      => $request['fomnext_quota'] ?? 0,
             'air_ticket_deposit' => $request['air_ticket_deposit'] ?? 0,
-        ]);
+        ]); 
         if (request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file) {                
                 $fileName = $file->getClientOriginalName();                 
@@ -215,7 +224,7 @@ class EContractServices
             'remarks' => '',
             'created_by' => $request["created_by"] ?? 0,
             'modified_by' => $request["created_by"] ?? 0,
-            'company_id' => $user['company_id']
+            'company_id' => $request['company_id']
         ]);
         return true;
     }
@@ -234,7 +243,13 @@ class EContractServices
         $user = JWTAuth::parseToken()->authenticate();
         $params = $request->all();
         $params['modified_by'] = $user['id'];
-        $applicationDetails = $this->eContractApplications->findOrFail($params['id']);
+        $applicationDetails = $this->eContractApplications->whereIn('company_id', $request['company_id'])->find($params['id']);
+        if(is_null($applicationDetails)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
+
         $applicationDetails->quota_requested = $params['quota_requested'] ?? $applicationDetails->quota_applied;
         $applicationDetails->person_incharge = $params['person_incharge'] ?? $applicationDetails->person_incharge;
         $applicationDetails->cost_quoted = $params['cost_quoted'] ?? $applicationDetails->cost_quoted;
@@ -272,6 +287,7 @@ class EContractServices
         return $this->eContractApplications
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'e-contract_applications.service_id')
         ->where('e-contract_applications.id', $request['id'])
+        ->whereIn('e-contract_applications.company_id', $request['company_id'])
         ->with(['applicationAttachment' => function ($query) {
             $query->orderBy('created_at', 'desc');
         }])->select('e-contract_applications.id', 'e-contract_applications.quota_requested', 'e-contract_applications.person_incharge', 'e-contract_applications.cost_quoted', 'e-contract_applications.remarks', 'crm_prospect_services.sector_name')->get();
@@ -288,7 +304,21 @@ class EContractServices
                 'error' => $validator->errors()
             ];
         }
-        $serviceDetails = $this->crmProspectService->findOrFail($request['prospect_service_id']);
+        //$serviceDetails = $this->crmProspectService->findOrFail($request['prospect_service_id']);
+        $serviceDetails = $this->crmProspectService
+        ->join('crm_prospects', function($query) use($request) {
+            $query->on('crm_prospects.id','=','crm_prospect_services.crm_prospect_id')
+            ->whereIn('crm_prospects.company_id', $request['company_id']);
+        })
+        ->select('crm_prospect_services.*')
+        ->find($request['prospect_service_id']);
+
+        if(is_null($serviceDetails)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        } 
+
         $serviceDetails->fomnext_quota = $request['fomnext_quota'] ?? $serviceDetails->fomnext_quota;
         $serviceDetails->air_ticket_deposit = $request['air_ticket_deposit'] ?? $serviceDetails->air_ticket_deposit;
         $serviceDetails->save();
@@ -305,6 +335,12 @@ class EContractServices
      */
     public function showService($request) : mixed
     {
-        return $this->crmProspectService->findOrFail($request['prospect_service_id']);
+        return $this->crmProspectService
+        ->join('crm_prospects', function($query) use($request) {
+            $query->on('crm_prospects.id','=','crm_prospect_services.crm_prospect_id')
+            ->whereIn('crm_prospects.company_id', $request['company_id']);
+        })
+        ->select('crm_prospect_services.*')
+        ->find($request['prospect_service_id']);
     }
 }

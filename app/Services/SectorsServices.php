@@ -52,7 +52,7 @@ class SectorsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $sector = $this->sectors->find($request['id']);
+        $sector = $this->sectors->where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($sector)){
             return [
                 "isUpdated" => false,
@@ -81,7 +81,7 @@ class SectorsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $sector = $this->sectors->find($request['id']);
+        $sector = $this->sectors->where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($sector)){
             return [
                 "isDeleted" => false,
@@ -105,7 +105,7 @@ class SectorsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->sectors->findOrFail($request['id']);
+        return $this->sectors->whereIn('company_id', $request['company_id'])->find($request['id']);
     }
     /**
      * @param $companyId
@@ -176,7 +176,7 @@ class SectorsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $sector = $this->sectors->find($request['id']);
+        $sector = $this->sectors->where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($sector)){
             return [
                 "isUpdated" => false,

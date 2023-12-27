@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\EContractCostManagement;
 use App\Models\EContractCostManagementAttachments;
+use App\Models\EContractProject;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -19,6 +20,7 @@ class EContractCostManagementServices
     private ValidationServices $validationServices;
     private AuthServices $authServices;
     private Storage $storage;
+    private EContractProject $eContractProject;
     /**
      * EContractCostManagementServices constructor.
      * @param EContractCostManagement $eContractCostManagement
@@ -26,13 +28,15 @@ class EContractCostManagementServices
      * @param ValidationServices $validationServices
      * @param AuthServices $authServices
      * @param Storage $storage
+     * @param EContractProject $eContractProject
      */
     public function __construct(
             EContractCostManagement                 $eContractCostManagement,
             EContractCostManagementAttachments     $eContractCostManagementAttachments,
             ValidationServices                      $validationServices,
             AuthServices                            $authServices,
-            Storage                                 $storage
+            Storage                                 $storage,
+            EContractProject $eContractProject
     )
     {
         $this->eContractCostManagement = $eContractCostManagement;
@@ -40,6 +44,7 @@ class EContractCostManagementServices
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
+        $this->eContractProject = $eContractProject;
     }
     /**
      * @return array
@@ -77,11 +82,27 @@ class EContractCostManagementServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
+
+        $projectData = $this->eContractProject
+        ->join('e-contract_applications', function($query) use($user) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $user['company_id']);
+        })
+        ->select('e-contract_project.application_id')
+        ->find($request['project_id']);
+        
+        if(is_null($projectData)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
+
         if(!($this->validationServices->validate($request->toArray(),$this->CreateValidation()))){
             return [
               'validate' => $this->validationServices->errors()
             ];
         }
+
         $eContractCostManagement = $this->eContractCostManagement->create([
             'project_id' => $request['project_id'],
             'title' => $request['title'] ?? '',
@@ -130,7 +151,20 @@ class EContractCostManagementServices
             ];
         }
 
-        $eContractCostManagement = $this->eContractCostManagement->findOrFail($request['id']);
+        $eContractCostManagement = $this->eContractCostManagement
+        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
+        ->join('e-contract_applications', function($query) use($user) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $user['company_id']);
+        })
+        ->select('e-contract_cost_management.*')
+        ->find($request['id']);
+        if(is_null($eContractCostManagement)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
+
         $eContractCostManagement->title = $request['title'] ?? $eContractCostManagement->title;
         $eContractCostManagement->payment_reference_number = $request['payment_reference_number'] ?? $eContractCostManagement->payment_reference_number;
         $eContractCostManagement->payment_date = ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : $eContractCostManagement->payment_date);
@@ -170,12 +204,21 @@ class EContractCostManagementServices
      */
     public function show($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
         if(!($this->validationServices->validate($request,['id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->eContractCostManagement->with('eContractCostManagementAttachments')->findOrFail($request['id']);
+        return $this->eContractCostManagement->with('eContractCostManagementAttachments')
+        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
+        ->join('e-contract_applications', function($query) use($params) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $params['company_id']);
+        })
+        ->select('e-contract_cost_management.*')
+        ->find($request['id']);
     }
     
     /**
@@ -184,6 +227,8 @@ class EContractCostManagementServices
      */
     public function list($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
         if(isset($request['search_param']) && !empty($request['search_param'])){
             if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
                 return [
@@ -201,6 +246,11 @@ class EContractCostManagementServices
             ->where('invoice_items_temp.service_id', '=', 2)
             ->WhereNull('invoice_items_temp.deleted_at');
           })
+        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
+        ->join('e-contract_applications', function($query) use($params) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $params['company_id']);
+        })
         ->where('e-contract_cost_management.project_id', $request['project_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
@@ -221,7 +271,16 @@ class EContractCostManagementServices
      */    
     public function delete($request): mixed
     {   
-        $eContractCostManagement = $this->eContractCostManagement::find($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        $eContractCostManagement = $this->eContractCostManagement
+        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
+        ->join('e-contract_applications', function($query) use($params) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $params['company_id']);
+        })
+        ->select('e-contract_cost_management.*')
+        ->find($request['id']);
 
         if(is_null($eContractCostManagement)){
             return [
@@ -244,7 +303,18 @@ class EContractCostManagementServices
      */    
     public function deleteAttachment($request): mixed
     {   
-        $data = $this->eContractCostManagementAttachments::find($request['id']); 
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        $data = $this->eContractCostManagementAttachments::find($request['id'])
+        ->join('e-contract_cost_management', 'e-contract_cost_management.id', 'e-contract_cost_management_attachments.file_id')
+        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
+        ->join('e-contract_applications', function($query) use($params) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $params['company_id']);
+        })
+        ->select('e-contract_cost_management_attachments.*')
+        ->find($request['id']);
+
         if(is_null($data)){
             return [
                 "isDeleted" => false,

@@ -20,7 +20,7 @@ class EContractWorkerController extends Controller
 
     /**
      * @var AuthServices
-     */
+     */ 
     private AuthServices $authServices;
 
     /**
@@ -94,6 +94,8 @@ class EContractWorkerController extends Controller
                 return $this->validationError($data['error']);
             } else if(isset($data['quotaError'])) {
                 return $this->sendError(['message' => 'The number of worker cannot exceed the Applied Quota'], 422);
+            } else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']); 
             }
             return $this->sendSuccess(['message' => 'Workers are Assigned Successfully']);
         } catch (Exception $e) {
@@ -114,6 +116,8 @@ class EContractWorkerController extends Controller
             $data = $this->eContractWorkerServices->removeWorker($params);
             if(isset($data['error'])) {
                 return $this->validationError($data['error']);
+            } else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']); 
             }
             return $this->sendSuccess(['message' => 'Worker Removed Successfully']);
         } catch (Exception $e) {

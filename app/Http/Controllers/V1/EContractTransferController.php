@@ -47,11 +47,14 @@ class EContractTransferController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function projectList(Request $request): JsonResponse
+    public function projectList(Request $request): JsonResponse 
     {
         try {
             $params = $this->getRequest($request);
             $data = $this->eContractTransferServices->projectList($params);
+            if(is_null($data) || count($data->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -69,6 +72,9 @@ class EContractTransferController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->eContractTransferServices->workerEmploymentDetail($params);
+            if(is_null($data) || count($data->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -98,6 +104,8 @@ class EContractTransferController extends Controller
                 return $this->sendError(['message' => 'The number of Fomnext worker cannot exceed the Fomnext Quota'], 422);
             } else if(isset($response['otherCompanyError'])) {
                 return $this->sendError(['message' => 'The selected Client worker cannot be transferred to another Client'], 422);
+            } else if(isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Worker Transfered Successfully']);
         } catch (Exception $e) {

@@ -136,24 +136,27 @@ class EContractTransferServices
      * @param $request
      * @return mixed
      */
-    public function projectList($request): mixed
+    public function projectList($request): mixed 
     {
+        $user = JWTAuth::parseToken()->authenticate();
         if($request['service_type'] == 'e-Contract') {
             return $this->eContractProject
-            ->leftJoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
+            ->Join('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
             ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'e-contract_applications.service_id')
             ->where('crm_prospect_services.crm_prospect_id',$request['crm_prospect_id'])
             ->where('crm_prospect_services.id',$request['prospect_service_id'])
+            ->where('e-contract_applications.company_id',$user['company_id'])
             ->select('e-contract_project.id', 'e-contract_project.name')
             ->distinct('e-contract_project.id')
             ->orderBy('e-contract_project.id', 'desc')
             ->get();
         } else if($request['service_type'] == 'Total Management') {
             return $this->totalManagementProject
-            ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+            ->Join('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
             ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'total_management_applications.service_id')
             ->where('crm_prospect_services.crm_prospect_id',$request['crm_prospect_id'])
             ->where('crm_prospect_services.id',$request['prospect_service_id'])
+            ->where('total_management_applications.company_id',$user['company_id'])
             ->where('crm_prospect_services.from_existing',0)
             ->select('total_management_project.id', 'total_management_project.name')
             ->distinct('total_management_project.id')
@@ -167,11 +170,13 @@ class EContractTransferServices
      */
     public function workerEmploymentDetail($request): mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         return $this->workers
                 ->leftJoin('crm_prospects', 'crm_prospects.id', 'workers.crm_prospect_id')
                 ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
                 ->where('workers.id', $request['worker_id'])
                 ->where('worker_employment.transfer_flag', 0)
+                ->where('workers.company_id', $user['company_id'])
                 ->select('workers.id', 'workers.crm_prospect_id as company_id', 'crm_prospects.company_name', 'worker_employment.id as worker_employment_id', 'worker_employment.project_id', 'worker_employment.department', 'worker_employment.sub_department', 'worker_employment.work_start_date', 'worker_employment.work_end_date', 'worker_employment.service_type', 'worker_employment.transfer_flag')
                 ->get();
     }
@@ -191,6 +196,14 @@ class EContractTransferServices
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
 
+        $checkWorker = $this->workers->where('company_id', $user['company_id'])->first();
+        
+        if(is_null($checkWorker)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
+
         // CHECK WORKER EMPLOYMENT DATA - SAME PROJECT ID
         $workerEmployment = $this->workerEmployment->where([
             ['worker_id', $request['worker_id']],
@@ -208,7 +221,20 @@ class EContractTransferServices
         }
 
         if($request['service_type'] == 'e-Contract') {
-            $projectDetails = $this->eContractProject->findOrFail($request['new_project_id']);
+            
+            $projectDetails = $this->eContractProject::
+            join('e-contract_applications', function($query) use($user) {
+                $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+                ->where('e-contract_applications.company_id', $user['company_id']);
+            })
+            ->select('e-contract_project.*')
+            ->find($request['new_project_id']);
+            if(is_null($projectDetails)){
+                return [
+                    'unauthorizedError' => true
+                ];
+            }
+            
             $applicationDeatils = $this->eContractApplications->findOrFail($projectDetails->application_id);
             $projectIds = $this->eContractProject->where('application_id', $projectDetails->application_id)
                             ->select('id')

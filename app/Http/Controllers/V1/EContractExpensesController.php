@@ -35,6 +35,7 @@ class EContractExpensesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->eContractExpensesServices->list($params);
+
             if(isset($data['error'])) {
                 return $this->validationError($data['error']); 
             }
@@ -55,6 +56,9 @@ class EContractExpensesController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->eContractExpensesServices->show($params);
+            if(is_null($data) || count($data->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -71,6 +75,9 @@ class EContractExpensesController extends Controller
     {
         try {
             $data = $this->eContractExpensesServices->create($request);
+            if(isset($data['unauthorizedError'])) {
+                return $this->sendError($data['unauthorizedError']);
+            }
             if(isset($data['error'])) {
                 return $this->validationError($data['error']);
             }
@@ -90,6 +97,9 @@ class EContractExpensesController extends Controller
     {
         try {
             $data = $this->eContractExpensesServices->update($request);
+            if(isset($data['unauthorizedError'])) {
+                return $this->sendError($data['unauthorizedError']);
+            }
             if(isset($data['error'])){
                 return $this->validationError($data['error']); 
             }
@@ -109,7 +119,10 @@ class EContractExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $this->eContractExpensesServices->delete($params);
+            $data = $this->eContractExpensesServices->delete($params);
+            if($data === false){
+                return $this->sendError(['message' => 'No data found']);
+            }
             return $this->sendSuccess(['message' => 'Expense Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -126,7 +139,10 @@ class EContractExpensesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $this->eContractExpensesServices->deleteAttachment($params);
+            $data = $this->eContractExpensesServices->deleteAttachment($params);
+            if($data === false){
+                return $this->sendError(['message' => 'No data found']);
+            }
             return $this->sendSuccess(['message' => 'Attachment Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -148,6 +164,8 @@ class EContractExpensesController extends Controller
                 return $this->validationError($data['error']); 
             } else if(isset($data['payBackError'])) {
                 return $this->validationError(['message' => 'Payback Amount Should not Exceed to Actual Amount'], 422); 
+            } else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']); 
             }
             return $this->sendSuccess(['message' => 'PayBack Added Successfully']);
         } catch (Exception $e) {

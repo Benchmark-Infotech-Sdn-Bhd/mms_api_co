@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\EContractProject;
 use App\Models\EContractProjectAttachments;
+use App\Models\EContractApplications;
 
 class EContractProjectServices
 {
@@ -24,16 +25,22 @@ class EContractProjectServices
      */
     private Storage $storage;
     /**
+     * @var EContractApplications
+     */
+    private EContractApplications $eContractApplications;
+    /**
      * EContractProjectServices constructor.
      * @param EContractProject $eContractProject
      * @param EContractProjectAttachments $eContractProjectAttachments
      * @param Storage $storage
+     * @param EContractApplications $eContractApplications
      */
-    public function __construct(EContractProject $eContractProject, EContractProjectAttachments $eContractProjectAttachments, Storage $storage)
+    public function __construct(EContractProject $eContractProject, EContractProjectAttachments $eContractProjectAttachments, Storage $storage, EContractApplications $eContractApplications)
     {
         $this->eContractProject = $eContractProject;
         $this->eContractProjectAttachments = $eContractProjectAttachments;
         $this->storage = $storage;
+        $this->eContractApplications = $eContractApplications;
     }
     /**
      * @return array
@@ -86,6 +93,10 @@ class EContractProjectServices
             $query->on('workers.id','=','worker_employment.worker_id')
             ->whereIN('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
         })
+        ->join('e-contract_applications', function($query) use($request) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->whereIn('e-contract_applications.company_id', $request['company_id']);
+        })
         ->where('e-contract_project.application_id',$request['application_id'])
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
@@ -107,7 +118,13 @@ class EContractProjectServices
      */   
     public function show($request): mixed
     {
-        return $this->eContractProject->with('projectAttachments')->find($request['id']);
+        return $this->eContractProject->with('projectAttachments')
+        ->join('e-contract_applications', function($query) use($request) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->whereIn('e-contract_applications.company_id', $request['company_id']);
+        })
+        ->select('e-contract_project.*')
+        ->find($request['id']);
     }
     /**
      * @param $request
@@ -123,6 +140,13 @@ class EContractProjectServices
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+        $applicationDetails = $this->eContractApplications->whereIn('company_id', $request['company_id'])->find($request['application_id']);
+        
+        if(is_null($applicationDetails)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
             ];
         }
         $eContractProject = $this->eContractProject->create([
@@ -180,7 +204,19 @@ class EContractProjectServices
             ];
         }
 
-        $eContractProject = $this->eContractProject->findOrFail($request['id']);
+        $eContractProject = $this->eContractProject
+        ->join('e-contract_applications', function($query) use($request) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->whereIn('e-contract_applications.company_id', $request['company_id']);
+        })
+        ->select('e-contract_project.*')
+        ->find($request['id']);
+
+        if(is_null($eContractProject)){
+            return [
+                'unauthorizedError' => 'Unauthorized'
+            ];
+        }
         
         $eContractProject->name =  $request['name'] ?? $eContractProject->name;
         $eContractProject->state =  $request['state'] ?? $eContractProject->state;
@@ -222,7 +258,19 @@ class EContractProjectServices
      */    
     public function deleteAttachment($request): array
     {   
-        $data = $this->eContractProjectAttachments::find($request['attachment_id']); 
+        //$data = $this->eContractProjectAttachments::find($request['attachment_id']); 
+
+        $data = $this->eContractProjectAttachments
+        ->join('e-contract_project', function($query) use($request) {
+            $query->on('e-contract_project.id','=','e-contract_project_attachments.file_id');
+        })
+        ->join('e-contract_applications', function($query) use($request) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->whereIn('e-contract_applications.company_id', $request['company_id']);
+        })
+        ->select('e-contract_project_attachments.*')
+        ->find($request['attachment_id']);
+
         if(is_null($data)){
             return [
                 "isDeleted" => false,
