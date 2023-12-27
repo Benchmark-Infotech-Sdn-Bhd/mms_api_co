@@ -548,8 +548,10 @@ class InvoiceServices
      */
     public function xeroGetTaxRates($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         return $this->xeroTaxRates
             ->select('id', 'name', 'tax_type', 'report_tax_type', 'can_applyto_assets', 'can_applyto_equity', 'can_applyto_expenses', 'can_applyto_liabilities', 'can_applyto_revenue', 'display_tax_rate', 'effective_rate', 'status', 'company_id', 'tax_id', 'tax_specific_type', 'output_tax_account_name', 'purchase_tax_account_name', 'tax_account_id', 'purchase_tax_account_id', 'is_inactive', 'is_value_added', 'is_default_tax', 'is_editable', 'last_modified_time')
+            ->where('company_id',$user['company_id'])
             ->distinct('id')
             ->orderBy('id', 'asc')
             ->get();
@@ -634,8 +636,10 @@ class InvoiceServices
      */
     public function xeroGetItems($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         return $this->xeroItems
             ->select('id', 'item_id', 'code', 'description', 'purchase_description', 'name', 'is_tracked_as_inventory', 'is_sold', 'is_purchased')
+            ->where('company_id',$user['company_id'])
             ->distinct('id')
             ->orderBy('id', 'asc')
             ->get();
@@ -782,8 +786,10 @@ class InvoiceServices
      */
     public function xeroGetaccounts($request) : mixed
     {
+        $user = JWTAuth::parseToken()->authenticate();
         return $this->xeroAccounts
             ->select('id', 'account_id', 'code', 'name', 'status', 'type', 'tax_type','class','enable_payments_to_account','show_in_expense_claims', 'bank_account_number','bank_account_type', 'currency_code', 'reporting_code', 'reporting_code_name', 'company_id', 'description', 'is_user_created', 'is_system_account', 'can_show_in_ze', 'parent_account_id', 'parent_account_name', 'depth', 'has_attachment', 'is_child_present')
+            ->where('company_id',$user['company_id'])
             ->distinct('id')
             ->orderBy('id', 'asc')
             ->get();
