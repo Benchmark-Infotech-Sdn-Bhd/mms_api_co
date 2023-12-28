@@ -393,8 +393,8 @@ class InvoiceServices
                 $invoiceZohoData = $this->getInvoicesZoho($invoiceData);
                 if(isset($invoiceZohoData->original['invoice']['invoice_id'])){
                     $invoiceData->due_amount = $invoiceZohoData->original['invoice']['balance'];
-                    $invoiceData->due_date = $invoiceZohoData->original['due_date'];
-                    $invoiceData->invoice_status = $invoiceZohoData->original['status'];
+                    $invoiceData->due_date = $invoiceZohoData->original['invoice']['due_date'];
+                    $invoiceData->invoice_status = $invoiceZohoData->original['invoice']['status'];
                     $invoiceData->save();
                 }
             }
@@ -628,35 +628,78 @@ class InvoiceServices
     public function saveItems() : mixed
     {
         $http = new Client();
-        $xeroConfig = $this->getXeroSettings();
+        $xeroConfig = $this->getCronSettings();
         try {
-            $response = $http->request('GET', $xeroConfig['url'] . Config::get('services.XERO_ITEMS_URL'), [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
-                    'Accept' => 'application/json',
-                ],
-                'form_params' => [
-                ],
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
+            foreach($xeroConfig as $clients){
+                switch($clients['title']) {
+                    case 'XERO':
+                        $response = $http->request('GET', $clients['url'] . Config::get('services.XERO_ITEMS_URL'), [
+                            'headers' => [
+                                'Authorization' => 'Bearer ' . $clients['access_token'],
+                                'Xero-Tenant-Id' => $clients['tenant_id'],
+                                'Accept' => 'application/json',
+                            ],
+                            'form_params' => [
+                            ],
+                        ]);
+                        $result = json_decode((string)$response->getBody(), true);
 
-            if(isset($result['Items'])){
-                foreach ($result['Items'] as $row) {
-                    $this->xeroItems->updateOrCreate(
-                        [
-                            'item_id' => $row['ItemID'] ?? null, 
-                             'code' => $row['Code'] ?? null
-                        ],
-                        [
-                            'description' => $row['Description'] ?? null, 
-                             'purchase_description' => $row['PurchaseDescription'] ?? null, 
-                             'name' => $row['Name'] ?? null, 
-                             'is_tracked_as_inventory' => $row['IsTrackedAsInventory'] ?? null, 
-                             'is_sold' => $row['IsSold'] ?? null,
-                             'is_purchased' => $row['IsPurchased'] ?? null,
-                        ]
-                    );
+                        if(isset($result['Items'])){
+                            foreach ($result['Items'] as $row) {
+                                $this->xeroItems->updateOrCreate(
+                                    [
+                                        'item_id' => $row['ItemID'] ?? null, 
+                                        'code' => $row['Code'] ?? null
+                                    ],
+                                    [
+                                        'company_id' => $clients['company_id'],
+                                        'description' => $row['Description'] ?? null, 
+                                        'purchase_description' => $row['PurchaseDescription'] ?? null, 
+                                        'name' => $row['Name'] ?? null, 
+                                        'is_tracked_as_inventory' => $row['IsTrackedAsInventory'] ?? null, 
+                                        'is_sold' => $row['IsSold'] ?? null,
+                                        'is_purchased' => $row['IsPurchased'] ?? null,
+                                    ]
+                                );
+                            }
+                        }
+                        break;                  
+                    case 'ZOHO':
+                        $response = $http->request('GET', $clients['url'] . Config::get('services.ZOHO_ITEMS_URL'). '?organization_id=' . $clients['tenant_id'], [
+                            'headers' => [
+                                'Authorization' => 'Bearer ' . $clients['access_token'],
+                                'Content-Type' => 'application/json',
+                                'Accept' => '*/*'
+                            ], 
+                        ]);
+                        $result = json_decode((string)$response->getBody(), true);
+                            if(isset($result['items'])){
+                                foreach ($result['items'] as $row) {
+                                    $this->xeroItems->updateOrCreate(
+                                        [
+                                            'item_id' => $row['item_id'] ?? null,                                             
+                                        ],
+                                        [
+                                            'company_id' => $clients['company_id'],
+                                            'code' => $row['code'] ?? null,
+                                            'description' => $row['description'] ?? null, 
+                                            'purchase_description' => $row['PurchaseDescription'] ?? null, 
+                                            'name' => $row['name'] ?? null, 
+                                            'is_tracked_as_inventory' => $row['IsTrackedAsInventory'] ?? null, 
+                                            'is_sold' => $row['IsSold'] ?? null,
+                                            'is_purchased' => $row['IsPurchased'] ?? null,                                            
+                                            'status' => $row['status'] ?? null, 
+                                            'rate' => $row['rate'] ?? null, 
+                                            'item_type' => $row['item_type'] ?? null, 
+                                            'product_type' => $row['product_type'] ?? null, 
+                                            'sku' => $row['sku'] ?? null,                                             
+                                        ]
+                                    );
+                                }
+                            }
+                        break; 
+                    default:
+                        $response = '';
                 }
             }
 
@@ -675,8 +718,8 @@ class InvoiceServices
     {
         $user = JWTAuth::parseToken()->authenticate();
         return $this->xeroItems
-            ->select('id', 'item_id', 'code', 'description', 'purchase_description', 'name', 'is_tracked_as_inventory', 'is_sold', 'is_purchased')
-            //->where('company_id',$user['company_id'])
+            ->select('id', 'item_id', 'code', 'description', 'purchase_description', 'name', 'is_tracked_as_inventory', 'is_sold', 'is_purchased', 'company_id', 'status', 'rate', 'item_type', 'product_type', 'sku')
+            ->where('company_id',$user['company_id'])
             ->distinct('id')
             ->orderBy('id', 'asc')
             ->get();
