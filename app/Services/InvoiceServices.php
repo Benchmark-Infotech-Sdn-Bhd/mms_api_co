@@ -676,7 +676,7 @@ class InvoiceServices
         $user = JWTAuth::parseToken()->authenticate();
         return $this->xeroItems
             ->select('id', 'item_id', 'code', 'description', 'purchase_description', 'name', 'is_tracked_as_inventory', 'is_sold', 'is_purchased')
-            ->where('company_id',$user['company_id'])
+            //->where('company_id',$user['company_id'])
             ->distinct('id')
             ->orderBy('id', 'asc')
             ->get();
