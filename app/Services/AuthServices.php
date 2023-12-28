@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\UserRoleType;
 use App\Models\Company;
 use App\Models\UserCompany;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Services\EmailServices;
@@ -39,6 +40,10 @@ class AuthServices extends Controller
      */
     private $userCompany;
     /**
+     * @var Role
+     */
+    private $role;
+    /**
      * AuthServices constructor.
      * @param User $user
      * @param UserRoleType $uesrRoleType
@@ -46,8 +51,9 @@ class AuthServices extends Controller
      * @param PasswordResets $passwordResets
      * @param Company $company
      * @param UserCompany $userCompany
+     * @param Role $role
      */
-    public function __construct(User $user, UserRoleType $uesrRoleType, EmailServices $emailServices, PasswordResets $passwordResets, Company $company, UserCompany $userCompany)
+    public function __construct(User $user, UserRoleType $uesrRoleType, EmailServices $emailServices, PasswordResets $passwordResets, Company $company, UserCompany $userCompany, Role $role)
     {
         $this->user = $user;
         $this->uesrRoleType = $uesrRoleType;
@@ -55,6 +61,7 @@ class AuthServices extends Controller
         $this->passwordResets = $passwordResets;
         $this->company = $company;
         $this->userCompany = $userCompany;
+        $this->role = $role;
     }
 
     /**
@@ -152,6 +159,22 @@ class AuthServices extends Controller
                 'created_by' => $request['user_id'] ?? 0,
                 'modified_by' => $request['user_id'] ?? 0
             ]);
+            $roleDetails = $this->role->find($request['role_id']);
+            if($roleDetails->special_permission == 1 && count($request['subsidiary_companies']) > 0) {
+                foreach ($request['subsidiary_companies'] as $subsidiaryCompany) {
+                $subRole = $this->role->where('parent_role_id', $request['role_id'])
+                        ->where('company_id', $subsidiaryCompany)
+                        ->first(['id']);
+
+                    $this->uesrRoleType->create([
+                        'user_id' => $response->id,
+                        'role_id' => $subRole->id,
+                        'status'  => $request['status'] ?? 1,
+                        'created_by' => $request['user_id'] ?? 0,
+                        'modified_by' => $request['user_id'] ?? 0
+                    ]);
+                }
+            }
             array_push($request['subsidiary_companies'], $request['company_id']);
             foreach ($request['subsidiary_companies'] as $subsidiaryCompany) {
                 $this->userCompany->create([
@@ -224,11 +247,10 @@ class AuthServices extends Controller
      */
     public function show($request) : mixed
     {
-        $user = $this->user->with(['userRoles' => function($query) {
-            $query->select('user_id', 'role_id');
-        }])->find($request['id']);
+        $user = $this->user->find($request['id']);
         if($user['id'] && $user['user_type'] != 'Super Admin'){
             $user = $this->userWithCompany($user);
+            $user = $this->userWithRoles($user);
         } else {
             $user['system_color'] = null;
             $user['logo_url'] = null;
@@ -253,9 +275,10 @@ class AuthServices extends Controller
      */
     public function userWithRoles($user) : mixed
     {
-        $roles = $this->uesrRoleType->join('roles',function($join){
+        $roles = $this->uesrRoleType->join('roles',function($join) use($user){
             $join->on('roles.id','=','user_role_type.role_id');
             $join->where('roles.status','=',1);
+            $join->where('roles.company_id', $user['company_id']);
         })
         ->where('user_id',$user['id'])->get()->first();
         if(is_null($roles)){
