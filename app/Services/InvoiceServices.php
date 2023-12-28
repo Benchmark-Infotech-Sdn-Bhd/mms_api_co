@@ -194,7 +194,7 @@ class InvoiceServices
                     ]);
 
                     $generateInvoice['LineItems'][$increment] = new \stdClass();
-                    $generateInvoice['LineItems'][$increment]->Description = 'Expense';
+                    //$generateInvoice['LineItems'][$increment]->Description = 'Expense';
                     //$generateInvoice['LineItems'][$increment]->Item = $item->item ?? '';
                     $generateInvoice['LineItems'][$increment]->Description = $item->description;
                     $generateInvoice['LineItems'][$increment]->Quantity = $item->quantity;
@@ -936,7 +936,7 @@ class InvoiceServices
                 ],
             ]);
             $result = json_decode((string)$response->getBody(), true);
-            dd($result); exit;
+//            dd($result); exit;
             app('thirdPartyLogServices')->endApiLog($result);
             return response()->json($result);
         } catch (Exception $e) {
@@ -1043,43 +1043,32 @@ class InvoiceServices
                 break;                  
             case 'ZOHO':
                 if(isset($request['ContactID']) && !empty($request['ContactID'])){
-                    $data = [
-                        'Contact_id'=>$request['ContactID'] ?? '',
-                        'contact_name'=>$request['company_name'],
-                        'company_name'=>$request['company_name'],
-                        "contact_type"=>"customer",
-                        "customer_sub_type"=>"business",
-                        'contact_persons' => [[
-                            'first_name' => $request['company_name'],
-                            'last_name' => '',
-                            'mobile' => $request['contact_number'],
-                            'phone' => '',
-                            'email' => $request['email'],
-                            'is_primary_contact' => true,
-                            'enable_portal' => false
-                        ]]
-                    ];
+                    $method = 'PUT';
+                    $contactIdUrl = '/'.$request['ContactID'];
                 } else {
-                    $data = [
-                        'contact_name'=>$request['company_name'],
-                        'company_name'=>$request['company_name'],
-                        "contact_type"=>"customer",
-                        "customer_sub_type"=>"business",
-                        'contact_persons' => [[
-                            'first_name' => $request['company_name'],
-                            'last_name' => '',
-                            'mobile' => $request['contact_number'],
-                            'phone' => '',
-                            'email' => $request['email'],
-                            'is_primary_contact' => true,
-                            'enable_portal' => false
-                        ]]
-                    ];
+                    $method = 'POST';
+                    $contactIdUrl = '';
                 }     
+
+                $data = [
+                    'contact_name'=>$request['company_name'],
+                    'company_name'=>$request['company_name'],
+                    "contact_type"=>"customer",
+                    "customer_sub_type"=>"business",
+                    'contact_persons' => [[
+                        'first_name' => $request['company_name'],
+                        'last_name' => '',
+                        'mobile' => $request['contact_number'],
+                        'phone' => '',
+                        'email' => $request['email'],
+                        'is_primary_contact' => true,
+                        'enable_portal' => false
+                    ]]
+                ];
                 
                 try {
-                    app('thirdPartyLogServices')->startApiLog($xeroConfig['url'] . Config::get('services.ZOHO_CONTACTS_URL'). '?organization_id=' . $xeroConfig['tenant_id'], $data);
-                    $response = $http->request('POST', $xeroConfig['url'] . Config::get('services.ZOHO_CONTACTS_URL'). '?organization_id=' . $xeroConfig['tenant_id'], [
+                    app('thirdPartyLogServices')->startApiLog($xeroConfig['url'] . Config::get('services.ZOHO_CONTACTS_URL'). $contactIdUrl . '?organization_id=' . $xeroConfig['tenant_id'], $data);
+                    $response = $http->request($method, $xeroConfig['url'] . Config::get('services.ZOHO_CONTACTS_URL'). $contactIdUrl . '?organization_id=' . $xeroConfig['tenant_id'], [
                         'headers' => [
                             'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
                             'Content-Type' => 'application/json',
@@ -1088,6 +1077,7 @@ class InvoiceServices
                         'json' => $data,
                     ]);
                     $result = json_decode((string)$response->getBody(), true);
+                    app('thirdPartyLogServices')->endApiLog($result);
                     return response()->json($result);
                 } catch (Exception $e) {
                     Log::error('Exception in submitting contact details' . $e);
