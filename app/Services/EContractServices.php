@@ -243,7 +243,7 @@ class EContractServices
         $user = JWTAuth::parseToken()->authenticate();
         $params = $request->all();
         $params['modified_by'] = $user['id'];
-        $applicationDetails = $this->eContractApplications->whereIn('company_id', $request['company_id'])->find($params['id']);
+        $applicationDetails = $this->eContractApplications->where('company_id', $request['company_id'])->find($params['id']);
         if(is_null($applicationDetails)){
             return [
                 'unauthorizedError' => 'Unauthorized'
