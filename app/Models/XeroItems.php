@@ -18,6 +18,6 @@ class XeroItems extends Model implements Auditable
      */
 
     protected $fillable = [
-        'item_id', 'code', 'description', 'purchase_description', 'name', 'is_tracked_as_inventory', 'is_sold', 'is_purchased', 'created_by', 'modified_by'
+        'item_id', 'code', 'description', 'purchase_description', 'name', 'is_tracked_as_inventory', 'is_sold', 'is_purchased', 'created_by', 'modified_by', 'company_id', 'status', 'rate', 'item_type', 'product_type', 'sku'
     ];
 }
