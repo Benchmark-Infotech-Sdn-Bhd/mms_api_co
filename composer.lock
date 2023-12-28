@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "30d29e382c44c8c2621313eb44cbf1f8",
+    "content-hash": "20d665cb4f2b81a43e39dd3fbf85626a",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -5990,6 +5990,57 @@
             "time": "2023-04-15T23:01:58+00:00"
         },
         {
+            "name": "senthilhep/hep-laravel-google-chat-log",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/senthilhep/hep-laravel-google-chat-log.git",
+                "reference": "00a21f28da118223db969ca864c762d9f4250f42"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/senthilhep/hep-laravel-google-chat-log/zipball/00a21f28da118223db969ca864c762d9f4250f42",
+                "reference": "00a21f28da118223db969ca864c762d9f4250f42",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.3|^8.0"
+            },
+            "require-dev": {
+                "guzzlehttp/guzzle": "^5.3.3|^6.2.1|^7.0",
+                "illuminate/support": "^7.0|^8.0|^9.0|^10.0",
+                "monolog/monolog": "^2.0|^3.0"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Enigma\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Senthil Prabu",
+                    "email": "senthilprabu@heptagon.in"
+                }
+            ],
+            "description": "Brings up the option for sending the logs to google chat [GSuite].",
+            "homepage": "https://github.com/senthilhep/hep-laravel-google-chat-log",
+            "keywords": [
+                "Google-Chat",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/senthilhep/hep-laravel-google-chat-log/issues",
+                "source": "https://github.com/senthilhep/hep-laravel-google-chat-log"
+            },
+            "time": "2023-11-16T04:45:48+00:00"
+        },
+        {
             "name": "symfony/console",
             "version": "v6.3.2",
             "source": {
@@ -10112,12 +10163,14 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "senthilhep/hep-laravel-google-chat-log": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.1"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }
