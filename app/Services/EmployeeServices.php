@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Employee;
 use App\Models\User;
 use App\Models\Company;
+use App\Models\Branch;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -24,6 +25,10 @@ class EmployeeServices
      * @var Company
      */
     private Company $company;
+    /**
+     * @var Branch
+     */
+    private Branch $branch;
 
     /**
      * EmployeeServices constructor.
@@ -33,9 +38,10 @@ class EmployeeServices
      * @param Role $role
      * @param User $user
      * @param Company $company
+     * @param Branch $branch
      */
     public function __construct(Employee $employee,ValidationServices $validationServices,
-    AuthServices $authServices,Role $role, User $user, Transportation $transportation, Company $company)
+    AuthServices $authServices,Role $role, User $user, Transportation $transportation, Company $company, Branch $branch)
     {
         $this->employee = $employee;
         $this->validationServices = $validationServices;
@@ -44,6 +50,7 @@ class EmployeeServices
         $this->user = $user;
         $this->transportation = $transportation;
         $this->company = $company;
+        $this->branch = $branch;
     }
 
     /**
@@ -58,6 +65,11 @@ class EmployeeServices
             ];
         }
         $roleDetails = $this->role->find($request['role_id']);
+        if(is_null($roleDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         if($roleDetails->special_permission == 0 && count($request['subsidiary_companies']) > 0) {
             return [
                 'roleError' => true
@@ -79,6 +91,16 @@ class EmployeeServices
                     'InvalidUser' => true
                 ];
             }
+        }
+        $barnchDetails = $this->branch->find($request['branch_id']);
+        if(is_null($barnchDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($request['company_id'] != $barnchDetails->company_id) {
+            return [
+                'InvalidUser' => true
+            ];
         }
         $employee = $this->employee->create([
             'employee_name' => $request['employee_name'] ?? '',
