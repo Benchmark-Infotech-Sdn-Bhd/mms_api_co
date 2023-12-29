@@ -95,6 +95,8 @@ class ApplicationChecklistAttachmentsController extends Controller
             $data = $this->applicationChecklistAttachmentsServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
