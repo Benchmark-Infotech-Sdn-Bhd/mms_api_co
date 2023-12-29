@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Employee;
 use App\Models\User;
+use App\Models\Company;
+use App\Models\Branch;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
@@ -19,6 +21,14 @@ class EmployeeServices
     private Role $role;
     private User $user;
     private Transportation $transportation;
+    /**
+     * @var Company
+     */
+    private Company $company;
+    /**
+     * @var Branch
+     */
+    private Branch $branch;
 
     /**
      * EmployeeServices constructor.
@@ -27,9 +37,11 @@ class EmployeeServices
      * @param AuthServices $authServices
      * @param Role $role
      * @param User $user
+     * @param Company $company
+     * @param Branch $branch
      */
     public function __construct(Employee $employee,ValidationServices $validationServices,
-    AuthServices $authServices,Role $role, User $user, Transportation $transportation)
+    AuthServices $authServices,Role $role, User $user, Transportation $transportation, Company $company, Branch $branch)
     {
         $this->employee = $employee;
         $this->validationServices = $validationServices;
@@ -37,6 +49,8 @@ class EmployeeServices
         $this->role = $role;
         $this->user = $user;
         $this->transportation = $transportation;
+        $this->company = $company;
+        $this->branch = $branch;
     }
 
     /**
@@ -48,6 +62,44 @@ class EmployeeServices
         if(!($this->validationServices->validate($request,$this->employee->rules))){
             return [
               'validate' => $this->validationServices->errors()
+            ];
+        }
+        $roleDetails = $this->role->find($request['role_id']);
+        if(is_null($roleDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        if($roleDetails->special_permission == 0 && count($request['subsidiary_companies']) > 0) {
+            return [
+                'roleError' => true
+            ];
+        }
+        if($request['company_id'] != $roleDetails->company_id) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        if(count($request['subsidiary_companies']) > 0) {
+            $subsidiaryCompanyIds = $this->company->where('parent_id', $request['company_id'])
+                                    ->select('id')
+                                    ->get()->toArray();
+            $subsidiaryCompanyIds = array_column($subsidiaryCompanyIds, 'id');
+            $diffCompanyIds = array_diff($request['subsidiary_companies'], $subsidiaryCompanyIds);
+            if(count($diffCompanyIds) > 0) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+        }
+        $barnchDetails = $this->branch->find($request['branch_id']);
+        if(is_null($barnchDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($request['company_id'] != $barnchDetails->company_id) {
+            return [
+                'InvalidUser' => true
             ];
         }
         $employee = $this->employee->create([

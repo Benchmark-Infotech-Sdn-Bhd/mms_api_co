@@ -101,7 +101,7 @@ class RolesServices
             }
         }
         
-        $this->role->create([
+        $roleDetails = $this->role->create([
             'role_name'     => $request['name'] ?? '',
             'system_role'   => $request['system_role'] ?? 0,
             'status'        => $request['status'] ?? 1,
@@ -111,6 +111,25 @@ class RolesServices
             'company_id'   => $request['company_id'] ?? 0,
             'special_permission' => $request['special_permission'] ?? 0
         ]);
+        if($request['special_permission'] == 1) {
+            $subsidiaryCompanyIds = $this->company->where('parent_id', $request['company_id'])
+                                ->select('id')
+                                ->get()->toArray();
+            $subsidiaryCompanyIds = array_column($subsidiaryCompanyIds, 'id');
+            foreach ($subsidiaryCompanyIds as $subsidiaryCompanyId) {
+                $subRole = $this->role->create([
+                    'role_name'     => $roleDetails->role_name,
+                    'system_role'   => $roleDetails->system_role,
+                    'status'        => $roleDetails->status,
+                    'parent_id'     => $roleDetails->parent_id,
+                    'created_by'    => $roleDetails->created_by,
+                    'modified_by'   => $roleDetails->modified_by,
+                    'company_id'    => $subsidiaryCompanyId ?? 0,
+                    'special_permission' => 0,
+                    'parent_role_id' => $roleDetails->id
+                ]);
+            }
+        }
         return true;
     }
 

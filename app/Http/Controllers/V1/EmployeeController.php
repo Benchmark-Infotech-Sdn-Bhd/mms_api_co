@@ -48,6 +48,10 @@ class EmployeeController extends Controller
             $data = $this->employeeServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['roleError'])) {
+                return $this->sendError(['message' => 'User has no permission to add multiple companies']);
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
