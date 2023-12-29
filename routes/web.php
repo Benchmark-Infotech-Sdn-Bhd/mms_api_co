@@ -992,56 +992,55 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         });                        
                     });
                 });
-            });
-
-            $router->group(['prefix' => 'payroll'], function () use ($router) {
-                $router->group(['prefix' => '', 'middleware' => ['permissions:7,View']], function () use ($router) {
-                    $router->post('projectDetails', 'V1\TotalManagementPayrollController@projectDetails');
-                    $router->post('list', 'V1\TotalManagementPayrollController@list');
-                    $router->post('export', 'V1\TotalManagementPayrollController@export');
-                    $router->post('show', 'V1\TotalManagementPayrollController@show');
-                    $router->post('listTimesheet', 'V1\TotalManagementPayrollController@listTimesheet');
-                    $router->post('viewTimesheet', 'V1\TotalManagementPayrollController@viewTimesheet');
+                $router->group(['prefix' => 'payroll'], function () use ($router) {
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:7,View']], function () use ($router) {
+                        $router->post('projectDetails', 'V1\TotalManagementPayrollController@projectDetails');
+                        $router->post('list', 'V1\TotalManagementPayrollController@list');
+                        $router->post('export', 'V1\TotalManagementPayrollController@export');
+                        $router->post('show', 'V1\TotalManagementPayrollController@show');
+                        $router->post('listTimesheet', 'V1\TotalManagementPayrollController@listTimesheet');
+                        $router->post('viewTimesheet', 'V1\TotalManagementPayrollController@viewTimesheet');
+                    });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:7,Add']], function () use ($router) {
+                        $router->post('import', 'V1\TotalManagementPayrollController@import');
+                        $router->post('add', 'V1\TotalManagementPayrollController@add');
+                        $router->post('uploadTimesheet', 'V1\TotalManagementPayrollController@uploadTimesheet');
+                        $router->post('authorizePayroll', 'V1\TotalManagementPayrollController@authorizePayroll');
+                    });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:7,Edit']], function () use ($router) {
+                        $router->post('update', 'V1\TotalManagementPayrollController@update');
+                    });
+                    
                 });
-                $router->group(['prefix' => '', 'middleware' => ['permissions:7,Add']], function () use ($router) {
-                    $router->post('import', 'V1\TotalManagementPayrollController@import');
-                    $router->post('add', 'V1\TotalManagementPayrollController@add');
-                    $router->post('uploadTimesheet', 'V1\TotalManagementPayrollController@uploadTimesheet');
-                    $router->post('authorizePayroll', 'V1\TotalManagementPayrollController@authorizePayroll');
+                $router->group(['prefix' => 'transfer'], function () use ($router) {
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:7,View']], function () use ($router) {
+                        $router->post('workerEmploymentDetail', 'V1\TotalManagementTransferController@workerEmploymentDetail');
+                    });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:7,Add']], function () use ($router) {
+                        $router->post('submit', 'V1\TotalManagementTransferController@submit');
+                    });
+                    $router->post('companyList', 'V1\TotalManagementTransferController@companyList');
+                    $router->post('projectList', 'V1\TotalManagementTransferController@projectList');
                 });
-                $router->group(['prefix' => '', 'middleware' => ['permissions:7,Edit']], function () use ($router) {
-                    $router->post('update', 'V1\TotalManagementPayrollController@update');
-                });
-                
-            });
-            $router->group(['prefix' => 'transfer'], function () use ($router) {
-                $router->group(['prefix' => '', 'middleware' => ['permissions:7,View']], function () use ($router) {
-                    $router->post('workerEmploymentDetail', 'V1\TotalManagementTransferController@workerEmploymentDetail');
-                });
-                $router->group(['prefix' => '', 'middleware' => ['permissions:7,Add']], function () use ($router) {
-                    $router->post('submit', 'V1\TotalManagementTransferController@submit');
-                });
-                $router->post('companyList', 'V1\TotalManagementTransferController@companyList');
-                $router->post('projectList', 'V1\TotalManagementTransferController@projectList');
-            });
-
-            /**
-            * Routes for Total Management Cost Management.
-            */
-            $router->group(['prefix' => 'costManagement'], function () use ($router) {
-                $router->group(['prefix' => '', 'middleware' => ['permissions:7,View']], function () use ($router) {
-                    $router->post('list', 'V1\TotalManagementCostManagementController@list');
-                    $router->post('show', 'V1\TotalManagementCostManagementController@show');
-                });
-                $router->group(['prefix' => '', 'middleware' => ['permissions:7,Add']], function () use ($router) {
-                    $router->post('create', 'V1\TotalManagementCostManagementController@create');
-                });
-                $router->group(['prefix' => '', 'middleware' => ['permissions:7,Edit']], function () use ($router) {
-                    $router->post('update', 'V1\TotalManagementCostManagementController@update');
-                });
-                $router->group(['prefix' => '', 'middleware' => ['permissions:7,Delete']], function () use ($router) {
-                    $router->post('delete', 'V1\TotalManagementCostManagementController@delete');
-                    $router->post('deleteAttachment', 'V1\TotalManagementCostManagementController@deleteAttachment');
+    
+                /**
+                * Routes for Total Management Cost Management.
+                */
+                $router->group(['prefix' => 'costManagement'], function () use ($router) {
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:7,View']], function () use ($router) {
+                        $router->post('list', 'V1\TotalManagementCostManagementController@list');
+                        $router->post('show', 'V1\TotalManagementCostManagementController@show');
+                    });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:7,Add']], function () use ($router) {
+                        $router->post('create', 'V1\TotalManagementCostManagementController@create');
+                    });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:7,Edit']], function () use ($router) {
+                        $router->post('update', 'V1\TotalManagementCostManagementController@update');
+                    });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:7,Delete']], function () use ($router) {
+                        $router->post('delete', 'V1\TotalManagementCostManagementController@delete');
+                        $router->post('deleteAttachment', 'V1\TotalManagementCostManagementController@deleteAttachment');
+                    });
                 });
             });
         });

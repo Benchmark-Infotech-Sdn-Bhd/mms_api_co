@@ -9,6 +9,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\EContractProject;
 use App\Models\EContractProjectAttachments;
 use App\Models\EContractApplications;
+use App\Services\AuthServices;
 
 class EContractProjectServices
 {
@@ -29,18 +30,24 @@ class EContractProjectServices
      */
     private EContractApplications $eContractApplications;
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
      * EContractProjectServices constructor.
      * @param EContractProject $eContractProject
      * @param EContractProjectAttachments $eContractProjectAttachments
      * @param Storage $storage
      * @param EContractApplications $eContractApplications
+     * @param AuthServices $authServices
      */
-    public function __construct(EContractProject $eContractProject, EContractProjectAttachments $eContractProjectAttachments, Storage $storage, EContractApplications $eContractApplications)
+    public function __construct(EContractProject $eContractProject, EContractProjectAttachments $eContractProjectAttachments, Storage $storage, EContractApplications $eContractApplications, AuthServices $authServices)
     {
         $this->eContractProject = $eContractProject;
         $this->eContractProjectAttachments = $eContractProjectAttachments;
         $this->storage = $storage;
         $this->eContractApplications = $eContractApplications;
+        $this->authServices = $authServices;
     }
     /**
      * @return array
@@ -196,7 +203,7 @@ class EContractProjectServices
         $user = JWTAuth::parseToken()->authenticate();
         $params = $request->all();
         $params['modified_by'] = $user['id'];
-
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
         $validator = Validator::make($request->toArray(), $this->updateValidation());
         if($validator->fails()) {
             return [
