@@ -1221,4 +1221,155 @@ class InvoiceServices
         return $this->xeroSettings->whereNull('deleted_at')->get();
     }
 
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function invoiceReSubmit() : mixed
+    {
+        
+        $pendingInvoices = $this->invoice->with('invoiceItems')
+        ->join('xero_settings', 'invoice.company_id', 'xero_settings.company_id')
+        ->whereNull('invoice_number')->get();
+        
+        try {
+            foreach($pendingInvoices as $invoice){
+                switch($invoice['title']) {
+                    case 'XERO':
+                        $crmProspect = $this->crmProspect->findOrFail($invoice['crm_prospect_id']);
+
+                        $generateInvoice['Type'] = 'ACCREC';
+                        $issuedateConverted = (Carbon::parse($invoice['due_date'])->timestamp * 1000)."+0000";
+                        $generateInvoice['Date'] = '/Date('.$issuedateConverted.')/';
+                        $duedateConverted = (Carbon::parse($invoice['due_date'])->timestamp * 1000)."+0000";
+                        $generateInvoice['DueDate'] = '/Date('.$duedateConverted.')/';
+                        $generateInvoice['DateString'] = $invoice['issue_date']."T00:00:00";
+                        $generateInvoice['DueDateString'] = $invoice['due_date']."T00:00:00";
+                        $generateInvoice['LineAmountTypes'] = 'Exclusive';
+                        $generateInvoice['Contact']['ContactID'] = $crmProspect->xero_contact_id;
+
+                        if ($invoice['invoiceItems']){
+                            $increment = 0;
+                            foreach($invoice['invoiceItems'] as $item){
+                                //echo $item['description']; exit;
+            
+                                $generateInvoice['LineItems'][$increment] = new \stdClass();
+                                $generateInvoice['LineItems'][$increment]->ItemCode = $item['item'] ?? '';
+                                $generateInvoice['LineItems'][$increment]->Description = $item['description'];
+                                $generateInvoice['LineItems'][$increment]->Quantity = $item['quantity'];
+                                $generateInvoice['LineItems'][$increment]->UnitAmount = $item['price'];
+                                $generateInvoice['LineItems'][$increment]->AccountCode = $item['account'] ?? '';
+                                $generateInvoice['LineItems'][$increment]->TaxType = $item['tax_id'] ?? '';
+                                $increment++;
+
+                            }
+                        }
+
+                        $generateInvoiceXero = $this->generateInvoices($generateInvoice); 
+
+                        if(isset($generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'])){
+
+                            $invoiceData = $this->invoice->findOrFail($invoice['id']);
+                            $invoiceData->invoice_number = $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'];
+                            $invoiceData->due_amount = $generateInvoiceXero->original['Invoices'][0]['AmountDue'];
+                            $invoiceData->invoice_status = $generateInvoiceXero->original['Invoices'][0]['Status'];
+                            $invoiceData->save();
+                
+                            // Delete from temporary table
+                            //$this->invoiceItemsTemp->where('created_by', $user['id'])->delete();
+                
+                            //foreach($lineItems as $item){
+                                if($item->service_id == 1){
+                                    $this->directRecruitmentExpenses->where('id', $item->expense_id)->update([
+                                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
+                                    ]);
+                                } else if($item->service_id == 2){
+                                    $this->eContractCostManagement->where('id', $item->expense_id)->update([
+                                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
+                                    ]);
+                                }
+                                else if($item->service_id == 3){
+                                    $this->totalManagementCostManagement->where('id', $item->expense_id)->update([
+                                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
+                                    ]);
+                                }
+                            //}
+                        }
+
+                        break;                  
+                    case 'ZOHO':
+                        //dd($invoice['invoiceItems']); exit;
+                        $crmProspect = $this->crmProspect->findOrFail($invoice['crm_prospect_id']);
+                        
+                        $generateInvoice['date'] = $invoice['issue_date'] ?? null;
+                        $generateInvoice['due_date'] = $invoice['due_date'] ?? null;
+                        $generateInvoice['reference_number'] = $invoice['reference_number'] ?? null;
+                        $generateInvoice['customer_id'] = $crmProspect->xero_contact_id;
+                        $generateInvoice['is_inclusive_tax'] = '';
+                    
+                        if ($invoice['invoiceItems']){
+                            $increment = 0;
+                            foreach($invoice['invoiceItems'] as $item){
+                                //echo $item['description']; exit;
+            
+                                $generateInvoice['line_items'][$increment] = new \stdClass();
+                                $generateInvoice['line_items'][$increment]->item_order = '';
+                                $generateInvoice['line_items'][$increment]->item_id = $item['item'];
+                                $generateInvoice['line_items'][$increment]->name = '';
+                                $generateInvoice['line_items'][$increment]->rate = $item['price'];
+                                $generateInvoice['line_items'][$increment]->description = $item['description'];
+                                $generateInvoice['line_items'][$increment]->quantity = $item['quantity'];
+                                $generateInvoice['line_items'][$increment]->tax_id = $item['tax_id'] ?? '';
+                                $generateInvoice['line_items'][$increment]->account_id = $item['account'] ?? ''; 
+                                $increment++;
+                            }
+                        }
+            
+                        $generateInvoiceXero = $this->generateInvoicesZoho($generateInvoice);  
+                        
+                        if(isset($generateInvoiceXero->original['invoice']['invoice_id'])){
+            
+                            $invoiceData = $this->invoice->findOrFail($invoice['id']);
+                            $invoiceData->invoice_number = $generateInvoiceXero->original['invoice']['invoice_id'];
+                            $invoiceData->zoho_invoice_number = $generateInvoiceXero->original['invoice']['invoice_number'];
+                            $invoiceData->due_amount = $generateInvoiceXero->original['invoice']['balance'];
+                            $invoiceData->invoice_status = $generateInvoiceXero->original['invoice']['status'];
+                            $invoiceData->save();
+                
+                            // Delete from temporary table
+                            //$this->invoiceItemsTemp->where('created_by', $user['id'])->delete();
+                
+                            //foreach($lineItems as $item){
+                                if($item->service_id == 1){
+                                    $this->directRecruitmentExpenses->where('id', $item->expense_id)->update([
+                                          'invoice_number' => $generateInvoiceXero->original['invoice']['invoice_id']
+                                    ]);
+                                } else if($item->service_id == 2){
+                                    $this->eContractCostManagement->where('id', $item->expense_id)->update([
+                                          'invoice_number' => $generateInvoiceXero->original['invoice']['invoice_id']
+                                    ]);
+                                }
+                                else if($item->service_id == 3){
+                                    $this->totalManagementCostManagement->where('id', $item->expense_id)->update([
+                                          'invoice_number' => $generateInvoiceXero->original['invoice']['invoice_id']
+                                    ]);
+                                }
+                            //}
+                        }
+
+                        break; 
+                    default:
+                        $response = '';
+                }
+            }
+
+            return true;
+        } catch (Exception $e) {
+            Log::channel('cron_activity_logs')->info('Exception in getting Items details' . $e);
+            return false;
+        }
+
+    }
+
 }

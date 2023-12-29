@@ -266,4 +266,25 @@ class InvoiceController extends Controller
             return $this->sendError(['message' => $data['error']]);
         }
     } 
+
+    /**
+     * Show the form for creating a new Invoice.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function invoiceReSubmit(): JsonResponse
+    {
+        try {
+            $data = $this->invoiceServices->invoiceReSubmit();
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'updation failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
 }
