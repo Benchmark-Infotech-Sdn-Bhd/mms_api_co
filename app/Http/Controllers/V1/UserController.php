@@ -128,11 +128,14 @@ class UserController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->userServices->resetPassword($params);
             if(isset($data['error'])){
                 return $this->validationError($data['error']);
             } else if(isset($data['currentPasswordError'])) {
                 return $this->sendError(['message' => 'Current password keyed in is incorrect']);
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'Password Updated Successfully'], 200);
         } catch (Exception $e) {

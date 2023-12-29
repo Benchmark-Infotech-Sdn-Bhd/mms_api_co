@@ -193,7 +193,16 @@ class UserServices
                 'error' => $validator->errors()
             ];
         }
-        $user = $this->user->findOrFail($request['id']);
+        $user = $this->user->find($request['id']);
+        if(is_null($user)) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($user->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         if(Hash::check($request['current_password'], $user->password)) {
             $user->password = Hash::make($request['new_password']);
             $user->modified_by = $request['modified_by'];
