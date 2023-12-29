@@ -114,25 +114,6 @@ return [
             'driver' => 'monolog',
             'handler' => NullHandler::class,
         ],
-
-        'google-chat' => [
-            'driver' => 'monolog',
-            'url' => env('LOG_GOOGLE_CHAT_WEBHOOK_URL'),
-            'notify_users' => [
-                'default' => env('LOG_GOOGLE_CHAT_NOTIFY_USER_ID_DEFAULT'),
-                'emergency' => env('LOG_GOOGLE_CHAT_NOTIFY_USER_ID_EMERGENCY'),
-                'alert' => env('LOG_GOOGLE_CHAT_NOTIFY_USER_ID_ALERT'),
-                'critical' => env('LOG_GOOGLE_CHAT_NOTIFY_USER_ID_CRITICAL'),
-                'error' => env('LOG_GOOGLE_CHAT_NOTIFY_USER_ID_ERROR'),
-                'warning' => env('LOG_GOOGLE_CHAT_NOTIFY_USER_ID_WARNING'),
-                'notice' => env('LOG_GOOGLE_CHAT_NOTIFY_USER_ID_NOTICE'),
-                'info' => env('LOG_GOOGLE_CHAT_NOTIFY_USER_ID_INFO'),
-                'debug' => env('LOG_GOOGLE_CHAT_NOTIFY_USER_ID_DEBUG'),
-            ],
-            'level' => 'warning',
-            'timezone' => env('LOG_GOOGLE_CHAT_TIMEZONE' , 'Asia/Kolkata'),
-            'handler' => \Enigma\GoogleChatHandler::class,
-        ],
     ],
 
 ];
