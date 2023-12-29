@@ -193,12 +193,8 @@ class UserServices
                 'error' => $validator->errors()
             ];
         }
-        $user = $this->user->find($request['id']);
+        $user = $this->user->where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($user)) {
-            return [
-                'InvalidUser' => true
-            ];
-        } else if($user->company_id != $request['company_id']) {
             return [
                 'InvalidUser' => true
             ];
@@ -220,7 +216,12 @@ class UserServices
      */
     public function updateUser($request): array|bool
     {
-        $userDetails = $this->user->findOrFail($request['id']);
+        $userDetails = $this->user->where('company_id', $request['company_id'])->find($request['id']);
+        if(is_null($userDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         if($userDetails->user_type == 'Employee') {
             $validator = Validator::make($request, $this->updateEmployeeValidation());
             if($validator->fails()) {

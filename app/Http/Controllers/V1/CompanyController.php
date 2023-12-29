@@ -214,7 +214,11 @@ class CompanyController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['user_id'] = $user['id'];
+            $params['current_company_id'] = $user['company_id'];
             $response = $this->companyServices->updateCompanyId($params);
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
+            }
             return $this->sendSuccess(['message' => 'Company ID Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
