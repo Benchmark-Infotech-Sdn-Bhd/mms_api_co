@@ -22,7 +22,7 @@ class InvoiceItemsTemp extends Model implements Auditable
      *
      * @var array
      */
-    protected $fillable = ['crm_prospect_id','service_id','expense_id','invoice_number','item','description','quantity','price','account','tax_rate','total_price','created_by','modified_by'];
+    protected $fillable = ['crm_prospect_id','service_id','tax_id','item_id','account_id','expense_id','invoice_number','item','description','quantity','price','account','tax_rate','total_price','created_by','modified_by'];
 
     /**
      * @return HasOne

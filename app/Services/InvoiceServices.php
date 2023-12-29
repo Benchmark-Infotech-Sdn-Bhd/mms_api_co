@@ -182,26 +182,34 @@ class InvoiceServices
             if ($request['invoice_items']){
                 $increment = 0;
                 foreach($lineItems as $item){
+
+                    $taxData = $this->xeroTaxRates::find($item->tax_id);
+                    
+                    $itemData = $this->xeroItems::find($item->item_id);
+
+                    $accountData = $this->xeroAccounts::find($item->account_id);
+
                     $this->invoiceItems::create([
                         "invoice_id" => $invoice['id'],
-                        "item" => $item->item ?? '',
+                        "item" => $itemData['code'] ?? '',
                         "description" => $item->description,
                         "quantity" => $item->quantity,
                         "price" => $item->price,
-                        "account" => $item->account,
-                        "tax" => $item->tax_rate,
+                        "account" => $accountData['code'] ?? '',
+                        "tax" => $item->tax_rate ?? 0,
+                        "tax_id" => $taxData['tax_type'] ?? '',
                         "total_price" => $item->total_price
                     ]);
 
                     $generateInvoice['LineItems'][$increment] = new \stdClass();
-                    //$generateInvoice['LineItems'][$increment]->Description = 'Expense';
-                    //$generateInvoice['LineItems'][$increment]->Item = $item->item ?? '';
+                    $generateInvoice['LineItems'][$increment]->ItemCode = $itemData['code'] ?? '';
                     $generateInvoice['LineItems'][$increment]->Description = $item->description;
                     $generateInvoice['LineItems'][$increment]->Quantity = $item->quantity;
                     $generateInvoice['LineItems'][$increment]->UnitAmount = $item->price;
-                    $generateInvoice['LineItems'][$increment]->AccountCode = $item->account ?? '';
-                    $generateInvoice['LineItems'][$increment]->DiscountRate = $item->tax_rate ?? 0;
+                    $generateInvoice['LineItems'][$increment]->AccountCode = $accountData['code'] ?? '';
+                    $generateInvoice['LineItems'][$increment]->TaxType = $taxData['tax_type'] ?? 0;
                     $increment++;
+
                 }
             }
 
@@ -248,27 +256,34 @@ class InvoiceServices
             if ($request['invoice_items']){
                 $increment = 0;
                 foreach($lineItems as $item){
+
+                    $taxData = $this->xeroTaxRates::find($item->tax_id);
+                    
+                    $itemData = $this->xeroItems::find($item->item_id);
+
+                    $accountData = $this->xeroAccounts::find($item->account_id);
+                    
                     $this->invoiceItems::create([
                         "invoice_id" => $invoice['id'],
-                        "item" => $item->item ?? '',
+                        "item" => $itemData['item_id'] ?? '',
                         "description" => $item->description,
                         "quantity" => $item->quantity,
                         "price" => $item->price,
-                        "account" => $item->account,
+                        "account" => $accountData['account_id'] ?? '',
                         "tax" => $item->tax_rate ?? 0,
-                        "tax_id" => $item->tax_id ?? '',
+                        "tax_id" => $taxData['tax_id'] ?? '',
                         "total_price" => $item->total_price
                     ]);
 
                     $generateInvoice['line_items'][$increment] = new \stdClass();
                     $generateInvoice['line_items'][$increment]->item_order = $item->item_order ?? '';
-                    $generateInvoice['line_items'][$increment]->item_id = $item->item_id ?? '';
+                    $generateInvoice['line_items'][$increment]->item_id = $itemData['item_id'] ?? '';
                     $generateInvoice['line_items'][$increment]->name = $item->item ?? '';
                     $generateInvoice['line_items'][$increment]->rate = $item->price;
                     $generateInvoice['line_items'][$increment]->description = $item->description;
                     $generateInvoice['line_items'][$increment]->quantity = $item->quantity;
-                    $generateInvoice['line_items'][$increment]->tax_id = $item->tax_id ?? '';
-                    $generateInvoice['line_items'][$increment]->account_id = $item->account ?? ''; 
+                    $generateInvoice['line_items'][$increment]->tax_id = $taxData['tax_id'] ?? '';
+                    $generateInvoice['line_items'][$increment]->account_id = $accountData['account_id'] ?? ''; 
                     $increment++;
                 }
             }
@@ -979,7 +994,7 @@ class InvoiceServices
                 ],
             ]);
             $result = json_decode((string)$response->getBody(), true);
-//            dd($result); exit;
+
             app('thirdPartyLogServices')->endApiLog($result);
             return response()->json($result);
         } catch (Exception $e) {

@@ -104,7 +104,7 @@ class InvoiceItemsTempServices
             ];
         }
 
-        $invoiceItemsTemp = $this->invoiceItemsTemp->where('created_by', $user['id'] )->findOrFail($request['id']);
+        $invoiceItemsTemp = $this->invoiceItemsTemp->where('created_by', $user['id'] )->find($request['id']);
         if(is_null($invoiceItemsTemp)){
             return [
                 'unauthorizedError' => 'Unauthorized'
@@ -120,6 +120,9 @@ class InvoiceItemsTempServices
 
         $invoiceItemsTemp->crm_prospect_id = $request['crm_prospect_id'] ?? $invoiceItemsTemp->crm_prospect_id;
         $invoiceItemsTemp->service_id = $request['service_id'] ?? $invoiceItemsTemp->service_id;
+        $invoiceItemsTemp->tax_id = $request['tax_id'] ?? $invoiceItemsTemp->tax_id;
+        $invoiceItemsTemp->item_id = $request['item_id'] ?? $invoiceItemsTemp->item_id;
+        $invoiceItemsTemp->account_id = $request['account_id'] ?? $invoiceItemsTemp->account_id;
         $invoiceItemsTemp->expense_id = $request['expense_id'] ?? $invoiceItemsTemp->expense_id;
         $invoiceItemsTemp->invoice_number = $request['invoice_number'] ?? $invoiceItemsTemp->invoice_number;
         $invoiceItemsTemp->item = $request['item'] ?? $invoiceItemsTemp->item;
@@ -187,7 +190,7 @@ class InvoiceItemsTempServices
                 ->orWhere('description', 'like', '%'.$request['search_param'].'%');
             }            
         })
-        ->where('created_by',$user['id'])->select('id','crm_prospect_id','service_id','expense_id','invoice_number','item','description','quantity','price','account','tax_rate','total_price','created_by','modified_by', 'created_at')
+        ->where('created_by',$user['id'])->select('id','crm_prospect_id','service_id','tax_id','item_id','account_id','expense_id','invoice_number','item','description','quantity','price','account','tax_rate','total_price','created_by','modified_by', 'created_at')
         ->distinct()
         ->orderBy('created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
