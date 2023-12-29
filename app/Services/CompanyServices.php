@@ -276,10 +276,35 @@ class CompanyServices
     }
     /**
      * @param $request
-     * @return bool
+     * @return mixed
      */
-    public function updateCompanyId($request): bool
+    public function updateCompanyId($request): mixed
     {
+        $companyDetail = $this->company->find($request['current_company_id']);
+        $newCompanyDetail = $this->company->find($request['company_id']);
+        if($companyDetail->parent_flag == 1) {
+            $subsidiaryCompanyIds = $this->company->where('parent_id', $request['current_company_id'])
+                                ->select('id')
+                                ->get()->toArray();
+            $subsidiaryCompanyIds = array_column($subsidiaryCompanyIds, 'id');
+            if(!in_array($request['company_id'], $subsidiaryCompanyIds)) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+        } else if($companyDetail->parent_flag == 0 && $newCompanyDetail->parent_flag == 0) {
+            if(is_null($newCompanyDetail) || $newCompanyDetail->parent_id != $companyDetail->parent_id) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+        } else if($companyDetail->parent_flag == 0 && $newCompanyDetail->parent_flag == 1) {
+            if(is_null($newCompanyDetail) || $request['company_id'] != $companyDetail->parent_id) {
+                return [
+                    'InvalidUser' => true
+                ];
+            }
+        }
         $userDetails = $this->user->findOrFail($request['user_id']);
         $userDetails->company_id = $request['company_id'] ?? $userDetails->company_id;
         $userDetails->save();
