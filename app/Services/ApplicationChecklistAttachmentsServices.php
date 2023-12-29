@@ -204,16 +204,23 @@ class ApplicationChecklistAttachmentsServices
             ];
         }
 
+        $applicationDetails = $this->directrecruitmentApplications->whereIn('company_id', $request['company_id'])->find($request['application_id']);
+        if(is_null($applicationDetails)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
+
           return $this->documentChecklist->where('document_checklist.sector_id', $request['sector_id'])
           ->leftJoin('application_checklist_attachments', function($join) use ($request){
             $join->on('application_checklist_attachments.document_checklist_id', '=', 'document_checklist.id')
             ->where('application_checklist_attachments.application_id', '=', $request['application_id']);
           })
           ->leftJoin('directrecruitment_application_checklist', 'directrecruitment_application_checklist.id', 'application_checklist_attachments.application_checklist_id')
-          ->join('directrecruitment_applications', function ($join) use($request) {
+          /*->join('directrecruitment_applications', function ($join) use($request) {
             $join->on('directrecruitment_applications.id', '=', 'application_checklist_attachments.application_id')
             ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
-          })
+          })*/
           ->with(["applicationChecklistAttachments" => function($attachment) use ($request){
                 $attachment->where('application_id',$request['application_id']);
             }])->orderBy('document_checklist.created_at','DESC')
