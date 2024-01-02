@@ -144,7 +144,7 @@ class EmbassyAttestationFileCostingServices
             ];
         }
         $embassyAttestationDetails = $this->embassyAttestationFileCosting->find($request['id']);
-        if(is_null($embassyAttestationFileCosting)){
+        if(is_null($embassyAttestationDetails)){
             return [
                 "error" => true,
                 "message" => "Data not found"
