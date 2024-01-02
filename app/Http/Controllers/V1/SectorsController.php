@@ -119,6 +119,8 @@ class SectorsController extends Controller
             $data = $this->sectorsServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(is_null($data)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {

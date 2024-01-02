@@ -37,9 +37,12 @@ class EmbassyAttestationFileCostingController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->embassyAttestationFileCostingServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -60,9 +63,12 @@ class EmbassyAttestationFileCostingController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->embassyAttestationFileCostingServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -81,9 +87,13 @@ class EmbassyAttestationFileCostingController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->embassyAttestationFileCostingServices->delete($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -102,9 +112,13 @@ class EmbassyAttestationFileCostingController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->embassyAttestationFileCostingServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -123,9 +137,13 @@ class EmbassyAttestationFileCostingController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->embassyAttestationFileCostingServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {

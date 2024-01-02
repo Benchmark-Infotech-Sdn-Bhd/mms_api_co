@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\DocumentChecklist;
+use App\Models\Sectors;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\SectorsServices;
@@ -12,17 +13,20 @@ class DocumentChecklistServices
     private DocumentChecklist $documentChecklist;
     private ValidationServices $validationServices;
     private SectorsServices $sectorsServices;
+    private Sectors $sectors;
     /**
      * DocumentChecklistServices constructor.
      * @param DocumentChecklist $documentChecklist
      * @param ValidationServices $validationServices
      * @param SectorsServices $sectorsServices
+     * @param Sectors $sectors
      */
-    public function __construct(DocumentChecklist $documentChecklist,ValidationServices $validationServices,SectorsServices $sectorsServices)
+    public function __construct(DocumentChecklist $documentChecklist,ValidationServices $validationServices,SectorsServices $sectorsServices, Sectors $sectors)
     {
         $this->documentChecklist = $documentChecklist;
         $this->validationServices = $validationServices;
         $this->sectorsServices = $sectorsServices;
+        $this->sectors = $sectors;
     }
 
     /**
@@ -34,6 +38,12 @@ class DocumentChecklistServices
         if(!($this->validationServices->validate($request,$this->documentChecklist->rules))){
             return [
                 'validate' => $this->validationServices->errors()
+            ];
+        }
+        $sectorDetails = $this->sectors->where('company_id', $request['company_id'])->find($request['sector_id']);
+        if(is_null($sectorDetails)) {
+            return [
+                'InvalidUser' => true
             ];
         }
         $checklist = $this->documentChecklist->create([
@@ -68,6 +78,12 @@ class DocumentChecklistServices
                 "message"=> "Data not found"
             ];
         }
+        $sectorDetails = $this->sectors->where('company_id', $request['company_id'])->find($documentChecklist->sector_id);
+        if(is_null($sectorDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         return [
             "isUpdated" => $documentChecklist->update([
                 'id' => $request['id'],
@@ -97,6 +113,12 @@ class DocumentChecklistServices
                 "message" => "Data not found"
             ];
         }
+        $sectorDetails = $this->sectors->where('company_id', $request['company_id'])->find($documentChecklist->sector_id);
+        if(is_null($sectorDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $res = [
             "isDeleted" => $documentChecklist->delete(),
             "message" => "Deleted Successfully"
@@ -121,6 +143,19 @@ class DocumentChecklistServices
                 'validate' => $this->validationServices->errors()
             ];
         }
+        $documentChecklist = $this->documentChecklist->find($request['id']);
+        if(is_null($documentChecklist)){
+            return [
+                "error" => true,
+                "message" => "Data not found"
+            ];
+        }
+        $sectorDetails = $this->sectors->where('company_id', $request['company_id'])->find($documentChecklist->sector_id);
+        if(is_null($sectorDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         return $this->documentChecklist->findOrFail($request['id']);
     }
     /**
@@ -132,6 +167,12 @@ class DocumentChecklistServices
         if(!($this->validationServices->validate($request,['sector_id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
+            ];
+        }
+        $sectorDetails = $this->sectors->where('company_id', $request['company_id'])->find($request['sector_id']);
+        if(is_null($sectorDetails)) {
+            return [
+                'InvalidUser' => true
             ];
         }
         return $this->documentChecklist->where('sector_id',$request['sector_id'])
