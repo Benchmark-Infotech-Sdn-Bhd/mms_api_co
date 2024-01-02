@@ -130,7 +130,12 @@ class AccessManagementServices
                 'moduleError' => true
             ];
         }
-        
+        $role = $this->role::where('company_id', $request['company_id'])->find($request['role_id']);
+        if(is_null($role)){
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $this->rolePermission->where('role_id', $request['role_id'])->delete();
         return $this->create($request);
     }

@@ -98,6 +98,8 @@ class AccessManagementController extends Controller
             $response = $this->accessManagementServices->update($params);
             if(isset($response['moduleError'])) {
                 return $this->sendError(['message' => 'Unauthorized.']); 
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
             }
             return $this->sendSuccess(['message' => 'Role Permission Updated Successfully']);
         } catch (Exception $e) {
