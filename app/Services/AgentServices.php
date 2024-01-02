@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Agent;
+use App\Models\Countries;
 use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
@@ -13,17 +14,20 @@ class AgentServices
     private Agent $agent;
     private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
     private ValidationServices $validationServices;
+    private Countries $countries;
     /**
      * AgentServices constructor.
      * @param Agent $agent
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      * @param ValidationServices $validationServices
+     * @param Countries $countries
      */
-    public function __construct(Agent $agent,DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry,ValidationServices $validationServices)
+    public function __construct(Agent $agent,DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry,ValidationServices $validationServices, Countries $countries)
     {
         $this->agent = $agent;
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->validationServices = $validationServices;
+        $this->countries = $countries;
     }
 
     /**
