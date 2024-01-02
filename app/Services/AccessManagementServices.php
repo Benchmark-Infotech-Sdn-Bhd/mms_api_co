@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\RolePermission;
+use App\Models\Role;
 use App\Models\CompanyModulePermission;
 use Illuminate\Support\Facades\Config;
 
@@ -16,16 +17,22 @@ class AccessManagementServices
      * @var companyModulePermission
      */
     private CompanyModulePermission $companyModulePermission;
+    /**
+     * @var Role
+     */
+    private Role $role;
 
     /**
      * AccessManagementServices constructor.
      * @param RolePermission $rolePermission
      * @param CompanyModulePermission $companyModulePermission
+     * @param Role $role
      */
-    public function __construct(RolePermission $rolePermission, CompanyModulePermission $companyModulePermission)
+    public function __construct(RolePermission $rolePermission, CompanyModulePermission $companyModulePermission, Role $role)
     {
         $this->rolePermission   = $rolePermission;
         $this->companyModulePermission = $companyModulePermission;
+        $this->role = $role;
     }
 
     /**
