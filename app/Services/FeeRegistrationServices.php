@@ -78,6 +78,17 @@ class FeeRegistrationServices
     {  
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
+        $existingSectors = $this->sectors->where('company_id', $user['company_id'])
+                            ->select('id')
+                            ->get()
+                            ->toArray();
+        $existingSectors = array_column($existingSectors, 'id');
+        $diffSectors = array_diff($request['sectors'], $existingSectors);
+        if(!empty($diffSectors)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $feeRegistrationData = $this->feeRegistration::create([
             'item_name' => $request["item_name"],
             'cost' => $request["cost"],

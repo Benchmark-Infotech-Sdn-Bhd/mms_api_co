@@ -38,6 +38,13 @@ class AgentServices
             ];
         }
 
+        $countryDetails = $this->countries->where('company_id', $request['company_id'])->find($request['country_id']);
+        if(is_null($countryDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+
         $request['agent_code'] = $this->generateAgentCode();
 
         return $this->agent->create([
@@ -231,6 +238,12 @@ class AgentServices
      */
     public function updateAgentCode($request) : array
     {
+        $agentDetails = $this->agent->where('company_id', $request['company_id'])->find($request['id']);
+        if(is_null($agentDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $request['agent_code'] = $this->generateAgentCode();
         
         $agent = $this->agent->where('id', $request['id'])

@@ -45,6 +45,9 @@ class FeeRegistrationController extends Controller
                 return $this->validationError($validation);
             }
             $response = $this->feeRegistrationServices->create($request);
+            if($response['InvalidUser']) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
