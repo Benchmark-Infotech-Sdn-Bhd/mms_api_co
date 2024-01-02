@@ -135,13 +135,13 @@ class AuthController extends Controller
                 $this->sendError(['message' => 'user not found'], 404);
             }
         } catch (TokenExpiredException $e) {
-            Log::error('TokenExpiredException - ' . print_r($e->getMessage(), true));
+            Log::info('TokenExpiredException - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'token expired'], 404);
         } catch (TokenInvalidException $e) {
-            Log::error('TokenInvalidException - ' . print_r($e->getMessage(), true));
+            Log::info('TokenInvalidException - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'token invalid'], 404);
         } catch (JWTException $e) {
-            Log::error('JWTException - ' . print_r($e->getMessage(), true));
+            Log::info('JWTException - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'token absent'], 404);
         }
         return $this->sendSuccess(compact('user'));
