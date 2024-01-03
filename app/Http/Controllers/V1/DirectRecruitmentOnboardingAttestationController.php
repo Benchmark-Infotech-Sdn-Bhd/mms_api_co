@@ -112,9 +112,9 @@ class DirectRecruitmentOnboardingAttestationController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->directRecruitmentOnboardingAttestationServices->showDispatch($params);
-            if(is_null($response) || count($response) == 0) {
+            /*if(is_null($response) || count($response) == 0) {
                 return $this->sendError(['message' => 'Unauthorized.']);
-            }
+            }*/
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error = ' . print_r($e->getMessage(), true));
