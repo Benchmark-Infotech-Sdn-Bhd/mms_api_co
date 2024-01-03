@@ -504,6 +504,7 @@ class DirectRecruitmentWorkersServices
         $workerCheck = $this->directrecruitmentWorkers
                     ->leftJoin('workers', 'workers.id', 'directrecruitment_workers.worker_id')
                     ->where('directrecruitment_workers.worker_id', $request['id'])
+                    ->select('workers.company_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.application_id')
                     ->first();
         
         if($params['company_id'] != $workerCheck->company_id) {

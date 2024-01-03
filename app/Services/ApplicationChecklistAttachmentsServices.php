@@ -151,7 +151,7 @@ class ApplicationChecklistAttachmentsServices
                                     ->join('directrecruitment_applications', function ($join) use($request) {
                                         $join->on('directrecruitment_applications.id', '=', 'application_checklist_attachments.application_id')
                                         ->where('directrecruitment_applications.company_id', $request['company_id']);
-                                    })->find($request['id']);
+                                    })->select('application_checklist_attachments.*')->find($request['id']);
         if(is_null($directrecruitmentApplicationAttachment)){
             return [
                 "isDeleted" => false,

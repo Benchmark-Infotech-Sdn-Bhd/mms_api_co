@@ -218,7 +218,7 @@ class DirectRecruitmentOnboardingAttestationServices
             ->join('directrecruitment_applications', function ($join) use($request) {
                 $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
                 ->where('directrecruitment_applications.company_id', $request['company_id']);
-            })->find($request['id']);
+            })->select('onboarding_attestation.*')->find($request['id']);
         if(is_null($onboardingAttestation)) {
             return[
                 'InvalidUser' => true
