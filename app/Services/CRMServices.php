@@ -400,16 +400,8 @@ class CRMServices
         }
 
         if (\DB::getDriverName() !== 'sqlite') {
+            $request['prospect_id'] = $prospect['id'];
             $createContactXero = $this->invoiceServices->createContacts($request);
-            if(isset($createContactXero->original['Contacts'][0]['ContactID']) && !empty($createContactXero->original['Contacts'][0]['ContactID'])){
-                $prospectData = $this->crmProspect->findOrFail($prospect['id']);
-                $prospectData->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
-                $prospectData->save();
-            } else if (isset($createContactXero->original['contact']['contact_id']) && !empty($createContactXero->original['contact']['contact_id'])) {
-                $prospectData = $this->crmProspect->findOrFail($prospect['id']);
-                $prospectData->xero_contact_id = $createContactXero->original['contact']['contact_id'];
-                $prospectData->save();
-            }
         }
         return true;
     }
@@ -472,6 +464,7 @@ class CRMServices
                 ]);
         }    
         if (\DB::getDriverName() !== 'sqlite') {    
+            $request['prospect_id'] = $prospect['id'];
             $request['ContactID'] = $prospect['xero_contact_id'];
             $createContactXero = $this->invoiceServices->createContacts($request);
             if(isset($createContactXero->original['Contacts'][0]['ContactID']) && !empty($createContactXero->original['Contacts'][0]['ContactID'])){
