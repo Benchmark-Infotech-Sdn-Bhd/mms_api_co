@@ -73,6 +73,9 @@ class TransportationController extends Controller
     {      
         try {
             $response = $this->transportationServices->show($request); 
+            if(is_null($response)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

@@ -80,7 +80,12 @@ class FomemaClinicsController extends Controller
     {   
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user); 
             $response = $this->fomemaClinicsServices->show($params); 
+            if(is_null($response)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -101,6 +106,9 @@ class FomemaClinicsController extends Controller
                 return $this->validationError($validation);
             }
             $response = $this->fomemaClinicsServices->update($request); 
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -118,6 +126,9 @@ class FomemaClinicsController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->fomemaClinicsServices->delete($params); 
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
