@@ -14,6 +14,8 @@ use App\Models\EContractCostManagement;
 use App\Models\TotalManagementCostManagement;
 use App\Models\CRMProspect;
 use App\Services\ValidationServices;
+use App\Services\XeroServices;
+use App\Services\ZohoServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
 use App\Services\EmailServices;
@@ -78,6 +80,14 @@ class InvoiceServices
      */
     private ValidationServices $validationServices;
     /**
+     * @var XeroServices
+     */
+    private XeroServices $xeroServices;
+    /**
+     * @var ZohoServices
+     */
+    private ZohoServices $zohoServices;    
+    /**
      * @var AuthServices
      */
     private AuthServices $authServices;
@@ -103,6 +113,8 @@ class InvoiceServices
      * @param XeroAccounts $xeroAccounts
      * @param XeroItems $xeroItems
      * @param ValidationServices $validationServices
+     * @param XeroServices $xeroServices
+     * @param ZohoServices $zohoServices
      * @param AuthServices $authServices
      * @param EmailServices $emailServices
      * @param Storage $storage
@@ -120,26 +132,30 @@ class InvoiceServices
             XeroAccounts                $xeroAccounts,
             XeroItems                   $xeroItems,
             ValidationServices          $validationServices,
+            XeroServices                $xeroServices,
+            ZohoServices                $zohoServices,
             AuthServices                $authServices,
             EmailServices               $emailServices,
             Storage                     $storage
     )
     {
         $this->invoice = $invoice;
-        $this->invoiceItems = $invoiceItems;
-        $this->invoiceItemsTemp = $invoiceItemsTemp;
+        //$this->invoiceItems = $invoiceItems;
+        //$this->invoiceItemsTemp = $invoiceItemsTemp;
         $this->xeroSettings = $xeroSettings;
         $this->xeroTaxRates = $xeroTaxRates;
         $this->xeroAccounts = $xeroAccounts;
         $this->xeroItems = $xeroItems;
-        $this->directRecruitmentExpenses = $directRecruitmentExpenses;
-        $this->eContractCostManagement = $eContractCostManagement;
-        $this->totalManagementCostManagement = $totalManagementCostManagement;
-        $this->crmProspect = $crmProspect;
+        //$this->directRecruitmentExpenses = $directRecruitmentExpenses;
+        //$this->eContractCostManagement = $eContractCostManagement;
+        //$this->totalManagementCostManagement = $totalManagementCostManagement;
+        //$this->crmProspect = $crmProspect;
         $this->validationServices = $validationServices;
+        $this->xeroServices = $xeroServices;
+        $this->zohoServices = $zohoServices;
         $this->authServices = $authServices;
-        $this->emailServices = $emailServices;
-        $this->storage = $storage;
+        //$this->emailServices = $emailServices;
+        //$this->storage = $storage;
     }
 
     /**
@@ -157,243 +173,31 @@ class InvoiceServices
               'validate' => $this->validationServices->errors()
             ];
         }
+
         $invoice = $this->invoice->create([
-            'crm_prospect_id' => $request['crm_prospect_id'],
-            'issue_date' => ((isset($request['issue_date']) && !empty($request['issue_date'])) ? $request['issue_date'] : null),
-            'due_date' => ((isset($request['due_date']) && !empty($request['due_date'])) ? $request['due_date'] : null),
-            'reference_number' => $request['reference_number'] ?? '',
-            'tax' => $request['tax'] ?? 0,
-            'amount' => $request['amount'] ?? 0,
-            'due_amount' => $request['due_amount'] ?? 0,
+            'crm_prospect_id' => $params['crm_prospect_id'],
+            'issue_date' => ((isset($params['issue_date']) && !empty($params['issue_date'])) ? $params['issue_date'] : null),
+            'due_date' => ((isset($params['due_date']) && !empty($params['due_date'])) ? $params['due_date'] : null),
+            'reference_number' => $params['reference_number'] ?? '',
+            'tax' => $params['tax'] ?? 0,
+            'amount' => $params['amount'] ?? 0,
+            'due_amount' => $params['due_amount'] ?? 0,
             'created_by'    => $params['created_by'] ?? 0,
             'modified_by'   => $params['created_by'] ?? 0,
             'company_id' => $user['company_id'],
-            'remarks' => $request['remarks'] ?? ''
+            'remarks' => $params['remarks'] ?? ''
         ]);
 
-        $crmProspect = $this->crmProspect->findOrFail($request['crm_prospect_id']);
+        $params['invoice_id'] = $invoice['id'];
 
-        $generateInvoice['url'] = $accountSystem['url'];
-        $generateInvoice['access_token'] = $accountSystem['access_token'];
-        $generateInvoice['tenant_id'] = $accountSystem['tenant_id'];
-
-        if($accountSystem['title'] == 'XERO'){
-            $generateInvoice['Type'] = 'ACCREC';
-            $issuedateConverted = (Carbon::parse($params['due_date'])->timestamp * 1000)."+0000";
-            $generateInvoice['Date'] = '/Date('.$issuedateConverted.')/';
-            $duedateConverted = (Carbon::parse($params['due_date'])->timestamp * 1000)."+0000";
-            $generateInvoice['DueDate'] = '/Date('.$duedateConverted.')/';
-            $generateInvoice['DateString'] = $params['issue_date']."T00:00:00";
-            $generateInvoice['DueDateString'] = $params['due_date']."T00:00:00";
-            $generateInvoice['LineAmountTypes'] = 'Exclusive';
-
-            $generateInvoice['Contact']['ContactID'] = $crmProspect->xero_contact_id;
-
-            $lineItems = json_decode($request['invoice_items']);
-            
-            if ($request['invoice_items']){
-                $increment = 0;
-                foreach($lineItems as $item){
-
-                    $taxData = $this->xeroTaxRates::find($item->tax_id);
-                    
-                    $itemData = $this->xeroItems::find($item->item_id);
-
-                    $accountData = $this->xeroAccounts::find($item->account_id);
-
-                    $this->invoiceItems::create([
-                        "invoice_id" => $invoice['id'],
-                        "service_id" => $taxData['service_id'] ?? null,
-                        "expense_id" => $taxData['expense_id'] ?? null,
-                        "item" => $itemData['code'] ?? '',
-                        "description" => $item->description,
-                        "quantity" => $item->quantity,
-                        "price" => $item->price,
-                        "account" => $accountData['code'] ?? '',
-                        "tax" => $item->tax_rate ?? 0,
-                        "tax_id" => $taxData['tax_type'] ?? '',
-                        "total_price" => $item->total_price
-                    ]);
-
-                    $generateInvoice['LineItems'][$increment] = new \stdClass();
-                    $generateInvoice['LineItems'][$increment]->ItemCode = $itemData['code'] ?? '';
-                    $generateInvoice['LineItems'][$increment]->Description = $item->description;
-                    $generateInvoice['LineItems'][$increment]->Quantity = $item->quantity;
-                    $generateInvoice['LineItems'][$increment]->UnitAmount = $item->price;
-                    $generateInvoice['LineItems'][$increment]->AccountCode = $accountData['code'] ?? '';
-                    $generateInvoice['LineItems'][$increment]->TaxType = $taxData['tax_type'] ?? 0;
-                    $increment++;
-
-                }
-            }
-
-            $generateInvoiceXero = $this->generateInvoices($generateInvoice);   
-            
-            if(isset($generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'])){
-
-                $invoiceData = $this->invoice->findOrFail($invoice['id']);
-                $invoiceData->invoice_number = $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'];
-                $invoiceData->due_amount = $generateInvoiceXero->original['Invoices'][0]['AmountDue'];
-                $invoiceData->invoice_status = $generateInvoiceXero->original['Invoices'][0]['Status'];
-                $invoiceData->save();
-    
-                // Delete from temporary table
-                $this->invoiceItemsTemp->where('created_by', $user['id'])->delete();
-    
-                foreach($lineItems as $item){
-                    if($item->service_id == 1){
-                        $this->directRecruitmentExpenses->where('id', $item->expense_id)->update([
-                              'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
-                        ]);
-                    } else if($item->service_id == 2){
-                        $this->eContractCostManagement->where('id', $item->expense_id)->update([
-                              'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
-                        ]);
-                    }
-                    else if($item->service_id == 3){
-                        $this->totalManagementCostManagement->where('id', $item->expense_id)->update([
-                              'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
-                        ]);
-                    }
-                }
-            }
-
-        } else if ($accountSystem['title'] == 'ZOHO') {
-            $generateInvoice['date'] = $params['issue_date'] ?? null;
-            $generateInvoice['due_date'] = $params['due_date'] ?? null;
-            $generateInvoice['reference_number'] = $params['reference_number'] ?? null;
-            $generateInvoice['customer_id'] = $crmProspect->xero_contact_id;
-            $generateInvoice['is_inclusive_tax'] = '';
-
-            $lineItems = json_decode($request['invoice_items']);
-        
-            if ($request['invoice_items']){
-                $increment = 0;
-                foreach($lineItems as $item){
-
-                    $taxData = $this->xeroTaxRates::find($item->tax_id);
-                    
-                    $itemData = $this->xeroItems::find($item->item_id);
-
-                    $accountData = $this->xeroAccounts::find($item->account_id);
-                    
-                    $this->invoiceItems::create([
-                        "invoice_id" => $invoice['id'],
-                        "service_id" => $taxData['service_id'] ?? null,
-                        "expense_id" => $taxData['expense_id'] ?? null,
-                        "item" => $itemData['item_id'] ?? '',
-                        "description" => $item->description,
-                        "quantity" => $item->quantity,
-                        "price" => $item->price,
-                        "account" => $accountData['account_id'] ?? '',
-                        "tax" => $item->tax_rate ?? 0,
-                        "tax_id" => $taxData['tax_id'] ?? '',
-                        "total_price" => $item->total_price
-                    ]);
-
-                    $generateInvoice['line_items'][$increment] = new \stdClass();
-                    $generateInvoice['line_items'][$increment]->item_order = $item->item_order ?? '';
-                    $generateInvoice['line_items'][$increment]->item_id = $itemData['item_id'] ?? '';
-                    $generateInvoice['line_items'][$increment]->name = $item->item ?? '';
-                    $generateInvoice['line_items'][$increment]->rate = $item->price;
-                    $generateInvoice['line_items'][$increment]->description = $item->description;
-                    $generateInvoice['line_items'][$increment]->quantity = $item->quantity;
-                    $generateInvoice['line_items'][$increment]->tax_id = $taxData['tax_id'] ?? '';
-                    $generateInvoice['line_items'][$increment]->account_id = $accountData['account_id'] ?? ''; 
-                    $increment++;
-                }
-            }
-
-            $generateInvoiceXero = $this->generateInvoicesZoho($generateInvoice);  
-            
-            if(isset($generateInvoiceXero->original['invoice']['invoice_id'])){
-
-                $invoiceData = $this->invoice->findOrFail($invoice['id']);
-                $invoiceData->invoice_number = $generateInvoiceXero->original['invoice']['invoice_id'];
-                $invoiceData->zoho_invoice_number = $generateInvoiceXero->original['invoice']['invoice_number'];
-                $invoiceData->due_amount = $generateInvoiceXero->original['invoice']['balance'];
-                $invoiceData->invoice_status = $generateInvoiceXero->original['invoice']['status'];
-                $invoiceData->save();
-    
-                // Delete from temporary table
-                $this->invoiceItemsTemp->where('created_by', $user['id'])->delete();
-    
-                foreach($lineItems as $item){
-                    if($item->service_id == 1){
-                        $this->directRecruitmentExpenses->where('id', $item->expense_id)->update([
-                              'invoice_number' => $generateInvoiceXero->original['invoice']['invoice_id']
-                        ]);
-                    } else if($item->service_id == 2){
-                        $this->eContractCostManagement->where('id', $item->expense_id)->update([
-                              'invoice_number' => $generateInvoiceXero->original['invoice']['invoice_id']
-                        ]);
-                    }
-                    else if($item->service_id == 3){
-                        $this->totalManagementCostManagement->where('id', $item->expense_id)->update([
-                              'invoice_number' => $generateInvoiceXero->original['invoice']['invoice_id']
-                        ]);
-                    }
-                }
-            }
-
-        }
+        match ($accountSystem['title']) {
+            'XERO' => $this->xeroServices->createInvoice($params, $accountSystem),
+            'ZOHO' => $this->zohoServices->createInvoice($params, $accountSystem),
+        }; 
 
         return $invoice;
+
     }
-
-    /**
-     * @param $request
-     * @return bool|array
-     */
-    public function update($request): bool|array
-    {
-
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['modified_by'] = $user['id'];
-
-        if(!($this->validationServices->validate($request->toArray(),$this->invoice->rulesForUpdation($request['id'])))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
-        }
-
-        $invoice = $this->invoice->findOrFail($request['id']);
-        $invoice->crm_prospect_id = $request['crm_prospect_id'] ?? $invoice->crm_prospect_id;
-        $invoice->issue_date = ((isset($request['issue_date']) && !empty($request['issue_date'])) ? $request['issue_date'] : $invoice->issue_date);
-        $invoice->due_date = ((isset($request['due_date']) && !empty($request['due_date'])) ? $request['due_date'] : $invoice->due_date);
-        $invoice->reference_number = ((isset($request['reference_number']) && !empty($request['reference_number'])) ? $request['reference_number'] : $invoice->reference_number);
-        $invoice->amount = $request['amount'] ?? $invoice->amount;
-        $invoice->due_amount = $request['amount'] ?? $invoice->due_amount;
-        $invoice->remarks = $request['remarks'] ?? $invoice->remarks;
-        $invoice->created_by = $request['created_by'] ?? $invoice->created_by;
-        $invoice->modified_by = $params['modified_by'];
-        $invoice->save();
-
-        if ($request['invoice_items']){
-
-            $this->invoiceItems->where('invoice_id', $request['id'])->delete();
-            $lineItems = json_decode($request['invoice_items']);
-            foreach($request['invoice_items'] as $item){
-                    $this->invoiceItems::create([
-                    "invoice_id" => $request['id'],
-                    "service_id" => $taxData['service_id'] ?? null,
-                    "expense_id" => $taxData['expense_id'] ?? null,
-                    "item" => $item->item,
-                    "description" => $item->description,
-                    "quantity" => $item->quantity,
-                    "price" => $item->price,
-                    "account" => $item->account,
-                    "tax" => $item->tax_rate,
-                    "total_price" => $item->total_price
-                ]); 
-            }
-        
-        }
-
-        return true;
-    }
-    
     
     /**
      * @param $request
@@ -407,40 +211,20 @@ class InvoiceServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-
-        $invoiceData = $this->invoice->where('company_id', $user['company_id'])->find($request['id']);
-        
+        $invoiceData = $this->invoice->where('company_id', $user['company_id'])->find($request['id']);        
         if(isset($invoiceData) && !empty($invoiceData)){
-
             $accountSystem = $this->getXeroSettings();
-            if($accountSystem['title'] == 'XERO'){
-                $invoiceXeroData = $this->getInvoices($invoiceData);
-                if(isset($invoiceXeroData->original['Invoices'][0]['InvoiceNumber'])){
-                    $invoiceData->due_amount = $invoiceXeroData->original['Invoices'][0]['AmountDue'];
-                    $invoiceData->due_date = Carbon::parse($invoiceXeroData->original['Invoices'][0]['DueDateString'])->format('Y-m-d');
-                    $invoiceData->invoice_status = $invoiceXeroData->original['Invoices'][0]['Status'];
-                    $invoiceData->save();
-                }
-            }
-            else if ($accountSystem['title'] == 'ZOHO') {
-                $invoiceZohoData = $this->getInvoicesZoho($invoiceData);
-                if(isset($invoiceZohoData->original['invoice']['invoice_id'])){
-                    $invoiceData->due_amount = $invoiceZohoData->original['invoice']['balance'];
-                    $invoiceData->due_date = $invoiceZohoData->original['invoice']['due_date'];
-                    $invoiceData->invoice_status = $invoiceZohoData->original['invoice']['status'];
-                    $invoiceData->save();
-                }
-            }
+            match ($accountSystem['title']) {
+                'XERO' => $this->xeroServices->getInvoices($invoiceData, $accountSystem),
+                'ZOHO' => $this->zohoServices->getInvoices($invoiceData, $accountSystem),
+            };
         }
-
         $data = $this->invoice->with('invoiceItems')->where('company_id', $user['company_id'])->find($request['id']);
-
         if(is_null($data)){
             return [
                 "message" => "Data not found"
             ];
         }
-
         return $data;
 
     }
@@ -461,6 +245,7 @@ class InvoiceServices
                 ];
             }
         }
+
         return $this->invoice->with(['crm_prospect' => function ($query) {
             $query->select(['id', 'company_name']);
         }])
@@ -488,123 +273,16 @@ class InvoiceServices
      * @param $request
      * @return mixed
      */
-    public function getTaxRates($request) : mixed
-    {
-        $http = new Client();
-        $xeroConfig = $this->getXeroSettings();
-        try {
-            $response = $http->request('GET', $xeroConfig['url'] . Config::get('services.XERO_TAX_RATES_URL'), [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
-                    'Accept' => 'application/json',
-                ],
-                'form_params' => [
-                ],
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
-            return response()->json($result);
-        } catch (Exception $e) {
-            Log::error('Exception in getting Tax details' . $e);
-            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
-        }
-    }
-
-    /**
-     * @param $request
-     * @return mixed
-     */
     public function saveTaxRates() : mixed
     {
-        $http = new Client();
         $cronConfig = $this->getCronSettings();
         try {
             foreach($cronConfig as $clients){
-                switch($clients['title']) {
-                    case 'XERO':
-                        $response = $http->request('GET', $clients['url'] . Config::get('services.XERO_TAX_RATES_URL'), [
-                            'headers' => [
-                                'Authorization' => 'Bearer ' . $clients['access_token'],
-                                'Xero-Tenant-Id' => $clients['tenant_id'],
-                                'Accept' => 'application/json',
-                            ],
-                            'form_params' => [
-                            ],
-                        ]);
-                        $result = json_decode((string)$response->getBody(), true);
-
-                        if(isset($result['TaxRates'])){
-                            foreach ($result['TaxRates'] as $row) {
-                                $this->xeroTaxRates->updateOrCreate(
-                                    [
-                                        'company_id' => $clients['company_id'],
-                                        'name' => $row['Name'] ?? null, 
-                                        'tax_type' => $row['TaxType'] ?? null, 
-                                        'report_tax_type' => $row['ReportTaxType'] ?? null, 
-                                        'display_tax_rate' => $row['DisplayTaxRate'] ?? 0, 
-                                        'effective_rate' => $row['EffectiveRate'] ?? 0, 
-                                        'status' => $row['Status'] ?? null
-                                    ],
-                                    [
-                                        'can_applyto_assets' => $row['CanApplyToAssets'] ?? null, 
-                                        'can_applyto_equity' => $row['CanApplyToEquity'] ?? null, 
-                                        'can_applyto_expenses' => $row['CanApplyToExpenses'] ?? null, 
-                                        'can_applyto_liabilities' => $row['CanApplyToLiabilities'] ?? null, 
-                                        'can_applyto_revenue' => $row['CanApplyToRevenue'] ?? null
-                                    ]
-                                );
-                            }
-                        }
-                        break;                  
-                    case 'ZOHO':
-                        $response = $http->request('GET', $clients['url'] . Config::get('services.ZOHO_TAX_RATES_URL'). '?organization_id=' . $clients['tenant_id'], [
-                            'headers' => [
-                                'Authorization' => 'Bearer ' . $clients['access_token'],
-                                'Content-Type' => 'application/json',
-                                'Accept' => '*/*'
-                            ], 
-                        ]);
-                        $result = json_decode((string)$response->getBody(), true);
-                            if(isset($result['taxes'])){
-                                foreach ($result['taxes'] as $row) {
-                                    $this->xeroTaxRates->updateOrCreate(
-                                        [
-                                            'company_id' => $clients['company_id'],
-                                            'tax_id' => $row['tax_id'] ?? null, 
-                                            'name' => $row['tax_name'] ?? null, 
-                                            'tax_type' => $row['tax_type'] ?? null, 
-                                            'report_tax_type' => $row['ReportTaxType'] ?? null, 
-                                            'display_tax_rate' => $row['tax_percentage'] ?? 0, 
-                                            'effective_rate' => $row['tax_percentage'] ?? 0, 
-                                            'status' => $row['status'] ?? null
-                                        ],
-                                        [
-                                            'can_applyto_assets' => $row['CanApplyToAssets'] ?? null, 
-                                            'can_applyto_equity' => $row['CanApplyToEquity'] ?? null, 
-                                            'can_applyto_expenses' => $row['CanApplyToExpenses'] ?? null, 
-                                            'can_applyto_liabilities' => $row['CanApplyToLiabilities'] ?? null, 
-                                            'can_applyto_revenue' => $row['CanApplyToRevenue'] ?? null,
-
-                                            'tax_specific_type' => $row['tax_specific_type'] ?? null,
-                                            'output_tax_account_name' => $row['output_tax_account_name'] ?? null,
-                                            'purchase_tax_account_name' => $row['purchase_tax_account_name'] ?? null,
-                                            'tax_account_id' => $row['tax_account_id'] ?? null,
-                                            'purchase_tax_account_id' => $row['purchase_tax_account_id'] ?? null,
-                                            'is_inactive' => $row['is_inactive'] ?? null,
-                                            'is_value_added' => $row['is_value_added'] ?? null,
-                                            'is_default_tax' => $row['is_default_tax'] ?? null,
-                                            'is_editable' => $row['is_editable'] ?? null,
-                                            'last_modified_time' => $row['last_modified_time'] ?? null,
-                                        ]
-                                    );
-                                }
-                            }
-                        break; 
-                    default:
-                        $response = '';
-                }
-            }
-            
+                match ($clients['title']) {
+                    'XERO' => $this->xeroServices->saveTaxRates($clients),
+                    'ZOHO' => $this->zohoServices->saveTaxRates($clients),
+                };
+            }            
             return true;
         } catch (Exception $e) {
             Log::channel('cron_activity_logs')->info('Exception in getting Tax details' . $e);
@@ -631,114 +309,19 @@ class InvoiceServices
      * @param $request
      * @return mixed
      */
-    public function getItems($request) : mixed
-    {
-        $http = new Client();
-        $xeroConfig = $this->getXeroSettings();
-        try {
-            $response = $http->request('GET', $xeroConfig['url'] . Config::get('services.XERO_ITEMS_URL'), [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
-                    'Accept' => 'application/json',
-                ],
-                'form_params' => [
-                ],
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
-
-            return response()->json($result);
-        } catch (Exception $e) {
-            Log::error('Exception in getting Items details' . $e);
-            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
-        }
-    }
-
-    /**
-     * @param $request
-     * @return mixed
-     */
     public function saveItems() : mixed
     {
-        $http = new Client();
-        $xeroConfig = $this->getCronSettings();
+        $cronConfig = $this->getCronSettings();
         try {
-            foreach($xeroConfig as $clients){
-                switch($clients['title']) {
-                    case 'XERO':
-                        $response = $http->request('GET', $clients['url'] . Config::get('services.XERO_ITEMS_URL'), [
-                            'headers' => [
-                                'Authorization' => 'Bearer ' . $clients['access_token'],
-                                'Xero-Tenant-Id' => $clients['tenant_id'],
-                                'Accept' => 'application/json',
-                            ],
-                            'form_params' => [
-                            ],
-                        ]);
-                        $result = json_decode((string)$response->getBody(), true);
-
-                        if(isset($result['Items'])){
-                            foreach ($result['Items'] as $row) {
-                                $this->xeroItems->updateOrCreate(
-                                    [
-                                        'item_id' => $row['ItemID'] ?? null, 
-                                        'code' => $row['Code'] ?? null
-                                    ],
-                                    [
-                                        'company_id' => $clients['company_id'],
-                                        'description' => $row['Description'] ?? null, 
-                                        'purchase_description' => $row['PurchaseDescription'] ?? null, 
-                                        'name' => $row['Name'] ?? null, 
-                                        'is_tracked_as_inventory' => $row['IsTrackedAsInventory'] ?? null, 
-                                        'is_sold' => $row['IsSold'] ?? null,
-                                        'is_purchased' => $row['IsPurchased'] ?? null,
-                                    ]
-                                );
-                            }
-                        }
-                        break;                  
-                    case 'ZOHO':
-                        $response = $http->request('GET', $clients['url'] . Config::get('services.ZOHO_ITEMS_URL'). '?organization_id=' . $clients['tenant_id'], [
-                            'headers' => [
-                                'Authorization' => 'Bearer ' . $clients['access_token'],
-                                'Content-Type' => 'application/json',
-                                'Accept' => '*/*'
-                            ], 
-                        ]);
-                        $result = json_decode((string)$response->getBody(), true);
-                            if(isset($result['items'])){
-                                foreach ($result['items'] as $row) {
-                                    $this->xeroItems->updateOrCreate(
-                                        [
-                                            'item_id' => $row['item_id'] ?? null,                                             
-                                        ],
-                                        [
-                                            'company_id' => $clients['company_id'],
-                                            'code' => $row['code'] ?? null,
-                                            'description' => $row['description'] ?? null, 
-                                            'purchase_description' => $row['PurchaseDescription'] ?? null, 
-                                            'name' => $row['name'] ?? null, 
-                                            'is_tracked_as_inventory' => $row['IsTrackedAsInventory'] ?? null, 
-                                            'is_sold' => $row['IsSold'] ?? null,
-                                            'is_purchased' => $row['IsPurchased'] ?? null,                                            
-                                            'status' => $row['status'] ?? null, 
-                                            'rate' => $row['rate'] ?? null, 
-                                            'item_type' => $row['item_type'] ?? null, 
-                                            'product_type' => $row['product_type'] ?? null, 
-                                            'sku' => $row['sku'] ?? null,                                             
-                                        ]
-                                    );
-                                }
-                            }
-                        break; 
-                    default:
-                        $response = '';
-                }
-            }
-
+            foreach($cronConfig as $clients){
+                match ($clients['title']) {
+                    'XERO' => $this->xeroServices->saveItems($clients),
+                    'ZOHO' => $this->zohoServices->saveItems($clients),
+                };
+            }            
             return true;
         } catch (Exception $e) {
-            Log::channel('cron_activity_logs')->info('Exception in getting Items details' . $e);
+            Log::channel('cron_activity_logs')->info('Exception in getting Tax details' . $e);
             return false;
         }
     }
@@ -762,133 +345,19 @@ class InvoiceServices
      * @param $request
      * @return mixed
      */
-    public function getAccounts($request) : mixed
-    {
-        $http = new Client();
-        $xeroConfig = $this->getXeroSettings();
-        try {
-            $response = $http->request('GET', $xeroConfig['url'] . Config::get('services.XERO_ACCOUNTS_URL'), [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
-                    'Accept' => 'application/json',
-                ],
-                'form_params' => [
-                ],
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
-            
-            return response()->json($result);
-        } catch (Exception $e) {
-            Log::error('Exception in getting Account details' . $e);
-            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
-        }
-    }
-
-    /**
-     * @param $request
-     * @return mixed
-     */
     public function saveAccounts() : mixed
     {
-        $http = new Client();
-        $xeroConfig = $this->getCronSettings();
+        $cronConfig = $this->getCronSettings();
         try {
-            foreach($xeroConfig as $clients){
-                //Log::channel('cron_activity_logs')->info('Exception in getting Account details ' . $clients['company_id']);
-                switch($clients['title']) {
-                    case 'XERO':
-                    $response = $http->request('GET', $clients['url'] . Config::get('services.XERO_ACCOUNTS_URL'), [
-                        'headers' => [
-                            'Authorization' => 'Bearer ' . $clients['access_token'],
-                            'Xero-Tenant-Id' => $clients['tenant_id'],
-                            'Accept' => 'application/json',
-                        ],
-                        'form_params' => [
-                        ],
-                    ]);
-                    $result = json_decode((string)$response->getBody(), true);
-                    
-                    if(isset($result['Accounts'])){
-                        foreach ($result['Accounts'] as $row) {
-                            $this->xeroAccounts->updateOrCreate(
-                                [
-                                    'account_id' => $row['AccountID'] ?? null, 
-                                    'code' => $row['Code'] ?? null
-                                ],
-                                [
-                                    'name' => $row['Name'] ?? null, 
-                                    'status' => $row['Status'] ?? null, 
-                                    'type' => $row['Type'] ?? null, 
-                                    'tax_type' => $row['TaxType'] ?? null, 
-                                    'class' => $row['Class'] ?? null,
-                                    'enable_payments_to_account' => $row['EnablePaymentsToAccount'] ?? null,
-                                    'show_in_expense_claims' => $row['ShowInExpenseClaims'] ?? null,
-                                    'bank_account_number' => $row['BankAccountNumber'] ?? null,
-                                    'bank_account_type' => $row['BankAccountType'] ?? null,
-                                    'currency_code' => $row['CurrencyCode'] ?? null,
-                                    'reporting_code' => $row['ReportingCode'] ?? null,
-                                    'reporting_code_name' => $row['ReportingCodeName'] ?? null,
-                                    'company_id' => $clients['company_id'],
-                                ]
-                            );
-                        }
-                    }
-                    break;                  
-                    case 'ZOHO':
-                        $response = $http->request('GET', $clients['url'] . Config::get('services.ZOHO_ACCOUNTS_URL'). '?organization_id=' . $clients['tenant_id'], [
-                            'headers' => [
-                                'Authorization' => 'Bearer ' . $clients['access_token'],
-                                'Content-Type' => 'application/json',
-                                'Accept' => '*/*'
-                            ], 
-                        ]);
-                        $result = json_decode((string)$response->getBody(), true);
-                            if(isset($result['chartofaccounts'])){
-                                foreach ($result['chartofaccounts'] as $row) {
-                                    $this->xeroAccounts->updateOrCreate(
-                                        [
-                                            'account_id' => $row['account_id'] ?? null,                                             
-                                        ],
-                                        [
-                                            'company_id' => $clients['company_id'],
-                                            'code' => $row['Code'] ?? null,
-                                            'name' => $row['account_name'] ?? null, 
-                                            'status' => ($row['is_active'] == true) ? 'ACTIVE' : 'INACTIVE', 
-                                            'type' => $row['account_type'] ?? null, 
-                                            'tax_type' => $row['TaxType'] ?? null, 
-                                            'class' => $row['Class'] ?? null,
-                                            'enable_payments_to_account' => $row['EnablePaymentsToAccount'] ?? null,
-                                            'show_in_expense_claims' => $row['ShowInExpenseClaims'] ?? null,
-                                            'bank_account_number' => $row['BankAccountNumber'] ?? null,
-                                            'bank_account_type' => $row['BankAccountType'] ?? null,
-                                            'currency_code' => $row['CurrencyCode'] ?? null,
-                                            'reporting_code' => $row['ReportingCode'] ?? null,
-                                            'reporting_code_name' => $row['ReportingCodeName'] ?? null,
-                                            
-                                            'description' => $row['description'] ?? null,
-                                            'is_user_created' => $row['is_user_created'] ?? null,
-                                            'is_system_account' => $row['is_system_account'] ?? null,
-                                            'can_show_in_ze' => $row['can_show_in_ze'] ?? null,
-                                            'parent_account_id' => $row['parent_account_id'] ?? null,
-                                            'parent_account_name' => $row['parent_account_name'] ?? null,
-                                            'depth' => $row['depth'] ?? null,
-                                            'has_attachment' => $row['has_attachment'] ?? null,
-                                            'is_child_present' => $row['is_child_present'] ?? null,
-                                            'child_count' => $row['child_count'] ?? null,
-                                        ]
-                                    );
-                                }
-                            }
-                        break; 
-                    default:
-                        $response = '';
-                }
-            }
-
+            foreach($cronConfig as $clients){
+                match ($clients['title']) {
+                    'XERO' => $this->xeroServices->saveAccounts($clients),
+                    'ZOHO' => $this->zohoServices->saveAccounts($clients),
+                };
+            }            
             return true;
         } catch (Exception $e) {
-            Log::channel('cron_activity_logs')->info('Exception in getting Account details' . $e);
+            Log::channel('cron_activity_logs')->info('Exception in getting Tax details' . $e);
             return false;
         }
     }
@@ -912,259 +381,19 @@ class InvoiceServices
      * @param $request
      * @return mixed
      */
-    public function getInvoices($request) : mixed
-    {
-        $http = new Client();
-        $xeroConfig = $this->getXeroSettings();
-        $rawUrl = '';
-        if(isset($request['invoice_number']) && !empty($request['invoice_number'])){
-            $rawUrl = "/".$request['invoice_number'];
-        }
-
-        try {
-            app('thirdPartyLogServices')->startApiLog($xeroConfig['url']. Config::get('services.XERO_INVOICES_URL'). $rawUrl, '');
-            $response = $http->request('GET', $xeroConfig['url'] . Config::get('services.XERO_INVOICES_URL'). $rawUrl, [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
-                    'Accept' => 'application/json',
-                ],
-                'form_params' => [
-                ],
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
-            app('thirdPartyLogServices')->endApiLog($result);
-            return response()->json($result);
-        } catch (Exception $e) {
-            Log::error('Exception in getting Invoice details' . $e);
-            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
-        }
-    }
-
-    /**
-     * @param $request
-     * @return mixed
-     */
-    public function getInvoicesZoho($request) : mixed
-    {
-        $http = new Client();
-        $xeroConfig = $this->getXeroSettings();
-        $rawUrl = '';
-        if(isset($request['invoice_number']) && !empty($request['invoice_number'])){
-            $rawUrl = "/".$request['invoice_number'];
-        }
-
-        try {
-            app('thirdPartyLogServices')->startApiLog($xeroConfig['url'] . Config::get('services.ZOHO_INVOICES_URL'). $rawUrl. '?organization_id=' . $xeroConfig['tenant_id'], '');
-            $response = $http->request('GET', $xeroConfig['url'] . Config::get('services.ZOHO_INVOICES_URL'). $rawUrl. '?organization_id=' . $xeroConfig['tenant_id'], [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                    'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
-                    'Accept' => 'application/json',
-                ],
-                'form_params' => [
-                ],
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
-            app('thirdPartyLogServices')->endApiLog($result);
-            return response()->json($result);
-        } catch (Exception $e) {
-            Log::error('Exception in getting Invoice details' . $e);
-            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
-        }
-    }
-
-    /**
-     * @param $request
-     * @return mixed
-     */
-    public function generateInvoices($request) : mixed
-    {
-        $http = new Client();
-        //$xeroConfig = $this->getXeroSettings();
-        try {
-            $data = [
-                    'Type'=>'ACCREC',
-                    'Contact'=> $request['Contact'],
-                    'Date' => $request['Date'],
-                    'DueDate' => $request['DueDate'],
-                    'DateString' => $request['DateString'],
-                    'DueDateString' => $request['DueDateString'],
-                    'LineAmountTypes' => $request['LineAmountTypes'],
-                    'LineItems' => $request['LineItems']
-            ];
-            app('thirdPartyLogServices')->startApiLog($request['url']. Config::get('services.XERO_INVOICES_URL'), $data);
-            $response = $http->request('POST', $request['url']  . Config::get('services.XERO_INVOICES_URL'), [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $request['access_token'],
-                    'Xero-Tenant-Id' => $request['tenant_id'],
-                    'Accept' => 'application/json',
-                ],
-                'json' => [
-                    'Type'=>'ACCREC',
-                    'Contact'=> $request['Contact'],
-                    'Date' => $request['Date'],
-                    'DueDate' => $request['DueDate'],
-                    'DateString' => $request['DateString'],
-                    'DueDateString' => $request['DueDateString'],
-                    'LineAmountTypes' => $request['LineAmountTypes'],
-                    'LineItems' => $request['LineItems']
-                ],
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
-
-            app('thirdPartyLogServices')->endApiLog($result);
-            return response()->json($result);
-        } catch (Exception $e) {
-            Log::error('Exception in submitting invoice details' . $e);
-            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
-        }
-    }
-
-    /**
-     * @param $request
-     * @return mixed
-     */
-    public function generateInvoicesZoho($request) : mixed
-    {
-        $http = new Client();
-        //$xeroConfig = $this->getXeroSettings();
-        try {
-            $data = [
-                'reference_number' => $request['reference_number'],              
-                'customer_id' => $request['customer_id'],
-                'date' => $request['date'],
-                'due_date' => $request['due_date'],
-                'is_inclusive_tax' => $request['is_inclusive_tax'],
-                'line_items' => $request['line_items']
-            ];
-            app('thirdPartyLogServices')->startApiLog($request['url'] . Config::get('services.ZOHO_INVOICES_URL'). '?organization_id=' . $request['tenant_id'], $data);
-            $response = $http->request('POST', $request['url'] . Config::get('services.ZOHO_INVOICES_URL'). '?organization_id=' . $request['tenant_id'], [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $request['access_token'],
-                    'Content-Type' => 'application/json',
-                    'Accept' => '*/*'
-                ],
-                'json' => [    
-                    'reference_number' => $request['reference_number'],              
-                    'customer_id' => $request['customer_id'],
-                    'date' => $request['date'],
-                    'due_date' => $request['due_date'],
-                    'is_inclusive_tax' => $request['is_inclusive_tax'],
-                    'line_items' => $request['line_items']
-                ],
-            ]);
-            $result = json_decode((string)$response->getBody(), true);
-            app('thirdPartyLogServices')->endApiLog($result);
-            return response()->json($result);
-        } catch (Exception $e) {
-            Log::error('Exception in submitting invoice details' . $e);
-            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
-        }
-    }    
-
-    /**
-     * @param $request
-     * @return mixed
-     */
     public function createContacts($request) : mixed
     {
-        $http = new Client();
-        $xeroConfig = $this->getXeroSettings();
-
-        switch($xeroConfig['title']) {
-            case 'XERO':
-                if(isset($request['ContactID']) && !empty($request['ContactID'])){
-                    $data = [
-                        'ContactID'=>$request['ContactID'] ?? '',
-                        'Name'=>$request['company_name'],
-                        'ContactNumber'=> $request['contact_number'],
-                        'AccountNumber' => $request['bank_account_number'],
-                        'EmailAddress' => $request['email'],
-                        'BankAccountDetails' => $request['bank_account_number'],
-                        'TaxNumber' => $request['tax_id'],
-                        'AccountsReceivableTaxType' => $request['account_receivable_tax_type'],
-                        'AccountsPayableTaxType' => $request['account_payable_tax_type']
-                        ];
-                } else {
-                    $data = [
-                        'Name'=>$request['company_name'],
-                        'ContactNumber'=> $request['contact_number'],
-                        'AccountNumber' => $request['bank_account_number'],
-                        'EmailAddress' => $request['email'],
-                        'BankAccountDetails' => $request['bank_account_number'],
-                        'TaxNumber' => $request['tax_id'],
-                        'AccountsReceivableTaxType' => $request['account_receivable_tax_type'],
-                        'AccountsPayableTaxType' => $request['account_payable_tax_type']
-                    ];
-                }
-                
-                try {
-                    app('thirdPartyLogServices')->startApiLog($xeroConfig['url']. Config::get('services.XERO_CONTACTS_URL'), $data);
-                    $response = $http->request('POST', $xeroConfig['url'] . Config::get('services.XERO_CONTACTS_URL'), [
-                        'headers' => [
-                            'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                            'Xero-Tenant-Id' => $xeroConfig['tenant_id'],
-                            'Accept' => 'application/json',
-                        ],
-                        'json' => $data,
-                    ]);
-                    $result = json_decode((string)$response->getBody(), true);
-                    app('thirdPartyLogServices')->endApiLog($result);
-                    return response()->json($result);
-                } catch (Exception $e) {
-                    Log::error('Exception in submitting contact details' . $e);
-                    return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
-                }
-                break;                  
-            case 'ZOHO':
-                if(isset($request['ContactID']) && !empty($request['ContactID'])){
-                    $method = 'PUT';
-                    $contactIdUrl = '/'.$request['ContactID'];
-                } else {
-                    $method = 'POST';
-                    $contactIdUrl = '';
-                }     
-
-                $data = [
-                    'contact_name'=>$request['company_name'],
-                    'company_name'=>$request['company_name'],
-                    "contact_type"=>"customer",
-                    "customer_sub_type"=>"business",
-                    'contact_persons' => [[
-                        'first_name' => $request['company_name'],
-                        'last_name' => '',
-                        'mobile' => $request['contact_number'],
-                        'phone' => '',
-                        'email' => $request['email'],
-                        'is_primary_contact' => true,
-                        'enable_portal' => false
-                    ]]
-                ];
-                
-                try {
-                    app('thirdPartyLogServices')->startApiLog($xeroConfig['url'] . Config::get('services.ZOHO_CONTACTS_URL'). $contactIdUrl . '?organization_id=' . $xeroConfig['tenant_id'], $data);
-                    $response = $http->request($method, $xeroConfig['url'] . Config::get('services.ZOHO_CONTACTS_URL'). $contactIdUrl . '?organization_id=' . $xeroConfig['tenant_id'], [
-                        'headers' => [
-                            'Authorization' => 'Bearer ' . $xeroConfig['access_token'],
-                            'Content-Type' => 'application/json',
-                            'Accept' => '*/*'
-                        ],
-                        'json' => $data,
-                    ]);
-                    $result = json_decode((string)$response->getBody(), true);
-                    app('thirdPartyLogServices')->endApiLog($result);
-                    return response()->json($result);
-                } catch (Exception $e) {
-                    Log::error('Exception in submitting contact details' . $e);
-                    return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
-                }
-                break; 
-            default:
-                return false;
-        }
-
-        
+        $accountSystem = $this->getXeroSettings();
+        try {
+            match ($accountSystem['title']) {
+                'XERO' => $this->xeroServices->createContacts($request, $accountSystem),
+                'ZOHO' => $this->zohoServices->createContacts($request, $accountSystem),
+            };  
+            return true;
+        } catch (Exception $e) {
+            Log::channel('cron_activity_logs')->info('Exception in submitting contact details' . $e);
+            return false;
+        }     
     }
 
     /**
@@ -1173,50 +402,18 @@ class InvoiceServices
      */
     public function getAccessToken() : mixed
     {
-        $http = new Client();
         $cronConfig = $this->getCronSettings();
-
         try {
             foreach($cronConfig as $clients){
-                switch($clients['title']) {
-                    case 'XERO':
-                        $response = $http->request('POST', Config::get('services.XERO_TOKEN_URL'), [
-                            'headers' => [
-                                'Authorization' => 'Basic ' . base64_encode($clients['client_id'] . ":" . $clients['client_secret']),
-                                'Content-Type' => 'application/x-www-form-urlencoded',
-                                'Accept' => 'application/json',
-                            ], 
-                            'form_params' => [
-                                'grant_type' => 'refresh_token',
-                                'client_id' => $clients['client_id'],
-                                'refresh_token' => $clients['refresh_token'],
-                            ],
-                        ]);
-                        break;                  
-                    case 'ZOHO':
-                        $response = $http->request('POST', Config::get('services.ZOHO_TOKEN_URL'). '?refresh_token=' . $clients['refresh_token'] . '&client_id=' . $clients['client_id'] . '&client_secret=' . $clients['client_secret'] . '&redirect_uri=' . $clients['redirect_url'] . '&grant_type=refresh_token', [
-                            'headers' => [
-                                'Content-Type' => 'multipart/form-data; boundary=XXX',
-                                'Accept' => '*/*'
-                            ], 
-                        ]);
-                        
-                        break; 
-                    default:
-                        $response = '';                    
-                }
-                if(isset($response) && !empty($response)){
-                    $result = json_decode((string)$response->getBody(), true);
-                    $newConfig = $this->xeroSettings->find($clients['id']);
-                    $newConfig->refresh_token = $result['refresh_token'] ?? $clients['refresh_token'];
-                    $newConfig->access_token = $result['access_token'];
-                    $newConfig->save();
-                }                    
-            }
+                match ($clients['title']) {
+                    'XERO' => $this->xeroServices->getAccessToken($clients),
+                    'ZOHO' => $this->zohoServices->getAccessToken($clients),
+                };
+            }            
             return true;
         } catch (Exception $e) {
-            Log::channel('cron_activity_logs')->info('Exception in getting refresh token' . $e);
-            return response()->json(['msg' => 'Error', 'error' => $e->getMessage()]);
+            Log::channel('cron_activity_logs')->info('Exception in getting Tax details' . $e);
+            return false;
         }
     }
 
@@ -1257,150 +454,15 @@ class InvoiceServices
         try {
             foreach($pendingInvoices as $invoice){
 
-                $invoiceData = $this->invoice->findOrFail($invoice['id']);
-                $invoiceData->resubmit_count = $invoiceData->resubmit_count + 1;
-                $invoiceData->save();
+                $accountSystem['title'] = $invoice['title'];
+                $accountSystem['url'] = $invoice['url'];
+                $accountSystem['access_token'] = $invoice['access_token'];
+                $accountSystem['tenant_id'] = $invoice['tenant_id'];
 
-                $generateInvoice['url'] = $invoice['url'];
-                $generateInvoice['access_token'] = $invoice['access_token'];
-                $generateInvoice['tenant_id'] = $invoice['tenant_id'];
-                
-                $generatedInvoiceNumber = '';
-
-                switch($invoice['title']) {
-                    case 'XERO':
-                        
-                        $crmProspect = $this->crmProspect->findOrFail($invoice['crm_prospect_id']);
-
-                        $generateInvoice['Type'] = 'ACCREC';
-                        $issuedateConverted = (Carbon::parse($invoice['due_date'])->timestamp * 1000)."+0000";
-                        $generateInvoice['Date'] = '/Date('.$issuedateConverted.')/';
-                        $duedateConverted = (Carbon::parse($invoice['due_date'])->timestamp * 1000)."+0000";
-                        $generateInvoice['DueDate'] = '/Date('.$duedateConverted.')/';
-                        $generateInvoice['DateString'] = $invoice['issue_date']."T00:00:00";
-                        $generateInvoice['DueDateString'] = $invoice['due_date']."T00:00:00";
-                        $generateInvoice['LineAmountTypes'] = 'Exclusive';
-                        $generateInvoice['Contact']['ContactID'] = $crmProspect->xero_contact_id;
-
-                        if ($invoice['invoiceItems']){
-                            $increment = 0;
-                            foreach($invoice['invoiceItems'] as $item){
-                                $generateInvoice['LineItems'][$increment] = new \stdClass();
-                                $generateInvoice['LineItems'][$increment]->ItemCode = $item['item'] ?? '';
-                                $generateInvoice['LineItems'][$increment]->Description = $item['description'];
-                                $generateInvoice['LineItems'][$increment]->Quantity = $item['quantity'];
-                                $generateInvoice['LineItems'][$increment]->UnitAmount = $item['price'];
-                                $generateInvoice['LineItems'][$increment]->AccountCode = $item['account'] ?? '';
-                                $generateInvoice['LineItems'][$increment]->TaxType = $item['tax_id'] ?? '';
-                                $increment++;
-
-                            }
-                        }
-
-                        $generateInvoiceXero = $this->generateInvoices($generateInvoice); 
-
-                        if(isset($generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'])){
-
-                            $invoiceData->invoice_number = $generatedInvoiceNumber = $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber'];
-                            $invoiceData->due_amount = $generateInvoiceXero->original['Invoices'][0]['AmountDue'];
-                            $invoiceData->invoice_status = $generateInvoiceXero->original['Invoices'][0]['Status'];
-                            $invoiceData->save();
-                
-                            foreach($invoice['invoiceItems'] as $item){
-                                $this->invoiceItemsTemp->where('service_id', $item['service_id'])->where('expense_id', $item['expense_id'])->delete();
-                                if($item['service_id'] == 1){
-                                    $this->directRecruitmentExpenses->where('id', $item['expense_id'])->update([
-                                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
-                                    ]);
-                                } else if($item['service_id'] == 2){
-                                    $this->eContractCostManagement->where('id', $item['expense_id'])->update([
-                                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
-                                    ]);
-                                }
-                                else if($item['service_id'] == 3){
-                                    $this->totalManagementCostManagement->where('id', $item['expense_id'])->update([
-                                          'invoice_number' => $generateInvoiceXero->original['Invoices'][0]['InvoiceNumber']
-                                    ]);
-                                }
-                            }
-                        }
-
-                        break;                  
-                    case 'ZOHO':
-                        $crmProspect = $this->crmProspect->findOrFail($invoice['crm_prospect_id']);
-                        
-                        $generateInvoice['date'] = $invoice['issue_date'] ?? null;
-                        $generateInvoice['due_date'] = $invoice['due_date'] ?? null;
-                        $generateInvoice['reference_number'] = $invoice['reference_number'] ?? null;
-                        $generateInvoice['customer_id'] = $crmProspect->xero_contact_id;
-                        $generateInvoice['is_inclusive_tax'] = '';
-                    
-                        if ($invoice['invoiceItems']){
-                            $increment = 0;
-                            foreach($invoice['invoiceItems'] as $item){
-                                
-                                $generateInvoice['line_items'][$increment] = new \stdClass();
-                                $generateInvoice['line_items'][$increment]->item_order = '';
-                                $generateInvoice['line_items'][$increment]->item_id = $item['item'];
-                                $generateInvoice['line_items'][$increment]->name = '';
-                                $generateInvoice['line_items'][$increment]->rate = $item['price'];
-                                $generateInvoice['line_items'][$increment]->description = $item['description'];
-                                $generateInvoice['line_items'][$increment]->quantity = $item['quantity'];
-                                $generateInvoice['line_items'][$increment]->tax_id = $item['tax_id'] ?? '';
-                                $generateInvoice['line_items'][$increment]->account_id = $item['account'] ?? ''; 
-                                $increment++;
-                            }
-                        }
-            
-                        $generateInvoiceXero = $this->generateInvoicesZoho($generateInvoice);  
-                        
-                        if(isset($generateInvoiceXero->original['invoice']['invoice_id'])){
-            
-                            $invoiceData->invoice_number = $generatedInvoiceNumber = $generateInvoiceXero->original['invoice']['invoice_id'];
-                            $invoiceData->zoho_invoice_number = $generateInvoiceXero->original['invoice']['invoice_number'];
-                            $invoiceData->due_amount = $generateInvoiceXero->original['invoice']['balance'];
-                            $invoiceData->invoice_status = $generateInvoiceXero->original['invoice']['status'];
-                            $invoiceData->save();
-                
-                            // Delete from temporary table
-                            //$this->invoiceItemsTemp->where('created_by', $user['id'])->delete();
-                
-                            foreach($invoice['invoiceItems'] as $item){
-                                $this->invoiceItemsTemp->where('service_id', $item['service_id'])->where('expense_id', $item['expense_id'])->delete();
-                                if($item['service_id'] == 1){
-                                    $this->directRecruitmentExpenses->where('id', $item['expense_id'])->update([
-                                          'invoice_number' => $generateInvoiceXero->original['invoice']['invoice_id']
-                                    ]);
-                                } else if($item['service_id'] == 2){
-                                    $this->eContractCostManagement->where('id', $item['expense_id'])->update([
-                                          'invoice_number' => $generateInvoiceXero->original['invoice']['invoice_id']
-                                    ]);
-                                }
-                                else if($item['service_id'] == 3){
-                                    $this->totalManagementCostManagement->where('id', $item['expense_id'])->update([
-                                          'invoice_number' => $generateInvoiceXero->original['invoice']['invoice_id']
-                                    ]);
-                                }
-                            }
-                        }
-
-                        break; 
-                    default:
-                        $response = '';
-                }
-
-                $mailParams['company_name'] = $crmProspect->company_name;
-                $mailParams['company_email'] = $crmProspect->email;
-                $mailParams['reference_number'] = $invoice['reference_number'];
-                $mailParams['email'] = Config::get('services.INVOICE_RESUBMISSION_FAILED_MAIL');
-
-                Log::channel('cron_activity_logs')->info('Checking mail '.__LINE__);
-                Log::channel('cron_activity_logs')->info('Generated Invoice Number ' . $generatedInvoiceNumber);
-                if($invoiceData->resubmit_count >= 3 && !empty($generatedInvoiceNumber)){
-                    Log::channel('cron_activity_logs')->info('Sending mail ' . print_r($mailParams));
-                    $this->emailServices->sendInvoiceResubmissionFailedMail($mailParams);
-                }
-                
+                match ($accountSystem['title']) {
+                    'XERO' => $this->xeroServices->invoiceReSubmit($invoice, $accountSystem),
+                    'ZOHO' => $this->zohoServices->invoiceReSubmit($invoice, $accountSystem),
+                };                 
             }
 
             return true;
