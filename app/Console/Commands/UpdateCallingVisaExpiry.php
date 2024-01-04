@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Services\DirectRecruitmentPostponedServices;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class UpdateCallingVisaExpiry extends Command
 {
@@ -25,12 +25,12 @@ class UpdateCallingVisaExpiry extends Command
     /**
      * @var DirectRecruitmentPostponedServices
      */
-    private $directRecruitmentPostponedServices;
+    private DirectRecruitmentPostponedServices $directRecruitmentPostponedServices;
 
     /**
-     * Create a new command instance.
+     * Class constructor.
      *
-     * @return void
+     * @param DirectRecruitmentPostponedServices $directRecruitmentPostponedServices The instance of DirectRecruitmentPostponedServices class.
      */
     public function __construct(DirectRecruitmentPostponedServices $directRecruitmentPostponedServices)
     {
@@ -41,12 +41,12 @@ class UpdateCallingVisaExpiry extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         Log::channel('cron_activity_logs')->info('Cron Job Started - Update Expiry Status');
-        $data = $this->directRecruitmentPostponedServices->updateCallingVisaExpiry();
+        $this->directRecruitmentPostponedServices->updateCallingVisaExpiry();
         Log::channel('cron_activity_logs')->info('Cron Job Ended - Update Expiry Status');
     }
 }

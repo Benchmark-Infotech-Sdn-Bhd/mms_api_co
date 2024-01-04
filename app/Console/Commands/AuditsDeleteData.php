@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 
 use App\Services\AuditsServices;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class AuditsDeleteData extends Command
 {
@@ -26,11 +26,12 @@ class AuditsDeleteData extends Command
     /**
      * @var AuditsServices
      */
-    private $auditsServices;
+    private AuditsServices $auditsServices;
 
     /**
-     * Create a new command instance.
+     * Initializes a new instance of the class.
      *
+     * @param AuditsServices $auditsServices The audits services object.
      * @return void
      */
     public function __construct(AuditsServices $auditsServices)
@@ -40,14 +41,14 @@ class AuditsDeleteData extends Command
     }
 
     /**
-     * Execute the console command.
+     * Handle the command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         Log::channel('cron_activity_logs')->info('Cron Job Started - Audits Delete Data');
-        $data = $this->auditsServices->delete();
+        $this->auditsServices->delete();
         Log::channel('cron_activity_logs')->info('Cron Job Ended - Audits Delete Data');
     }
 }

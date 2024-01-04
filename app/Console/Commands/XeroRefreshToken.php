@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 
 use App\Services\InvoiceServices;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class XeroRefreshToken extends Command
 {
@@ -26,10 +26,12 @@ class XeroRefreshToken extends Command
     /**
      * @var InvoiceServices
      */
-    private $invoiceServices;
+    private InvoiceServices $invoiceServices;
 
     /**
-     * Create a new command instance.
+     * Class constructor.
+     *
+     * @param InvoiceServices $invoiceServices The invoice services instance.
      *
      * @return void
      */
@@ -42,12 +44,12 @@ class XeroRefreshToken extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Refresh Token Generation');
-        $data = $this->invoiceServices->getAccessToken();
+        $this->invoiceServices->getAccessToken();
         Log::channel('cron_activity_logs')->info('Cron Job Ended - InvoiceServices Refresh Token Generation');
     }
 }

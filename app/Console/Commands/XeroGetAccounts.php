@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 
 use App\Services\InvoiceServices;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class XeroGetAccounts extends Command
 {
@@ -26,10 +26,12 @@ class XeroGetAccounts extends Command
     /**
      * @var InvoiceServices
      */
-    private $invoiceServices;
+    private InvoiceServices $invoiceServices;
 
     /**
-     * Create a new command instance.
+     * __construct
+     *
+     * @param InvoiceServices $invoiceServices The invoice services object used in the constructor
      *
      * @return void
      */
@@ -40,14 +42,14 @@ class XeroGetAccounts extends Command
     }
 
     /**
-     * Execute the console command.
+     * Handle the command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Save Accounts Generation');
-        $data = $this->invoiceServices->saveAccounts(); 
+        $this->invoiceServices->saveAccounts();
         Log::channel('cron_activity_logs')->info('Cron Job Ended - InvoiceServices Save accounts Generation');
     }
 }

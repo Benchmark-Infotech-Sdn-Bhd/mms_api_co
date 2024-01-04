@@ -23,19 +23,25 @@ class ApplicationChecklistAttachmentsController extends Controller
     private AuthServices $authServices;
 
     /**
-     * ApplicationChecklistAttachmentsController constructor.
-     * @param ApplicationChecklistAttachmentsServices $applicationtChecklistAttachmentsServices
+     * Constructs a new instance of the class.
+     *
+     * @param ApplicationChecklistAttachmentsServices $applicationChecklistAttachmentsServices The application checklist attachments services.
+     * @param AuthServices $authServices The auth services.
+     *
+     * @return void
      */
     public function __construct(ApplicationChecklistAttachmentsServices $applicationChecklistAttachmentsServices, AuthServices $authServices)
     {
         $this->applicationChecklistAttachmentsServices = $applicationChecklistAttachmentsServices;
         $this->authServices = $authServices;
     }
+
     /**
-     * Show the form for creating a new ApplicationChecklistAttachment.
+     * Create a new checklist attachment.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The request object.
+     *
+     * @return JsonResponse The response object.
      */
     public function create(Request $request): JsonResponse
     {
@@ -44,9 +50,9 @@ class ApplicationChecklistAttachmentsController extends Controller
             $request['created_by'] = $user['id'];
             $request['company_id'] = $user['company_id'];
             $data = $this->applicationChecklistAttachmentsServices->create($request);
-            if(isset($data['validate'])){
-                return $this->validationError($data['validate']); 
-            } else if(isset($data['InvalidUser'])) {
+            if (isset($data['validate'])) {
+                return $this->validationError($data['validate']);
+            } else if (isset($data['InvalidUser'])) {
                 return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
@@ -56,11 +62,13 @@ class ApplicationChecklistAttachmentsController extends Controller
             return $this->sendError(['message' => $data['error']]);
         }
     }
+
     /**
-     * Remove the specified DocumentChecklist Attachment.
+     * Delete a record.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The HTTP request object.
+     *
+     * @return JsonResponse The JSON response indicating the success or failure of the deletion.
      */
     public function delete(Request $request): JsonResponse
     {
@@ -70,8 +78,8 @@ class ApplicationChecklistAttachmentsController extends Controller
             $params['created_by'] = $user['id'];
             $params['company_id'] = $user['company_id'];
             $data = $this->applicationChecklistAttachmentsServices->delete($params);
-            if(isset($data['validate'])){
-                return $this->validationError($data['validate']); 
+            if (isset($data['validate'])) {
+                return $this->validationError($data['validate']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -80,11 +88,13 @@ class ApplicationChecklistAttachmentsController extends Controller
             return $this->sendError(['message' => $data['error']]);
         }
     }
+
     /**
-     * Retrieve all DocumentChecklist with Attachments based on Sector & Application.
+     * Responds with a JSON response containing a list of application checklist attachments.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The request object.
+     *
+     * @return JsonResponse The JSON response.
      */
     public function list(Request $request): JsonResponse
     {
@@ -93,9 +103,9 @@ class ApplicationChecklistAttachmentsController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->applicationChecklistAttachmentsServices->list($params);
-            if(isset($data['validate'])){
-                return $this->validationError($data['validate']); 
-            }else if(isset($data['unauthorizedError'])) {
+            if (isset($data['validate'])) {
+                return $this->validationError($data['validate']);
+            } else if (isset($data['unauthorizedError'])) {
                 return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);

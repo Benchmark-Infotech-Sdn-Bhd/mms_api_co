@@ -36,6 +36,7 @@ class Accommodation extends Model implements Auditable
         'created_by',
         'modified_by',
     ];
+
     /**
      * The attributes that are required.
      *
@@ -100,13 +101,13 @@ class Accommodation extends Model implements Auditable
         // validation pass
         return true;
     }
-    
+
     // Returns Validation errors
     public function errors()
     {
         return $this->errors;
     }
-    
+
     /**
      * @return BelongsTo
      */

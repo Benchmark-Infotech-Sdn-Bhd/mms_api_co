@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Services\WorkersServices;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class WorkerImportFailure extends Command
 {
@@ -25,12 +25,14 @@ class WorkerImportFailure extends Command
     /**
      * @var WorkersServices
      */
-    private $workersServices;
+    private WorkersServices $workersServices;
 
     /**
-     * Create a new command instance.
-     * @param Workers $workers
-     * 
+     * Constructor for the class.
+     *
+     * @param WorkersServices $workersServices An instance of the WorkersServices class that
+     *                                         provides worker-related services.
+     *
      * @return void
      */
     public function __construct(WorkersServices $workersServices)
@@ -42,12 +44,12 @@ class WorkerImportFailure extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         Log::channel('cron_activity_logs')->info('Cron Job Started - Worker Import Failure Cases Excel Generation');
-        $data = $this->workersServices->prepareExcelForFailureCases();
+        $this->workersServices->prepareExcelForFailureCases();
         Log::channel('cron_activity_logs')->info('Cron Job Ended - Worker Import Failure Cases Excel Generation');
     }
 }

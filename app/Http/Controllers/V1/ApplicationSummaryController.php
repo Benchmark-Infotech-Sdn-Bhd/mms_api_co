@@ -16,29 +16,34 @@ class ApplicationSummaryController extends Controller
     /**
      * @var ApplicationSummaryServices
      */
-    private $applicationSummaryServices;
+    private ApplicationSummaryServices $applicationSummaryServices;
     /**
      * @var AuthServices
      */
     private AuthServices $authServices;
 
     /**
-     * ApplicationSummaryController constructor.
-     * @param ApplicationSummaryServices $applicationSummaryServices
-     * @param AuthServices $authServices
+     * Class constructor.
+     *
+     * @param ApplicationSummaryServices $applicationSummaryServices The application summary services.
+     * @param AuthServices $authServices The authentication services.
+     *
+     * @return void
      */
-    public function __construct(ApplicationSummaryServices $applicationSummaryServices, AuthServices $authServices) 
+    public function __construct(ApplicationSummaryServices $applicationSummaryServices, AuthServices $authServices)
     {
         $this->applicationSummaryServices = $applicationSummaryServices;
         $this->authServices = $authServices;
     }
+
     /**
-     * Display a listing of the Application Summary.
+     * List the application summaries.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The request object.
+     *
+     * @return JsonResponse The JSON response with the application summaries.
      */
-    public function list(Request $request) : JsonResponse
+    public function list(Request $request): JsonResponse
     {
         try {
             $param = $this->getRequest($request);
@@ -51,14 +56,16 @@ class ApplicationSummaryController extends Controller
             return $this->sendError(['message' => 'Failed to List Application Summary']);
         }
     }
+
     /**
-     * List the Ksm Reference Number.
+     * List KSM Reference Number.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The request object.
+     *
+     * @return JsonResponse The JSON response containing the list of KSM reference numbers.
      */
     public function listKsmReferenceNumber(Request $request): JsonResponse
-    {   
+    {
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
@@ -68,6 +75,6 @@ class ApplicationSummaryController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to List Ksm Reference Number']);
-        }        
+        }
     }
-    }
+}

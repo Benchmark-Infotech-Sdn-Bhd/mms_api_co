@@ -2,9 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\Workers;
 use App\Models\EContractPayrollUploadRecords;
-use App\Models\EContractProject;
 use App\Models\WorkerEmployment;
 use App\Models\EContractPayroll;
 use Illuminate\Support\Facades\DB;
@@ -13,14 +11,18 @@ use Illuminate\Support\Facades\Log;
 
 class EContractPayrollsImport extends Job
 {
-    private $payrollParameter;
-    private $bulkUpload;
+    private mixed $payrollParameter;
+    private mixed $bulkUpload;
 
     /**
-     * Create a new job instance.
+     * Constructor method.
      *
-     * @param $payrollParameter
-     * @param $bulkUpload
+     * Initializes a new instance of the class with the specified payroll parameter and bulk upload flag.
+     *
+     * @param mixed $payrollParameter The payroll parameter.
+     * @param bool $bulkUpload Flag indicating whether bulk upload is enabled or not.
+     *
+     * @return void
      */
     public function __construct($payrollParameter, $bulkUpload)
     {
@@ -28,95 +30,148 @@ class EContractPayrollsImport extends Job
         $this->bulkUpload = $bulkUpload;
     }
 
+
     /**
-     * Execute the job.
+     * Handle method.
+     *
+     * Handles the payroll parameter and performs necessary actions based on the validation result.
+     *
      * @return void
-     * @throws \JsonException
      */
     public function handle(): void
-    { 
-        if( !empty($this->payrollParameter['passport_number']) && !empty($this->payrollParameter['project_id']) && !empty($this->payrollParameter['month']) && !empty($this->payrollParameter['year']) ){
-
-            $worker = DB::table('workers')->where('passport_number', $this->payrollParameter['passport_number'])->first('id');
-
-            if(isset($worker->id) && !empty($worker->id)){
-                
-                Log::info('worker data ID - ' . print_r($worker->id, true));
-
-                // CHECK WORKER EMPLOYMENT DATA
-                $workerEmployment = WorkerEmployment::where([
-                    ['worker_id', $worker->id],
-                    ['project_id', $this->payrollParameter['project_id']],
-                    ['service_type', 'e-Contract']
-                ])
-                ->whereNull('work_end_date')
-                ->whereNull('remove_date')
-                ->count();
-
-                Log::info('worker Employment count - ' . print_r($workerEmployment, true));
-
-                if($workerEmployment > 0){
-
-                    Log::info('eContract payroll add - started ');
-
-                    $eContractPayroll = EContractPayroll::updateOrCreate(
-                        [
-                            'worker_id' => $worker->id,
-                            'project_id' => $this->payrollParameter['project_id'],
-                            'month' => $this->payrollParameter['month'],
-                            'year'=> $this->payrollParameter['year']
-                        ],
-                        [
-                            'basic_salary' => $this->payrollParameter['basic_salary'] ?? 0,
-                            'ot_1_5' => $this->payrollParameter['ot_1_5'] ?? 0,
-                            'ot_2_0' => $this->payrollParameter['ot_2_0'] ?? 0,
-                            'ot_3_0' => $this->payrollParameter['ot_3_0'] ?? 0,
-                            'ph' => $this->payrollParameter['ph'] ?? 0,
-                            'rest_day' => $this->payrollParameter['rest_day'] ?? 0,
-                            'deduction_advance' => $this->payrollParameter['deduction_advance'] ?? 0,
-                            'deduction_accommodation' => $this->payrollParameter['deduction_accommodation'] ?? 0,
-                            'annual_leave' => $this->payrollParameter['annual_leave'] ?? 0,
-                            'medical_leave' => $this->payrollParameter['medical_leave'] ?? 0,
-                            'hospitalisation_leave' => $this->payrollParameter['hospitalisation_leave'] ?? 0,
-                            'amount' => $this->payrollParameter['amount'] ?? 0,
-                            'no_of_workingdays' => $this->payrollParameter['no_of_workingdays'] ?? 0,
-                            'normalday_ot_1_5' => $this->payrollParameter['normalday_ot_1_5'] ?? 0,
-                            'ot_1_5_hrs_amount' => $this->payrollParameter['ot_1_5_hrs_amount'] ?? 0,
-                            'restday_daily_salary_rate' => $this->payrollParameter['restday_daily_salary_rate'] ?? 0,
-                            'hrs_ot_2_0' => $this->payrollParameter['hrs_ot_2_0'] ?? 0,
-                            'ot_2_0_hrs_amount' => $this->payrollParameter['ot_2_0_hrs_amount'] ?? 0,
-                            'public_holiday_ot_3_0' => $this->payrollParameter['public_holiday_ot_3_0'] ?? 0,
-                            'deduction_hostel' => $this->payrollParameter['deduction_hostel'] ?? 0,
-                            'sosco_deduction' => $this->payrollParameter['sosco_deduction'] ?? 0,
-                            'sosco_contribution' => $this->payrollParameter['sosco_contribution'] ?? 0,
-                            'created_by' => $this->payrollParameter['created_by'] ?? 0,
-                            'modified_by' => $this->payrollParameter['created_by'] ?? 0
-                        ]
-                    );
-        
-                    DB::table('e-contract_payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_success');
-        
-                    Log::info('eContract payroll add end -  '.$eContractPayroll['id']);
-
-                }else{
-                    Log::info('ERROR - WORKER EMPLOYMENT DATA NOT FOUND');
-                    DB::table('e-contract_payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
-                }
-
-            }else{
-                Log::info('ERROR - WORKER DATA NOT FOUND');
-                DB::table('e-contract_payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
+    {
+        $parameters = $this->payrollParameter;
+        if ($this->validatePayrollParameters($parameters)) {
+            $worker = DB::table('workers')
+                ->where('passport_number', $parameters['passport_number'])
+                ->first('id');
+            if (isset($worker->id)) {
+                $this->handleWorker($worker, $parameters);
+            } else {
+                $this->logAndIncrementFailure('ERROR - WORKER DATA NOT FOUND');
             }
-        }else{
-            Log::info('ERROR - EMPTY INPUT');
-            DB::table('e-contract_payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
+        } else {
+            $this->logAndIncrementFailure('ERROR - EMPTY INPUT');
         }
         $this->insertRecord();
     }
 
     /**
-     * @param string $comments
-     * @param int $status
+     * Validates the payroll parameters.
+     *
+     * Checks if the specified array of parameters contains the required keys and their corresponding values are not empty.
+     *
+     * @param array $parameters The array of payroll parameters.
+     *
+     * @return bool True if all the required parameters are present and their values are not empty, false otherwise.
+     */
+    private function validatePayrollParameters(array $parameters): bool
+    {
+        return !empty($parameters['passport_number']) &&
+            !empty($parameters['project_id']) &&
+            !empty($parameters['month']) &&
+            !empty($parameters['year']);
+    }
+
+    /**
+     * Handles a worker.
+     *
+     * Checks if the worker is employed with the specified project and service type.
+     * Logs a message and increments the count based on the result.
+     *
+     * @param object $worker The worker object.
+     * @param array $parameters ['project_id'] The project ID.
+     *
+     * @return void
+     */
+    private function handleWorker($worker, array $parameters): void
+    {
+        $workerEmployment = WorkerEmployment::where([
+            ['worker_id', $worker->id],
+            ['project_id', $parameters['project_id']],
+            ['service_type', 'e-Contract']
+        ])
+            ->whereNull('work_end_date')
+            ->whereNull('remove_date')
+            ->count();
+
+        $logMessage = ($workerEmployment > 0)
+            ? 'eContract payroll add - started '
+            : 'ERROR - WORKER EMPLOYMENT DATA NOT FOUND';
+        $this->logAndIncrement($workerEmployment > 0, $worker, $parameters, $logMessage);
+    }
+
+    /**
+     * Logs a message and increments the total_success or total_failure count in the e-contract_payroll_bulk_upload table.
+     *
+     * @param bool $isSuccessful Whether the operation was successful or not.
+     * @param mixed $worker The worker object or identifier.
+     * @param array $parameters Additional parameters.
+     * @param string $logMessage The message to log.
+     * @return void
+     */
+    private function logAndIncrement(bool $isSuccessful, $worker, array $parameters, string $logMessage): void
+    {
+        Log::info($logMessage);
+        if ($isSuccessful) {
+            $payroll = $this->updateOrCreatePayroll($worker, $parameters);
+            Log::info('eContract payroll add end - ' . $payroll['id']);
+        }
+        DB::table('e-contract_payroll_bulk_upload')
+            ->where('id', $this->bulkUpload->id)
+            ->increment($isSuccessful ? 'total_success' : 'total_failure');
+    }
+
+    /**
+     * Logs an information message and increments the 'total_failure' column in the 'e-contract_payroll_bulk_upload' table.
+     *
+     * @param string $logMessage The message to be logged.
+     *
+     * @return void
+     */
+    private function logAndIncrementFailure(string $logMessage): void
+    {
+        Log::info($logMessage);
+        DB::table('e-contract_payroll_bulk_upload')
+            ->where('id', $this->bulkUpload->id)
+            ->increment('total_failure');
+    }
+
+    /**
+     * Updates or creates a payroll record in the 'e-contract_payroll' table.
+     *
+     * @param $worker - The worker object.
+     * @param array $parameters The parameters used to update or create the payroll record.
+     *        - 'worker_id' (integer): The ID of the worker.
+     *        - 'project_id' (integer): The ID of the project.
+     *        - 'month' (integer): The month for the payroll record.
+     *        - 'year' (integer): The year for the payroll record.
+     *        - ... (any other optional parameters): Additional fields for the payroll record.
+     *
+     * @return EContractPayroll The updated or created EContractPayroll object.
+     */
+    private function updateOrCreatePayroll($worker, array $parameters): EContractPayroll
+    {
+        return EContractPayroll::updateOrCreate(
+            [
+                'worker_id' => $worker->id,
+                'project_id' => $parameters['project_id'],
+                'month' => $parameters['month'],
+                'year' => $parameters['year']
+            ],
+            array_map(function ($value) {
+                return $value ?? 0;
+            }, $parameters)
+        );
+    }
+
+    /**
+     * Inserts a new record into the 'e-contract_payroll_upload_records' table.
+     *
+     * @param string $comments [optional] Additional comments for the record, defaults to an empty string.
+     * @param int $status [optional] The status of the record, defaults to 1.
+     *
+     * @return void
      */
     public function insertRecord($comments = '', $status = 1): void
     {

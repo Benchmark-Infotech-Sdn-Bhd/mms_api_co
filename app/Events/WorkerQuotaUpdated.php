@@ -16,8 +16,15 @@ class WorkerQuotaUpdated extends Event
      * @var string
      */
     public $type;
+
     /**
-     * Create a new event instance.
+     * Class constructor.
+     *
+     * Initializes a new instance of the class.
+     *
+     * @param int $onBoardingCountryId The onboarding country ID.
+     * @param int $workerCount The number of workers.
+     * @param string $type The type of the object.
      *
      * @return void
      */

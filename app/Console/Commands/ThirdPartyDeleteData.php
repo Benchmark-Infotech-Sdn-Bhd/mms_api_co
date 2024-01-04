@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 
 use App\Services\ThirdPartyLogServices;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class ThirdPartyDeleteData extends Command
 {
@@ -26,10 +26,14 @@ class ThirdPartyDeleteData extends Command
     /**
      * @var ThirdPartyLogServices
      */
-    private $thirdPartyLogServices;
+    private ThirdPartyLogServices $thirdPartyLogServices;
 
     /**
-     * Create a new command instance.
+     * __construct method
+     *
+     * This method is the constructor of the class.
+     *
+     * @param ThirdPartyLogServices $thirdPartyLogServices An instance of the ThirdPartyLogServices class.
      *
      * @return void
      */
@@ -42,9 +46,9 @@ class ThirdPartyDeleteData extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         Log::channel('cron_activity_logs')->info('Cron Job Started - Third-Party Log Delete Data');
         $data = $this->thirdPartyLogServices->delete();

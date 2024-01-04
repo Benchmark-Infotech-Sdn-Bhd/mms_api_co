@@ -192,7 +192,7 @@ class CRMServices
     }
     /**
      * @param $request
-     * @return mixed 
+     * @return mixed
      */
     public function list($request): mixed
     {
@@ -232,7 +232,7 @@ class CRMServices
     }
     /**
      * @param $request
-     * @return mixed 
+     * @return mixed
      */
     public function show($request): mixed
     {
@@ -244,7 +244,7 @@ class CRMServices
     }
     /**
      * @param $request
-     * @return bool|array 
+     * @return bool|array
      */
     public function create($request): bool|array
     {
@@ -281,7 +281,7 @@ class CRMServices
                 ->whereNull('deleted_at')
                 ->where('status',1)
                 ->first('id');
-        if(is_null($role)) { 
+        if(is_null($role)) {
             $role = $this->role->create([
                 'role_name'     => 'Customer',
                 'system_role'   => $request['system_role'] ?? 0,
@@ -329,9 +329,9 @@ class CRMServices
                     'status'            => $request['status'] ?? 0
                 ]);
                 if (request()->hasFile('attachment')) {
-                    foreach($request->file('attachment') as $file) {                
-                        $fileName = $file->getClientOriginalName();                 
-                        $filePath = '/crm/prospect/' . $request['sector_type']. '/'. $fileName; 
+                    foreach($request->file('attachment') as $file) {
+                        $fileName = $file->getClientOriginalName();
+                        $filePath = '/crm/prospect/' . $request['sector_type']. '/'. $fileName;
                         $linode = $this->storage::disk('linode');
                         $linode->put($filePath, file_get_contents($file));
                         $fileUrl = $this->storage::disk('linode')->url($filePath);
@@ -340,8 +340,8 @@ class CRMServices
                             "prospect_service_id" => $prospectService->id,
                             "file_name" => $fileName,
                             "file_type" => 'prospect',
-                            "file_url" =>  $fileUrl          
-                        ]);  
+                            "file_url" =>  $fileUrl
+                        ]);
                     }
                 }
                 if($service->service_id == 1) {
@@ -462,8 +462,8 @@ class CRMServices
                 ->update([
                     'name' => $request['pic_name']
                 ]);
-        }    
-        if (\DB::getDriverName() !== 'sqlite') {    
+        }
+        if (\DB::getDriverName() !== 'sqlite') {
             $request['prospect_id'] = $prospect['id'];
             $request['ContactID'] = $prospect['xero_contact_id'];
             $createContactXero = $this->invoiceServices->createContacts($request);
@@ -536,8 +536,8 @@ class CRMServices
         $params['created_by'] = 1;
         $params['modified_by'] = 1;
 
-        $row = Excel::import(new CrmImport($params, '', $this), $file);
-        return true; 
+        $row = Excel::import(new CrmImport($params, $this, ''), $file);
+        return true;
 
     }
 }

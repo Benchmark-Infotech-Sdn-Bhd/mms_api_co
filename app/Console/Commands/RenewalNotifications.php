@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 
 use App\Services\NotificationServices;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class RenewalNotifications extends Command
 {
@@ -26,11 +26,12 @@ class RenewalNotifications extends Command
     /**
      * @var NotificationServices
      */
-    private $notificationServices;
+    private NotificationServices $notificationServices;
 
     /**
-     * Create a new command instance.
+     * Class constructor.
      *
+     * @param NotificationServices $notificationServices The notification services object.
      * @return void
      */
     public function __construct(NotificationServices $notificationServices)
@@ -42,12 +43,12 @@ class RenewalNotifications extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         Log::channel('cron_activity_logs')->info('Cron Job Started - RenewalNotifications');
-        $data = $this->notificationServices->renewalNotifications();
+        $this->notificationServices->renewalNotifications();
         Log::channel('cron_activity_logs')->info('Cron Job Ended - RenewalNotifications');
     }
 }

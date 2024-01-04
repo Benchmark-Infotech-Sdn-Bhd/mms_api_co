@@ -2,39 +2,40 @@
 
 namespace App\Imports;
 
-use App\Models\CRMProspect;
 use App\Services\CRMServices;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
+use stdClass;
 
 class CrmImport implements ToModel, WithChunkReading, WithHeadingRow
 {
     protected const CHUNK_ROW = 250;
-    private $parameters;
-    /**
-     * @var string
-     */
-    private $bulkUpload;
+    const SYSTEM_NAMES = ['FWCMS', 'FOMEMA', 'Email Login Credentials', 'EPLKS', 'Myfuture Jobs', 'ESD', 'Pin Keselamatan'];
+    const USERNAME_SUFFIXES = ['fwcms_username', 'fomema_username', 'email_login_username', 'eplks_username', 'myfuture_jobs_username', 'esd_username', 'pin_keselamatan_username'];
+    const PASSWORD_SUFFIXES = ['fwcms_password', 'fomema_password', 'email_login_password', 'eplks_password', 'myfuture_jobs_password', 'esd_password', 'pin_keselamatan_password'];
 
     /**
      * @var CRMServices
      */
     private CRMServices $crmServices;
+    private mixed $parameters;
+    private string $bulkUpload;
 
     /**
-     * Create a new job instance.
+     * Constructs a new instance of the class.
      *
-     * @param $parameters
-     * @param string $bulkUpload
-     * @param CRMServices $crmServices
+     * @param mixed $parameters The parameters for the constructor.
+     * @param CRMServices $crmServices The CRMServices object used for CRM operations.
+     * @param string $bulkUpload The bulk upload information (optional).
+     *
+     * @return void
      */
-    public function __construct($parameters, $bulkUpload = '', CRMServices $crmServices)
+    public function __construct($parameters, CRMServices $crmServices, $bulkUpload = '')
     {
         $this->parameters = $parameters;
         $this->bulkUpload = $bulkUpload;
@@ -42,107 +43,67 @@ class CrmImport implements ToModel, WithChunkReading, WithHeadingRow
     }
 
     /**
-     * @param array $row
-     * @return Model|Model[]|void|null
+     * Create a credential object.
+     *
+     * @param mixed $systemId The ID of the system.
+     * @param string $systemName The name of the system.
+     * @param string $username The username for the credential.
+     * @param string $password The password for the credential.
+     *
+     * @return stdClass The created credential object.
+     */
+    private function createCredentialObject($systemId, $systemName, $username, $password)
+    {
+        $credential = new stdClass();
+        $credential->system_id = $systemId;
+        $credential->system_name = $systemName;
+        $credential->username = $username;
+        $credential->password = $password;
+
+        return $credential;
+    }
+
+    /**
+     * Models a row of data and creates a CRM object.
+     *
+     * @param array $row The array containing the row data.
+     *
+     * @return void
      */
     public function model(array $row)
     {
         try {
-                Log::info('Row Data' . print_r($row, true));
+            Log::info('Row Data', $row);
 
-                $prospectService[0] = new \stdClass();
-                $prospectService[0]->service_id = $row['service_type'];
-                $prospectService[0]->service_name = Config::get('services.CRM_MODULE_TYPE')[$row['service_type']-1];
+            // Create prospectService
+            $prospectService[0] = $this->createCredentialObject(0, Config::get('services.CRM_MODULE_TYPE')[$row['service_type'] - 1], $row['service_type'], null);
 
-                $loginCredential[0] = new \stdClass();
-                $loginCredential[0]->system_id = 1;
-                $loginCredential[0]->system_name = 'FWCMS';
-                $loginCredential[0]->username = $row['fwcms_username'];
-                $loginCredential[0]->password = $row['fwcms_password'];
+            // Create loginCredential using loop
+            for ($i = 0; $i < 7; $i++) {
+                $loginCredential[$i] = $this->createCredentialObject($i + 1, self::SYSTEM_NAMES[$i], $row[self::USERNAME_SUFFIXES[$i]], $row[self::PASSWORD_SUFFIXES[$i]]);
+            }
 
-                $loginCredential[1] = new \stdClass();
-                $loginCredential[1]->system_id = 2;
-                $loginCredential[1]->system_name = 'FOMEMA';
-                $loginCredential[1]->username = $row['fomema_username'];
-                $loginCredential[1]->password = $row['fomema_password'];
+            // Desired keys from $row
+            $desiredKeys = ['company_name', 'contract_type', 'roc_number', 'director_name', 'contact_number', 'email', 'address', 'pic_name', 'pic_contact_number', 'designation', 'registered_by', 'sector_type', 'bank_acc_name', 'bank_acc_number', 'tax_id_number', 'created_by', 'modified_by', 'fomnext_company_name'];
+            // Required parameters for Request object
+            $parameters = array_intersect_key($row, array_flip($desiredKeys));
+            $parameters['prospect_service'] = json_encode($prospectService);
+            $parameters['login_credential'] = json_encode($loginCredential);
 
-                $loginCredential[2] = new \stdClass();
-                $loginCredential[2]->system_id = 3;
-                $loginCredential[2]->system_name = 'Email Login Credentials';
-                $loginCredential[2]->username = $row['email_login_username'];
-                $loginCredential[2]->password = $row['email_login_password'];
+            $crmParameter = new Request($parameters);
 
-                $loginCredential[3] = new \stdClass();
-                $loginCredential[3]->system_id = 4;
-                $loginCredential[3]->system_name = 'EPLKS';
-                $loginCredential[3]->username = $row['eplks_username'];
-                $loginCredential[3]->password = $row['eplks_password'];
-
-                $loginCredential[4] = new \stdClass();
-                $loginCredential[4]->system_id = 5;
-                $loginCredential[4]->system_name = 'Myfuture Jobs';
-                $loginCredential[4]->username = $row['myfuture_jobs_username'];
-                $loginCredential[4]->password = $row['myfuture_jobs_password'];
-
-                $loginCredential[5] = new \stdClass();
-                $loginCredential[5]->system_id = 6;
-                $loginCredential[5]->system_name = 'ESD';
-                $loginCredential[5]->username = $row['esd_username'];
-                $loginCredential[5]->password = $row['esd_password'];
-
-                $loginCredential[6] = new \stdClass();
-                $loginCredential[6]->system_id = 7;
-                $loginCredential[6]->system_name = 'Pin Keselamatan';
-                $loginCredential[6]->username = $row['pin_keselamatan_username'];
-                $loginCredential[6]->password = $row['pin_keselamatan_password'];
-                
-                $crmParameter = new Request
-                ([
-                    'company_name' => $row['company_name'],
-                    'contract_type' => $row['contract_type'],
-                    'roc_number' => $row['roc_number'],
-                    'director_or_owner' => $row['director_name'],
-                    'contact_number' => $row['contact_number'],
-                    'email' => $row['email'],                        
-                    'address' => $row['address'],
-                    'pic_name' => $row['pic_name'],
-                    'pic_contact_number' => $row['pic_contact_number'],
-                    'pic_designation' => $row['designation'],
-                    'registered_by' => $row['registered_by'],
-                    'sector_type' => $row['sector_type'],
-
-                    'bank_account_name' => $row['bank_acc_name'],
-                    'bank_account_number' => $row['bank_acc_number'],
-                    'tax_id' => $row['tax_id_number'],
-
-                    'prospect_service' => json_encode($prospectService),
-                    'login_credential' => json_encode($loginCredential),
-
-                    'created_by' => $row['created_by'] ?? 0,
-                    'modified_by' => $row['modified_by'] ?? 0,
-                    'company_id' => $row['fomnext_company_name']
-
-                ]);
-                Log::info('data - ' . print_r($crmParameter, true));
-                $return = $this->crmServices->create($crmParameter);
-                Log::info('data - ' . print_r($return, true));
-
-        } catch (\Exception $exception) {
-            Log::error('Error - ' . print_r($exception->getMessage(), true));
+            Log::info('data', $crmParameter->toArray());
+            $return = $this->crmServices->create($crmParameter);
+            Log::info('data', $return);
+        } catch (Exception $exception) {
+            Log::error('Error', ['message' => $exception->getMessage()]);
         }
     }
 
     /**
-     * @param $date
-     * @return string
-     */
-    public function dateConvert($date)
-    {
-        return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject(intval($date))->format('Y-m-d');
-    }
-
-    /**
-     * @return int
+     * Returns the chunk size for processing.
+     *
+     * @return int The chunk size for processing.
      */
     public function chunkSize(): int
     {

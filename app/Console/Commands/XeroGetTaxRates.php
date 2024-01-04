@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 
 use App\Services\InvoiceServices;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class XeroGetTaxRates extends Command
 {
@@ -26,10 +26,14 @@ class XeroGetTaxRates extends Command
     /**
      * @var InvoiceServices
      */
-    private $invoiceServices;
+    private InvoiceServices $invoiceServices;
 
     /**
-     * Create a new command instance.
+     * __construct method.
+     *
+     * Creates a new instance of the class.
+     *
+     * @param InvoiceServices $invoiceServices An instance of InvoiceServices class.
      *
      * @return void
      */
@@ -42,12 +46,12 @@ class XeroGetTaxRates extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Save Tax Rates Generation');
-        $data = $this->invoiceServices->saveTaxRates();
+        $this->invoiceServices->saveTaxRates();
         Log::channel('cron_activity_logs')->info('Cron Job Ended - InvoiceServices Save Tax Rates Generation');
     }
 }

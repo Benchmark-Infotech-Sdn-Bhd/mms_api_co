@@ -26,22 +26,25 @@ class Kernel extends ConsoleKernel
     ];
 
     /**
-     * Define the application's command schedule.
+     * Schedule the commands to run.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+     * This method is used to schedule various commands to run at specific intervals using the given `$schedule` object.
+     *
+     * @param Schedule $schedule The scheduler object used to schedule commands.
+     *
      * @return void
      */
-    protected function schedule(Schedule $schedule)
+    protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('command:XeroRefreshToken')->everyFifteenMinutes();
-        $schedule->command('command:XeroGetTaxRates')->cron('0 */6 * * *');
-        $schedule->command('command:XeroGetAccounts')->cron('0 */6 * * *');
-        $schedule->command('command:XeroGetItems')->cron('0 */6 * * *');
-        $schedule->command('command:AuditsDeleteData')->cron('0 0 * * *');
-        $schedule->command('command:WorkerImportFailure')->everyTwoMinutes();
-        $schedule->command('command:RenewalNotifications')->cron('0 0 * * *');
-        $schedule->command('command:UpdateCallingVisaExpiry')->cron('0 0 * * *');
-        $schedule->command('command:ThirdPartyDeleteData')->cron('0 0 * * *');
-        $schedule->command('command:InvoiceFailureResubmit')->everyThirtyMinutes();
+        $schedule->command('command:XeroRefreshToken')->everyFifteenMinutes()->withoutOverlapping();
+        $schedule->command('command:XeroGetTaxRates')->everySixHours();
+        $schedule->command('command:XeroGetAccounts')->everySixHours();
+        $schedule->command('command:XeroGetItems')->everySixHours();
+        $schedule->command('command:AuditsDeleteData')->dailyAt('00:01');
+        $schedule->command('command:WorkerImportFailure')->everyTwoMinutes()->withoutOverlapping();
+        $schedule->command('command:RenewalNotifications')->dailyAt('00:01');
+        $schedule->command('command:UpdateCallingVisaExpiry')->dailyAt('00:01');
+        $schedule->command('command:ThirdPartyDeleteData')->dailyAt('00:01');
+        $schedule->command('command:InvoiceFailureResubmit')->everyThirtyMinutes()->withoutOverlapping();
     }
 }
