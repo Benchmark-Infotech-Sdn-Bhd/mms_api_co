@@ -6,6 +6,7 @@ use App\Models\ApplicationInterviews;
 use App\Models\ApplicationInterviewAttachments;
 use App\Models\FWCMS;
 use App\Models\DirectrecruitmentApplications;
+use App\Models\Levy;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -31,6 +32,12 @@ class ApplicationInterviewsServices
      * @var DirectrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
+
+    /**
+     * @var Levy
+     */
+    private Levy $levy;
+
     /**
      * @var Storage
      */
@@ -46,13 +53,15 @@ class ApplicationInterviewsServices
      * @param ApplicationInterviewAttachments $applicationInterviewAttachments
      * @param FWCMS $fwcms
      * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * @param Levy $levy
      * @param ApplicationSummaryServices $applicationSummaryServices;
      */
-    public function __construct(ApplicationInterviews $applicationInterviews, ApplicationInterviewAttachments $applicationInterviewAttachments,  DirectrecruitmentApplications $directrecruitmentApplications, Storage $storage, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices)
+    public function __construct(ApplicationInterviews $applicationInterviews, ApplicationInterviewAttachments $applicationInterviewAttachments,  DirectrecruitmentApplications $directrecruitmentApplications, Levy $levy,  Storage $storage, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices)
     {
         $this->applicationInterviews = $applicationInterviews;
         $this->applicationInterviewAttachments = $applicationInterviewAttachments;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->levy = $levy;
         $this->storage = $storage;
         $this->fwcms = $fwcms;
         $this->applicationSummaryServices = $applicationSummaryServices;
@@ -68,8 +77,6 @@ class ApplicationInterviewsServices
                 'application_id' => 'required',
                 'ksm_reference_number' => 'required|unique:application_interviews',
                 'schedule_date' => 'required|date|date_format:Y-m-d|after:yesterday',
-                'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
-                'approval_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'status' => 'required'                
             ];
     }
@@ -85,8 +92,6 @@ class ApplicationInterviewsServices
                 'application_id' => 'required',
                 'ksm_reference_number' => 'required|unique:application_interviews,ksm_reference_number,'.$param['id'],
                 'schedule_date' => 'required|date|date_format:Y-m-d|after:yesterday',
-                'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
-                'approval_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
                 'status' => 'required'
             ];
     }
@@ -97,9 +102,18 @@ class ApplicationInterviewsServices
      */
     public function list($request): mixed
     {
-        return $this->applicationInterviews->where('application_id', $request['application_id'])
-        ->select('id', 'ksm_reference_number', 'item_name', 'schedule_date', 'approved_quota', 'approval_date', 'status', 'remarks', 'updated_at')
-        ->orderBy('id', 'desc')
+        return $this->applicationInterviews
+        ->leftJoin('levy', function($join) use ($request){
+            $join->on('levy.application_id', '=', 'application_interviews.application_id')
+            ->on('levy.ksm_reference_number', '=', 'application_interviews.ksm_reference_number');
+          })
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'application_interviews.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        ->where('application_interviews.application_id', $request['application_id'])
+        ->select('application_interviews.id', 'application_interviews.ksm_reference_number', 'application_interviews.item_name', 'application_interviews.schedule_date', 'application_interviews.approved_quota', 'application_interviews.approval_date', 'application_interviews.status', 'application_interviews.remarks', 'application_interviews.updated_at', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
+        ->orderBy('application_interviews.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
 
@@ -109,8 +123,17 @@ class ApplicationInterviewsServices
      */
     public function show($request): mixed
     {
-        return $this->applicationInterviews->where('id', $request['id'])->with('applicationInterviewAttachments')
-                ->first(['id', 'ksm_reference_number', 'item_name', 'schedule_date', 'approved_quota', 'approval_date', 'status', 'remarks']);
+        return $this->applicationInterviews
+        ->leftJoin('levy', function($join) use ($request){
+            $join->on('levy.application_id', '=', 'application_interviews.application_id')
+            ->on('levy.ksm_reference_number', '=', 'application_interviews.ksm_reference_number');
+          })
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'application_interviews.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        ->where('application_interviews.id', $request['id'])->with('applicationInterviewAttachments')
+                ->first(['application_interviews.id', 'application_interviews.application_id', 'application_interviews.ksm_reference_number', 'application_interviews.item_name', 'application_interviews.schedule_date', 'application_interviews.approved_quota', 'application_interviews.approval_date', 'application_interviews.status', 'application_interviews.remarks', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application')]);
     }
 
     /**
@@ -125,13 +148,28 @@ class ApplicationInterviewsServices
                 'error' => $validator->errors()
             ];
         }
+        
+        $applicationCheck = $this->directrecruitmentApplications->find($request['application_id']);
+        if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        
+        $fwcmsQuota = $this->fwcms->where('ksm_reference_number', $request['ksm_reference_number'])->sum('applied_quota');
+        if($request['approved_quota'] > $fwcmsQuota) {
+            return [
+                'quotaError' => true
+            ];
+        }
+
         $applicationInterview = $this->applicationInterviews->create([
             'application_id' => $request['application_id'] ?? 0,
             'item_name' => Config::get('services.APPLICATION_INTERVIEW_ITEM_NAME'),
             'ksm_reference_number' => $request['ksm_reference_number'] ?? '',
             'schedule_date' => $request['schedule_date'] ?? '',
-            'approved_quota' => $request['approved_quota'] ?? 0,
-            'approval_date' => $request['approval_date'] ?? '',
+            'approved_quota' => !empty($request['approved_quota']) ? ($request['approved_quota'] ?? 0) : 0,
+            'approval_date' => !empty($request['approval_date']) ? ($request['approval_date'] ?? null) : null,
             'status' => $request['status'] ?? '',            
             'remarks' => $request['remarks'] ?? '',
             'created_by' =>  $request['created_by'] ?? 0,
@@ -175,17 +213,35 @@ class ApplicationInterviewsServices
             ];
         }
 
+        $applicationCheck = $this->directrecruitmentApplications->find($request['application_id']);
         $applicationInterviewsDetails = $this->applicationInterviews->findOrFail($request['id']);
+        if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($request['application_id'] != $applicationInterviewsDetails->application_id) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+
+        $fwcmsQuota = $this->fwcms->where('ksm_reference_number', $request['ksm_reference_number'])->sum('applied_quota');
+        if($request['approved_quota'] > $fwcmsQuota) {
+            return [
+                'quotaError' => true
+            ];
+        }
 
         $applicationInterviewsDetails->application_id = $request['application_id'] ?? $applicationInterviewsDetails->application_id;
         $applicationInterviewsDetails->ksm_reference_number = $request['ksm_reference_number'] ?? $applicationInterviewsDetails->ksm_reference_number;
         $applicationInterviewsDetails->item_name = $request['item_name'] ?? $applicationInterviewsDetails->item_name;
         $applicationInterviewsDetails->schedule_date = $request['schedule_date'] ?? $applicationInterviewsDetails->schedule_date;
-        $applicationInterviewsDetails->approved_quota        = $request['approved_quota'] ?? $applicationInterviewsDetails->approved_quota;
-        $applicationInterviewsDetails->approval_date = $request['approval_date'] ?? $applicationInterviewsDetails->approval_date;
-        $applicationInterviewsDetails->status               = $request['status'] ?? $applicationInterviewsDetails->status;        
-        $applicationInterviewsDetails->remarks              = $request['remarks'] ?? $applicationInterviewsDetails->remarks;
-        $applicationInterviewsDetails->modified_by          = $request['modified_by'] ?? $applicationInterviewsDetails->modified_by;
+        $applicationInterviewsDetails->approved_quota = !empty($request['approved_quota']) ? ($request['approved_quota'] ?? $applicationInterviewsDetails->approved_quota) : $applicationInterviewsDetails->approved_quota;
+        $applicationInterviewsDetails->approval_date = (isset($request['approval_date']) && !empty($request['approval_date'])) ? ($request['approval_date'] ?? $applicationInterviewsDetails->approval_date) : $applicationInterviewsDetails->approval_date; 
+
+        $applicationInterviewsDetails->status = $request['status'] ?? $applicationInterviewsDetails->status;        
+        $applicationInterviewsDetails->remarks = $request['remarks'] ?? $applicationInterviewsDetails->remarks;
+        $applicationInterviewsDetails->modified_by = $request['modified_by'] ?? $applicationInterviewsDetails->modified_by;
         $applicationInterviewsDetails->save();
 
         $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? $applicationInterviewsDetails->ksm_reference_number;
@@ -194,19 +250,26 @@ class ApplicationInterviewsServices
         $this->applicationSummaryServices->ksmUpdateStatus($request);
         
         
-        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])
+                    ->where('status', '!=', 'Rejected')
+                    ->count('ksm_reference_number');
         $applicationInterviewApprovedCount = $this->applicationInterviews->where('application_id', $request['application_id'])
                         ->where('status', 'Approved')
                         ->count();
-        if($ksmCount == $applicationInterviewApprovedCount) {
+
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-            $applicationDetails->status = Config::get('services.INTERVIEW_COMPLETED');
-            $applicationDetails->save();
+
+            if($request['status'] == 'Approved') {
+                if(($applicationDetails->status <= Config::get('services.INTERVIEW_COMPLETED')) || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')){
+                    $applicationDetails->status = Config::get('services.INTERVIEW_COMPLETED');
+                }
+                $applicationDetails->save();
+            }
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[4];
             $request['status'] = 'Completed';
             $this->applicationSummaryServices->updateStatus($request);
-        }
+
 
         if (request()->hasFile('attachment')){
 
@@ -237,13 +300,24 @@ class ApplicationInterviewsServices
      */    
     public function deleteAttachment($request): mixed
     {   
-        $data = $this->applicationInterviewAttachments::find($request['id']); 
+        $data = $this->applicationInterviewAttachments->with(['ApplicationInterviews' => function ($query) {
+            $query->select('id', 'application_id');
+        }])->find($request['id']); 
+
         if(is_null($data)){
             return [
                 "isDeleted" => false,
                 "message" => "Data not found"
             ];
         }
+
+        $applicationCheck = $this->directrecruitmentApplications->find($data['ApplicationInterviews']['application_id']);
+        if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        
         return [
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"
@@ -255,6 +329,29 @@ class ApplicationInterviewsServices
      */
     public function dropdownKsmReferenceNumber($request): mixed
     {
-        return $this->fwcms::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number')->orderBy('created_at','DESC')->get();
+        $applicationCheck = $this->directrecruitmentApplications->find($request['id']);
+        if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        if(isset($request['application_type']) && !empty($request['application_type'])){
+
+            switch ($request['application_type']) {
+            case 'FWCMS':
+            case 'INTERVIEW':
+                return $this->fwcms::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number', 'applied_quota as approved_quota')->orderBy('created_at','DESC')->get();
+                break;
+
+            case 'LEVY':
+                return $this->applicationInterviews::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_INTERVIEW_KSM_REFERENCE_STATUS'))->select('id','ksm_reference_number', 'approved_quota')->orderBy('created_at','DESC')->get();
+                break;
+
+            case 'APPROVAL':
+                return $this->levy::where('application_id', $request['id'])->whereIn('status', Config::get('services.APPLICATION_LEVY_KSM_REFERENCE_STATUS'))->select('id','new_ksm_reference_number as ksm_reference_number')->orderBy('created_at','DESC')->get();
+                break;
+            }
+        }
+        
     }
 }

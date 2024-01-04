@@ -24,7 +24,7 @@ class Agent extends Model implements Auditable
      * @var array
      */
     protected $fillable = ['agent_name','country_id','city','person_in_charge','pic_contact_number',
-    'email_address','company_address','status','created_by','modified_by'];
+    'email_address','company_address','status','created_by','modified_by', 'company_id', 'agent_code'];
     /**
      * @return BelongsTo
      */

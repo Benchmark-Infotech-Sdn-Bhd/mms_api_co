@@ -15,6 +15,12 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\ExampleEvent::class => [
             \App\Listeners\ExampleListener::class,
         ],
+        'App\Events\WorkerQuotaUpdated' => [
+            'App\Listeners\UpdateUtilisedQuota'
+        ],
+        'App\Events\KSMQuotaUpdated' => [
+            'App\Listeners\UpdateKSMUtilisedQuota'
+        ],
     ];
 
     /**

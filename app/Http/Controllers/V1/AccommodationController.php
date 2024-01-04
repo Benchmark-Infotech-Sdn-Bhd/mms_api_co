@@ -26,7 +26,7 @@ class AccommodationController extends Controller
     /**
      * Show the form for creating a new Accommodation.
      *
-     * @param Request $request
+     * @param Request $request 
      * @return JsonResponse
      */
     public function create(Request $request): JsonResponse
@@ -38,6 +38,9 @@ class AccommodationController extends Controller
                 return $this->validationError($validation);
             }
             $response = $this->accommodationServices->create($request); 
+            if (isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => $response['unauthorizedError']]);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -73,6 +76,9 @@ class AccommodationController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->accommodationServices->show($params); 
+            if(is_null($response)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

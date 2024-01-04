@@ -37,7 +37,8 @@ class SectorsServices
             'sub_sector_name' => $request['sub_sector_name'] ?? '',
             'checklist_status' => "Pending",
             'created_by'    => $request['created_by'] ?? 0,
-            'modified_by'   => $request['created_by'] ?? 0
+            'modified_by'   => $request['created_by'] ?? 0,
+            'company_id' => $request['company_id'] ?? 0
         ]);
     }
     /**
@@ -51,7 +52,7 @@ class SectorsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $sector = $this->sectors->find($request['id']);
+        $sector = $this->sectors->where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($sector)){
             return [
                 "isUpdated" => false,
@@ -80,7 +81,7 @@ class SectorsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $sector = $this->sectors->find($request['id']);
+        $sector = $this->sectors->where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($sector)){
             return [
                 "isDeleted" => false,
@@ -104,14 +105,19 @@ class SectorsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->sectors->findOrFail($request['id']);
+        return $this->sectors->whereIn('company_id', $request['company_id'])->find($request['id']);
     }
     /**
+     * @param $companyId
      * @return mixed
      */
-    public function dropdown() : mixed
+    public function dropdown($companyId) : mixed
     {
-        return $this->sectors->where('status', 1)->select('id','sector_name')->orderBy('sectors.created_at','DESC')->get();
+        return $this->sectors->where('status', 1)
+                ->whereIn('company_id', $companyId)
+                ->select('id','sector_name')
+                ->orderBy('sectors.created_at','DESC')
+                ->get();
     }
     /**
      * @param $request
@@ -150,7 +156,8 @@ class SectorsServices
                 ];
             }
         }
-        return $this->sectors->where(function ($query) use ($request) {
+        return $this->sectors->whereIn('company_id', $request['company_id'])
+        ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('sector_name', 'like', "%{$request['search_param']}%");
             }
@@ -169,7 +176,7 @@ class SectorsServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $sector = $this->sectors->find($request['id']);
+        $sector = $this->sectors->where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($sector)){
             return [
                 "isUpdated" => false,

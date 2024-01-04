@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\RolesServices;
+use App\Services\AuthServices;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -17,14 +18,20 @@ class RolesController extends Controller
      * @var RolesServices
      */
     private $rolesServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * RolesController constructor.
      * @param RolesServices $rolesServices
+     * @param AuthServices $authServices
      */
-    public function __construct(RolesServices $rolesServices) 
+    public function __construct(RolesServices $rolesServices, AuthServices $authServices) 
     {
         $this->rolesServices = $rolesServices;
+        $this->authServices = $authServices;
     }
 
     /**
@@ -37,6 +44,8 @@ class RolesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->rolesServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -55,7 +64,12 @@ class RolesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->rolesServices->show($params);
+            if(is_null($response)){
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -75,13 +89,19 @@ class RolesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
+            $params['user_type'] = $user['user_type'];
             $validator = Validator::make($params, $this->rolesServices->createValidation());
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());
             } 
             $response = $this->rolesServices->create($params);
             if(isset($response['adminError'])) {
-                return $this->sendError(['message' => 'Role Name as Admin is not allowed, kindly provide a different Role Name.']);
+                return $this->sendError(['message' => 'Role Name as Admin is not allowed, kindly provide a different Role Name.'],422);
+            } else if(isset($response['adminUserError'])) {
+                return $this->sendError(['message' => 'Only Admin can Create Role with Speacial Permission'],422);
+            } else if(isset($response['subsidiaryError'])) {
+                return $this->sendError(['message' => 'Subsidiary Company User cannot Create Role with Speacial Permission'],422);
             }
             return $this->sendSuccess(['message' => 'Role Created Successfully']);
         } catch (Exception $e) {
@@ -101,12 +121,16 @@ class RolesController extends Controller
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $params['modified_by'] = $user['id'];
             $validator = Validator::make($params, $this->rolesServices->updateValidation());
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());
             }
-            $this->rolesServices->update($params);
+            $response = $this->rolesServices->update($params);
+            if(isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess(['message' => 'Role Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -126,7 +150,11 @@ class RolesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
-            $this->rolesServices->delete($params);
+            $params['company_id'] = $user['company_id'];
+            $response = $this->rolesServices->delete($params);
+            if($response == false) {
+                return $this->sendError(['message' => 'Unauthorized']);
+            }
             return $this->sendSuccess(['message' => 'Role Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -142,7 +170,9 @@ class RolesController extends Controller
     public function dropDown(): JsonResponse
     {
         try {
-            $response = $this->rolesServices->dropDown();
+            $user = JWTAuth::parseToken()->authenticate();
+            $companyId = $this->authServices->getCompanyIds($user);
+            $response = $this->rolesServices->dropDown($companyId);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -161,6 +191,7 @@ class RolesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $validator = Validator::make($params, ['id' => 'required','status' => 'required|regex:/^[0-1]+$/|max:1']);
             if ($validator->fails()) {
                 return $this->validationError($validator->errors());

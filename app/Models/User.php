@@ -24,7 +24,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var string[]
      */
     protected $fillable = [
-        'name', 'email', 'password','reference_id','user_type', 'created_by', 'modified_by'
+        'name', 'email', 'password','reference_id','user_type', 'created_by', 'modified_by', 'company_id', 'pic_flag'
     ];
 
     /**
@@ -58,10 +58,38 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         return [];
     }
     /**
-     * @return HasOne
+     * @return HasMany
      */
-    public function userRoleType()
+    public function userRoles()
     {
-        return $this->hasOne(UserRoleType::class,'user_id');
+        return $this->hasMany(UserRoleType::class,'user_id');
+    }
+    /**
+     * @return HasMany
+     */
+    public function companies()
+    {
+        return $this->hasMany(UserCompany::class, 'user_id');
+    }
+    /**
+     * @return HasMany
+     */
+    public function employee()
+    {
+        return $this->hasMany(Employee::class, 'id', 'reference_id');
+    }
+    /**
+     * @return HasMany
+     */
+    public function customer()
+    {
+        return $this->hasMany(CRMProspect::class, 'id', 'reference_id');
+    }
+    /**
+     * @return BelongsTo
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 }

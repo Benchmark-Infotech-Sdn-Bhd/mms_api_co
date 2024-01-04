@@ -24,13 +24,13 @@ class JWTMiddleware
         try {
             JWTAuth::parseToken()->authenticate();
         } catch (TokenInvalidException $e) {
-            Log::error('TokenExpiredException - ' . print_r($e->getMessage(), true));
+            Log::info('TokenExpiredException - ' . print_r($e->getMessage(), true));
             return response()->json($this->frameResponse(['message' => 'Token is Invalid']));
         } catch (TokenExpiredException $e) {
-            Log::error('TokenExpiredException - ' . print_r($e->getMessage(), true));
+            Log::info('TokenExpiredException - ' . print_r($e->getMessage(), true));
             return response()->json($this->frameResponse(['message' => 'Token is Expired']));
         } catch (Exception $e) {
-            Log::error('Exception - ' . print_r($e->getMessage(), true));
+            Log::info('Exception - ' . print_r($e->getMessage(), true));
             return response()->json($this->frameResponse(['message' => 'Authorization Token not found']));
         }
         return $next($request);

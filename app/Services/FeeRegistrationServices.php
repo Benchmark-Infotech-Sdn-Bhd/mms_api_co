@@ -78,11 +78,23 @@ class FeeRegistrationServices
     {  
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
+        $existingSectors = $this->sectors->where('company_id', $user['company_id'])
+                            ->select('id')
+                            ->get()
+                            ->toArray();
+        $existingSectors = array_column($existingSectors, 'id');
+        $diffSectors = array_diff($request['sectors'], $existingSectors);
+        if(!empty($diffSectors)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $feeRegistrationData = $this->feeRegistration::create([
             'item_name' => $request["item_name"],
             'cost' => $request["cost"],
             'fee_type' => $request["fee_type"],
             'created_by' => $request["created_by"],
+            'company_id' => $user['company_id']
         ]);
         $feeRegistrationId = $feeRegistrationData->id;
         foreach ($request['applicable_for'] as $serviceType) {
@@ -118,13 +130,14 @@ class FeeRegistrationServices
     public function list($request)
     {
         return $this->feeRegistration::with('feeRegistrationServices', 'feeRegistrationSectors')
+        ->whereIn('company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('item_name', 'like', '%' . $request['search_param'] . '%')
                 ->orWhere('fee_type', 'like', '%' . $request['search_param'] . '%');
             }
             if (isset($request['filter']) && !empty($request['filter'])) {
-                $query->where('fee_type', '=', $request->filter);
+                $query->where('fee_type', '=', $request['filter']);
             }
         })
         ->orderBy('fee_registration.created_at','DESC')
@@ -137,7 +150,7 @@ class FeeRegistrationServices
      */
     public function show($request) : mixed
     {
-        return $this->feeRegistration::with('feeRegistrationServices', 'feeRegistrationSectors')->find($request['id']);
+        return $this->feeRegistration::whereIn('company_id', $request['company_id'])->with('feeRegistrationServices', 'feeRegistrationSectors')->find($request['id']);
     }
 	 /**
      *
@@ -146,7 +159,14 @@ class FeeRegistrationServices
      */
     public function update($request): mixed
     {
-        $data = $this->feeRegistration::findorfail($request['id']);
+        $data = $this->feeRegistration::where('company_id', $request['company_id'])->find($request['id']);
+        if(is_null($data)){
+            return [
+                "isUpdated" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
         if(strtolower($request["fee_type"]) != 'standard'){
@@ -213,8 +233,8 @@ class FeeRegistrationServices
      * @return mixed
      */    
     public function delete($request): mixed
-    {     
-        $data = $this->feeRegistration::find($request['id']);
+    { 
+        $data = $this->feeRegistration::where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($data)){
             return [
                 "isDeleted" => false,

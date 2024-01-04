@@ -6,8 +6,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\VendorServices;
+use App\Services\AuthServices;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class VendorController extends Controller
 {
@@ -16,12 +18,17 @@ class VendorController extends Controller
      */
     private VendorServices $vendorServices;
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
      * VendorServices constructor.
      * @param VendorServices $vendorServices
      */
-    public function __construct(VendorServices $vendorServices)
+    public function __construct(VendorServices $vendorServices, AuthServices $authServices)
     {
         $this->vendorServices = $vendorServices;
+        $this->authServices = $authServices;
     }
 	 /**
      * Show the form for creating a new Vendor.
@@ -54,7 +61,10 @@ class VendorController extends Controller
     public function list(Request $request): JsonResponse
     {   
         try {
-            $response = $this->vendorServices->list($request); 
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $response = $this->vendorServices->list($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -71,7 +81,12 @@ class VendorController extends Controller
     {     
         try {   
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->vendorServices->show($params); 
+            if(is_null($response)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -87,6 +102,8 @@ class VendorController extends Controller
     public function update(Request $request): JsonResponse
     {    
         try {    
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_id'] = $user['company_id'];
             $validation = $this->vendorServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
@@ -108,6 +125,8 @@ class VendorController extends Controller
     {  
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $response = $this->vendorServices->delete($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -125,6 +144,8 @@ class VendorController extends Controller
     {   
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $response = $this->vendorServices->deleteAttachment($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -132,5 +153,40 @@ class VendorController extends Controller
             return $this->sendError(['message' => 'Delete attachments was failed']);
         }        
     }
-    
+    /**
+     * Display a listing of the insurance vendor list.
+     * @param Request $request
+     * @return JsonResponse
+     */   
+    public function insuranceVendorList(Request $request): JsonResponse
+    {   
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $response = $this->vendorServices->insuranceVendorList($params); 
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Retrieve insurance Vendors data was failed'], 400);
+        }
+    }
+    /**
+     * Display a listing of the Transportation vendor list.
+     * @param Request $request
+     * @return JsonResponse
+     */   
+    public function transportationVendorList(Request $request): JsonResponse
+    {   
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $response = $this->vendorServices->transportationVendorList($params); 
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Retrieve Transportation Vendors data was failed'], 400);
+        }
+    }
 }

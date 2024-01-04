@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\SectorsServices;
+use App\Services\AuthServices; 
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -16,14 +17,20 @@ class SectorsController extends Controller
      * @var SectorsServices
      */
     private SectorsServices $sectorsServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * SectorsController constructor.
      * @param SectorsServices $sectorsServices
+     * @param AuthServices $authServices
      */
-    public function __construct(SectorsServices $sectorsServices)
+    public function __construct(SectorsServices $sectorsServices, AuthServices $authServices)
     {
         $this->sectorsServices = $sectorsServices;
+        $this->authServices = $authServices;
     }
     /**
      * Show the form for creating a new Sector.
@@ -37,6 +44,7 @@ class SectorsController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->sectorsServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -60,6 +68,7 @@ class SectorsController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->sectorsServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -81,6 +90,8 @@ class SectorsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->sectorsServices->delete($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -102,9 +113,14 @@ class SectorsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->sectorsServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(is_null($data)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -121,7 +137,9 @@ class SectorsController extends Controller
     public function dropdown(): JsonResponse
     {
         try {
-            $data = $this->sectorsServices->dropdown();
+            $user = JWTAuth::parseToken()->authenticate();
+            $companyId = $this->authServices->getCompanyIds($user);
+            $data = $this->sectorsServices->dropdown($companyId);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -160,6 +178,8 @@ class SectorsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->sectorsServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -181,6 +201,8 @@ class SectorsController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->sectorsServices->updateStatus($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 

@@ -9,6 +9,8 @@ use App\Services\BranchServices;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use App\Services\EmployeeServices;
+use App\Services\AuthServices;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class BranchController extends Controller
 {
@@ -21,13 +23,19 @@ class BranchController extends Controller
      */
     private EmployeeServices $employeeServices;
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
      * branchServices constructor.
      * @param BranchServices $branchServices
+     * @param AuthServices $authServices
      */
-    public function __construct(BranchServices $branchServices, EmployeeServices $employeeServices)
+    public function __construct(BranchServices $branchServices, EmployeeServices $employeeServices, AuthServices $authServices)
     {
         $this->branchServices = $branchServices;
         $this->employeeServices = $employeeServices;
+        $this->authServices = $authServices;
     }
 	 /**
      * Show the form for creating a new Branch.
@@ -57,7 +65,10 @@ class BranchController extends Controller
     public function list(Request $request): JsonResponse
     {     
         try {   
-            $response = $this->branchServices->list($request); 
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $response = $this->branchServices->list($params); 
             return $this->sendSuccess($response); 
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -73,7 +84,10 @@ class BranchController extends Controller
     public function show(Request $request): JsonResponse
     {   
         try {
-            $response = $this->branchServices->show($request); 
+            $response = $this->branchServices->show($request);
+            if(is_null($response)){
+                return $this->sendError(['message' => 'Unauthorized']);
+            } 
             return $this->sendSuccess($response);  
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -126,7 +140,9 @@ class BranchController extends Controller
     public function dropDown(): JsonResponse
     {
         try {
-            $response = $this->branchServices->dropDown();
+            $user = JWTAuth::parseToken()->authenticate();
+            $companyId = $this->authServices->getCompanyIds($user);
+            $response = $this->branchServices->dropDown($companyId);
             return $this->sendSuccess($response);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

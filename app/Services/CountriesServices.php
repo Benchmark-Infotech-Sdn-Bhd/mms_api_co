@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services; 
 
 use App\Models\Countries;
 use App\Services\ValidationServices;
@@ -37,15 +37,25 @@ class CountriesServices
               'validate' => $this->validationServices->errors()
             ];
         }
+        $countryExists = $this->countries->where([
+            'country_name' => $request['country_name'],
+            'company_id' => $request['company_id']
+            ])->first();
+        if($countryExists != NULL) {
+            return [
+                'countryExistsError' => true
+            ];
+        }
         return $this->countries->create([
             'country_name' => $request['country_name'] ?? '',
             'system_type' => $request['system_type'] ?? '',
             'costing_status' => "Pending",
             'fee' => (float)$request['fee'] ?? 0,
-            'bond' => (int)$request['bond'] ?? 0,
+            'bond' => (float)$request['bond'] ?? 0,
             'created_by'    => $request['created_by'] ?? 0,
             'modified_by'   => $request['created_by'] ?? 0,
-            'status' => 1
+            'status' => 1,
+            'company_id' => $request['company_id'] ?? 0
         ]);
     }
     /**
@@ -59,7 +69,8 @@ class CountriesServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $country = $this->countries->find($request['id']);
+        $country = $this->countries->where('company_id', $request['company_id'])->find($request['id']);
+
         if(is_null($country)){
             return [
                 "isUpdated" => false,
@@ -73,7 +84,7 @@ class CountriesServices
                 'system_type' => $request['system_type'] ?? $country['system_type'],
                 'costing_status' => $country['costing_status'],
                 'fee' => (float)$request['fee'] ?? $country['fee'],
-                'bond' => (int)$request['bond'] ?? $country['bond'],
+                'bond' => (float)$request['bond'] ?? $country['bond'],
                 'modified_by'   => $request['modified_by'] ?? $country['modified_by'],
                 'status' => $country['status']
             ]),
@@ -91,7 +102,7 @@ class CountriesServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $country = $this->countries->find($request['id']);
+        $country = $this->countries->where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($country)){
             return [
                 "isDeleted" => false,
@@ -115,14 +126,19 @@ class CountriesServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->countries->findOrFail($request['id']);
+        return $this->countries->where('company_id', $request['company_id'])->find($request['id']);
     }
     /**
+     * @param $companyId
      * @return mixed
      */
-    public function dropdown() : mixed
+    public function dropdown($companyId) : mixed
     {
-        return $this->countries->where('status', 1)->select('id','country_name')->orderBy('countries.created_at','DESC')->get();
+        return $this->countries->where('status', 1)
+                ->whereIn('company_id', $companyId)
+                ->select('id','country_name')
+                ->orderBy('countries.created_at','DESC')
+                ->get();
     }
     /**
      * @param $request
@@ -161,7 +177,8 @@ class CountriesServices
                 ];
             }
         }
-        return $this->countries->where(function ($query) use ($request) {
+        return $this->countries->whereIn('company_id', $request['company_id'])
+        ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('country_name', 'like', "%{$request['search_param']}%");
             }
@@ -180,7 +197,7 @@ class CountriesServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $country = $this->countries->find($request['id']);
+        $country = $this->countries->where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($country)){
             return [
                 "isUpdated" => false,

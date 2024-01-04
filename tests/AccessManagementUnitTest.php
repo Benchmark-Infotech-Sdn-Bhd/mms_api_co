@@ -113,7 +113,7 @@ class AccessManagementUnitTest extends TestCase
     {
         if($artisan === true) {
             $this->artisan("db:seed --class=ModuleSeeder");
-            $this->json('POST', 'api/v1/role/create', ['name' => 'HR'], $this->getHeader());
+            $this->json('POST', 'api/v1/role/create', ['name' => 'HR', 'special_permission' => '', 'system_role' => 0, 'status' => 1, 'parent_id' => 0, 'company_id' => 1], $this->getHeader());
         }
         return ['role_id' => 1, 'modules' => [1,2,3]];
     }

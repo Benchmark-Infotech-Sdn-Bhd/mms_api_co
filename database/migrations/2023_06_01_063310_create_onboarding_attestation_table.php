@@ -30,7 +30,7 @@ return new class extends Migration
             // Item name column
             $table->string('item_name', 255);
             // Status column
-            $table->enum('status',['Pending', 'Submitted', 'Collected'])->default('Pending');
+            $table->enum('status',['Pending', 'Submitted', 'Collected'])->default('Pending')->index();
             // File Url column
             $table->text('file_url')->nullable();
             // Remarks column

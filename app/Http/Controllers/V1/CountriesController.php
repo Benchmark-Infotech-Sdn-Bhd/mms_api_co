@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\V1;
+namespace App\Http\Controllers\V1; 
 
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\CountriesServices;
+use App\Services\AuthServices;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -16,14 +17,20 @@ class CountriesController extends Controller
      * @var countriesServices
      */
     private CountriesServices $countriesServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * CountriesController constructor.
      * @param CountriesServices $countriesServices
+     * @param AuthServices $authServices
      */
-    public function __construct(CountriesServices $countriesServices)
+    public function __construct(CountriesServices $countriesServices, AuthServices $authServices)
     {
         $this->countriesServices = $countriesServices;
+        $this->authServices = $authServices;
     }
     /**
      * Show the form for creating a new country.
@@ -37,9 +44,12 @@ class CountriesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->countriesServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['countryExistsError'])) {
+                return $this->sendError(['message' => 'Country name already taken'],422);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -60,6 +70,7 @@ class CountriesController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->countriesServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -81,6 +92,8 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->countriesServices->delete($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -102,9 +115,13 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->countriesServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(is_null($data)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -121,7 +138,9 @@ class CountriesController extends Controller
     public function dropdown(): JsonResponse
     {
         try {
-            $data = $this->countriesServices->dropdown();
+            $user = JWTAuth::parseToken()->authenticate();
+            $companyId = $this->authServices->getCompanyIds($user);
+            $data = $this->countriesServices->dropdown($companyId);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -160,6 +179,8 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->countriesServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -181,6 +202,8 @@ class CountriesController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $data = $this->countriesServices->updateStatus($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 

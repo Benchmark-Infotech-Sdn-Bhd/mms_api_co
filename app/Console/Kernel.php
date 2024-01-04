@@ -13,7 +13,16 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        Commands\XeroRefreshToken::class,
+        Commands\XeroGetTaxRates::class,
+        Commands\XeroGetAccounts::class,
+        Commands\XeroGetItems::class,
+        Commands\AuditsDeleteData::class,
+        Commands\WorkerImportFailure::class,
+        Commands\RenewalNotifications::class,
+        Commands\UpdateCallingVisaExpiry::class,
+        Commands\ThirdPartyDeleteData::class,
+        Commands\InvoiceFailureResubmit::class
     ];
 
     /**
@@ -24,6 +33,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        //
+        $schedule->command('command:XeroRefreshToken')->everyFifteenMinutes();
+        $schedule->command('command:XeroGetTaxRates')->cron('0 */6 * * *');
+        $schedule->command('command:XeroGetAccounts')->cron('0 */6 * * *');
+        $schedule->command('command:XeroGetItems')->cron('0 */6 * * *');
+        $schedule->command('command:AuditsDeleteData')->cron('0 0 * * *');
+        $schedule->command('command:WorkerImportFailure')->everyTwoMinutes();
+        $schedule->command('command:RenewalNotifications')->cron('0 0 * * *');
+        $schedule->command('command:UpdateCallingVisaExpiry')->cron('0 0 * * *');
+        $schedule->command('command:ThirdPartyDeleteData')->cron('0 0 * * *');
+        $schedule->command('command:InvoiceFailureResubmit')->everyThirtyMinutes();
     }
 }

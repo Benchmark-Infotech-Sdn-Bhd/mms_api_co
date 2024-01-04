@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Levy;
 use App\Models\DirectrecruitmentApplications;
 use App\Models\FWCMS;
+use App\Models\ApplicationInterviews;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 
@@ -27,18 +28,30 @@ class LevyServices
      */
     private ApplicationSummaryServices $applicationSummaryServices;
     /**
+     * @var ApplicationInterviews
+     */
+    private ApplicationInterviews $applicationInterviews;
+    /**
+     * @var DirectRecruitmentExpensesServices
+     */
+    private DirectRecruitmentExpensesServices $directRecruitmentExpensesServices;
+    /**
      * LevyServices Constructor
      * @param Levy $levy
      * @param DirectrecruitmentApplications $directrecruitmentApplications
      * @param FWCMS $fwcms;
-     * @param ApplicationSummaryServices $applicationSummaryServices;
+     * @param ApplicationSummaryServices $applicationSummaryServices
+     * @param ApplicationInterviews $applicationInterviews
+     * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
      */
-    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices)
+    public function __construct(Levy $levy, DirectrecruitmentApplications $directrecruitmentApplications, FWCMS $fwcms, ApplicationSummaryServices $applicationSummaryServices, ApplicationInterviews $applicationInterviews,DirectRecruitmentExpensesServices $directRecruitmentExpensesServices)
     {
         $this->levy = $levy;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
         $this->fwcms = $fwcms;
         $this->applicationSummaryServices = $applicationSummaryServices;
+        $this->applicationInterviews = $applicationInterviews;
+        $this->directRecruitmentExpensesServices = $directRecruitmentExpensesServices;
     }
     /**
      * @return array
@@ -48,12 +61,12 @@ class LevyServices
         return[
             'application_id' => 'required',
             'payment_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
-            'payment_amount' => 'required|decimal:0,2',
+            'payment_amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
             'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
             'ksm_reference_number' => 'required|unique:levy',
             'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'approval_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
-            'new_ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21',
+            'new_ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21||unique:levy|different:ksm_reference_number'
         ];
     }
     /**
@@ -66,12 +79,12 @@ class LevyServices
             'id' => 'required',
             'application_id' => 'required',
             'payment_date' => 'required|date|date_format:Y-m-d|before:tomorrow',
-            'payment_amount' => 'required|decimal:0,2',
+            'payment_amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
             'approved_quota' => 'required|regex:/^[0-9]+$/|max:3',
             'ksm_reference_number' => 'required|unique:levy,ksm_reference_number,'.$param['id'],
             'payment_reference_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
             'approval_number' => 'required|regex:/^[a-zA-Z0-9]*$/',
-            'new_ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21',
+            'new_ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21|different:ksm_reference_number|unique:levy,new_ksm_reference_number,'.$param['id'],
         ];
     }
     /**
@@ -80,9 +93,12 @@ class LevyServices
      */
     public function list($request): mixed
     {
-        return $this->levy->where('application_id', $request['application_id'])
-        ->select('id', 'application_id', 'item', 'payment_date', 'payment_amount', 'approved_quota', 'status')
-        ->orderBy('id', 'desc')
+        return $this->levy->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'levy.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })->where('levy.application_id', $request['application_id'])
+        ->select('levy.id', 'levy.application_id', 'levy.item', 'levy.payment_date', 'levy.payment_amount', 'levy.approved_quota', 'levy.status', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
+        ->orderBy('levy.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
@@ -91,7 +107,13 @@ class LevyServices
      */
     public function show($request): mixed
     {
-        return $this->levy->find($request['id']);
+        return $this->levy
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'levy.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        ->select('levy.*', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
+        ->find($request['id']);
     }
     /**
      * @param $request
@@ -103,6 +125,19 @@ class LevyServices
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+
+        $applicationCheck = $this->directrecruitmentApplications->find($request['application_id']);
+        if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        $approvedInterviewQuota = $this->applicationInterviews->where('ksm_reference_number', $request['ksm_reference_number'])->sum('approved_quota');
+        if($request['approved_quota'] > $approvedInterviewQuota) {
+            return [
+                'quotaError' => true
             ];
         }
         $this->levy->create([
@@ -130,15 +165,30 @@ class LevyServices
         $levyPaidCount = $this->levy->where('application_id', $request['application_id'])
                         ->where('status', 'Paid')
                         ->count();
-        if($ksmCount == $levyPaidCount) {
+        //if($ksmCount == $levyPaidCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-            $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
+            /* if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
+                $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
+            } */
+
+            if(($applicationDetails->status <= Config::get('services.LEVY_COMPLETED')) || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')){
+                $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
+            } 
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[5];
             $request['status'] = 'Completed';
             $this->applicationSummaryServices->updateStatus($request);
-        } 
+        //} 
+        // ADD OTHER EXPENSES
+        $request['expenses_application_id'] = $request['application_id'] ?? 0;
+        $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[1];
+        $request['expenses_payment_reference_number'] = $request['payment_reference_number'] ?? '';
+        $request['expenses_payment_date'] = $request['payment_date'] ?? '';
+        $request['expenses_amount'] = $request['payment_amount'] ?? 0;
+        $request['expenses_remarks'] = $request['remarks'] ?? '';
+        $this->directRecruitmentExpensesServices->addOtherExpenses($request);
+        
         return true;
     }
     /**
@@ -154,6 +204,23 @@ class LevyServices
             ];
         }
         $levyDetails = $this->levy->findOrFail($request['id']);
+        $applicationCheck = $this->directrecruitmentApplications->find($request['application_id']);
+        if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($request['application_id'] != $levyDetails->application_id) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        $approvedInterviewQuota = $this->applicationInterviews->where('ksm_reference_number', $request['ksm_reference_number'])->sum('approved_quota');
+        if($request['approved_quota'] > $approvedInterviewQuota) {
+            return [
+                'quotaError' => true
+            ];
+        }
+        $levyDetails = $this->levy->findOrFail($request['id']);
         $levyDetails->payment_date              = $request['payment_date'] ?? $levyDetails->payment_date;
         $levyDetails->payment_amount            = $request['payment_amount'] ?? $levyDetails->payment_amount;
         $levyDetails->approved_quota            = $request['approved_quota'] ?? $levyDetails->approved_quota;
@@ -166,19 +233,26 @@ class LevyServices
         $levyDetails->modified_by               = $request['modified_by'] ?? $levyDetails->modified_by;
         $levyDetails->save();
 
-        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])
+                    ->where('status', '!=', 'Rejected')
+                    ->count('ksm_reference_number');
         $levyPaidCount = $this->levy->where('application_id', $request['application_id'])
                         ->where('status', 'Paid')
                         ->count();
-        if($ksmCount == $levyPaidCount) {
+        //if($ksmCount == $levyPaidCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
-            $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
+            /*if($applicationDetails->status != Config::get('services.APPROVAL_COMPLETED')){
+                $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
+            }*/
+            if(($applicationDetails->status <= Config::get('services.LEVY_COMPLETED')) || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')){
+                $applicationDetails->status = Config::get('services.LEVY_COMPLETED');
+            }
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[5];
             $request['status'] = 'Completed';
             $this->applicationSummaryServices->updateStatus($request);
-        }
+        //}
         return true;
     }
 }

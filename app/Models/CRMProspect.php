@@ -19,7 +19,7 @@ class CRMProspect extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'company_name', 'roc_number', 'director_or_owner', 'contact_number', 'email', 'address', 'status', 'pic_name', 'pic_contact_number', 'pic_designation', 'registered_by', 'created_by', 'modified_by'
+        'company_name', 'roc_number', 'director_or_owner', 'contact_number', 'email', 'address', 'status', 'pic_name', 'pic_contact_number', 'pic_designation', 'registered_by','bank_account_number','bank_account_name','tax_id','account_receivable_tax_type','account_payable_tax_type','xero_contact_id', 'created_by', 'modified_by', 'company_id'
     ];
     /**
      * @return HasMany
@@ -41,5 +41,12 @@ class CRMProspect extends Model implements Auditable
     public function directrecruitmentApplications(): HasMany
     {
         return $this->hasMany(DirectrecruitmentApplications::class, 'crm_prospect_id');
+    }
+    /**
+     * @return HasOne
+     */
+    public function user()
+    {
+        return $this->hasOne(User::class, 'reference_id')->where('user_type', 'Customer');
     }
 }

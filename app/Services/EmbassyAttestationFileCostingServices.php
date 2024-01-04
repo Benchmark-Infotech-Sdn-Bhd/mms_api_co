@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\EmbassyAttestationFileCosting;
+use App\Models\Countries;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
 use App\Services\CountriesServices;
@@ -12,17 +13,20 @@ class EmbassyAttestationFileCostingServices
     private EmbassyAttestationFileCosting $embassyAttestationFileCosting;
     private ValidationServices $validationServices;
     private CountriesServices $countriesServices;
+    private Countries $countries;
     /**
      * EmbassyAttestationFileCostingServices constructor.
      * @param EmbassyAttestationFileCosting $embassyAttestationFileCosting
      * @param ValidationServices $validationServices
      * @param CountriesServices $countriesServices
+     * @param Countries $countries
      */
-    public function __construct(EmbassyAttestationFileCosting $embassyAttestationFileCosting,ValidationServices $validationServices,CountriesServices $countriesServices)
+    public function __construct(EmbassyAttestationFileCosting $embassyAttestationFileCosting,ValidationServices $validationServices,CountriesServices $countriesServices, Countries $countries)
     {
         $this->embassyAttestationFileCosting = $embassyAttestationFileCosting;
         $this->validationServices = $validationServices;
         $this->countriesServices = $countriesServices;
+        $this->countries = $countries;
     }
 
     /**
@@ -34,6 +38,12 @@ class EmbassyAttestationFileCostingServices
         if(!($this->validationServices->validate($request,$this->embassyAttestationFileCosting->rules))){
             return [
                 'validate' => $this->validationServices->errors()
+            ];
+        }
+        $countryDetails = $this->countries->where('company_id', $request['company_id'])->find($request['country_id']);
+        if(is_null($countryDetails)) {
+            return [
+                'InvalidUser' => true
             ];
         }
         $filecosting = $this->embassyAttestationFileCosting->create([
@@ -68,6 +78,12 @@ class EmbassyAttestationFileCostingServices
                 "message"=> "Data not found"
             ];
         }
+        $countryDetails = $this->countries->where('company_id', $request['company_id'])->find($embassyAttestationFileCosting->country_id);
+        if(is_null($countryDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         return [
             "isUpdated" => $embassyAttestationFileCosting->update([
                 'id' => $request['id'],
@@ -97,6 +113,12 @@ class EmbassyAttestationFileCostingServices
                 "message" => "Data not found"
             ];
         }
+        $countryDetails = $this->countries->where('company_id', $request['company_id'])->find($embassyAttestationFileCosting->country_id);
+        if(is_null($countryDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $res = [
             "isDeleted" => $embassyAttestationFileCosting->delete(),
             "message" => "Deleted Successfully"
@@ -121,15 +143,20 @@ class EmbassyAttestationFileCostingServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->embassyAttestationFileCosting->findOrFail($request['id']);
-    }
-    /**
-     * @return mixed
-     */
-    public function retrieveAll() : mixed
-    {
-        return $this->embassyAttestationFileCosting->orderBy('embassy_attestation_file_costing.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
+        $embassyAttestationDetails = $this->embassyAttestationFileCosting->find($request['id']);
+        if(is_null($embassyAttestationDetails)){
+            return [
+                "error" => true,
+                "message" => "Data not found"
+            ];
+        }
+        $countryDetails = $this->countries->where('company_id', $request['company_id'])->find($embassyAttestationDetails->country_id);
+        if(is_null($countryDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        return $embassyAttestationDetails;
     }
     /**
      * @param $request
@@ -140,6 +167,12 @@ class EmbassyAttestationFileCostingServices
         if(!($this->validationServices->validate($request,['country_id' => 'required']))){
             return [
                 'validate' => $this->validationServices->errors()
+            ];
+        }
+        $countryDetails = $this->countries->where('company_id', $request['company_id'])->find($request['country_id']);
+        if(is_null($countryDetails)) {
+            return [
+                'InvalidUser' => true
             ];
         }
         return $this->embassyAttestationFileCosting->where('country_id',$request['country_id'])

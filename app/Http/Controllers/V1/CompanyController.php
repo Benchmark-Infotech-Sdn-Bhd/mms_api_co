@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\CompanyServices;
+use App\Services\AuthServices;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,14 +17,20 @@ class CompanyController extends Controller
      * @var CompanyServices
      */
     private CompanyServices $companyServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * CompanyController constructor
      * @param CompanyServices $companyServices
+     * @param AuthServices $authServices
      */
-    public function __construct(CompanyServices $companyServices)
+    public function __construct(CompanyServices $companyServices, AuthServices $authServices)
     {
         $this->companyServices = $companyServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display the list of Companies
@@ -68,10 +75,9 @@ class CompanyController extends Controller
     public function create(Request $request): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['created_by'] = $user['id'];
-            $response = $this->companyServices->create($params);
+            $request['created_by'] = $user['id'];
+            $response = $this->companyServices->create($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -90,10 +96,9 @@ class CompanyController extends Controller
     public function update(Request $request): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['modified'] = $user['id'];
-            $response = $this->companyServices->update($params);
+            $request['modified'] = $user['id'];
+            $response = $this->companyServices->update($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -123,6 +128,195 @@ class CompanyController extends Controller
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to update Company Status'], 400);
+        }
+    }
+    /**
+     * Display the list of Companies
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function subsidiaryDropDown(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->subsidiaryDropDown($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
+    /**
+     * Assign company as subsidiary
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function assignSubsidiary(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['modified_by'] = $user['id'];
+            $response = $this->companyServices->assignSubsidiary($params);
+            return $this->sendSuccess(['message' => 'Subsidiary Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update Subsidiary'], 400);
+        }
+    }
+    /**
+     * Display the list of Companies
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function parentDropDown(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->parentDropDown($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
+    /**
+     * Display the list of Companies for the user
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function listUserCompany(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['user_id'] = $user['id'];
+            $response = $this->companyServices->listUserCompany($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
+     /**
+     * Update a company id after login
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function updateCompanyId(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['user_id'] = $user['id'];
+            $params['current_company_id'] = $user['company_id'];
+            $response = $this->companyServices->updateCompanyId($params);
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']); 
+            }
+            return $this->sendSuccess(['message' => 'Company ID Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update Company ID'], 400);
+        }
+    }
+    /**
+     * Display the list of subsidairy companies based on parent
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function subsidiaryDropdownBasedOnParent(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->subsidiaryDropdownBasedOnParent($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
+    /**
+     * Display the list of Companies
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function dropdown(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->dropdown($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Companies'], 400);
+        }
+    }
+    /**
+     * Delete attachment.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteAttachment(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->deleteAttachment($params);
+            if ($response == true) {
+                return $this->sendSuccess(['message' => 'Attachment Deleted Sussessfully']);
+            } else {
+                return $this->sendError(['message' => 'Data Not Found'], 400);
+            }
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Delete Attachment'], 400);
+        }
+    }
+    /**
+     * List Company Module.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function moduleList(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->moduleList($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Modules']);
+        }
+    }
+    /**
+     * Assign Module.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function assignModule(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['created_by'] = $user['id'];
+            $response = $this->companyServices->assignModule($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess(['message' => 'Module Assigned Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Assign Module']);
         }
     }
 }

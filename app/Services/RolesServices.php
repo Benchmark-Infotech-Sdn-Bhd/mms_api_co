@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Role;
+use App\Models\Company;
 use Illuminate\Support\Facades\Config;
 
 class RolesServices
@@ -11,14 +12,20 @@ class RolesServices
      * @var Role
      */
     private Role $role;
+    /**
+     * @var Company
+     */
+    private Company $company;
 
     /**
      * RolesServices constructor.
      * @param Role $role
+     * @param Company $company
      */
-    public function __construct(Role $role)
+    public function __construct(Role $role, Company $company)
     {
         $this->role = $role;
+        $this->company = $company;
     }
 
     /**
@@ -49,6 +56,7 @@ class RolesServices
     public function list($request): mixed
     {
         return $this->role
+            ->whereIn('company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 if(isset($request['search']) && !empty($request['search'])) {
                     $query->where('role_name', 'like', '%'.$request['search'].'%');
@@ -65,7 +73,7 @@ class RolesServices
      */
     public function show($request): mixed
     {
-        return $this->role->findOrFail($request['id']);
+        return $this->role::whereIn('company_id', $request['company_id'])->find($request['id']);
     }
 
     /**
@@ -79,24 +87,64 @@ class RolesServices
                 'adminError' => true
             ];
         }
-        $this->role->create([
+        if ($request['special_permission'] == 1) {
+            if($request['user_type'] != 'Admin') {
+                return [
+                    'adminUserError' => true
+                ];
+            }
+            $companyDetail = $this->company->findOrFail($request['company_id']);
+            if($companyDetail->parent_id != 0) {
+                return [
+                    'subsidiaryError' => true
+                ];
+            }
+        }
+        
+        $roleDetails = $this->role->create([
             'role_name'     => $request['name'] ?? '',
             'system_role'   => $request['system_role'] ?? 0,
             'status'        => $request['status'] ?? 1,
             'parent_id'     => $request['parent_id'] ?? 0,
             'created_by'    => $request['created_by'] ?? 0,
-            'modified_by'   => $request['created_by'] ?? 0
+            'modified_by'   => $request['created_by'] ?? 0,
+            'company_id'   => $request['company_id'] ?? 0,
+            'special_permission' => $request['special_permission'] ?? 0
         ]);
+        if($request['special_permission'] == 1) {
+            $subsidiaryCompanyIds = $this->company->where('parent_id', $request['company_id'])
+                                ->select('id')
+                                ->get()->toArray();
+            $subsidiaryCompanyIds = array_column($subsidiaryCompanyIds, 'id');
+            foreach ($subsidiaryCompanyIds as $subsidiaryCompanyId) {
+                $subRole = $this->role->create([
+                    'role_name'     => $roleDetails->role_name,
+                    'system_role'   => $roleDetails->system_role,
+                    'status'        => $roleDetails->status,
+                    'parent_id'     => $roleDetails->parent_id,
+                    'created_by'    => $roleDetails->created_by,
+                    'modified_by'   => $roleDetails->modified_by,
+                    'company_id'    => $subsidiaryCompanyId ?? 0,
+                    'special_permission' => 0,
+                    'parent_role_id' => $roleDetails->id
+                ]);
+            }
+        }
         return true;
     }
 
     /**
      * @param $request
-     * @return bool
+     * @return bool|array
      */
-    public function update($request): bool
+    public function update($request): bool|array
     {
-        $role = $this->role->findOrFail($request['id']);
+        $role = $this->role::where('company_id', $request['company_id'])->find($request['id']);
+        if(is_null($role)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
         $role->role_name    = $request['name'] ?? $role->role_name;
         $role->system_role  = $request['system_role'] ?? $role->system_role;
         $role->status       = $request['status'] ?? $role->status;
@@ -112,16 +160,18 @@ class RolesServices
      */
     public function delete($request): bool
     {
-        return $this->role->where('id', $request['id'])->delete();
+        return $this->role::where('company_id', $request['company_id'])->where('id', $request['id'])->delete();
     }
 
     /**
+     * @param $companyId
      * @return mixed
      */
-    public function dropDown(): mixed
+    public function dropDown($companyId): mixed
     {
         return $this->role->where('status', 1)
-            ->select('id', 'role_name')
+            ->whereIn('company_id', $companyId)
+            ->select('id', 'role_name', 'special_permission')
             ->get();
     }
     /**
@@ -130,7 +180,7 @@ class RolesServices
      */
     public function updateStatus($request) : array
     {
-        $role = $this->role->find($request['id']);
+        $role = $this->role::where('company_id', $request['company_id'])->find($request['id']);
         if(is_null($role)){
             return [
                 "isUpdated" => false,

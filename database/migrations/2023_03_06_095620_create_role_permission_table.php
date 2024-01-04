@@ -54,6 +54,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('role_permission');
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::dropIfExists('role_permission');
+        }
     }
 };

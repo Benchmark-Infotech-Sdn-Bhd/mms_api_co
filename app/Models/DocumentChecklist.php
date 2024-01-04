@@ -40,6 +40,15 @@ class DocumentChecklist extends Model implements Auditable
     {
         return $this->hasOne(DocumentChecklistAttachments::class, 'document_checklist_id');
     }
+
+    /**
+     * @return HasMany
+     */
+    public function applicationChecklistAttachments()
+    {
+        return $this->hasOne(ApplicationChecklistAttachments::class, 'document_checklist_id');
+    }
+
     /**
      * The attributes that are required.
      *

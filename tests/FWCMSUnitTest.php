@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Laravel\Lumen\Testing\DatabaseMigrations;
+use Illuminate\Support\Carbon;
 
 class FWCMSUnitTest extends TestCase
 {
@@ -23,7 +24,7 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSCreationApplicationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -39,7 +40,7 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSCreationSubmissionDateRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['submission_date' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['submission_date' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -55,7 +56,7 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSCreationStatusRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['status' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['status' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -71,7 +72,7 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSCreationKMSReferenceNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['ksm_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['ksm_reference_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -87,7 +88,7 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSCreationAppliedQuotaTypeValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['applied_quota' => 1.1]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['applied_quota' => 1.1]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -102,7 +103,7 @@ class FWCMSUnitTest extends TestCase
      */
     public function testForFWCMSCreationAppliedQuotaMaxValidation(): void
     {
-        $this->creationSeeder();
+        $this->creationSeeder(false);
         $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['applied_quota' => 1000]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
@@ -119,7 +120,7 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSCreationSubmissionDateFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['submission_date' => '05-05-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['submission_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -135,11 +136,11 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSCreationSubmissionDateFutureValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['submission_date' => '2030-05-05']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['submission_date' => Carbon::now()->addYear()->format('Y-m-d')]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'submission_date' => ['The submission date must be a date before today.']
+                'submission_date' => ['The submission date must be a date before tomorrow.']
             ]
         ]);
     }
@@ -151,7 +152,7 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSCreationKMSReferenceNumberTypeValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['ksm_reference_number' => 'My/992/095648967*%$']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['ksm_reference_number' => 'My/992/095648967*%$']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -167,7 +168,7 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSCreation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'FWCMS Details Created Successfully']
@@ -181,8 +182,8 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSUpdationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['id' => '', 'ksm_reference_number' => 'My/567/7698']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -198,8 +199,8 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSUpdationApplicationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['application_id' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['application_id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -215,8 +216,8 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSUpdationSubmissionDateRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['submission_date' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['submission_date' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -232,8 +233,8 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSUpdationStatusRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['status' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['status' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -249,8 +250,8 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSUpdationKMSReferenceNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['ksm_reference_number' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['ksm_reference_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -266,8 +267,8 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSUpdationAppliedQuotaTypeValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['applied_quota' => 1.1]), $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['applied_quota' => 1.1]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -283,8 +284,8 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSUpdationAppliedQuotaMaxValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['applied_quota' => 1000]), $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['applied_quota' => 1000]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -300,8 +301,8 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSUpdationSubmissionDateFormatValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['submission_date' => '05-05-2023']), $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['submission_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -317,12 +318,12 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSUpdationSubmissionDateFutureValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['submission_date' => '2030-05-05']), $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['submission_date' => Carbon::now()->addYear()->format('Y-m-d')]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'submission_date' => ['The submission date must be a date before today.']
+                'submission_date' => ['The submission date must be a date before tomorrow.']
             ]
         ]);
     }
@@ -334,12 +335,29 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSUpdationKMSReferenceNumberTypeValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['ksm_reference_number' => 'My/992/095648967*%$']), $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['ksm_reference_number' => 'My/992/095648967*%$']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
                 'ksm_reference_number' => ['The ksm reference number format is invalid.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Update FWCMS KMS Referenece Number Size validation 
+     * 
+     * @return void
+     */
+    public function testForFWCMSUpdationKMSReferenceNumberSizeValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['ksm_reference_number' => 'VR123/746372473/94365843676347678/4987853846587364587/89475983475834657']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'ksm_reference_number' => ['The ksm reference number must not be greater than 21 characters.']
             ]
         ]);
     }
@@ -351,8 +369,8 @@ class FWCMSUnitTest extends TestCase
     public function testForFWCMSUpdation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/update', $this->updationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'FWCMS Details Updated Successfully']
@@ -366,8 +384,8 @@ class FWCMSUnitTest extends TestCase
     public function testToDisplayFWCMSDetails(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/show', ['id' => 1], $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' => [
@@ -389,8 +407,8 @@ class FWCMSUnitTest extends TestCase
     public function testToListFWCMSDetails(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/fwcms/list', ['application_id' => 1], $this->getHeader());
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/list', ['application_id' => 1, 'page' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -430,18 +448,19 @@ class FWCMSUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Admin'
+            'name' => 'HR',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
-
+       
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
-            'date_of_birth' => '1998-11-02', 
+            'date_of_birth' => Carbon::now()->subYear(25)->format('Y-m-d'), 
             'ic_number' => 222223434, 
             'passport_number' => 'ADI', 
             'email' => 'test@gmail.com', 
-            'contact_number' => 238467,
+            'contact_number' => 1234567890,
             'address' => 'Addres', 
             'postcode' => 2344, 
             'position' => 'Position', 
@@ -450,7 +469,8 @@ class FWCMSUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -473,21 +493,50 @@ class FWCMSUnitTest extends TestCase
             'pic_designation' => 'Manager', 
             'registered_by' => 1, 
             'sector_type' => 1, 
-            'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])];
-        $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
+            'prospect_service' => json_encode([["service_id" => 1, "service_name" => "Direct Recruitment"], ["service_id" => 2, "service_name" => "e-Contract"], ["service_id" => 3, "service_name" => "Total Management"]])
+        ];
+        $res = $this->json('POST', 'api/v1/crm/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            "country_name" => "India",
+            "system_type" => "Embassy",
+            "fee" => 500,
+            "bond" => 25
+        ];
+        $this->json('POST', 'api/v1/country/create', $payload, $this->getHeader(false));
+
+        $payload = [
+            'id' => 1, 
+            'crm_prospect_id' => 1, 
+            'quota_applied' => 100, 
+            'person_incharge' => 'test', 
+            'cost_quoted' => 10.22, 
+            'remarks' => 'test'
+        ];
+        $this->json('POST', 'api/v1/directRecrutment/submitProposal', $payload, $this->getHeader(false));
+
+        $payload = [
+            'id' => 1, 
+            'application_id' => 1, 
+            'item_name' => 'Document Checklist', 
+            'application_checklist_status' => 'Completed', 
+            'remarks' => 'test', 
+            'file_url' => 'test'
+        ];
+        $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/update', $payload, $this->getHeader(false));
     }
     /**
      * @return array
      */
     public function creationData(): array
     {
-        return ['application_id' => 1, 'submission_date' => '2023-05-04', 'applied_quota' => 10, 'status' => 'Submitted', 'ksm_reference_number' => 'My/643/7684548', 'remarks' => 'test'];
+        return ['application_id' => 1, 'submission_date' => Carbon::now()->format('Y-m-d'), 'applied_quota' => 10, 'status' => 'Submitted', 'ksm_reference_number' => 'My/643/7684548', 'remarks' => 'test'];
     }
     /**
      * @return array
      */
     public function updationData(): array
     {
-        return ['id' => 1, 'application_id' => 1, 'submission_date' => '2023-05-04', 'applied_quota' => 10, 'status' => 'Query', 'ksm_reference_number' => 'My/643/7684548', 'remarks' => 'test'];
+        return ['id' => 1, 'application_id' => 1, 'submission_date' => Carbon::now()->format('Y-m-d'), 'applied_quota' => 10, 'status' => 'Query', 'ksm_reference_number' => 'My/643/7684548', 'remarks' => 'test'];
     }
 }

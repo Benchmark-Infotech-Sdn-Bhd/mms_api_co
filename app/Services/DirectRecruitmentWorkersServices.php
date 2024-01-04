@@ -1,0 +1,771 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Workers;
+use App\Models\DirectRecruitmentCallingVisaStatus;
+use App\Models\WorkerStatus;
+use App\Models\DirectrecruitmentWorkers;
+use App\Models\KinRelationship;
+use App\Models\DirectRecruitmentOnboardingAgent;
+use App\Models\WorkerBulkUpload;
+use App\Models\DirectrecruitmentApplications;
+use App\Models\DirectRecruitmentOnboardingCountry;
+use App\Models\Levy;
+use App\Models\Agent;
+use App\Models\OnboardingCountriesKSMReferenceNumber;
+use App\Services\DirectRecruitmentOnboardingCountryServices;
+use App\Services\ValidationServices;
+use Illuminate\Support\Facades\Config;
+use App\Services\AuthServices;
+use Illuminate\Support\Str;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Validator;
+use App\Services\WorkersServices;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\WorkerImport;
+
+class DirectRecruitmentWorkersServices
+{
+    private Workers $workers;
+    private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
+    private WorkerStatus $workerStatus;
+    private KinRelationship $kinRelationship;
+    private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
+    private WorkerBulkUpload $workerBulkUpload;
+    private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+    private ValidationServices $validationServices;
+    private AuthServices $authServices;
+    private Storage $storage;
+    private DirectrecruitmentWorkers $directrecruitmentWorkers;
+    private WorkersServices $workersServices;
+    /**
+     * @var DirectrecruitmentApplications
+     */
+    private DirectrecruitmentApplications $directrecruitmentApplications;
+    /**
+     * @var DirectRecruitmentOnboardingCountry
+     */
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+    /**
+     * @var Levy
+     */
+    private Levy $levy;
+    /**
+     * @var OnboardingCountriesKSMReferenceNumber
+     */
+    /**
+     * @var Agent
+     */
+    private Agent $agent;
+    /**
+     * DirectRecruitmentWorkersServices constructor.
+     * @param Workers $workers
+     * @param DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus
+     * @param WorkerStatus $workerStatus
+     * @param KinRelationship $kinRelationship
+     * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent
+     * @param WorkerBulkUpload $workerBulkUpload
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+     * @param ValidationServices $validationServices
+     * @param AuthServices $authServices
+     * @param Storage $storage
+     * @param DirectrecruitmentWorkers $directrecruitmentWorkers;
+     * @param WorkersServices $workersServices;
+     * @param DirectrecruitmentApplications $directrecruitmentApplications;
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
+     * @param Levy $levy
+     * @param OnboardingCountriesKSMReferenceNumber $OnboardingCountriesKSMReferenceNumber
+     * @param Agent $agent
+     */
+    public function __construct(
+            Workers                                     $workers,
+            DirectRecruitmentCallingVisaStatus          $directRecruitmentCallingVisaStatus,
+            WorkerStatus                                $workerStatus,
+            KinRelationship                             $kinRelationship,
+            DirectRecruitmentOnboardingAgent            $directRecruitmentOnboardingAgent,
+            WorkerBulkUpload                            $workerBulkUpload,
+            DirectRecruitmentOnboardingCountryServices  $directRecruitmentOnboardingCountryServices, 
+            ValidationServices                          $validationServices,
+            AuthServices                                $authServices,
+            Storage                                     $storage,
+            DirectrecruitmentWorkers                    $directrecruitmentWorkers,
+            WorkersServices                             $workersServices,
+            DirectrecruitmentApplications               $directrecruitmentApplications,
+            DirectRecruitmentOnboardingCountry          $directRecruitmentOnboardingCountry,
+            Levy                                        $levy,
+            OnboardingCountriesKSMReferenceNumber       $OnboardingCountriesKSMReferenceNumber,
+            Agent                                       $agent
+    )
+    {
+        $this->workers = $workers;
+        $this->workerStatus = $workerStatus;
+        $this->kinRelationship = $kinRelationship;
+        $this->directRecruitmentOnboardingAgent = $directRecruitmentOnboardingAgent;
+        $this->workerBulkUpload = $workerBulkUpload;
+        $this->validationServices = $validationServices;
+        $this->directRecruitmentOnboardingCountryServices = $directRecruitmentOnboardingCountryServices;
+        $this->authServices = $authServices;
+        $this->storage = $storage;
+        $this->directRecruitmentCallingVisaStatus = $directRecruitmentCallingVisaStatus;
+        $this->directrecruitmentWorkers = $directrecruitmentWorkers;
+        $this->workersServices = $workersServices;
+        $this->directrecruitmentApplications = $directrecruitmentApplications;
+        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
+        $this->levy = $levy;
+        $this->OnboardingCountriesKSMReferenceNumber = $OnboardingCountriesKSMReferenceNumber;
+        $this->agent = $agent;
+    }
+    /**
+     * @return array
+     */
+    public function createWorkerValidation(): array
+    {
+        return
+            [
+                'onboarding_country_id' => 'required|regex:/^[0-9]+$/',
+                'agent_id' => 'required|regex:/^[0-9]+$/',
+                'application_id' => 'required|regex:/^[0-9]+$/'
+            ];
+    }
+    /**
+     * @return array
+     */
+    public function updateWorkerValidation(): array
+    {
+        return
+            [
+                'onboarding_country_id' => 'required|regex:/^[0-9]+$/',
+                'agent_id' => 'required|regex:/^[0-9]+$/',
+                'application_id' => 'required|regex:/^[0-9]+$/'
+            ];
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function create($request) : mixed
+    {
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
+
+        $validator = Validator::make($request->toArray(), $this->createWorkerValidation());
+        if($validator->fails()) {
+            return [
+                'validate' => $validator->errors()
+            ];
+        }
+
+        $onboardingCountryCheck = $this->directRecruitmentOnboardingCountry
+        ->join('directrecruitment_applications', function ($join) use($params) {
+            $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                ->where('directrecruitment_applications.company_id', $params['company_id']);
+        })->find($params['onboarding_country_id']);
+        if(is_null($onboardingCountryCheck)) {
+            return[
+                'InvalidUser' => true
+            ];
+        } else if($onboardingCountryCheck->application_id != $params['application_id']) {
+            return[
+                'InvalidUser' => true
+            ];
+        }
+        $ksmReferenceNumbersResult = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
+
+        $ksmReferenceNumbers = array();
+        foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
+            $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
+        }
+        
+        if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
+            if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
+                return [
+                    'ksmError' => true
+                ];    
+            }
+        }
+
+        $approvedCount = $this->OnboardingCountriesKSMReferenceNumber->where('application_id', $request['application_id'])
+                            ->where('onboarding_country_id', $request['onboarding_country_id'])
+                            ->where('ksm_reference_number', $request['ksm_reference_number'])
+                            ->sum('quota');
+        
+        $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($request['onboarding_country_id']);
+
+        $workerCount = $this->directrecruitmentWorkers
+        ->leftjoin('worker_visa', 'directrecruitment_workers.worker_id', '=', 'worker_visa.worker_id')
+        ->leftjoin('workers', 'workers.id', '=', 'worker_visa.worker_id')
+        ->where([
+            ['directrecruitment_workers.application_id', $request['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
+            ['workers.cancel_status', 0]
+        ])
+        ->whereIn('workers.directrecruitment_status', Config::get('services.DIRECT_RECRUITMENT_WORKER_STATUS'))
+        ->count('directrecruitment_workers.worker_id');
+
+        if($workerCount >= $onboardingCountryDetails->quota) {
+            return [
+                'workerCountError' => true
+            ]; 
+        }
+
+        $ksmReferenceNumberCount = $this->directrecruitmentWorkers
+        ->leftjoin('worker_visa', 'directrecruitment_workers.worker_id', '=', 'worker_visa.worker_id')
+        ->leftjoin('workers', 'workers.id', '=', 'worker_visa.worker_id')
+        ->where([
+            ['directrecruitment_workers.application_id', $request['application_id']],
+            ['workers.cancel_status', 0],
+            ['worker_visa.ksm_reference_number', $request['ksm_reference_number']],
+        ])
+        ->whereIn('workers.directrecruitment_status', Config::get('services.DIRECT_RECRUITMENT_WORKER_STATUS'))
+        ->count('directrecruitment_workers.worker_id');
+
+        if(isset($approvedCount) && ($ksmReferenceNumberCount >= $approvedCount)) {
+            return [
+                'ksmCountError' => true
+            ]; 
+        }
+
+        $agentDetails = $this->directRecruitmentOnboardingAgent->findOrFail($request['agent_id']);
+
+        $agentWorkerCount = $this->directrecruitmentWorkers
+        ->leftjoin('worker_visa', 'directrecruitment_workers.worker_id', '=', 'worker_visa.worker_id')
+        ->leftjoin('workers', 'workers.id', '=', 'worker_visa.worker_id')
+        ->where([
+            ['directrecruitment_workers.application_id', $request['application_id']],
+            ['directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id']],
+            ['directrecruitment_workers.agent_id', $request['agent_id']],
+            ['workers.cancel_status', 0]
+        ])
+        ->whereIn('workers.directrecruitment_status', Config::get('services.DIRECT_RECRUITMENT_WORKER_STATUS'))
+        ->count('directrecruitment_workers.worker_id');
+       
+        if($agentWorkerCount >= $agentDetails->quota) {
+            return [
+                'agentQuotaError' => true
+            ]; 
+        }
+
+        $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+        $request['crm_prospect_id'] = $applicationDetails->crm_prospect_id;
+        $data = $this->workersServices->create($request);
+
+        if(isset($data['validate'])){
+            return [
+                'validate' => $data['validate']
+            ];
+        }else if(isset($data['id'])){
+
+            $this->workers->where('id', $data['id'])
+                ->update([
+                    'module_type' => Config::get('services.WORKER_MODULE_TYPE')[0]
+                ]);
+
+            $directrecruitmentWorkers = $this->directrecruitmentWorkers::create([
+                "worker_id" => $data['id'],
+                'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+                'agent_id' => $request['agent_id'] ?? 0,
+                'application_id' => $request['application_id'] ?? 0,
+                'created_by'    => $params['created_by'] ?? 0,
+                'modified_by'   => $params['created_by'] ?? 0   
+            ]);
+
+            $checkCallingVisa = $this->directRecruitmentCallingVisaStatus
+            ->where('application_id', $request['application_id'])
+            ->where('onboarding_country_id', $request['onboarding_country_id'])
+            ->where('agent_id', $request['agent_id'])->get()->toArray();
+
+            if(isset($checkCallingVisa) && count($checkCallingVisa) == 0 ){
+                $callingVisaStatus = $this->directRecruitmentCallingVisaStatus->create([
+                    'application_id' => $request['application_id'] ?? 0,
+                    'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+                    'agent_id' => $request['agent_id'] ?? 0,
+                    'item' => 'Calling Visa Status',
+                    'updated_on' => Carbon::now(),
+                    'status' => 1,
+                    'created_by' => $params['created_by'] ?? 0,
+                    'modified_by' => $params['created_by'] ?? 0,
+                ]);
+            }
+
+            $checkWorkerStatus = $this->workerStatus
+            ->where('application_id', $request['application_id'])
+            ->where('onboarding_country_id', $request['onboarding_country_id'])
+            ->get()->toArray();
+
+            if(isset($checkWorkerStatus) && count($checkWorkerStatus) > 0 ){
+                $this->workerStatus->where([
+                    'application_id' => $request['application_id'],
+                    'onboarding_country_id' => $request['onboarding_country_id']
+                ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
+            } else {
+                $workerStatus = $this->workerStatus->create([
+                    'application_id' => $request['application_id'] ?? 0,
+                    'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+                    'item' => 'Worker Biodata',
+                    'updated_on' => Carbon::now(),
+                    'status' => 1,
+                    'created_by' => $params['created_by'] ?? 0,
+                    'modified_by' => $params['created_by'] ?? 0,
+                ]);
+            }
+
+            $onBoardingStatus['application_id'] = $request['application_id'];
+            $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
+            $onBoardingStatus['onboarding_status'] = 4; //Agent Added
+            $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+
+            return true;
+
+        }else{
+            return false;
+        }
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function list($request) : mixed
+    {
+        if(isset($request['search_param']) && !empty($request['search_param'])){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+                return [
+                    'validate' => $this->validationServices->errors()
+                ];
+            }
+        }
+
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        $data = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+        ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
+        ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
+        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
+        ->where('directrecruitment_workers.application_id', $request['application_id'])
+        ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
+        ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
+        ->where(function ($query) use ($request) {
+            if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
+                $query->where('worker_visa.status','Processed');
+            }
+
+            if (isset($request['stage_filter']) && $request['stage_filter'] == 'arrival') {
+                $query->where('worker_arrival.arrival_status','Not Arrived');
+            }
+
+            if (isset($request['stage_filter']) && $request['stage_filter'] == 'post_arrival') {
+                $query->where('worker_arrival.arrival_status','Arrived');
+            }
+
+            if (isset($request['agent_id'])) {
+                $query->where('directrecruitment_workers.agent_id',$request['agent_id']);
+            }
+            
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('workers.name', 'like', "%{$request['search_param']}%")
+                ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
+                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
+            }
+
+        })->select('workers.id','workers.name','directrecruitment_workers.agent_id','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_valid_until','worker_visa.approval_status as visa_status', 'workers.cancel_status as cancellation_status', 'workers.created_at', 'workers.directrecruitment_status', 'workers.replace_worker_id')
+        ->selectRaw("(CASE WHEN (workers.directrecruitment_status = 'Repatriated') THEN workers.directrecruitment_status WHEN (workers.directrecruitment_status = 'Expired') THEN workers.directrecruitment_status WHEN (workers.cancel_status = 1) THEN 'Cancelled' 
+        WHEN (workers.cancel_status = 2) THEN 'Cancelled' 
+		ELSE worker_visa.approval_status END) as status");
+        if(isset($request['status']) && !empty($request['status'])) {
+            $data = $data->whereRaw("(CASE WHEN (workers.directrecruitment_status = 'Repatriated') THEN workers.directrecruitment_status 
+            WHEN (workers.cancel_status = 1) THEN 'Cancelled' 
+            WHEN (workers.cancel_status = 2) THEN 'Cancelled' 
+            ELSE worker_visa.approval_status END) = '".$request['status']."'");
+        }
+        $data = $data->distinct()
+        ->orderBy('workers.created_at','DESC')
+        ->paginate(Config::get('services.paginate_row'));
+        return $data;
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function export($request) : mixed
+    {
+        if(isset($request['search_param']) && !empty($request['search_param'])){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+                return [
+                    'validate' => $this->validationServices->errors()
+                ];
+            }
+        }
+
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+        ->join('worker_kin', 'workers.id', '=', 'worker_kin.worker_id')
+        ->join('kin_relationship', 'kin_relationship.id', '=', 'worker_kin.kin_relationship_id')
+        ->join('worker_bio_medical', 'workers.id', '=', 'worker_bio_medical.worker_id')
+        ->leftjoin('worker_arrival', 'workers.id', '=', 'worker_arrival.worker_id')
+        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
+        ->where('directrecruitment_workers.application_id', $request['application_id'])
+        ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
+        ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
+        ->where(function ($query) use ($request) {
+
+            if (isset($request['stage_filter']) && $request['stage_filter'] == 'calling_visa') {
+                $query->where('worker_visa.status','Processed');
+            }
+
+            if (isset($request['stage_filter']) && $request['stage_filter'] == 'arrival') {
+                $query->where('worker_arrival.arrival_status','Not Arrived');
+            }
+
+            if (isset($request['stage_filter']) && $request['stage_filter'] == 'post_arrival') {
+                $query->where('worker_arrival.arrival_status','Arrived');
+            }
+            
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('workers.name', 'like', "%{$request['search_param']}%")
+                ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
+                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
+            }
+            if (isset($request['status'])) {
+                $query->where('workers.status',$request['status']);
+            }
+        })->select('workers.id','workers.name','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','workers.address','workers.state','worker_kin.kin_name','kin_relationship.name as kin_relationship_name','worker_kin.kin_contact_number','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_reference_number','worker_bio_medical.bio_medical_valid_until')
+        ->distinct()
+        ->orderBy('workers.created_at','DESC')->get();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function dropdown($request) : mixed
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
+        ->where('workers.status', 1)
+        ->where('directrecruitment_workers.application_id', $request['application_id'])
+        ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
+        ->where('directrecruitment_workers.agent_id', $request['agent_id'])
+        ->where('worker_visa.status', 'Pending')
+        ->whereIn('workers.company_id', $request['company_id'])
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
+        ->where(function ($query) use ($request) {
+            if ($request['worker_id']) {
+                $query->where('workers.id', '!=', $request['worker_id']);
+            }
+        })
+        ->select('workers.id','workers.name')
+        ->orderBy('workers.created_at','DESC')->get();
+    }
+    /**
+     * @param $request
+     * @return bool|array
+     */
+    public function update($request): bool|array
+    {
+
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['modified_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
+
+        $validator = Validator::make($request->toArray(), $this->updateWorkerValidation());
+        if($validator->fails()) {
+            return [
+                'validate' => $validator->errors()
+            ];
+        }
+
+        $workerCheck = $this->directrecruitmentWorkers
+                    ->leftJoin('workers', 'workers.id', 'directrecruitment_workers.worker_id')
+                    ->where('directrecruitment_workers.worker_id', $request['id'])
+                    ->select('workers.company_id', 'directrecruitment_workers.onboarding_country_id', 'directrecruitment_workers.application_id')
+                    ->first();
+        
+        if($params['company_id'] != $workerCheck->company_id) {
+            return [
+                'InvalidUser' => true
+            ];
+        } 
+        else if($workerCheck->onboarding_country_id != $params['onboarding_country_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($workerCheck->application_id != $params['application_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+
+        $ksmReferenceNumbersResult = $this->directRecruitmentOnboardingCountryServices->ksmReferenceNumberList($params);
+
+        $ksmReferenceNumbers = array();
+        foreach ($ksmReferenceNumbersResult as $key => $ksmReferenceNumber) {
+            $ksmReferenceNumbers[$key] = $ksmReferenceNumber['ksm_reference_number'];
+        }
+
+        if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
+            if(!in_array($request['ksm_reference_number'], $ksmReferenceNumbers)){
+                return [
+                    'ksmError' => true
+                ];    
+            }
+        }
+        
+        $data = $this->workersServices->update($request);
+
+        if(isset($data['validate'])){
+            return [
+                'validate' => $data['validate']
+            ];
+        }
+
+        $directrecruitmentWorkers = $this->directrecruitmentWorkers->where([
+            ['application_id', $request['application_id']],
+            ['worker_id', $request['id']]
+        ])->first(['id', 'application_id', 'onboarding_country_id', 'agent_id', 'worker_id', 'created_by', 'modified_by', 'created_at', 'updated_at']);
+
+        if(!empty($directrecruitmentWorkers)){
+            $directrecruitmentWorkers->update([
+                'onboarding_country_id' => $request['onboarding_country_id'] ?? $directrecruitmentWorkers->onboarding_country_id,
+                'agent_id' => $request['agent_id'] ?? $directrecruitmentWorkers->agent_id,
+                'modified_by' =>  $params['modified_by'] ?? 0,
+                'updated_at' => Carbon::now()
+            ]);
+        }
+
+        $this->workerStatus->where([
+            'application_id' => $request['application_id'],
+            'onboarding_country_id' => $request['onboarding_country_id']
+        ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['modified_by']]);
+
+        return true;
+    }
+    /**
+     * @return mixed
+     */
+    public function kinRelationship() : mixed
+    {
+        return $this->kinRelationship->where('status', 1)
+        ->select('id','name')
+        ->orderBy('id','ASC')->get();
+    }
+    /**
+     * @return mixed
+     */
+    public function onboardingAgent($request) : mixed
+    {
+        return $this->agent
+        ->leftJoin('directrecruitment_onboarding_agent', 'directrecruitment_onboarding_agent.agent_id', 'agent.id')
+        ->leftJoin('onboarding_attestation', 'onboarding_attestation.onboarding_agent_id', 'directrecruitment_onboarding_agent.id')
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_onboarding_agent.application_id', '=', 'directrecruitment_applications.id')
+                 ->where('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        ->where('onboarding_attestation.application_id', $request['application_id'])
+        ->where('onboarding_attestation.onboarding_country_id', $request['onboarding_country_id'])
+        ->where('onboarding_attestation.status', 'Collected')
+        ->select('onboarding_attestation.onboarding_agent_id as id', 'agent.agent_name')
+        ->distinct('agent.id', 'agent.agent_name')
+        ->get();
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function replaceWorker($request) : array
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+
+        $worker = $this->workers
+        ->where('id', $request['id'])
+        ->where('company_id', $user['company_id'])
+        ->update([
+            'replace_worker_id' => $request['replace_worker_id'],
+            'replace_by' => $user['id'],
+            'replace_at' => Carbon::now()->format('Y-m-d H:i:s')
+        ]);
+        return  [
+            "isUpdated" => $worker,
+            "message" => "Updated Successfully"
+        ];
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function show($request) : mixed
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        return $this->workers->with('directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails', 'workerFomemaAttachments')
+        ->whereIn('company_id', $request['company_id'])
+        ->where('id', $request['id'])
+        ->first();
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function import($request, $file): mixed
+    {
+        $params = $request->all();
+        $user = JWTAuth::parseToken()->authenticate();
+        $params['created_by'] = $user['id'];
+        $params['modified_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
+
+        $applicationCheck = $this->directRecruitmentOnboardingCountry
+        ->join('directrecruitment_applications', function ($join) use($params) {
+            $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                ->where('directrecruitment_applications.company_id', $params['company_id']);
+        })->find($request['onboarding_country_id']);
+        if(is_null($applicationCheck)) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($applicationCheck->application_id != $params['application_id']) {
+            return[
+                'InvalidUser' => true
+            ];
+        }
+        
+        $workerBulkUpload = $this->workerBulkUpload->create([
+                'onboarding_country_id' => $request['onboarding_country_id'] ?? '',
+                'agent_id' => $request['agent_id'] ?? NULL,
+                'application_id' => $request['application_id'] ?? '',
+                'name' => 'Worker Bulk Upload',
+                'type' => 'Worker bulk upload',
+                'module_type' => 'WorkerBioData',
+                'company_id' => $user['company_id'],
+                'created_by' => $params['created_by'],
+                'modified_by' => $params['created_by'],
+                'user_type' => $user['user_type']
+            ]
+        );
+        $rows = Excel::toArray(new WorkerImport($params, $workerBulkUpload), $file);
+        $this->workerBulkUpload->where('id', $workerBulkUpload->id)->update(['actual_row_count' => count($rows[0])]);
+        Excel::import(new WorkerImport($params, $workerBulkUpload), $file);
+        return true;
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function workerStatusList($request): mixed
+    {
+        return $this->workerStatus
+            ->join('directrecruitment_applications', function ($join) use($request) {
+                $join->on('worker_status.application_id', '=', 'directrecruitment_applications.id')
+                    ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+            })
+            ->select('worker_status.id', 'worker_status.item', 'worker_status.updated_on', 'worker_status.status')
+            ->where([
+                'worker_status.application_id' => $request['application_id'],
+                'worker_status.onboarding_country_id' => $request['onboarding_country_id']
+            ])
+            ->orderBy('worker_status.id', 'desc')
+            ->paginate(Config::get('services.paginate_row'));
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateStatus($request) : array
+    {
+        $worker = $this->workers
+        ->where('company_id', $request['company_id'])
+        ->where('id', $request['id'])
+        ->update(['status' => $request['status']]);
+        return  [
+            "isUpdated" => $worker,
+            "message" => "Updated Successfully"
+        ];
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function importHistory($request): mixed
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $this->workerBulkUpload
+        ->select('id', 'actual_row_count', 'total_success', 'total_failure', 'process_status', 'created_at')
+        ->where('module_type', 'WorkerBioData')
+        ->where('process_status', 'Processed')
+        ->whereNotNull('failure_case_url')
+        ->whereIn('company_id', $request['company_id'])
+        ->orderBy('id', 'desc')
+        ->paginate(Config::get('services.paginate_row'));
+    }
+
+    /**
+     * @param $request
+     * @return array
+     */
+    public function failureExport($request): array
+    {        
+        $workerBulkUpload = $this->workerBulkUpload
+                        ->where('company_id', $request['company_id'])
+                        ->where('id', $request['bulk_upload_id'])
+                        ->first();
+        if(is_null($workerBulkUpload)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        if($workerBulkUpload->process_status != 'Processed' || is_null($workerBulkUpload->failure_case_url)) {
+            return [
+                'queueError' => true
+            ];
+        }
+        return [
+            'file_url' => $workerBulkUpload->failure_case_url
+        ];
+    }
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function ksmDropDownBasedOnOnboardingAgent($request): mixed
+    {
+        return $this->directRecruitmentOnboardingAgent
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_onboarding_agent.application_id', '=', 'directrecruitment_applications.id')
+                ->where('directrecruitment_applications.company_id', $request['company_id']);
+        })->where('directrecruitment_onboarding_agent.onboarding_country_id', $request['onboarding_country_id'])
+        ->where('directrecruitment_onboarding_agent.id', $request['agent_id'])
+        ->select('directrecruitment_onboarding_agent.id', 'directrecruitment_onboarding_agent.ksm_reference_number')
+        ->get(); 
+    }
+}

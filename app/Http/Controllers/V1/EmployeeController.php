@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Services\EmployeeServices;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 
 class EmployeeController extends Controller
 {
@@ -16,14 +17,20 @@ class EmployeeController extends Controller
      * @var employeeServices
      */
     private EmployeeServices $employeeServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * EmployeeController constructor.
      * @param EmployeeServices $employeeServices
+     * @param AuthServices $authServices
      */
-    public function __construct(EmployeeServices $employeeServices)
+    public function __construct(EmployeeServices $employeeServices, AuthServices $authServices)
     {
         $this->employeeServices = $employeeServices;
+        $this->authServices = $authServices;
     }
     /**
      * Show the form for creating a new Employee.
@@ -37,9 +44,14 @@ class EmployeeController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->employeeServices->create($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(isset($data['roleError'])) {
+                return $this->sendError(['message' => 'User has no permission to add multiple companies']);
+            } else if(isset($data['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -60,6 +72,7 @@ class EmployeeController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->employeeServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -81,6 +94,8 @@ class EmployeeController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->employeeServices->delete($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -114,22 +129,6 @@ class EmployeeController extends Controller
         }
     }
     /**
-     * Retrieve All Employees.
-     *
-     * @return JsonResponse
-     */
-    public function retrieveAll(): JsonResponse
-    {
-        try {
-            $data = $this->employeeServices->retrieveAll();
-            return $this->sendSuccess($data);
-        } catch (Exception $e) {
-            Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'Retrieve failed. Please retry.';
-            return $this->sendError(['message' => $data['error']]);
-        }
-    }
-    /**
      * Update the Employee status.
      *
      * @param Request $request
@@ -139,6 +138,8 @@ class EmployeeController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->employeeServices->updateStatus($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -160,6 +161,8 @@ class EmployeeController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->employeeServices->list($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -179,7 +182,28 @@ class EmployeeController extends Controller
     public function dropdown(): JsonResponse
     {
         try {
-            $data = $this->employeeServices->dropdown();
+            $user = JWTAuth::parseToken()->authenticate();
+            $companyId = $this->authServices->getCompanyIds($user);
+            $data = $this->employeeServices->dropdown($companyId);
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Retrieve failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
+    /**
+     * Employees supervisor List.
+     *
+     * @return JsonResponse
+     */
+    public function supervisorList(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $data = $this->employeeServices->supervisorList($params);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

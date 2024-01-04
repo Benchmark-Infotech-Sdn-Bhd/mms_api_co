@@ -443,4 +443,36 @@ class VendorsTest extends TestCase
                 ]
         ]);
     }
+    /**
+     * A test method for insurance list.
+     *
+     * @return void
+     */
+    public function testVendorInsuranceList()
+    {
+        $payload =  [];
+        $response = $this->json('POST', 'api/v1/vendor/insuranceVendorList', $payload, $this->getHeader());
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+    /**
+     * A test method for transportation VendorList.
+     *
+     * @return void
+     */
+    public function testVendortransportationVendorList()
+    {
+        $payload =  [];
+        $response = $this->json('POST', 'api/v1/vendor/transportationVendorList', $payload, $this->getHeader());
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
 }

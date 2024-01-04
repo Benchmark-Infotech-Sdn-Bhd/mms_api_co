@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Services\FomemaClinicsServices;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 
 class FomemaClinicsController extends Controller
 {
@@ -16,12 +18,18 @@ class FomemaClinicsController extends Controller
      */
     private FomemaClinicsServices $fomemaClinicsServices;
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
      * FomemaClinicsServices constructor.
      * @param FomemaClinicsServices $fomemaClinicsServices
+     * @param AuthServices $authServices
      */
-    public function __construct(FomemaClinicsServices $fomemaClinicsServices)
+    public function __construct(FomemaClinicsServices $fomemaClinicsServices, AuthServices $authServices)
     {
         $this->fomemaClinicsServices = $fomemaClinicsServices;
+        $this->authServices = $authServices;
     }
 	 /**
      * Show the form for creating a new Fomema Clinics.
@@ -51,8 +59,11 @@ class FomemaClinicsController extends Controller
      */    
     public function list(Request $request): JsonResponse
     {     
-        try {   
-            $response = $this->fomemaClinicsServices->list($request); 
+        try {  
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user); 
+            $response = $this->fomemaClinicsServices->list($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -69,7 +80,12 @@ class FomemaClinicsController extends Controller
     {   
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user); 
             $response = $this->fomemaClinicsServices->show($params); 
+            if(is_null($response)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -90,6 +106,9 @@ class FomemaClinicsController extends Controller
                 return $this->validationError($validation);
             }
             $response = $this->fomemaClinicsServices->update($request); 
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -107,6 +126,9 @@ class FomemaClinicsController extends Controller
         try {
             $params = $this->getRequest($request);
             $response = $this->fomemaClinicsServices->delete($params); 
+            if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));

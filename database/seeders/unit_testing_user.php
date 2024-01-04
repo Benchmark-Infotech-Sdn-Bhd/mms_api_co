@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Company;
 use Illuminate\Database\Seeder;
 
 class unit_testing_user extends Seeder
@@ -17,7 +18,9 @@ class unit_testing_user extends Seeder
         User::create([
             'name' => 'unittest',
             'email' => 'unittest@gmail.com',
-            'password' => '$2y$10$NV8KnNP9pHVcHF9k5V8yC.xLr4PKHsv/DNcL0G0dnrEoVIPRJbvdm'
+            'password' => '$2y$10$NV8KnNP9pHVcHF9k5V8yC.xLr4PKHsv/DNcL0G0dnrEoVIPRJbvdm',
+            'user_type' => 'Admin',
+            'company_id' => 1
         ]);
     }
 }

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Services\DirectRecruitmentApplicationChecklistServices;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 
 class DirectRecruitmentApplicationChecklistController extends Controller
 {
@@ -16,14 +17,20 @@ class DirectRecruitmentApplicationChecklistController extends Controller
      * @var DirectRecruitmentApplicationChecklistServices
      */
     private DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * DirectRecruitmentApplicationChecklistController constructor.
      * @param DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices
+     * @param AuthServices $authServices
      */
-    public function __construct(DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices)
+    public function __construct(DirectRecruitmentApplicationChecklistServices $directRecruitmentApplicationChecklistServices, AuthServices $authServices)
     {
         $this->directRecruitmentApplicationChecklistServices = $directRecruitmentApplicationChecklistServices;
+        $this->authServices = $authServices;
     }
     /**
      * Show the form for updating a DirectRecruitmentApplicationChecklist.
@@ -37,6 +44,7 @@ class DirectRecruitmentApplicationChecklistController extends Controller
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['modified_by'] = $user['id'];
+            $params['company_id'] = $user['company_id'];
             $data = $this->directRecruitmentApplicationChecklistServices->update($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
@@ -58,9 +66,13 @@ class DirectRecruitmentApplicationChecklistController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->directRecruitmentApplicationChecklistServices->show($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(is_null($data)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
@@ -79,9 +91,13 @@ class DirectRecruitmentApplicationChecklistController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication($params);
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            } else if(is_null($data)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {

@@ -29,6 +29,7 @@ class FeeRegistration extends Model implements Auditable
         'fee_type',
         'created_by',
         'modified_by',
+        'company_id'
     ];
     /**
      * The attributes that are required.
@@ -37,20 +38,26 @@ class FeeRegistration extends Model implements Auditable
      */
     private $rules = [
         'item_name' => 'required|regex:/^[a-zA-Z0-9 @&$]*$/u|max:150|unique:fee_registration,item_name,NULL,id,deleted_at,NULL',
-        'cost' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
+        'cost' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
         'fee_type' => 'required',
     ];
+
     /**
-     * The attributes that are required for updation.
-     *
-     * @var array
+     * The function returns array that are required for updation.
+     * @param $params
+     * @return array
      */
-    public $rulesForUpdation = [
-        'id' => 'required',
-        'item_name' => 'required|regex:/^[a-zA-Z0-9 @&$]*$/u|max:150|unique:fee_registration,item_name,NULL,id,deleted_at,NULL',
-        'cost' => 'required|regex:/^\-?[0-9]+(?:\.[0-9]{1,2})?$/',
-        'fee_type' => 'required',
-    ];
+    public function rulesForUpdation($id): array
+    {
+        // Unique name with deleted at
+        return [
+            'id' => 'required',
+            'item_name' => 'required|regex:/^[a-zA-Z0-9 @&$]*$/u|max:150|unique:fee_registration,item_name,'.$id.',id,deleted_at,NULL',
+            'cost' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
+            'fee_type' => 'required',
+        ];
+    }
+
     /**
      * The attributes that are required for updation.
      *
@@ -84,7 +91,7 @@ class FeeRegistration extends Model implements Auditable
      */
     public function validateUpdation($input){
         // make a new validator object
-        $validator = Validator::make($input,$this->rulesForUpdation);
+        $validator = Validator::make($input,$this->rulesForUpdation($input['id']));
         // check for failure
         if($validator->fails()){
             // set errors and return false

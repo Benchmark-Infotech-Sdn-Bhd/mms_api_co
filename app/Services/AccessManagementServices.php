@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Models\RolePermission;
+use App\Models\Role;
+use App\Models\CompanyModulePermission;
+use Illuminate\Support\Facades\Config;
 
 class AccessManagementServices
 {
@@ -10,14 +13,26 @@ class AccessManagementServices
      * @var `RolePermission`
      */
     private RolePermission $rolePermission;
+    /**
+     * @var companyModulePermission
+     */
+    private CompanyModulePermission $companyModulePermission;
+    /**
+     * @var Role
+     */
+    private Role $role;
 
     /**
      * AccessManagementServices constructor.
      * @param RolePermission $rolePermission
+     * @param CompanyModulePermission $companyModulePermission
+     * @param Role $role
      */
-    public function __construct(RolePermission $rolePermission)
+    public function __construct(RolePermission $rolePermission, CompanyModulePermission $companyModulePermission, Role $role)
     {
         $this->rolePermission   = $rolePermission;
+        $this->companyModulePermission = $companyModulePermission;
+        $this->role = $role;
     }
 
     /**
@@ -48,19 +63,51 @@ class AccessManagementServices
      */
     public function list($request) 
     {
-        return $this->rolePermission->leftJoin('modules', 'modules.id', 'role_permission.module_id')
+        if($request['user_type'] == Config::get('services.ROLE_TYPE_ADMIN')){
+            return $this->companyModulePermission->leftJoin('modules', 'modules.id', 'company_module_permission.module_id')
+            ->where('company_module_permission.company_id', $request['company_id'])
+            ->select('modules.id', 'modules.module_name', 'company_module_permission.id as role_permission_id')
+            ->get();
+        } else {
+            return $this->rolePermission
+            ->join('roles', 'roles.id', 'role_permission.role_id')
+            ->join('modules', 'modules.id', 'role_permission.module_id')
+            ->where('roles.company_id', $request['company_id'])
             ->where('role_permission.role_id', $request['role_id'])
             ->select('modules.id', 'modules.module_name', 'role_permission.id as role_permission_id')
             ->get();
+        }        
     }
 
 
     /**
      * @param $request
-     * @return bool
+     * @return mixed
      */
-    public function create($request): bool
+    public function create($request): mixed
     {
+        $roleCheck =  $this->rolePermission->join('roles', 'roles.id', 'role_permission.role_id')
+                        ->where('roles.company_id', $request['company_id'])
+                        ->where('role_permission.role_id', $request['role_id'])
+                        ->count();
+        if($roleCheck > 0) {
+            return [
+                'roleError' => true
+            ];
+        }
+
+        $companyModules = $this->companyModulePermission->where('company_id', $request['company_id'])
+                            ->select('module_id')
+                            ->get()
+                            ->toArray();
+        $companyModules = array_column($companyModules, 'module_id');
+        $diffModules = array_diff($request['modules'], $companyModules);
+        if(count($diffModules) > 0) {
+            return [
+                'moduleError' => true
+            ];
+        }
+       
         foreach ($request['modules'] as $moduleId) {
             $this->rolePermission->create([
                 'role_id'       => $request['role_id'],
@@ -75,10 +122,27 @@ class AccessManagementServices
 
     /**
      * @param $request
-     * @return bool
+     * @return mixed
      */
-    public function update($request): bool
+    public function update($request): mixed
     {
+        $companyModules = $this->companyModulePermission->where('company_id', $request['company_id'])
+                            ->select('module_id')
+                            ->get()
+                            ->toArray();
+        $companyModules = array_column($companyModules, 'module_id');
+        $diffModules = array_diff($request['modules'], $companyModules);
+        if(count($diffModules) > 0) {
+            return [
+                'moduleError' => true
+            ];
+        }
+        $role = $this->role::where('company_id', $request['company_id'])->find($request['role_id']);
+        if(is_null($role)){
+            return [
+                'InvalidUser' => true
+            ];
+        }
         $this->rolePermission->where('role_id', $request['role_id'])->delete();
         return $this->create($request);
     }

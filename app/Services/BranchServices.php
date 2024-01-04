@@ -10,6 +10,7 @@ use App\Models\BranchesServices;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\AuthServices;
 
 class BranchServices
 {
@@ -29,13 +30,18 @@ class BranchServices
      * @var state
      */
     private State $state;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
-    public function __construct(Branch $branch,Services $services,BranchesServices $branchesServices, State $state)
+    public function __construct(Branch $branch,Services $services,BranchesServices $branchesServices, State $state, AuthServices $authServices)
     {
         $this->branch = $branch;
         $this->services = $services;
         $this->branchesServices = $branchesServices;
         $this->state = $state;
+        $this->authServices = $authServices;
     }
     /**
      * @param $request
@@ -88,6 +94,7 @@ class BranchServices
             'postcode' => $request["postcode"],
             'remarks' => $request["remarks"],
             'created_by' => $request["created_by"],
+            'company_id' => $user['company_id']
         ]);
         $branchDataId = $branchData->id;
         foreach ($request['service_type'] as $serviceType) {
@@ -110,6 +117,7 @@ class BranchServices
     public function list($request)
     {
         return $this->branch::with('branchServices')
+        ->whereIn('company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('branch_name', 'like', '%' . $request['search_param'] . '%')
@@ -127,7 +135,9 @@ class BranchServices
      */
     public function show($request) : mixed
     {
-        return $this->branch::with('branchServices')->find($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+        return $this->branch::with('branchServices')->whereIn('company_id', $request['company_id'])->find($request['id']);
     }
 	 /**
      *
@@ -135,10 +145,13 @@ class BranchServices
      * @return array
      */
     public function update($request): array
-    {           
-        $data = $this->branch::find($request['id']);
+    {
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
+        $request['company_id'] = $user['company_id'];
+
+        $data = $this->branch::where('company_id', $request['company_id'])->find($request['id']);
+        
         if(is_null($data)){
             return [
                 "isUpdated" => false,
@@ -181,8 +194,11 @@ class BranchServices
      * @return array
      */    
     public function delete($request) : array
-    {     
-        $data = $this->branch::find($request['id']);
+    { 
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        $data = $this->branch::whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($data)){
             return [
                 "isDeleted" => false,
@@ -197,11 +213,16 @@ class BranchServices
         ];
     }
     /**
+     * @param $companyId
      * @return mixed
      */
-    public function dropDown(): mixed
+    public function dropDown($companyId): mixed
     {
-        return $this->branch::where('status', '=' ,1)->select('id','branch_name')->orderBy('branch.created_at','DESC')->get();
+        return $this->branch::where('status', '=' ,1)
+                    ->whereIn('company_id', $companyId)
+                    ->select('id','branch_name')
+                    ->orderBy('branch.created_at','DESC')
+                    ->get();
     }
 
     /**
@@ -210,7 +231,10 @@ class BranchServices
      */
     public function updateStatus($request) : array
     {
-        $branch = $this->branch->find($request['id']);
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        $branch = $this->branch::whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($branch)){
             return [
                 "isUpdated" => false,

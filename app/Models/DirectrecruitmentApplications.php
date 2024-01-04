@@ -22,7 +22,7 @@ class DirectrecruitmentApplications extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'crm_prospect_id', 'service_id', 'quota_applied', 'person_incharge', 'cost_quoted', 'service_type', 'remarks', 'status', 'created_by', 'modified_by'
+        'crm_prospect_id', 'service_id', 'quota_applied', 'person_incharge', 'cost_quoted', 'service_type', 'remarks', 'status', 'approval_flag', 'onboarding_flag', 'created_by', 'modified_by', 'company_id'
     ];
     /**
      * The attributes that are required.
@@ -118,7 +118,7 @@ class DirectrecruitmentApplications extends Model implements Auditable
     /**
      * @return HasMany
      */
-    public function applicationFWCMS(): HasMany
+    public function fwcms(): HasMany
     {
         return $this->hasMany(FWCMS::class, 'application_id');
     }

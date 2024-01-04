@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\DBSelectionMiddleware;
+use App\Http\Middleware\PermissionsMiddleware;
 
 require_once __DIR__.'/../vendor/autoload.php';
 
@@ -51,6 +52,11 @@ $app->singleton(
     App\Console\Kernel::class
 );
 
+$app->singleton(
+    'thirdPartyLogServices',
+    App\Services\ThirdPartyLogServices::class
+);
+
 /*
 |--------------------------------------------------------------------------
 | Register Config Files
@@ -66,6 +72,7 @@ $app->configure('app');
 $app->configure('jwt');
 $app->configure('services');
 $app->configure('mail');
+$app->configure('filesystems');
 
 /*
 |--------------------------------------------------------------------------
@@ -86,6 +93,8 @@ $app->middleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'dbSelection' => DBSelectionMiddleware::class,
     'jwt.verify' => App\Http\Middleware\JWTMiddleware::class,
+    'accessControl' => App\Http\Middleware\AccessControlMiddleware::class,
+    'permissions' => PermissionsMiddleware::class,
  ]);
 
 /*
@@ -105,6 +114,7 @@ $app->middleware([
  $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
  $app->register(OwenIt\Auditing\AuditingServiceProvider::class);
  $app->register(Illuminate\Mail\MailServiceProvider::class);
+ $app->register(Maatwebsite\Excel\ExcelServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------

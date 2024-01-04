@@ -24,7 +24,7 @@ class Branch extends Model implements Auditable
      * @var array
      */
     protected $fillable = ['branch_name','state','city','branch_address','postcode',
-    'remarks','created_by','modified_by'];
+    'remarks','created_by','modified_by', 'company_id'];
     /**
      * @return HasMany
      */

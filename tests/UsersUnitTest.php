@@ -41,16 +41,16 @@ class UsersUnitTest extends TestCase
         ]);
     }
     /**
-     * A functional test for Validate password in registration .
+     * A functional test for Validate user type in registration .
      *
      * @return void
      */
-    public function testForRegistrationPasswordValidation(): void
+    public function testForRegistrationUserTypeValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/user/register', array_merge($this->registrationData(), ['password' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/user/register', array_merge($this->registrationData(), ['user_type' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
-            'data' => ['password' => ['The password field is required.']]
+            'data' => ['user_type' => ['The user type field is required.']]
         ]);
     }
     /**
@@ -73,7 +73,7 @@ class UsersUnitTest extends TestCase
      */
     public function testForRegistration(): void
     {
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Admin'], $this->getHeader());
+        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader());
         $response = $this->json('POST', 'api/v1/user/register', $this->registrationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
@@ -87,7 +87,7 @@ class UsersUnitTest extends TestCase
      */
     public function testForLoginEmailValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/login', array_merge($this->registrationData(), ['email' => '']));
+        $response = $this->json('POST', 'api/v1/login', array_merge($this->loginData(), ['email' => '']));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => ['email' => ['The email field is required.']]
@@ -101,7 +101,7 @@ class UsersUnitTest extends TestCase
      */
     public function testForLoginPasswordValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/login', array_merge($this->registrationData(), ['password' => '']));
+        $response = $this->json('POST', 'api/v1/login', array_merge($this->loginData(), ['password' => '']));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => ['password' => ['The password field is required.']]
@@ -115,7 +115,7 @@ class UsersUnitTest extends TestCase
      */
     public function testForInvalidEmailLogin(): void
     {
-        $response = $this->json('POST', 'api/v1/login', array_merge($this->registrationData(), ['email' => 'test123@gmail.com']));
+        $response = $this->json('POST', 'api/v1/login', array_merge($this->loginData(), ['email' => 'test123@gmail.com']));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Invalid Credentials']
@@ -128,7 +128,7 @@ class UsersUnitTest extends TestCase
      */
     public function testForInvalidPasswordLogin(): void
     {
-        $response = $this->json('POST', 'api/v1/login', array_merge($this->registrationData(), ['password' => '123456789']));
+        $response = $this->json('POST', 'api/v1/login', array_merge($this->loginData(), ['password' => '123456789']));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Invalid Credentials']
@@ -141,9 +141,8 @@ class UsersUnitTest extends TestCase
      */
     public function testForValidLogin(): void
     {
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Admin'], $this->getHeader());
-        $this->json('POST', 'api/v1/user/register', $this->registrationData(), $this->getHeader(false));
-        $response = $this->call('POST', 'api/v1/login', ['email' => 'test@gmail.com', 'password' => 'Welcome@123']);
+        $this->getToken();
+        $response = $this->call('POST', 'api/v1/login', $this->loginData());
         $this->assertEquals(200, $response->status());
         $response->assertJsonStructure([
             'data' =>
@@ -161,6 +160,13 @@ class UsersUnitTest extends TestCase
      */
     public function registrationData(): array
     {
-        return ['name' => 'test', 'email' => 'test@gmail.com', 'password' => 'Welcome@123', 'reference_id' => 1, 'user_type' => 'Admin','role_id' => 1,'status' => 1];
+        return ['name' => 'test', 'email' => 'test@gmail.com', 'user_type' => 'Admin', 'status' => 1, 'company_id' => 1];
+    }
+    /**
+     * @return array
+     */
+    public function loginData(): array
+    {
+        return ['email' => 'unittest@gmail.com', 'password' => 'Welcome@123'];
     }
 }

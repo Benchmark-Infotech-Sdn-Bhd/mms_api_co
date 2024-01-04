@@ -52,7 +52,12 @@ class DirectRecruitmentApplicationChecklistServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklist->find($request['id']);
+        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklist->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'directrecruitment_application_checklist.application_id')
+            ->where('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        ->where('directrecruitment_application_checklist.id', $request['id'])
+        ->first('directrecruitment_application_checklist.*');
         if(is_null($directRecruitmentApplicationChecklist)){
             return [
                 "isUpdated" => false,
@@ -83,32 +88,12 @@ class DirectRecruitmentApplicationChecklistServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->directRecruitmentApplicationChecklist->findOrFail($request['id']);
-    }
-    /**
-     * @param $request
-     * @return array
-     */
-    public function updateStatusBasedOnApplication($request) : array
-    {
-        if(!($this->validationServices->validate($request,['application_id' => 'required','status' => 'required']))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
-        }
-        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklist->where('application_id',$request['application_id'])->first();
-        if(is_null($directRecruitmentApplicationChecklist)){
-            return [
-                "isUpdated" => false,
-                "message"=> "Data not found"
-            ];
-        }
-        $directRecruitmentApplicationChecklist->application_checklist_status = $request['status'];
-        $directRecruitmentApplicationChecklist->modified_by = $request['user_id'] ?? $directRecruitmentApplicationChecklist['modified_by'];
-        return  [
-            "isUpdated" => $directRecruitmentApplicationChecklist->save() == 1,
-            "message" => "Updated Successfully"
-        ];
+        return $this->directRecruitmentApplicationChecklist->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'directrecruitment_application_checklist.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })
+        ->where('directrecruitment_application_checklist.id', $request['id'])
+        ->first('directrecruitment_application_checklist.*');
     }
     /**
      * @param $request
@@ -121,13 +106,14 @@ class DirectRecruitmentApplicationChecklistServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklist->where('application_id',$request['application_id'])->first();
-        if(is_null($directRecruitmentApplicationChecklist)){
-            return [
-                "isPresent" => false,
-                "message"=> "Data not found"
-            ];
-        }
+        
+        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklist
+                                            ->join('directrecruitment_applications', function ($join) use($request) {
+                                                $join->on('directrecruitment_applications.id', '=', 'directrecruitment_application_checklist.application_id')
+                                                ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+                                            })
+                                            ->where('directrecruitment_application_checklist.application_id',$request['application_id'])
+                                            ->first('directrecruitment_application_checklist.*');
         return $directRecruitmentApplicationChecklist;
     }
 }

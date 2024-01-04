@@ -38,6 +38,9 @@ class TransportationController extends Controller
                 return $this->validationError($validation);
             }
             $response = $this->transportationServices->create($request); 
+            if (isset($response['unauthorizedError'])) {
+                return $this->sendError(['message' => $response['unauthorizedError']]);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -70,6 +73,9 @@ class TransportationController extends Controller
     {      
         try {
             $response = $this->transportationServices->show($request); 
+            if(is_null($response)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -128,5 +134,21 @@ class TransportationController extends Controller
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Delete attachments was failed']);
         }        
+    }
+    /**
+     * Display a dropdown of the Transportation.
+     * @param Request $request
+     * @return JsonResponse
+     */    
+    public function dropdown(Request $request): JsonResponse
+    {        
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->transportationServices->dropdown($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => $e->getMessage()]);
+        }
     }
 }

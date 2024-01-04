@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
@@ -181,17 +181,33 @@ class SectorsTest extends TestCase
      * 
      * @return void
      */
-    public function testForSectorUpdationValidation(): void
+    public function testForSectorUpdationIdValidation(): void
     {
         $this->json('POST', 'api/v1/sector/create', $this->creationData(), $this->getHeader());
         $response = $this->json('POST', 'api/v1/sector/update', array_merge($this->updationData(), 
-        ['id' => '','sector_name' => '', 'sub_sector_name' => '']), $this->getHeader(false));
+        ['id' => '','sector_name' => 'Test', 'sub_sector_name' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [
                 "id" => [
                     "The id field is required."
-                ],
+                ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to validate Sector Updation
+     * 
+     * @return void
+     */
+    public function testForSectorUpdationSectorNameValidation(): void
+    {
+        $this->json('POST', 'api/v1/sector/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/sector/update', array_merge($this->updationData(), 
+        ['id' => '1','sector_name' => '', 'sub_sector_name' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "data" => [
                 "sector_name" => [
                     "The sector name field is required."
                 ]

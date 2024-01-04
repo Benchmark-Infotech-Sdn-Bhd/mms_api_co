@@ -99,9 +99,12 @@ class DirectRecruitmentApplicationApprovalServices
      */
     public function list($request): mixed
     {
-        return $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])
-        ->select('id', 'application_id', 'item_name', 'ksm_reference_number',  'received_date',  'valid_until', 'updated_at')
-        ->orderBy('id', 'desc')
+        return $this->directRecruitmentApplicationApproval->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'directrecruitment_application_approval.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })->where('directrecruitment_application_approval.application_id', $request['application_id'])
+        ->select('directrecruitment_application_approval.id', 'directrecruitment_application_approval.application_id', 'directrecruitment_application_approval.item_name', 'directrecruitment_application_approval.ksm_reference_number',  'directrecruitment_application_approval.received_date',  'directrecruitment_application_approval.valid_until', 'directrecruitment_application_approval.updated_at')
+        ->orderBy('directrecruitment_application_approval.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
@@ -110,9 +113,13 @@ class DirectRecruitmentApplicationApprovalServices
      */
     public function show($request): mixed
     {
-        return $this->directRecruitmentApplicationApproval::with(['approvalAttachment' => function ($query) {
+        return $this->directRecruitmentApplicationApproval->with(['approvalAttachment' => function ($query) {
             $query->orderBy('created_at', 'desc');
-        }])->find($request['id']);
+        }])->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('directrecruitment_applications.id', '=', 'directrecruitment_application_approval.application_id')
+            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+        })->where('directrecruitment_application_approval.id', $request['id'])
+        ->first('directrecruitment_application_approval.*');
     }
     /**
      * @param $request
@@ -124,6 +131,12 @@ class DirectRecruitmentApplicationApprovalServices
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
+            ];
+        }
+        $applicationCheck = $this->directrecruitmentApplications->find($request['application_id']);
+        if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
             ];
         }
         $approvalDetails = $this->directRecruitmentApplicationApproval->create([
@@ -174,14 +187,14 @@ class DirectRecruitmentApplicationApprovalServices
         $request['status'] = 'Submitted';
         $this->applicationSummaryServices->ksmUpdateStatus($request);
 
-        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
-        $fwcmsRejectedCount = $this->fwcms->where('application_id', $request['application_id'])
-                        ->where('status', 'Rejected')
-                        ->count();
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])
+                    ->where('status', '!=', 'Rejected')            
+                    ->count('ksm_reference_number');
         $approvalCount = $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])->count('ksm_reference_number');
-        if($ksmCount == $approvalCount || $ksmCount == ($fwcmsRejectedCount + $approvalCount)) {
+        if($ksmCount == $approvalCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = Config::get('services.APPROVAL_COMPLETED');
+            $applicationDetails->approval_flag = 1;
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[6];
@@ -191,6 +204,10 @@ class DirectRecruitmentApplicationApprovalServices
             $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
             $serviceDetails->status = 0;
             $serviceDetails->save();
+        } else { 
+            $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+            $applicationDetails->approval_flag = 1;
+            $applicationDetails->save();
         }
 
         return true;
@@ -208,6 +225,17 @@ class DirectRecruitmentApplicationApprovalServices
             ];
         }
         $approvalDetails = $this->directRecruitmentApplicationApproval->findOrFail($request['id']);
+        $applicationCheck = $this->directrecruitmentApplications->find($request['application_id']);
+        if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        } else if($request['application_id'] != $approvalDetails->application_id) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+
         $approvalDetails->application_id       = $request['application_id'] ?? $approvalDetails->application_id;
         $approvalDetails->ksm_reference_number = $request['ksm_reference_number'] ?? $approvalDetails->ksm_reference_number;
         $approvalDetails->received_date        = $request['received_date'] ?? $approvalDetails->received_date;
@@ -249,11 +277,14 @@ class DirectRecruitmentApplicationApprovalServices
             }
         }
 
-        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])->count('ksm_reference_number');
+        $ksmCount = $this->fwcms->where('application_id', $request['application_id'])
+                    ->where('status', '!=', 'Rejected') 
+                    ->count('ksm_reference_number');
         $approvalCount = $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])->count('ksm_reference_number');
         if($ksmCount == $approvalCount) {
             $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
             $applicationDetails->status = Config::get('services.APPROVAL_COMPLETED');
+            $applicationDetails->approval_flag = 1;
             $applicationDetails->save();
 
             $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[6];
@@ -263,6 +294,10 @@ class DirectRecruitmentApplicationApprovalServices
             $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
             $serviceDetails->status = 0;
             $serviceDetails->save();
+        } else { 
+            $applicationDetails = $this->directrecruitmentApplications->findOrFail($request['application_id']);
+            $applicationDetails->approval_flag = 1;
+            $applicationDetails->save();
         }
 
         return true;
@@ -275,13 +310,24 @@ class DirectRecruitmentApplicationApprovalServices
      */    
     public function deleteAttachment($request): mixed
     {   
-        $data = $this->approvalAttachments::find($request['id']); 
+        $data = $this->approvalAttachments->with(['directRecruitmentApplicationApproval' => function ($query) {
+            $query->select('id', 'application_id');
+        }])->find($request['id']); 
+        
         if(is_null($data)){
             return [
                 "isDeleted" => false,
                 "message" => "Data not found"
             ];
         }
+
+        $applicationCheck = $this->directrecruitmentApplications->find($data['directRecruitmentApplicationApproval']['application_id']);
+        if($applicationCheck->company_id != $request['company_id']) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+
         return [
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"

@@ -6,22 +6,30 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\FeeRegistrationServices;
+use App\Services\AuthServices;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class FeeRegistrationController extends Controller
 {
     /**
-     * @var feeRegistrationServices
+     * @var feeRegistrationServices 
      */
     private FeeRegistrationServices $feeRegistrationServices;
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
      * FeeRegistrationServices constructor.
      * @param FeeRegistrationServices $feeRegistrationServices
+     * @param AuthServices $authServices
      */
-    public function __construct(FeeRegistrationServices $feeRegistrationServices)
+    public function __construct(FeeRegistrationServices $feeRegistrationServices, AuthServices $authServices)
     {
         $this->feeRegistrationServices = $feeRegistrationServices;
+        $this->authServices = $authServices;
     }
     /**
      * Show the form for creating a new Fee Registration.
@@ -37,6 +45,9 @@ class FeeRegistrationController extends Controller
                 return $this->validationError($validation);
             }
             $response = $this->feeRegistrationServices->create($request);
+            if($response['InvalidUser']) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -52,7 +63,10 @@ class FeeRegistrationController extends Controller
     public function list(Request $request): JsonResponse
     {      
         try {  
-            $response = $this->feeRegistrationServices->list($request); 
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $response = $this->feeRegistrationServices->list($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -69,6 +83,8 @@ class FeeRegistrationController extends Controller
     {    
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->feeRegistrationServices->show($params); 
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -85,6 +101,8 @@ class FeeRegistrationController extends Controller
     public function update(Request $request): JsonResponse
     {             
         try {   
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_id'] = $user['company_id'];
             $validation = $this->feeRegistrationServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
@@ -106,6 +124,8 @@ class FeeRegistrationController extends Controller
     {      
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
             $response = $this->feeRegistrationServices->delete($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {

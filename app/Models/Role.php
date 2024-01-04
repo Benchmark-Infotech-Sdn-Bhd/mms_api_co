@@ -19,7 +19,7 @@ class Role extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'role_name', 'system_role', 'status', 'parent_id', 'created_by', 'modified_by'
+        'role_name', 'system_role', 'status', 'parent_id', 'created_by', 'modified_by', 'company_id', 'special_permission', 'parent_role_id'
     ];
 
     /**

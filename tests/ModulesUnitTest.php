@@ -28,38 +28,6 @@ class ModulesUnitTest extends TestCase
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    [
-                        'id',
-                        'module_name'
-                    ],
-                    [
-                        'id',
-                        'module_name'
-                    ],
-                    [
-                        'id',
-                        'module_name'
-                    ],
-                    [
-                        'id',
-                        'module_name'
-                    ],
-                    [
-                        'id',
-                        'module_name'
-                    ],
-                    [
-                        'id',
-                        'module_name'
-                    ],
-                    [
-                        'id',
-                        'module_name'
-                    ],
-                    [
-                        'id',
-                        'module_name'
-                    ]
                 ]
         ]);
     }

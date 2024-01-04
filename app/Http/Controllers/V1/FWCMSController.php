@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Services\FWCMSServices;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
+use App\Services\AuthServices;
 use Exception;
 
 class FWCMSController extends Controller
@@ -16,14 +17,20 @@ class FWCMSController extends Controller
      * @var FWCMSServices
      */
     private $fwcmsServices;
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
 
     /**
      * FWCMSController constructor.
      * @param FWCMSServices $fwcmsServices
+     * @param AuthServices $authServices
      */
-    public function __construct(FWCMSServices $fwcmsServices) 
+    public function __construct(FWCMSServices $fwcmsServices, AuthServices $authServices) 
     {
         $this->fwcmsServices = $fwcmsServices;
+        $this->authServices = $authServices;
     }
     /**
      * Display a listing of the FWCMS Details.
@@ -35,6 +42,8 @@ class FWCMSController extends Controller
     {
         try {
             $param = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $param['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->fwcmsServices->list($param);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
@@ -52,7 +61,12 @@ class FWCMSController extends Controller
     {
         try {
             $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->fwcmsServices->show($params);
+            if(is_null($response)) {
+                return $this->sendError(['message' => 'Unauthorized.']);
+            }
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -71,9 +85,16 @@ class FWCMSController extends Controller
             $param = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $param['created_by'] = $user['id'];
+            $param['company_id'] = $user['company_id'];
             $response = $this->fwcmsServices->create($param);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Proposal Quota'], 422);
+            } else if(isset($response['processError'])) {
+                return $this->sendError(['message' => 'Application has been completed, further modification is not allowed'], 422);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'FWCMS Details Created Successfully']);
         } catch (Exception $e) {
@@ -93,11 +114,16 @@ class FWCMSController extends Controller
             $param = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $param['modified_by'] = $user['id'];
+            $param['company_id'] = $user['company_id'];
             $response = $this->fwcmsServices->update($param);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
             } else if(isset($response['processError'])) {
-                return $this->sendError(['message' => 'Levy payment has been made for the selected KSM reference Number, further modification is not allowed']);
+                return $this->sendError(['message' => 'Levy payment has been made for the selected KSM reference Number, further modification is not allowed'], 422);
+            } else if(isset($response['quotaError'])) {
+                return $this->sendError(['message' => 'The number of quota cannot exceed the Proposal Quota'], 422);
+            } else if(isset($response['InvalidUser'])) {
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'FWCMS Details Updated Successfully']);
         } catch (Exception $e) {

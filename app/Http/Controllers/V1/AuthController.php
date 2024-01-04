@@ -56,6 +56,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $this->getRequest($request);
+        unset($credentials['domain_name']);
         $validator = Validator::make($credentials, $this->authServices->loginValidation());
         if ($validator->fails()) {
             return $this->validationError($validator->errors());
@@ -73,7 +74,7 @@ class AuthController extends Controller
             if(is_null($emp)){
                 return $this->sendError(['message' => 'User not found'], 400);
             }
-            if(is_null($emp['branches']) || ($emp['status'] == 0) || ($emp['branches']['status'] == 0)){
+            if(is_null($emp['employeeDetails']['branches']) || ($emp['employeeDetails']['status'] == 0) || ($emp['employeeDetails']['branches']['status'] == 0)){
                 return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
             }
         }
@@ -108,7 +109,14 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return $this->validationError($validator->errors());
         }
-        $this->authServices->create($request);
+        $response = $this->authServices->create($request);
+        // if(isset($response['subsidiaryError'])) {
+        //     return $this->sendError(['message' => 'Cannot Create Super User for Subsidiary Company'], 422);
+        // } else if(isset($response['parentError'])) {
+        //     return $this->sendError(['message' => 'Parent Company only can Create Super User'], 422);
+        // } else if(isset($response['userError'])) {
+        //     return $this->sendError(['message' => 'This Company alredy has a Super User'], 422);
+        // }
         return $this->sendSuccess(['message' => 'Successfully User was created']);
     }
 
@@ -127,13 +135,13 @@ class AuthController extends Controller
                 $this->sendError(['message' => 'user not found'], 404);
             }
         } catch (TokenExpiredException $e) {
-            Log::error('TokenExpiredException - ' . print_r($e->getMessage(), true));
+            Log::info('TokenExpiredException - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'token expired'], 404);
         } catch (TokenInvalidException $e) {
-            Log::error('TokenInvalidException - ' . print_r($e->getMessage(), true));
+            Log::info('TokenInvalidException - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'token invalid'], 404);
         } catch (JWTException $e) {
-            Log::error('JWTException - ' . print_r($e->getMessage(), true));
+            Log::info('JWTException - ' . print_r($e->getMessage(), true));
             $this->sendError(['message' => 'token absent'], 404);
         }
         return $this->sendSuccess(compact('user'));
@@ -169,7 +177,12 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken($this->guard()->refresh(), Auth::user());
+        $user = Auth::user();
+        if(is_null($user)){
+            return $this->sendError(['message' => 'User not found'], 400);
+        }
+        $user = $this->authServices->show(['id' => $user['id']]);
+        return $this->respondWithToken($this->guard()->refresh(), $user);
     }
 
     /**

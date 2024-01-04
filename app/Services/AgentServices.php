@@ -3,22 +3,31 @@
 namespace App\Services;
 
 use App\Models\Agent;
+use App\Models\Countries;
+use App\Models\DirectRecruitmentOnboardingCountry;
 use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 
 class AgentServices
 {
     private Agent $agent;
+    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
     private ValidationServices $validationServices;
+    private Countries $countries;
     /**
      * AgentServices constructor.
      * @param Agent $agent
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      * @param ValidationServices $validationServices
+     * @param Countries $countries
      */
-    public function __construct(Agent $agent,ValidationServices $validationServices)
+    public function __construct(Agent $agent,DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry,ValidationServices $validationServices, Countries $countries)
     {
         $this->agent = $agent;
+        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->validationServices = $validationServices;
+        $this->countries = $countries;
     }
 
     /**
@@ -32,6 +41,16 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
+
+        $countryDetails = $this->countries->where('company_id', $request['company_id'])->find($request['country_id']);
+        if(is_null($countryDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+
+        $request['agent_code'] = $this->generateAgentCode();
+
         return $this->agent->create([
             'agent_name' => $request['agent_name'] ?? '',
             'country_id' => (int)$request['country_id'],
@@ -41,7 +60,9 @@ class AgentServices
             'email_address' => $request['email_address'] ?? '',
             'company_address' => $request['company_address'] ?? '',
             'created_by'    => $request['created_by'] ?? 0,
-            'modified_by'   => $request['created_by'] ?? 0
+            'modified_by'   => $request['created_by'] ?? 0,
+            'company_id' => $request['company_id'] ?? 0,
+            'agent_code' => $request['agent_code']
         ]);
     }
     /**
@@ -55,7 +76,7 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $agent = $this->agent->find($request['id']);
+        $agent = $this->agent->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($agent)){
             return [
                 "isUpdated" => false,
@@ -88,7 +109,7 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $agent = $this->agent->find($request['id']);
+        $agent = $this->agent->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($agent)){
             return [
                 "isDeleted" => false,
@@ -111,33 +132,8 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        return $this->agent->with('countries')->findOrFail($request['id']);
-    }
-    /**
-     * @return mixed
-     */
-    public function retrieveAll() : mixed
-    {
-        return $this->agent->join('countries', 'countries.id', '=', 'agent.country_id')
-        ->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge')
-        ->orderBy('agent.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
-    }
-    /**
-     * @param $request
-     * @return mixed
-     */
-    public function retrieveByCountry($request) : mixed
-    {
-        if(!($this->validationServices->validate($request,['country_id' => 'required']))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
-        }
-        return $this->agent->join('countries', 'countries.id', '=', 'agent.country_id')
-        ->where('country_id',$request['country_id'])->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge')
-        ->orderBy('agent.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
+        //return $this->agent->with('countries')->findOrFail($request['id']);
+        return $this->agent->with('countries')->whereIn('company_id', $request['company_id'])->where('id',$request['id'])->first();
     }
     /**
      * @param $request
@@ -153,6 +149,7 @@ class AgentServices
             }
         }
         return $this->agent->join('countries', 'countries.id', '=', 'agent.country_id')
+        ->whereIn('agent.company_id', $request['company_id'])
         ->where(function($query) use ($request) {
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('agent_name', 'like', '%'.$request['search_param'].'%')
@@ -160,7 +157,7 @@ class AgentServices
                     ->orWhere('city', 'like', '%'.$request['search_param'].'%')
                     ->orWhere('person_in_charge', 'like', '%'.$request['search_param'].'%');
             }
-        })->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge','agent.status')
+        })->select('agent.id','agent.agent_name','countries.country_name','agent.city','agent.person_in_charge','agent.status', 'agent.agent_code')
         ->orderBy('agent.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -175,7 +172,7 @@ class AgentServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-        $agent = $this->agent->with('countries')->find($request['id']);
+        $agent = $this->agent->with('countries')->whereIn('company_id', $request['company_id'])->find($request['id']);
         if(is_null($agent)){
             return [
                 "isUpdated" => false,
@@ -212,8 +209,52 @@ class AgentServices
     /**
      * @return mixed
      */
-    public function dropdown() : mixed
+    public function dropdown($request) : mixed
     {
-        return $this->agent->where('status', 1)->select('id','agent_name')->orderBy('agent.created_at','DESC')->get();
+        if(isset($request['onboarding_country_id']) && !empty($request['onboarding_country_id'])){
+            $country = $this->directRecruitmentOnboardingCountry->find($request['onboarding_country_id']);
+        }
+        $countryId = isset($country->country_id) ? $country->country_id : '';
+        return $this->agent
+        ->whereIn('company_id', $request['company_id'])
+        ->where('status', 1)
+        ->where(function($query) use ($request, $countryId) {
+            if (isset($request['onboarding_country_id']) && !empty($request['onboarding_country_id'])) {
+                $query->where('country_id', '=', $countryId);
+            }
+        })
+        ->select('id','agent_name')->orderBy('agent.created_at','DESC')->get();
+    }
+    /**
+     * @return
+     */
+    public function generateAgentCode()
+    {
+        $code = strtoupper(Str::random(8));
+        while (Agent::where('agent_code', $code)->exists()) {
+            $code = strtoupper(Str::random(8));
+        }
+        return $code;
+    }
+    /**
+     * @param $request
+     * @return array
+     */
+    public function updateAgentCode($request) : array
+    {
+        $agentDetails = $this->agent->where('company_id', $request['company_id'])->find($request['id']);
+        if(is_null($agentDetails)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        $request['agent_code'] = $this->generateAgentCode();
+        
+        $agent = $this->agent->where('id', $request['id'])
+        ->update(['agent_code' => $request['agent_code']]);
+        return  [
+            "isUpdated" => $agent,
+            "message" => "Updated Successfully"
+        ];
     }
 }
