@@ -72,7 +72,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow, WithMul
                 ];
                 
                 DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-                dispatch(new WorkersImport($workerParameter, $this->bulkUpload, $workerNonMandatory));
+                dispatch(new WorkersImport($workerParameter, $this->bulkUpload, $workerNonMandatory))->onQueue('worker_import')->onConnection('database');
 
         } catch (\Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));

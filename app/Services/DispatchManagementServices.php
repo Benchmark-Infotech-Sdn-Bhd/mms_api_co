@@ -224,7 +224,7 @@ class DispatchManagementServices
             $NotificationParams['modified_by'] = $params['created_by'];
             $NotificationParams['company_id'] = $user['company_id'];
             $this->notificationServices->insertDispatchNotification($NotificationParams);
-            dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']));
+            dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']))->onQueue('runner_notification_mail')->onConnection('database');
         }
         
 
@@ -331,7 +331,7 @@ class DispatchManagementServices
                 $NotificationParams['modified_by'] = $params['modified_by'];
                 $NotificationParams['company_id'] = $user['company_id'];
                 $this->notificationServices->insertDispatchNotification($NotificationParams);
-                dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']));
+                dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']))->onQueue('runner_notification_mail')->onConnection('database');
             }
 
         }
