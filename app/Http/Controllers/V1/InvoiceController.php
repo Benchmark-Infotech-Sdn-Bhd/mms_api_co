@@ -287,4 +287,25 @@ class InvoiceController extends Controller
             return $this->sendError(['message' => $data['error']]);
         }
     }
+
+    /**
+     * Show the form for creating a new Invoice.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function saveTaxRates(): JsonResponse
+    {
+        try {
+            $data = $this->invoiceServices->saveTaxRates($gateway);
+            if(isset($data['validate'])){
+                return $this->validationError($data['validate']); 
+            }
+            return $this->sendSuccess($data);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            $data['error'] = 'Failed. Please retry.';
+            return $this->sendError(['message' => $data['error']]);
+        }
+    }
 }

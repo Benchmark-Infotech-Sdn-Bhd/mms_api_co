@@ -3,31 +3,26 @@
 namespace App\Services;
 
 use App\Models\Invoice;
-use App\Models\InvoiceItems;
-use App\Models\InvoiceItemsTemp;
 use App\Models\XeroSettings;
 use App\Models\XeroTaxRates;
 use App\Models\XeroAccounts;
 use App\Models\XeroItems;
-use App\Models\DirectRecruitmentExpenses;
-use App\Models\EContractCostManagement;
-use App\Models\TotalManagementCostManagement;
-use App\Models\CRMProspect;
 use App\Services\ValidationServices;
 use App\Services\XeroServices;
 use App\Services\ZohoServices;
+use App\Services\Xero;
+use App\Services\Zoho;
 use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
-use App\Services\EmailServices;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\JsonResponse;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+use App\Interfaces\InvoiceAccountInterface;
 
 class InvoiceServices
 {
@@ -35,14 +30,6 @@ class InvoiceServices
      * @var Invoice
      */
     private Invoice $invoice;
-    /**
-     * @var InvoiceItems
-     */
-    private InvoiceItems $invoiceItems;
-    /**
-     * @var InvoiceItemsTemp
-     */
-    private InvoiceItemsTemp $invoiceItemsTemp;
     /**
      * @var XeroSettings
      */
@@ -60,22 +47,6 @@ class InvoiceServices
      */
     private XeroItems $xeroItems;
     /**
-     * @var DirectRecruitmentExpenses
-     */
-    private DirectRecruitmentExpenses $directRecruitmentExpenses;
-    /**
-     * @var EContractCostManagement
-     */
-    private EContractCostManagement $eContractCostManagement;
-    /**
-     * @var TotalManagementCostManagement
-     */
-    private TotalManagementCostManagement $totalManagementCostManagement;
-    /**
-     * @var CRMProspect
-     */
-    private CRMProspect $crmProspect;
-    /**
      * @var ValidationServices
      */
     private ValidationServices $validationServices;
@@ -92,22 +63,13 @@ class InvoiceServices
      */
     private AuthServices $authServices;
     /**
-     * @var EmailServices
+     * @var InvoiceAccountInterface
      */
-    private EmailServices $emailServices;
-    /**
-     * @var Storage
-     */
-    private Storage $storage;
+    //private InvoiceAccountInterface $invoiceAccountInterface;
+
     /**
      * InvoiceServices constructor.
      * @param Invoice $Invoice
-     * @param InvoiceItems $invoiceItems
-     * @param InvoiceItemsTemp $invoiceItemsTemp
-     * @param DirectRecruitmentExpenses $directRecruitmentExpenses
-     * @param EContractCostManagement $eContractCostManagement
-     * @param TotalManagementCostManagement $totalManagementCostManagement
-     * @param CRMProspect $crmProspect
      * @param XeroSettings $xeroSettings
      * @param XeroTaxRates $xeroTaxRates
      * @param XeroAccounts $xeroAccounts
@@ -116,17 +78,10 @@ class InvoiceServices
      * @param XeroServices $xeroServices
      * @param ZohoServices $zohoServices
      * @param AuthServices $authServices
-     * @param EmailServices $emailServices
-     * @param Storage $storage
+     * //@param InvoiceAccountInterface $invoiceAccountInterface
      */
     public function __construct(
             Invoice                     $invoice,
-            InvoiceItems                $invoiceItems,
-            InvoiceItemsTemp            $invoiceItemsTemp,
-            DirectRecruitmentExpenses   $directRecruitmentExpenses,
-            EContractCostManagement     $eContractCostManagement,
-            TotalManagementCostManagement $totalManagementCostManagement,
-            CRMProspect                 $crmProspect,
             XeroSettings                $xeroSettings,
             XeroTaxRates                $xeroTaxRates,
             XeroAccounts                $xeroAccounts,
@@ -135,27 +90,19 @@ class InvoiceServices
             XeroServices                $xeroServices,
             ZohoServices                $zohoServices,
             AuthServices                $authServices,
-            EmailServices               $emailServices,
-            Storage                     $storage
+            //InvoiceAccountInterface     $invoiceAccountInterface
     )
     {
         $this->invoice = $invoice;
-        //$this->invoiceItems = $invoiceItems;
-        //$this->invoiceItemsTemp = $invoiceItemsTemp;
         $this->xeroSettings = $xeroSettings;
         $this->xeroTaxRates = $xeroTaxRates;
         $this->xeroAccounts = $xeroAccounts;
         $this->xeroItems = $xeroItems;
-        //$this->directRecruitmentExpenses = $directRecruitmentExpenses;
-        //$this->eContractCostManagement = $eContractCostManagement;
-        //$this->totalManagementCostManagement = $totalManagementCostManagement;
-        //$this->crmProspect = $crmProspect;
         $this->validationServices = $validationServices;
         $this->xeroServices = $xeroServices;
         $this->zohoServices = $zohoServices;
         $this->authServices = $authServices;
-        //$this->emailServices = $emailServices;
-        //$this->storage = $storage;
+        //$this->invoiceAccountInterface = $invoiceAccountInterface;
     }
 
     /**
@@ -273,7 +220,7 @@ class InvoiceServices
      * @param $request
      * @return mixed
      */
-    public function saveTaxRates() : mixed
+    public function saveTaxRatesW() : mixed
     {
         $cronConfig = $this->getCronSettings();
         try {
@@ -471,6 +418,48 @@ class InvoiceServices
             return false;
         }
 
+    }
+
+    public function saveTaxRatesError()
+    {
+        $cronConfig = $this->getCronSettings();
+        try {
+            foreach($cronConfig as $clients){
+                $accSystem = ucfirst(strtolower($clients['title']));
+                $gateway = new $accSystem();
+                //$controller->makePayment($gateway);
+                $gateway->saveTaxRates($clients);
+                /* match ($clients['title']) {
+                    'XERO' => $this->xeroServices->saveTaxRates($clients),
+                    'ZOHO' => $this->zohoServices->saveTaxRates($clients),
+                }; */
+            }            
+            return true;
+        } catch (Exception $e) {
+            Log::channel('cron_activity_logs')->info('Exception in getting Tax details' . $e);
+            return false;
+        }
+        //$this->invoiceAccountInterface->saveTaxRates();        
+    }
+
+    public function saveTaxRates(InvoiceAccountInterface $gateway)
+    {
+        $cronConfig = $this->getCronSettings();
+        try {
+            foreach($cronConfig as $clients){
+                $accSystem = ucfirst(strtolower($clients['title']));
+                //$gateway = new $accSystem();
+                invoiceAccountInterface->saveTaxRates($cronConfig);
+                /* match ($clients['title']) {
+                    'XERO' => $this->xeroServices->saveTaxRates($clients),
+                    'ZOHO' => $this->zohoServices->saveTaxRates($clients),
+                }; */
+            }            
+            return true;
+        } catch (Exception $e) {
+            Log::channel('cron_activity_logs')->info('Exception in getting Tax details' . $e);
+            return false;
+        }    
     }
 
 }

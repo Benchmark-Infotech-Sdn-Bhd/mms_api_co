@@ -1215,6 +1215,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('xeroGetAccounts', 'V1\InvoiceController@xeroGetAccounts');
                 $router->post('xeroGetItems', 'V1\InvoiceController@xeroGetItems');
                 $router->post('invoiceReSubmit', 'V1\InvoiceController@invoiceReSubmit');
+                $router->post('saveTaxRates', 'V1\InvoiceController@saveTaxRates');
             });
 
             /**
