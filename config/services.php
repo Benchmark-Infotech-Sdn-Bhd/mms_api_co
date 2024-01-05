@@ -161,4 +161,10 @@ return [
     'SUPER_ADMIN_MODULES' => [14,15],
 
     'INVOICE_RESUBMISSION_FAILED_MAIL' => env('INVOICE_RESUBMISSION_FAILED_MAIL', "muralidharan.n@codtesma.com"),
+
+    'CUSTOMER_LOGIN' => 16,
+
+    'SERVICES_MODULES' => [5,6,7],
+
+    'VIEW_PERMISSION' => 1,
 ];

@@ -19,7 +19,7 @@ class Module extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'module_name', 'module_url', 'parent_id', 'order_id', 'status', 'created_by', 'modified_by'
+        'module_name', 'module_url', 'parent_id', 'order_id', 'status', 'feature_flag', 'created_by', 'modified_by'
     ];
 
     /**

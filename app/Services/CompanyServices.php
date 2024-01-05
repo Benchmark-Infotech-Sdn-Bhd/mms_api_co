@@ -81,6 +81,16 @@ class CompanyServices
         ];
     }
     /**
+     * @return array
+     */
+    public function assignFeatureValidation(): array
+    {
+        return [
+            'company_id' => 'required',
+            'features' => 'required'
+        ];
+    }
+    /**
      * @param $request
      * @return mixed
      */
@@ -354,6 +364,7 @@ class CompanyServices
     {
         return $this->companyModulePermission->leftJoin('modules', 'modules.id', 'company_module_permission.module_id')
             ->where('company_module_permission.company_id', $request['company_id'])
+            ->where('modules.feature_flag', 0)
             ->select('modules.id', 'modules.module_name', 'company_module_permission.id as company_module_permission_id')
             ->get();
     }
@@ -376,7 +387,11 @@ class CompanyServices
         $existingModules = array_column($existingModules, 'module_id');
         $diffModules = array_diff($existingModules,$request['modules']);
 
-        $this->companyModulePermission->where('company_id', $request['company_id'])->delete();
+        $this->companyModulePermission
+        ->join('modules', 'modules.id', 'company_module_permission.module_id')
+        ->where('company_module_permission.company_id', $request['company_id'])
+        ->where('modules.feature_flag', 0)
+        ->delete();
         foreach ($request['modules'] as $moduleId) {
             $this->companyModulePermission->create([
                 'company_id'    => $request['company_id'],
@@ -390,6 +405,49 @@ class CompanyServices
         ->where('roles.company_id', $request['company_id'])
         ->whereIn('role_permission.module_id', $diffModules)
         ->delete();
+        return true;
+    }
+    /**
+     * returns the features owned by a particular company
+     * 
+     * @param $request
+     * @return mixed
+     */
+    public function featureList($request): mixed
+    {
+        return $this->companyModulePermission->leftJoin('modules', 'modules.id', 'company_module_permission.module_id')
+            ->where('company_module_permission.company_id', $request['company_id'])
+            ->where('modules.feature_flag', 1)
+            ->select('modules.id', 'modules.module_name as feature_name', 'company_module_permission.id as company_feature_permission_id')
+            ->get();
+    }
+    /**
+     * @param $request
+     * @return bool|array
+     */
+    public function assignFeature($request): bool|array
+    {
+        $validator = Validator::make($request, $this->assignFeatureValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        $result = $this->companyModulePermission
+        ->join('modules', 'modules.id', 'company_module_permission.module_id')
+        ->where('company_module_permission.company_id', $request['company_id'])
+        ->where('modules.feature_flag', 1)
+        ->delete();
+
+        foreach ($request['features'] as $featureId) {
+            $res = $this->companyModulePermission->create([
+                'company_id'    => $request['company_id'],
+                'module_id'     => $featureId,
+                'created_by'    => $request['created_by'] ?? 0,
+                'modified_by'   => $request['created_by'] ?? 0
+            ]);   
+        }
         return true;
     }
 }

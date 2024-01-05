@@ -319,4 +319,44 @@ class CompanyController extends Controller
             return $this->sendError(['message' => 'Failed to Assign Module']);
         }
     }
+    /**
+     * Retrieves and returns the list of features owned by a company.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function featureList(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $response = $this->companyServices->featureList($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Features']);
+        }
+    }
+    /**
+     * Assign features to a particular company.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function assignFeature(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['created_by'] = $user['id'];
+            $response = $this->companyServices->assignFeature($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess(['message' => 'Feature Assigned Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Assign Feature']);
+        }
+    }
 }
