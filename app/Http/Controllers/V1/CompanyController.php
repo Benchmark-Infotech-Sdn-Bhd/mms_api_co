@@ -319,4 +319,81 @@ class CompanyController extends Controller
             return $this->sendError(['message' => 'Failed to Assign Module']);
         }
     }
+    /**
+     * List Settings Title.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function settingsTitleList(Request $request) : JsonResponse
+    {
+        try {
+            $response = $this->companyServices->settingsTitleList();
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Settings Title']);
+        }
+    }
+    /**
+     * Show Settings.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function settingsShow(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->settingsShow($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Show the Settings']);
+        }
+    }
+    /**
+     * Update Settings.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function settingsUpdate(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['created_by'] = $user['id'];
+            $response = $this->companyServices->settingsUpdate($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }elseif (isset($response['InvalidTitle'])) {
+                return $this->sendError(['message' => 'Invalid Title.']); 
+            }
+            return $this->sendSuccess(['message' => 'Settings Updated Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Update the Settings']);
+        }
+    }
+    /**
+     * Delete a Settings.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function settingsDelete(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->settingsDelete($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            }
+            return $this->sendSuccess(['message' => 'Settings Deleted Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Delete Settings']);
+        }
+    }
 }
