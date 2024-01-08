@@ -75,7 +75,7 @@ class EContractPayrollImport implements ToModel, WithChunkReading, WithHeadingRo
                 ];
                 
                 DB::table('e-contract_payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-                dispatch(new EContractPayrollsImport($payrollParameter, $this->bulkUpload));
+                dispatch(new EContractPayrollsImport($payrollParameter, $this->bulkUpload))->onQueue('e_contract_payrolls_import')->onConnection('database');;
 
         } catch (\Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));

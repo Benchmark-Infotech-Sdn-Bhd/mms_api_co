@@ -47,12 +47,17 @@ class RunnerNotificationMail implements ShouldQueue
         $input['message'] = $this->message;
 
         if($this->emailValidation($input['email'])){
-            Mail::send('email.RunnerNotificationMail', ['params' => $input], function ($message) use ($input) {
-                $message->to($input['email'])
-                    ->subject($input['subject']);
-                $message->from(Config::get('services.mail_from_address'), Config::get('services.mail_from_name'));
-            });
-            Log::channel('cron_activity_logs')->info('Runners notification mail process completed');
+            try{
+                Mail::send('email.RunnerNotificationMail', ['params' => $input], function ($message) use ($input) {
+                    $message->to($input['email'])
+                        ->subject($input['subject']);
+                    $message->from(Config::get('services.mail_from_address'), Config::get('services.mail_from_name'));
+                });
+                Log::channel('cron_activity_logs')->info('Runners notification mail process completed');
+            } catch(Exception $e) {
+                Log::channel('cron_activity_logs')->info('Error - ' . print_r($e->getMessage(), true));
+            }
+            
         }else{
             Log::channel('cron_activity_logs')->info('Runners notification mail process failed due to incorrect email id');
         }
