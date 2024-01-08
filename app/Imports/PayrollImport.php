@@ -75,7 +75,7 @@ class PayrollImport implements ToModel, WithChunkReading, WithHeadingRow
                 ];
                 
                 DB::table('payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-                dispatch(new PayrollsImport($payrollParameter, $this->bulkUpload));
+                dispatch(new PayrollsImport($payrollParameter, $this->bulkUpload))->onQueue('payrolls_import')->onConnection('database');
 
         } catch (\Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));
