@@ -51,15 +51,12 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,View']], function () use ($router) {
                     $router->post('list', 'V1\CompanyController@list');
                     $router->post('show', 'V1\CompanyController@show');   
-                    $router->post('moduleList', 'V1\CompanyController@moduleList'); 
-                    $router->post('settingsTitleList', 'V1\CompanyController@settingsTitleList');
-                    $router->post('settingsShow', 'V1\CompanyController@settingsShow');                                   
+                    $router->post('moduleList', 'V1\CompanyController@moduleList');                                   
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Add']], function () use ($router) {
                     $router->post('create', 'V1\CompanyController@create');
                     $router->post('assignSubsidiary', 'V1\CompanyController@assignSubsidiary');
                     $router->post('assignModule', 'V1\CompanyController@assignModule');
-                    $router->post('settingsUpdate', 'V1\CompanyController@settingsUpdate');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Edit']], function () use ($router) {
                     $router->post('update', 'V1\CompanyController@update');
@@ -67,8 +64,19 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Delete']], function () use ($router) {
                     $router->post('deleteAttachment', 'V1\CompanyController@deleteAttachment');
-                    $router->post('settingsDelete', 'V1\CompanyController@settingsDelete');
                 });    
+                $router->group(['prefix' => 'accountSystem'], function () use ($router) {
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:15,Add']], function () use ($router) {
+                        $router->post('update', 'V1\CompanyController@accountSystemUpdate');
+                    });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:15,Delete']], function () use ($router) {
+                        $router->post('delete', 'V1\CompanyController@accountSystemDelete');
+                    });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:15,View']], function () use ($router) {
+                        $router->post('titleList', 'V1\CompanyController@accountSystemTitleList');
+                        $router->post('show', 'V1\CompanyController@accountSystemShow');
+                    });
+                });
                 $router->post('subsidiaryDropDown', 'V1\CompanyController@subsidiaryDropDown');
                 $router->post('parentDropDown', 'V1\CompanyController@parentDropDown');  
                 $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');    

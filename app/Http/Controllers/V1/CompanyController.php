@@ -320,80 +320,80 @@ class CompanyController extends Controller
         }
     }
     /**
-     * List Settings Title.
+     * List Account System Title.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function settingsTitleList(Request $request) : JsonResponse
+    public function accountSystemTitleList(Request $request) : JsonResponse
     {
         try {
-            $response = $this->companyServices->settingsTitleList();
+            $response = $this->companyServices->accountSystemTitleList();
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to List Settings Title']);
+            return $this->sendError(['message' => 'Failed to List Account System Title']);
         }
     }
     /**
-     * Show Settings.
+     * Show Account System.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function settingsShow(Request $request) : JsonResponse
+    public function accountSystemShow(Request $request) : JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $response = $this->companyServices->settingsShow($params);
+            $response = $this->companyServices->accountSystemShow($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Show the Settings']);
+            return $this->sendError(['message' => 'Failed to Show Account System']);
         }
     }
     /**
-     * Update Settings.
+     * Update Account System.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function settingsUpdate(Request $request) : JsonResponse
+    public function accountSystemUpdate(Request $request) : JsonResponse
     {
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
             $params['created_by'] = $user['id'];
-            $response = $this->companyServices->settingsUpdate($params);
+            $response = $this->companyServices->accountSystemUpdate($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }elseif (isset($response['InvalidTitle'])) {
                 return $this->sendError(['message' => 'Invalid Title.']); 
             }
-            return $this->sendSuccess(['message' => 'Settings Updated Successfully']);
+            return $this->sendSuccess(['message' => 'Account System Updated Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Update the Settings']);
+            return $this->sendError(['message' => 'Failed to Update the Account System']);
         }
     }
     /**
-     * Delete a Settings.
+     * Delete a Account System.
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function settingsDelete(Request $request): JsonResponse
+    public function accountSystemDelete(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
-            $response = $this->companyServices->settingsDelete($params);
+            $response = $this->companyServices->accountSystemDelete($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
-            return $this->sendSuccess(['message' => 'Settings Deleted Successfully']);
+            return $this->sendSuccess(['message' => 'Account System Deleted Successfully']);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            return $this->sendError(['message' => 'Failed to Delete Settings']);
+            return $this->sendError(['message' => 'Failed to Delete Account System']);
         }
     }
 }

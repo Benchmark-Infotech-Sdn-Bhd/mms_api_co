@@ -90,7 +90,7 @@ class CompanyServices
     /**
      * @return array
      */
-    public function settingsUpdateValidation(): array
+    public function accountSystemUpdateValidation(): array
     {
         return [
             'company_id' => 'required',
@@ -100,7 +100,7 @@ class CompanyServices
     /**
      * @return array
      */
-    public function settingsDeleteValidation(): array
+    public function accountSystemDeleteValidation(): array
     {
         return [
             'company_id' => 'required',
@@ -420,18 +420,21 @@ class CompanyServices
         return true;
     }
     /**
-     * @param $request
-     * @return mixed
+     * list the account system title list.
+     *
+     * @return array
      */
-    public function settingsTitleList(): array
+    public function accountSystemTitleList(): array
     {
-        return Config::get('services.SETTINGS_TITLE');
+        return Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE');
     }
     /**
-     * @param $request
-     * @return mixed
+     * show a account system.
+     *
+     * @param array $request The request data containing account system detail.
+     * @return mixed Returns account system data
      */
-    public function settingsShow($request): mixed
+    public function accountSystemShow($request): mixed
     {
         return $this->xeroSettings
             ->where('company_id', $request['company_id'])
@@ -440,18 +443,22 @@ class CompanyServices
             ->get();
     }
     /**
-     * @param $request
-     * @return bool|array
+     * updte a account system.
+     *
+     * @param array $request The request data containing account system details.
+     * @return mixed Returns true if the system is updated successfully.
+     *              Returns error if validation error is exist
+     *              Returns InvalidTitle if Title is not exist
      */
-    public function settingsUpdate($request): bool|array
+    public function accountSystemUpdate($request): mixed
     {
-        $validator = Validator::make($request, $this->settingsUpdateValidation());
+        $validator = Validator::make($request, $this->accountSystemUpdateValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
-        $settingsTitle = Config::get('services.SETTINGS_TITLE');
+        $settingsTitle = Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE');
         if (!in_array($request['title'], $settingsTitle)) {
             return [
                 'InvalidTitle' => true
@@ -479,13 +486,14 @@ class CompanyServices
         return true;
     }
     /**
+     * delete a account system.
      *
-     * @param $request
+     * @param array $request The request data containing account system details.
      * @return bool
      */    
-    public function settingsDelete($request): bool|array
+    public function accountSystemDelete($request): bool|array
     {   
-        $validator = Validator::make($request, $this->settingsDeleteValidation());
+        $validator = Validator::make($request, $this->accountSystemDeleteValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()

@@ -162,5 +162,5 @@ return [
 
     'INVOICE_RESUBMISSION_FAILED_MAIL' => env('INVOICE_RESUBMISSION_FAILED_MAIL', "muralidharan.n@codtesma.com"),
 
-    'SETTINGS_TITLE' => ['XERO', 'ZOHO'],
+    'COMPANY_ACCOUNT_SYSTEM_TITLE' => ['XERO', 'ZOHO'],
 ];
