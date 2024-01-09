@@ -268,6 +268,7 @@ class CRMServices
                 'error' => $validator->errors()
             ];
         }
+        $res = '';
         $prospect  = $this->crmProspect->create([
             'company_name'                  => $request['company_name'] ?? '',
             'roc_number'                    => $request['roc_number'] ?? '',
@@ -291,7 +292,8 @@ class CRMServices
         ]);
 
         if($this->hasCustomerLogin($request['company_id'])) {
-            if($this->checkCustomerRole($request['company_id'])) {
+            $role = $this->checkCustomerRole($request['company_id']);
+            if($role) {
                 $role = $this->role->create([
                     'role_name'     => 'Customer',
                     'system_role'   => $request['system_role'] ?? 0,
@@ -309,7 +311,7 @@ class CRMServices
             $res = $this->authServices->create(
                 ['name' => $request['pic_name'],
                 'email' => $request['email'],
-                'role_id' => $role->id,
+                'role_id' => $role['id'],
                 'user_id' => $request['created_by'],
                 'status' => 1,
                 'password' => Str::random(8),
@@ -319,13 +321,13 @@ class CRMServices
                 'company_id' => $request['company_id']
             ]);
         }
-        // if(!$res){
-        //     $prospect->delete();
-        //     return [
-        //         "isCreated" => false,
-        //         "message"=> "Employee not created"
-        //     ];
-        // }
+        if(!$res){
+            $prospect->delete();
+            return [
+                "isCreated" => false,
+                "message"=> "Employee not created"
+            ];
+        }
 
         $sector = $this->sectors->findOrFail($request['sector_type']);
         if(isset($request['prospect_service']) && !empty($request['prospect_service'])) {
