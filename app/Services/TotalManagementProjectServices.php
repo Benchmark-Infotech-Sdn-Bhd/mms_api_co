@@ -165,7 +165,13 @@ class TotalManagementProjectServices
         ->join('total_management_applications', function ($join) use ($request) {
             $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                  ->whereIn('total_management_applications.company_id', $request['company_id']);
-        })->findOrFail($request['id']);
+        })->select('total_management_project.*')->find($request['id']);
+
+        if(is_null($totalManagementProject)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
         
         $totalManagementProject->name =  $request['name'] ?? $totalManagementProject->name;
         $totalManagementProject->state =  $request['state'] ?? $totalManagementProject->state;

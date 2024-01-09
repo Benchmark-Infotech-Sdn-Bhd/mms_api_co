@@ -250,7 +250,7 @@ class DirectRecruitmentOnboardingCountryServices
         $onboardingCountry = $this->directRecruitmentOnboardingCountry->join('directrecruitment_applications', function ($join) use($request) {
                             $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
                                 ->where('directrecruitment_applications.company_id', $request['company_id']);
-                            })->find($request['id']);
+                            })->select('directrecruitment_onboarding_countries.*')->find($request['id']);
         if(is_null($onboardingCountry)) {
             return [
                 'InvalidUser' =>true

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\FeeRegistration;
 use App\Models\CompanyModulePermission;
 use App\Models\RolePermission;
+use App\Models\XeroSettings;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -47,6 +48,10 @@ class CompanyServices
      * @var RolePermission
      */
     private RolePermission $rolePermission;
+    /**
+     * @var XeroSettings
+     */
+    private XeroSettings $xeroSettings;
 
     /**
      * CompanyServices constructor
@@ -58,8 +63,9 @@ class CompanyServices
      * @param CompanyModulePermission $companyModulePermission
      * @param Storage $storage
      * @param RolePermission $rolePermission
+     * @param XeroSettings $xeroSettings
      */
-    public function __construct(Company $company, CompanyAttachments $companyAttachments, UserCompany $userCompany, User $user, FeeRegistration $feeRegistration, Storage $storage, CompanyModulePermission $companyModulePermission, RolePermission $rolePermission) 
+    public function __construct(Company $company, CompanyAttachments $companyAttachments, UserCompany $userCompany, User $user, FeeRegistration $feeRegistration, Storage $storage, CompanyModulePermission $companyModulePermission, RolePermission $rolePermission, XeroSettings $xeroSettings) 
     {
         $this->company = $company;
         $this->companyAttachments = $companyAttachments;
@@ -69,6 +75,7 @@ class CompanyServices
         $this->companyModulePermission = $companyModulePermission;
         $this->storage = $storage;
         $this->rolePermission = $rolePermission;
+        $this->xeroSettings = $xeroSettings;
     }
     /**
      * @return array
@@ -88,6 +95,23 @@ class CompanyServices
         return [
             'company_id' => 'required',
             'features' => 'required'
+        ];
+    }
+    public function accountSystemUpdateValidation(): array
+    {
+        return [
+            'company_id' => 'required',
+            'title' => 'required'
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function accountSystemDeleteValidation(): array
+    {
+        return [
+            'company_id' => 'required',
+            'title' => 'required'
         ];
     }
     /**
@@ -401,7 +425,7 @@ class CompanyServices
             ]);   
         }
 
-        $roleIds = $this->rolePermission->join('roles', 'roles.id', 'role_permission.role_id')
+        $this->rolePermission->join('roles', 'roles.id', 'role_permission.role_id')
         ->where('roles.company_id', $request['company_id'])
         ->whereIn('role_permission.module_id', $diffModules)
         ->delete();
@@ -433,15 +457,14 @@ class CompanyServices
                 'error' => $validator->errors()
             ];
         }
-
-        $result = $this->companyModulePermission
+        $this->companyModulePermission
         ->join('modules', 'modules.id', 'company_module_permission.module_id')
         ->where('company_module_permission.company_id', $request['company_id'])
         ->where('modules.feature_flag', 1)
         ->delete();
 
         foreach ($request['features'] as $featureId) {
-            $res = $this->companyModulePermission->create([
+            $this->companyModulePermission->create([
                 'company_id'    => $request['company_id'],
                 'module_id'     => $featureId,
                 'created_by'    => $request['created_by'] ?? 0,
@@ -449,5 +472,87 @@ class CompanyServices
             ]);   
         }
         return true;
+    }
+    /*
+     * list the account system title list.
+     *
+     * @return array
+     */
+    public function accountSystemTitleList(): array
+    {
+        return Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE');
+    }
+    /**
+     * show a account system.
+     *
+     * @param array $request The request data containing account system detail.
+     * @return mixed Returns account system data
+     */
+    public function accountSystemShow($request): mixed
+    {
+        return $this->xeroSettings
+            ->where('company_id', $request['company_id'])
+            ->where('title', $request['title'])
+            ->select('id', 'title', 'url', 'client_id', 'client_secret', 'tenant_id', 'access_token', 'refresh_token', 'redirect_url', 'remarks')
+            ->get();
+    }
+    /**
+     * updte a account system.
+     *
+     * @param array $request The request data containing account system details.
+     * @return mixed Returns true if the system is updated successfully.
+     *              Returns error if validation error is exist
+     *              Returns InvalidTitle if Title is not exist
+     */
+    public function accountSystemUpdate($request): mixed
+    {
+        $validator = Validator::make($request, $this->accountSystemUpdateValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        $settingsTitle = Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE');
+        if (!in_array($request['title'], $settingsTitle)) {
+            return [
+                'InvalidTitle' => true
+            ];
+        }
+
+        $this->xeroSettings->updateOrCreate(
+            [
+                'company_id' => $request['company_id'],
+                'title' => $request['title']
+            ],
+            [
+                'url' => $request['url'] ?? null,
+                'client_id' => $request['client_id'] ?? null, 
+                'client_secret' => $request['client_secret'] ?? null, 
+                'tenant_id' => $request['tenant_id'] ?? null, 
+                'access_token' => $request['access_token'] ?? null, 
+                'refresh_token' => $request['refresh_token'] ?? null,
+                'redirect_url' => $request['redirect_url'] ?? null,
+                'remarks' => $request['remarks'] ?? null,
+                'created_by'    => $request['created_by'] ?? 0,
+                'modified_by'   => $request['created_by'] ?? 0
+            ]
+        );
+        return true;
+    }
+    /**
+     * delete a account system.
+     *
+     * @param array $request The request data containing account system details.
+     * @return bool
+     */    
+    public function accountSystemDelete($request): bool|array
+    {   
+        $validator = Validator::make($request, $this->accountSystemDeleteValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        return $this->xeroSettings->where('company_id', $request['company_id'])->where('title', $request['title'])->delete();
     }
 }

@@ -81,7 +81,7 @@ class CommonWorkerImport implements ToModel, WithChunkReading, WithHeadingRow
                 // Log::info('Row Data' . print_r($workerParameter, true));
                 
                 DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-                dispatch(new CommonWorkersImport($workerParameter, $this->bulkUpload, $workerNonMandatory))/*->onQueue('common_worker_import')->onConnection('database')*/;
+                dispatch(new CommonWorkersImport($workerParameter, $this->bulkUpload, $workerNonMandatory))->onQueue('common_worker_import')->onConnection('database');
 
         } catch (\Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));

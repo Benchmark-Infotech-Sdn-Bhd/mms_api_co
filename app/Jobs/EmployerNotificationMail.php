@@ -107,39 +107,43 @@ class EmployerNotificationMail implements ShouldQueue
         }
 
         if($this->emailValidation($input['email'])){
-            Mail::send('email.EmployerNotificationMail', ['params' => $input], function ($message) use ($input) {
-                $message->to($input['email'])
-                    ->subject($input['subject']);
-                $message->from(Config::get('services.mail_from_address'), Config::get('services.mail_from_name'));
+            try{
+                Mail::send('email.EmployerNotificationMail', ['params' => $input], function ($message) use ($input) {
+                    $message->to($input['email'])
+                        ->subject($input['subject']);
+                    $message->from(Config::get('services.mail_from_address'), Config::get('services.mail_from_name'));
 
-                if(isset($input['passport_attachment_filename']) && isset($input['passport_attachment_file'])){
-                    $message->attachData($input['passport_attachment_file'], $input['passport_attachment_filename']);
-                }
-                if(isset($input['insurance_attachment_filename']) && isset($input['insurance_attachment_file'])){
-                    $message->attachData($input['insurance_attachment_file'], $input['insurance_attachment_filename']);
-                }
-                if(isset($input['fomema_attachment_filename']) && isset($input['fomema_attachment_file'])){
-                    $message->attachData($input['fomema_attachment_file'], $input['fomema_attachment_filename']);
-                }
-                if(isset($input['plks_attachment_filename']) && isset($input['plks_attachment_file'])){
-                    $message->attachData($input['plks_attachment_file'], $input['plks_attachment_filename']);
-                }
-                if(isset($input['callingvisa_attachment_filename']) && isset($input['callingvisa_attachment_file'])){
-                    $message->attachData($input['callingvisa_attachment_file'], $input['callingvisa_attachment_filename']);
-                }
-                if(isset($input['specialpass_attachment_filename']) && isset($input['specialpass_attachment_file'])){
-                    $message->attachData($input['specialpass_attachment_file'], $input['specialpass_attachment_filename']);
-                }
-                if(isset($input['entryvisa_attachment_filename']) && isset($input['entryvisa_attachment_file'])){
-                    $message->attachData($input['entryvisa_attachment_file'], $input['entryvisa_attachment_filename']);
-                }
-                if(isset($input['serviceagreement_attachment_filename']) && isset($input['serviceagreement_attachment_file'])){
-                    $message->attachData($input['serviceagreement_attachment_file'], $input['serviceagreement_attachment_filename']);
-                }
+                    if(isset($input['passport_attachment_filename']) && isset($input['passport_attachment_file'])){
+                        $message->attachData($input['passport_attachment_file'], $input['passport_attachment_filename']);
+                    }
+                    if(isset($input['insurance_attachment_filename']) && isset($input['insurance_attachment_file'])){
+                        $message->attachData($input['insurance_attachment_file'], $input['insurance_attachment_filename']);
+                    }
+                    if(isset($input['fomema_attachment_filename']) && isset($input['fomema_attachment_file'])){
+                        $message->attachData($input['fomema_attachment_file'], $input['fomema_attachment_filename']);
+                    }
+                    if(isset($input['plks_attachment_filename']) && isset($input['plks_attachment_file'])){
+                        $message->attachData($input['plks_attachment_file'], $input['plks_attachment_filename']);
+                    }
+                    if(isset($input['callingvisa_attachment_filename']) && isset($input['callingvisa_attachment_file'])){
+                        $message->attachData($input['callingvisa_attachment_file'], $input['callingvisa_attachment_filename']);
+                    }
+                    if(isset($input['specialpass_attachment_filename']) && isset($input['specialpass_attachment_file'])){
+                        $message->attachData($input['specialpass_attachment_file'], $input['specialpass_attachment_filename']);
+                    }
+                    if(isset($input['entryvisa_attachment_filename']) && isset($input['entryvisa_attachment_file'])){
+                        $message->attachData($input['entryvisa_attachment_file'], $input['entryvisa_attachment_filename']);
+                    }
+                    if(isset($input['serviceagreement_attachment_filename']) && isset($input['serviceagreement_attachment_file'])){
+                        $message->attachData($input['serviceagreement_attachment_file'], $input['serviceagreement_attachment_filename']);
+                    }
 
-            });
-    
-            Log::channel('cron_activity_logs')->info('Employer notification mail process completed' );
+                });
+        
+                Log::channel('cron_activity_logs')->info('Employer notification mail process completed' );
+            } catch(Exception $e) {
+                Log::channel('cron_activity_logs')->info('Error - ' . print_r($e->getMessage(), true));
+            }
         }else{
             Log::channel('cron_activity_logs')->info('Employer notification mail process failed due to incorrect email id' );
         }

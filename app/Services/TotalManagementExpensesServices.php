@@ -301,7 +301,7 @@ class TotalManagementExpensesServices
         $request['modified_by'] = $user['id'];
         $params['company_id'] = $this->authServices->getCompanyIds($user);
         $expense = $this->totalManagementExpenses->leftJoin('workers', 'workers.id', 'total_management_expenses.worker_id')
-        ->whereIn('workers.company_id', $params['company_id'])->findOrFail($request['id']);
+        ->whereIn('workers.company_id', $params['company_id'])->select('total_management_expenses.*')->findOrFail($request['id']);
         $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;
         if($totalPayBack > $expense->amount) {
