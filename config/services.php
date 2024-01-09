@@ -161,4 +161,6 @@ return [
     'SUPER_ADMIN_MODULES' => [14,15],
 
     'INVOICE_RESUBMISSION_FAILED_MAIL' => env('INVOICE_RESUBMISSION_FAILED_MAIL', "muralidharan.n@codtesma.com"),
+
+    'COMPANY_ACCOUNT_SYSTEM_TITLE' => ['XERO', 'ZOHO'],
 ];
