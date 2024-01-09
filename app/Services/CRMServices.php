@@ -293,7 +293,7 @@ class CRMServices
 
         if($this->hasCustomerLogin($request['company_id'])) {
             $role = $this->checkCustomerRole($request['company_id']);
-            if($role) {
+            if(is_null($role)) {
                 $role = $this->role->create([
                     'role_name'     => 'Customer',
                     'system_role'   => $request['system_role'] ?? 0,
@@ -321,7 +321,8 @@ class CRMServices
                 'company_id' => $request['company_id']
             ]);
         }
-        if(!$res) {
+
+        if(!$res){
             $prospect->delete();
             return [
                 "isCreated" => false,
@@ -572,17 +573,15 @@ class CRMServices
      * Checks if the company has cutomer role.
      *
      * @param integer $companyId .
-     * @return bool Returns true if the company doesn't have customer role, false otherwise.
+     * @return mixed Returns role if the company have the role customer, returns null otherwise.
      */
-    private function checkCustomerRole($companyId): bool
+    private function checkCustomerRole($companyId): mixed
     {
-        $role = $this->role->where('role_name', 'Customer')
+        return $this->role->where('role_name', 'Customer')
         ->where('company_id', $companyId)
         ->whereNull('deleted_at')
         ->where('status',1)
         ->first('id');
-
-        return is_null($role);
     }
     /**
      * Assigning access to the customer role.
