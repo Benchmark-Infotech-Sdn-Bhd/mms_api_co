@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Config;
 class AccessManagementServices
 {
     /**
-     * @var `RolePermission`
+     * @var RolePermission
      */
     private RolePermission $rolePermission;
     /**

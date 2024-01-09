@@ -51,12 +51,14 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,View']], function () use ($router) {
                     $router->post('list', 'V1\CompanyController@list');
                     $router->post('show', 'V1\CompanyController@show');   
-                    $router->post('moduleList', 'V1\CompanyController@moduleList');                                   
+                    $router->post('moduleList', 'V1\CompanyController@moduleList');                                    
+                    $router->post('featureList', 'V1\CompanyController@featureList');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Add']], function () use ($router) {
                     $router->post('create', 'V1\CompanyController@create');
                     $router->post('assignSubsidiary', 'V1\CompanyController@assignSubsidiary');
                     $router->post('assignModule', 'V1\CompanyController@assignModule');
+                    $router->post('assignFeature', 'V1\CompanyController@assignFeature');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Edit']], function () use ($router) {
                     $router->post('update', 'V1\CompanyController@update');
@@ -80,7 +82,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->post('subsidiaryDropDown', 'V1\CompanyController@subsidiaryDropDown');
                 $router->post('parentDropDown', 'V1\CompanyController@parentDropDown');  
                 $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');    
-                $router->post('dropdown', 'V1\CompanyController@dropdown');       
+                $router->post('dropdown', 'V1\CompanyController@dropdown');     
             });
             
         });
@@ -96,6 +98,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
          */
         $router->group(['prefix' => 'module'], function () use ($router) {
             $router->post('dropDown', 'V1\ModulesController@dropDown');
+            $router->post('featureDropDown', 'V1\ModulesController@featureDropDown');
         });
         /**
          * Routes for Services.

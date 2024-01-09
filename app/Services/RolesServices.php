@@ -62,7 +62,7 @@ class RolesServices
                     $query->where('role_name', 'like', '%'.$request['search'].'%');
                 }
             })
-            ->select('id', 'role_name', 'status')
+            ->select('id', 'role_name', 'status', 'editable')
             ->orderBy('id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
@@ -171,7 +171,7 @@ class RolesServices
     {
         return $this->role->where('status', 1)
             ->whereIn('company_id', $companyId)
-            ->select('id', 'role_name', 'special_permission')
+            ->select('id', 'role_name', 'special_permission', 'editable')
             ->get();
     }
     /**
