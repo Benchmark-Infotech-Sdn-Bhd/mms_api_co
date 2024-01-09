@@ -19,13 +19,6 @@ use App\Events\KSMQuotaUpdated;
 
 class DirecRecruitmentPostArrivalServices
 {
-    public const CUSTOMER = 'Customer';
-    public const STATUS_NOT_ARRIVED = 'Not Arrived';
-    public const STATUS_POSTPONED = 'Postponed';
-    public const REQUEST_COMPANY_ID = 'company_id';
-    public const STATUS_ACTIVE = 1;
-    public const STATUS_IN_ACTIVE = 0;
-
     /**
      * @var DirectRecruitmentPostArrivalStatus
      */
@@ -75,17 +68,7 @@ class DirecRecruitmentPostArrivalServices
      * @param Storage $storage
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
-    public function __construct(
-        DirectRecruitmentPostArrivalStatus          $directRecruitmentPostArrivalStatus, 
-        WorkerVisa                                  $workerVisa, 
-        WorkerArrival                               $workerArrival, 
-        DirectrecruitmentArrival                    $directrecruitmentArrival, 
-        CancellationAttachment                      $cancellationAttachment, 
-        Workers                                     $workers, 
-        DirectRecruitmentOnboardingCountryServices  $directRecruitmentOnboardingCountryServices, 
-        Storage                                     $storage, 
-        DirectRecruitmentOnboardingCountry          $directRecruitmentOnboardingCountry
-    )
+    public function __construct(DirectRecruitmentPostArrivalStatus $directRecruitmentPostArrivalStatus, WorkerVisa $workerVisa, WorkerArrival $workerArrival, DirectrecruitmentArrival $directrecruitmentArrival, CancellationAttachment $cancellationAttachment, Workers $workers, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, Storage $storage, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry)
     {
         $this->directRecruitmentPostArrivalStatus           = $directRecruitmentPostArrivalStatus;
         $this->workerVisa                                   = $workerVisa;
@@ -97,11 +80,8 @@ class DirecRecruitmentPostArrivalServices
         $this->storage                                      = $storage;
         $this->directRecruitmentOnboardingCountry           = $directRecruitmentOnboardingCountry;
     }
-
     /**
-     * Validates the input and returns the errors if validation fails.
-     *
-     * @return array The validation error messages if validation fails, otherwise false.
+     * @return array
      */
     public function searchValidation(): array
     {
@@ -109,11 +89,8 @@ class DirecRecruitmentPostArrivalServices
             'search' => 'required|min:3'
         ];
     }
-
     /**
-     * Validates the input and returns the errors if validation fails.
-     *
-     * @return array The validation error messages if validation fails, otherwise false.
+     * @return array
      */
     public function postArrivalValidation(): array
     {
@@ -123,9 +100,7 @@ class DirecRecruitmentPostArrivalServices
         ];
     }
     /**
-     * Validates the input and returns the errors if validation fails.
-     *
-     * @return array The validation error messages if validation fails, otherwise false.
+     * @return array
      */
     public function jtkSubmissionValidation(): array
     {
@@ -134,9 +109,7 @@ class DirecRecruitmentPostArrivalServices
         ];
     }
     /**
-     * Validates the input and returns the errors if validation fails.
-     *
-     * @return array The validation error messages if validation fails, otherwise false.
+     * @return array
      */
     public function cancellationValidation(): array
     {
@@ -145,9 +118,7 @@ class DirecRecruitmentPostArrivalServices
         ];
     }
     /**
-     * Validates the input and returns the errors if validation fails.
-     *
-     * @return array The validation error messages if validation fails, otherwise false.
+     * @return array
      */
     public function postponedValidation(): array
     {
@@ -159,10 +130,8 @@ class DirecRecruitmentPostArrivalServices
         ];
     }
     /**
-     * Lists the post arrival status list.
-     *
-     * @param array $request The request data containing post arrival status list.
-     * @return mixed Returns list of post arrival status.
+     * @param $request
+     * @return mixed
      */
     public function postArrivalStatusList($request): mixed
     {
@@ -179,12 +148,9 @@ class DirecRecruitmentPostArrivalServices
             ->orderBy('directrecruitment_post_arrival_status.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
-
     /**
-     * Returns a paginated list of workers with their post arrival details.
-     *
-     * @param array $request The request data containing company id,  application_id, onboarding_country_id, user details with search filters
-     * @return mixed \Illuminate\Pagination\LengthAwarePaginator The paginated list of workers with their post arrival details.
+     * @param $request
+     * @return mixed
      */
     public function workersList($request): mixed
     {
@@ -201,69 +167,42 @@ class DirecRecruitmentPostArrivalServices
             ->join('worker_arrival', 'worker_arrival.worker_id', 'workers.id')
             ->join('directrecruitment_arrival', 'directrecruitment_arrival.id', 'worker_arrival.arrival_id')
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
-            ->whereIn('workers.company_id', $request[self::REQUEST_COMPANY_ID])
+            ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
-                if ($request['user']['user_type'] == self::CUSTOMER) {
+                if ($request['user']['user_type'] == 'Customer') {
                     $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
                 }
             })
             ->where([
                 'directrecruitment_workers.application_id' => $request['application_id'],
                 'directrecruitment_workers.onboarding_country_id' => $request['onboarding_country_id'],
-                'workers.cancel_status' => self::STATUS_IN_ACTIVE
+                'workers.cancel_status' => 0
             ])
             ->where(function ($query) use ($request) {
-                $query->where('worker_arrival.arrival_status', self::STATUS_NOT_ARRIVED)
+                $query->where('worker_arrival.arrival_status', 'Not Arrived')
                 ->orWhere('worker_arrival.jtk_submitted_on', NULL);
             })
             ->whereNotNull('worker_arrival.arrival_id')
-            ->where('worker_arrival.arrival_status', '!=', self::STATUS_POSTPONED)
+            ->where('worker_arrival.arrival_status', '!=', 'Postponed')
             ->where(function ($query) use ($request) {
-                $this->applySearchQuery($query, $request);
+                if(isset($request['search']) && !empty($request['search'])) {
+                    $query->where('workers.name', 'like', '%'.$request['search'].'%')
+                    ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
+                    ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%');
+                }
             })
             ->where(function ($query) use ($request) {
-                $this->applySearchFilter($query, $request);
+                if(isset($request['filter']) && !empty($request['filter'])) {
+                    $query->where('directrecruitment_arrival.flight_date', $request['filter']);
+                }
             })
             ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.entry_visa_valid_until', 'directrecruitment_workers.application_id', 'directrecruitment_workers.onboarding_country_id', 'worker_arrival.jtk_submitted_on', 'worker_arrival.arrival_status')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->paginate(Config::get('services.paginate_worker_row'));
     }
-
     /**
-     * Applies the search query to the given query builder.
-     *
-     * @param Builder $query The query builder to apply the search query to.
-     * @param array $request The request containing the search parameter.
+     * @param $applicationId, $onboardingCountryId, $modifiedBy
      * @return void
-     */
-    private function applySearchQuery($query, $request)
-    {
-        if (!empty($request['search'])) {
-            $query->where('workers.name', 'like', '%'.$request['search'].'%')
-            ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
-            ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%');
-        }
-    }
-
-    /**
-     * Applies the search query to the given query builder.
-     *
-     * @param Builder $query The query builder to apply the search query to given filters.
-     * @param array $request The request containing the search parameter.
-     * @return void
-     */
-    private function applySearchFilter($query, $request)
-    {
-        if (!empty($request['filter'])) {
-            $query->where('directrecruitment_arrival.flight_date', $request['filter']);
-        }
-    }
-
-    /**
-     * Update the post arrival updatetion details.
-     *
-     * @param void $applicationId, $onboardingCountryId, $modifiedBy
-     * Updated the post arrival information
      */
     public function updatePostArrivalStatus($applicationId, $onboardingCountryId, $modifiedBy): void
     {
@@ -275,15 +214,6 @@ class DirecRecruitmentPostArrivalServices
     /**
      * @param $request
      * @return array|bool
-     */
-    /**
-     * Update the post arraival details on the given input request.
-     *
-     * @param mixed $request The request data to update the post arrival details.
-     * @return array|bool Returns an array with the following keys:
-     *  - "validate": An array of validation errors, if any.
-     *  - "isInvalidUser": A boolean returns true if user is invalid.
-     *  - "isUpdated": A boolean indicating if the post arrival details was successfully updated.
      */
     public function updatePostArrival($request): array|bool
     {
