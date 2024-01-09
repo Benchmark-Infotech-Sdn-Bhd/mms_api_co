@@ -158,7 +158,7 @@ class AccommodationServices
             $query->on('vendors.id','=','accommodation.vendor_id')
             ->whereIn('vendors.company_id', $user['company_id']);
         })
-        ->select('accommodation.*')
+        ->select('accommodation.id', 'accommodation.name', 'accommodation.location', 'accommodation.maximum_pax_per_unit', 'accommodation.deposit', 'accommodation.rent_per_month', 'accommodation.vendor_id', 'accommodation.created_by', 'accommodation.modified_by', 'accommodation.created_at', 'accommodation.updated_at', 'accommodation.deleted_at', 'accommodation.tnb_bill_account_Number','accommodation.water_bill_account_Number')
         ->find($request['id']);
 
     }
@@ -178,7 +178,7 @@ class AccommodationServices
             $query->on('vendors.id','=','accommodation.vendor_id')
             ->where('vendors.company_id', $user['company_id']);
         })
-        ->select('accommodation.*')
+        ->select('accommodation.id', 'accommodation.name', 'accommodation.location', 'accommodation.maximum_pax_per_unit', 'accommodation.deposit', 'accommodation.rent_per_month', 'accommodation.vendor_id', 'accommodation.created_by', 'accommodation.modified_by', 'accommodation.created_at', 'accommodation.updated_at', 'accommodation.deleted_at', 'accommodation.tnb_bill_account_Number','accommodation.water_bill_account_Number')
         ->find($request['id']);
         
         if(is_null($data)){
@@ -225,7 +225,7 @@ class AccommodationServices
             $query->on('vendors.id','=','accommodation.vendor_id')
             ->where('vendors.company_id', $user['company_id']);
         })
-        ->select('accommodation.*')
+        ->select('accommodation.id', 'accommodation.name', 'accommodation.location', 'accommodation.maximum_pax_per_unit', 'accommodation.deposit', 'accommodation.rent_per_month', 'accommodation.vendor_id', 'accommodation.created_by', 'accommodation.modified_by', 'accommodation.created_at', 'accommodation.updated_at', 'accommodation.deleted_at', 'accommodation.tnb_bill_account_Number','accommodation.water_bill_account_Number')
         ->find($request['id']);
         
         if(is_null($data)){
@@ -256,7 +256,7 @@ class AccommodationServices
             $query->on('vendors.id','=','accommodation.vendor_id')
             ->where('vendors.company_id', $user['company_id']);
         })
-        ->select('accommodation_attachments.*')
+        ->select('accommodation_attachments.id', 'accommodation_attachments.file_id', 'accommodation_attachments.file_name', 'accommodation_attachments.file_type', 'accommodation_attachments.file_url', 'accommodation_attachments.created_by', 'accommodation_attachments.modified_by', 'accommodation_attachments.created_at', 'accommodation_attachments.updated_at', 'accommodation_attachments.deleted_at')
         ->find($request['id']);
 
         if(is_null($data)){
