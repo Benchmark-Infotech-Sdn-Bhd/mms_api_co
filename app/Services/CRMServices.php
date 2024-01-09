@@ -319,13 +319,13 @@ class CRMServices
                 'company_id' => $request['company_id']
             ]);
         }
-        if(!$res){
-            $prospect->delete();
-            return [
-                "isCreated" => false,
-                "message"=> "Employee not created"
-            ];
-        }
+        // if(!$res){
+        //     $prospect->delete();
+        //     return [
+        //         "isCreated" => false,
+        //         "message"=> "Employee not created"
+        //     ];
+        // }
 
         $sector = $this->sectors->findOrFail($request['sector_type']);
         if(isset($request['prospect_service']) && !empty($request['prospect_service'])) {
