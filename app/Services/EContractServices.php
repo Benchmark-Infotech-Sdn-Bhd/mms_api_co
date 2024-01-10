@@ -18,48 +18,64 @@ use App\Models\DirectRecruitmentOnboardingCountry;
 
 class EContractServices
 {
+    public const CUSTOMER = 'Customer';
+    public const PROPOSAL = 'proposal';
+    public const PROPOSAL_SUBMITTED = 'Proposal Submitted';
+    public const PROSPECT_SERVICE = 'prospect service';
+    public const PENDING_PROPOSAL = 'Pending Proposal';
+
     /**
      * @var CRMProspect
      */
     private CRMProspect $crmProspect;
+
     /**
      * @var CRMProspectService
      */
     private CRMProspectService $crmProspectService;
+
     /**
      * @var CRMProspectAttachment
      */
     private CRMProspectAttachment $crmProspectAttachment;
+
     /**
      * @var Services
      */
     private Services $services;
+
     /**
      * @var Sectors
      */
     private Sectors $sectors;
+
     /**
      * @var EContractApplications
      */
     private EContractApplications $eContractApplications;
+
     /**
      * @var EContractApplicationAttachments
      */
     private EContractApplicationAttachments $eContractApplicationAttachments;
+
     /**
      * @var DirectrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
+
     /**
      * @var DirectRecruitmentOnboardingCountry
      */
     private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+
     /**
      * @var Storage
      */
     private Storage $storage;
+
     /**
-     * TotalManagementServices constructor.
+     * EContractServices constructor.
      * @param CRMProspect $crmProspect
      * @param CRMProspectService $crmProspectService
      * @param CRMProspectAttachment $crmProspectAttachment
@@ -71,8 +87,18 @@ class EContractServices
      * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      * @param Storage $storage
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, 
-    CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors, EContractApplications $eContractApplications, EContractApplicationAttachments $eContractApplicationAttachments, DirectrecruitmentApplications $directrecruitmentApplications, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage)
+    public function __construct(
+        CRMProspect $crmProspect, 
+        CRMProspectService $crmProspectService, 
+        CRMProspectAttachment $crmProspectAttachment, 
+        Services $services, 
+        Sectors $sectors, 
+        EContractApplications $eContractApplications, 
+        EContractApplicationAttachments $eContractApplicationAttachments, 
+        DirectrecruitmentApplications $directrecruitmentApplications, 
+        DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, 
+        Storage $storage
+    )
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -85,8 +111,11 @@ class EContractServices
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->storage = $storage;
     }
+
     /**
-     * @return array
+     * Validates the input and returns the errors if validation fails.
+     *
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function searchValidation(): array
     {
@@ -94,8 +123,11 @@ class EContractServices
             'search' => 'required|min:3'
         ];
     }
+
     /**
-     * @return array
+     * Validates the input and returns the errors if validation fails.
+     *
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function addServiceValidation(): array
     {
@@ -108,8 +140,11 @@ class EContractServices
             'air_ticket_deposit' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
         ];
     }
+
     /**
-     * @return array
+     * Validates the input and returns the errors if validation fails.
+     *
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function allocateQuotaValidation(): array
     {
@@ -119,15 +154,18 @@ class EContractServices
             'air_ticket_deposit' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
         ];
     }
+
     /**
-     * @param $request
-     * @return mixed
+     * Lists the application list
+     * 
+     * @param $request The request data containing application list.
+     * @return mixed Returns list of application.
      */
     public function applicationListing($request): mixed
     {
-        if(isset($request['search']) && !empty($request['search'])){
+        if (isset($request['search']) && !empty($request['search'])) {
             $validator = Validator::make($request, $this->searchValidation());
-            if($validator->fails()) {
+            if ($validator->fails()) {
                 return [
                     'error' => $validator->errors()
                 ];
@@ -150,12 +188,12 @@ class EContractServices
         ->where('crm_prospect_services.deleted_at', NULL)
         ->whereIn('e-contract_applications.company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
-            if ($request['user']['user_type'] == 'Customer') {
+            if ($request['user']['user_type'] == self::CUSTOMER) {
                 $query->where(`e-contract_applications`.`crm_prospect_id`, '=', $request['user']['reference_id']);
             }
         })
         ->where(function ($query) use ($request) {
-            if(isset($request['search']) && !empty($request['search'])) {
+            if (isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
             }
         })
@@ -164,29 +202,32 @@ class EContractServices
         ->orderBy('e-contract_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
+
     /**
-     * @param $request
-     * @return bool|array
+     * @param $request The request data containing service details.
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "unauthorizedError": A array returns unauthorized if prospect company is null.
+     * - "isSubmit": A boolean indicating if the crm prospect service, e-contract applications was successfully created.
      */
     public function addService($request): bool|array
     {
         $validator = Validator::make($request->toArray(), $this->addServiceValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
 
         $prospectCompany = $this->crmProspect
-        ->where('company_id', $request['company_id'])
-        ->find($request['prospect_id']);
-        if(is_null($prospectCompany)){
+            ->where('company_id', $request['company_id'])
+            ->find($request['prospect_id']);
+        if (is_null($prospectCompany)) {
             return [
                 'unauthorizedError' => 'Unauthorized'
             ];
         }
         
-
         $service = $this->services->find($request['service_id']);
         $prospectService = $this->crmProspectService->create([
             'crm_prospect_id'    => $request['prospect_id'],
@@ -197,9 +238,10 @@ class EContractServices
             'status'             => $request['status'] ?? 0,
             'fomnext_quota'      => $request['fomnext_quota'] ?? 0,
             'air_ticket_deposit' => $request['air_ticket_deposit'] ?? 0,
-        ]); 
+        ]);
+
         if (request()->hasFile('attachment')) {
-            foreach($request->file('attachment') as $file) {                
+            foreach ($request->file('attachment') as $file) {                
                 $fileName = $file->getClientOriginalName();                 
                 $filePath = '/crm/prospect/' . $request['service_name'] . '/' . $request['sector_name']. '/'. $fileName; 
                 $linode = $this->storage::disk('linode');
@@ -209,42 +251,49 @@ class EContractServices
                     "file_id" => $request['prospect_id'],
                     "prospect_service_id" => $prospectService->id,
                     "file_name" => $fileName,
-                    "file_type" => 'prospect service',
+                    "file_type" => self::PROSPECT_SERVICE,
                     "file_url" =>  $fileUrl          
                 ]);  
             }
         }
+
         $this->eContractApplications::create([
             'crm_prospect_id' => $request['prospect_id'],
             'service_id' => $prospectService->id,
             'quota_requested' => $request['fomnext_quota'] ?? 0,
             'person_incharge' => '',
             'cost_quoted' => 0,
-            'status' => 'Pending Proposal',
+            'status' => self::PENDING_PROPOSAL,
             'remarks' => '',
             'created_by' => $request["created_by"] ?? 0,
             'modified_by' => $request["created_by"] ?? 0,
             'company_id' => $request['company_id']
         ]);
+
         return true;
     }
+
     /**
-     * @param $request
-     * @return bool|array
+     * @param $request The request data containing proposal details.
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "unauthorizedError": A array returns unauthorized if application details is null.
+     * - "isSubmit": A boolean indicating if the application details was successfully updated.
      */
     public function submitProposal($request): bool|array
     {
         $validator = Validator::make($request->toArray(), $this->eContractApplications->rulesForSubmission());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
         $user = JWTAuth::parseToken()->authenticate();
         $params = $request->all();
         $params['modified_by'] = $user['id'];
         $applicationDetails = $this->eContractApplications->where('company_id', $request['company_id'])->find($params['id']);
-        if(is_null($applicationDetails)){
+        if (is_null($applicationDetails)) {
             return [
                 'unauthorizedError' => 'Unauthorized'
             ];
@@ -253,13 +302,13 @@ class EContractServices
         $applicationDetails->quota_requested = $params['quota_requested'] ?? $applicationDetails->quota_applied;
         $applicationDetails->person_incharge = $params['person_incharge'] ?? $applicationDetails->person_incharge;
         $applicationDetails->cost_quoted = $params['cost_quoted'] ?? $applicationDetails->cost_quoted;
-        $applicationDetails->status = 'Proposal Submitted';
+        $applicationDetails->status = self::PROPOSAL_SUBMITTED;
         $applicationDetails->remarks = $params['remarks'] ?? $applicationDetails->remarks;
         $applicationDetails->modified_by = $params['modified_by'];
         $applicationDetails->save();
 
-        if (request()->hasFile('attachment')){
-            foreach($request->file('attachment') as $file){
+        if (request()->hasFile('attachment')) {
+            foreach ($request->file('attachment') as $file) {
                 $fileName = $file->getClientOriginalName();
                 $filePath = '/eContract/proposal/' . $params['id'] . '/' . $fileName; 
                 $linode = $this->storage::disk('linode');
@@ -268,19 +317,21 @@ class EContractServices
                 $this->eContractApplicationAttachments::create([
                     "file_id" => $params['id'],
                     "file_name" => $fileName,
-                    "file_type" => 'proposal',
+                    "file_type" => self::PROPOSAL,
                     "file_url" =>  $fileUrl, 
                     "created_by" => $params['modified_by'],
                     "modified_by" => $params['modified_by']
                 ]);  
             }
         }
+
         return true;
     }
+
     /**
      *
-     * @param $request
-     * @return mixed
+     * @param $request The request data containing e-contract applications id,  company_id
+     * @return mixed The list of proposal
      */
     public function showProposal($request) : mixed
     {
@@ -290,21 +341,27 @@ class EContractServices
         ->whereIn('e-contract_applications.company_id', $request['company_id'])
         ->with(['applicationAttachment' => function ($query) {
             $query->orderBy('created_at', 'desc');
-        }])->select('e-contract_applications.id', 'e-contract_applications.quota_requested', 'e-contract_applications.person_incharge', 'e-contract_applications.cost_quoted', 'e-contract_applications.remarks', 'crm_prospect_services.sector_name')->get();
+        }])
+        ->select('e-contract_applications.id', 'e-contract_applications.quota_requested', 'e-contract_applications.person_incharge', 'e-contract_applications.cost_quoted', 'e-contract_applications.remarks', 'crm_prospect_services.sector_name')
+        ->get();
     }
+
     /**
-     * @param $request
-     * @return bool|array
+     * @param $request The request data containing quota details.
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "unauthorizedError": A array returns unauthorized if service details is null.
+     * - "isAllocate": A boolean indicating if the quota details was successfully updated.
      */
     public function allocateQuota($request): bool|array
     {
         $validator = Validator::make($request, $this->allocateQuotaValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
-        //$serviceDetails = $this->crmProspectService->findOrFail($request['prospect_service_id']);
+
         $serviceDetails = $this->crmProspectService
         ->join('crm_prospects', function($query) use($request) {
             $query->on('crm_prospects.id','=','crm_prospect_services.crm_prospect_id')
@@ -313,7 +370,7 @@ class EContractServices
         ->select('crm_prospect_services.*')
         ->find($request['prospect_service_id']);
 
-        if(is_null($serviceDetails)){
+        if (is_null($serviceDetails)) {
             return [
                 'unauthorizedError' => 'Unauthorized'
             ];
@@ -326,8 +383,10 @@ class EContractServices
         $applicationDetails = $this->eContractApplications->findOrFail($request['id']);
         $applicationDetails->quota_requested = $request['fomnext_quota'] ?? $serviceDetails->fomnext_quota;
         $applicationDetails->save();
+
         return true;
     }
+
     /**
      *
      * @param $request
