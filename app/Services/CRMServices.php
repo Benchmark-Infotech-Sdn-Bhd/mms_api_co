@@ -12,6 +12,8 @@ use App\Models\DirectrecruitmentApplications;
 use App\Models\TotalManagementApplications;
 use App\Models\EContractApplications;
 use App\Models\User;
+use App\Models\CompanyModulePermission;
+use App\Models\RolePermission;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -80,6 +82,14 @@ class CRMServices
      * @var Role
      */
     private Role $role;
+    /**
+     * @var companyModulePermission
+     */
+    private CompanyModulePermission $companyModulePermission;
+    /**
+     * @var RolePermission
+     */
+    private RolePermission $rolePermission;
 
     /**
      * RolesServices constructor.
@@ -97,8 +107,10 @@ class CRMServices
      * @param AuthServices $authServices
      * @param User $user
      * @param Role $role
+     * @param CompanyModulePermission $companyModulePermission
+     * @param RolePermission $rolePermission
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices, AuthServices $authServices, User $user, Role $role)
+    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices, AuthServices $authServices, User $user, Role $role, CompanyModulePermission $companyModulePermission, RolePermission $rolePermission)
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -114,6 +126,8 @@ class CRMServices
         $this->authServices = $authServices;
         $this->user = $user;
         $this->role = $role;
+        $this->companyModulePermission = $companyModulePermission;
+        $this->rolePermission = $rolePermission;
     }
     /**
      * @return array
@@ -254,6 +268,7 @@ class CRMServices
                 'error' => $validator->errors()
             ];
         }
+        $res = '';
         $prospect  = $this->crmProspect->create([
             'company_name'                  => $request['company_name'] ?? '',
             'roc_number'                    => $request['roc_number'] ?? '',
@@ -276,37 +291,36 @@ class CRMServices
             'company_id'                    => $request['company_id'] ?? 0
         ]);
 
-        $role = $this->role->where('role_name', 'Customer')
-                ->where('company_id', $request['company_id'])
-                ->whereNull('deleted_at')
-                ->where('status',1)
-                ->first('id');
-        if(is_null($role)) { 
-            $role = $this->role->create([
-                'role_name'     => 'Customer',
-                'system_role'   => $request['system_role'] ?? 0,
-                'status'        => $request['status'] ?? 1,
-                'parent_id'     => $request['parent_id'] ?? 0,
-                'created_by'    => $request['created_by'] ?? 0,
-                'modified_by'   => $request['created_by'] ?? 0,
-                'company_id'   => $request['company_id'] ?? 0,
-                'special_permission' => $request['special_permission'] ?? 0
+        if($this->hasCustomerLogin($request['company_id'])) {
+            $role = $this->checkCustomerRole($request['company_id']);
+            if(is_null($role)) {
+                $role = $this->role->create([
+                    'role_name'     => 'Customer',
+                    'system_role'   => $request['system_role'] ?? 0,
+                    'status'        => $request['status'] ?? 1,
+                    'parent_id'     => $request['parent_id'] ?? 0,
+                    'created_by'    => $request['created_by'] ?? 0,
+                    'modified_by'   => $request['created_by'] ?? 0,
+                    'company_id'   => $request['company_id'] ?? 0,
+                    'special_permission' => $request['special_permission'] ?? 0,
+                    'editable' => 0
+                ]);
+                $this->assignAccess($role);
+            }
+
+            $res = $this->authServices->create(
+                ['name' => $request['pic_name'],
+                'email' => $request['email'],
+                'role_id' => $role['id'],
+                'user_id' => $request['created_by'],
+                'status' => 1,
+                'password' => Str::random(8),
+                'reference_id' => $prospect['id'],
+                'user_type' => "Customer",
+                'subsidiary_companies' => $request['subsidiary_companies'] ?? [],
+                'company_id' => $request['company_id']
             ]);
         }
-
-        $res = $this->authServices->create(
-            ['name' => $request['pic_name'],
-            'email' => $request['email'],
-            'role_id' => $role->id,
-            'user_id' => $request['created_by'],
-            'status' => 1,
-            'password' => Str::random(8),
-            'reference_id' => $prospect['id'],
-            'user_type' => "Customer",
-            'subsidiary_companies' => $request['subsidiary_companies'] ?? [],
-            'company_id' => $request['company_id']
-        ]);
-
         if(!$res){
             $prospect->delete();
             return [
@@ -539,5 +553,53 @@ class CRMServices
         $row = Excel::import(new CrmImport($params, '', $this), $file);
         return true; 
 
+    }
+    /**
+     * Checks if the company has cutomer login feature.
+     *
+     * @param integer $companyId .
+     * @return bool Returns true if the company has customer login, false otherwise.
+     */
+    private function hasCustomerLogin($companyId): bool
+    {
+        $featureCheck = $this->companyModulePermission->where('company_id', $companyId)
+        ->where('module_id', Config::get('services.CUSTOMER_LOGIN'))
+        ->count();
+
+        return $featureCheck > 0;
+    }
+    /**
+     * Checks if the company has cutomer role.
+     *
+     * @param integer $companyId .
+     * @return mixed Returns role if the company have the role customer, returns null otherwise.
+     */
+    private function checkCustomerRole($companyId): mixed
+    {
+        return $this->role->where('role_name', 'Customer')
+        ->where('company_id', $companyId)
+        ->whereNull('deleted_at')
+        ->where('status',1)
+        ->first('id');
+    }
+    /**
+     * Assigning access to the customer role.
+     *
+     * @param integer $role The role details .
+     * @return bool Returns true if the access for customer role is created, otherwise false.
+     */
+    private function assignAccess($role): bool
+    {
+        foreach (Config::get('services.SERVICES_MODULES') as $moduleId) {
+            $this->rolePermission->create([
+                'role_id'       => $role->id,
+                'module_id'     => $moduleId,
+                'permission_id' => Config::get('services.VIEW_PERMISSION'),
+                'created_by'    => $role->created_by ?? 0,
+                'modified_by'   => $role->created_by ?? 0
+            ]);   
+        }
+
+        return true;
     }
 }

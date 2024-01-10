@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Config;
 class AccessManagementServices
 {
     /**
-     * @var `RolePermission`
+     * @var RolePermission
      */
     private RolePermission $rolePermission;
     /**
@@ -42,7 +42,7 @@ class AccessManagementServices
     {
         return [
             'role_id' => 'required',
-            'modules' => 'required'
+            'modules' => 'required|json'
         ];
     }
 
@@ -53,7 +53,7 @@ class AccessManagementServices
     {
         return [
             'role_id' => 'required',
-            'modules' => 'required'
+            'modules' => 'required|json'
         ];
     }
 
@@ -63,7 +63,7 @@ class AccessManagementServices
      */
     public function list($request) 
     {
-        if($request['user_type'] == Config::get('services.ROLE_TYPE_ADMIN')){
+        if($request['user_type'] == Config::get('services.ROLE_TYPE_ADMIN') && !is_int($request['role_id'])){
             return $this->companyModulePermission->leftJoin('modules', 'modules.id', 'company_module_permission.module_id')
             ->where('company_module_permission.company_id', $request['company_id'])
             ->select('modules.id', 'modules.module_name', 'company_module_permission.id as role_permission_id')
@@ -72,11 +72,17 @@ class AccessManagementServices
             return $this->rolePermission
             ->join('roles', 'roles.id', 'role_permission.role_id')
             ->join('modules', 'modules.id', 'role_permission.module_id')
+            ->leftJoin('permissions', function ($join) {
+                $join->on('permissions.id', '=', 'role_permission.permission_id');
+            })
             ->where('roles.company_id', $request['company_id'])
             ->where('role_permission.role_id', $request['role_id'])
-            ->select('modules.id', 'modules.module_name', 'role_permission.id as role_permission_id')
+            ->select('modules.id', 'modules.module_name')
+            ->selectRaw('GROUP_CONCAT(role_permission.permission_id) as permission_ids')
+            ->selectRaw('GROUP_CONCAT(permissions.permission_name) as permission_name')
+            ->groupBy('modules.id', 'modules.module_name')
             ->get();
-        }        
+        }
     }
 
 
@@ -86,36 +92,41 @@ class AccessManagementServices
      */
     public function create($request): mixed
     {
-        $roleCheck =  $this->rolePermission->join('roles', 'roles.id', 'role_permission.role_id')
-                        ->where('roles.company_id', $request['company_id'])
-                        ->where('role_permission.role_id', $request['role_id'])
-                        ->count();
-        if($roleCheck > 0) {
-            return [
-                'roleError' => true
-            ];
-        }
+        if(isset($request['modules']) && !empty($request['modules'])) {
+            $modules = json_decode($request['modules']);
+            $moduleIds = array_unique(array_column($modules, 'module_id'));
 
-        $companyModules = $this->companyModulePermission->where('company_id', $request['company_id'])
-                            ->select('module_id')
-                            ->get()
-                            ->toArray();
-        $companyModules = array_column($companyModules, 'module_id');
-        $diffModules = array_diff($request['modules'], $companyModules);
-        if(count($diffModules) > 0) {
-            return [
-                'moduleError' => true
-            ];
-        }
-       
-        foreach ($request['modules'] as $moduleId) {
-            $this->rolePermission->create([
-                'role_id'       => $request['role_id'],
-                'module_id'     => $moduleId,
-                'permission_id' => $module->permission_id ?? 1,
-                'created_by'    => $request['created_by'] ?? 0,
-                'modified_by'   => $request['created_by'] ?? 0
-            ]);   
+            $roleCheck =  $this->rolePermission->join('roles', 'roles.id', 'role_permission.role_id')
+                    ->where('roles.company_id', $request['company_id'])
+                    ->where('role_permission.role_id', $request['role_id'])
+                    ->count();
+            if($roleCheck > 0) {
+                return [
+                    'roleError' => true
+                ];
+            }
+
+            $companyModules = $this->companyModulePermission->where('company_id', $request['company_id'])
+                                ->select('module_id')
+                                ->get()
+                                ->toArray();
+            $companyModules = array_column($companyModules, 'module_id');
+            $diffModules = array_diff($moduleIds, $companyModules);
+            if(count($diffModules) > 0) {
+                return [
+                    'moduleError' => true
+                ];
+            }
+
+            foreach ($modules as $module) {
+                $this->rolePermission->create([
+                    'role_id'       => $request['role_id'],
+                    'module_id'     => $module->module_id,
+                    'permission_id' => $module->permission_id ?? 1,
+                    'created_by'    => $request['created_by'] ?? 0,
+                    'modified_by'   => $request['created_by'] ?? 0
+                ]);
+            }
         }
         return true;
     }
@@ -126,12 +137,15 @@ class AccessManagementServices
      */
     public function update($request): mixed
     {
+        $modules = json_decode($request['modules']);
+        $moduleIds = array_unique(array_column($modules, 'module_id'));
+
         $companyModules = $this->companyModulePermission->where('company_id', $request['company_id'])
                             ->select('module_id')
                             ->get()
                             ->toArray();
         $companyModules = array_column($companyModules, 'module_id');
-        $diffModules = array_diff($request['modules'], $companyModules);
+        $diffModules = array_diff($moduleIds, $companyModules);
         if(count($diffModules) > 0) {
             return [
                 'moduleError' => true
