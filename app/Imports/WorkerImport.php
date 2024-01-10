@@ -16,7 +16,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow, WithMul
 {
     protected const CHUNK_ROW = 250;
     private mixed $parameters;
-    private string $bulkUpload;
+    private mixed $bulkUpload;
 
     /**
      * Class constructor.
@@ -24,7 +24,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow, WithMul
      * Initializes a new instance of the class.
      *
      * @param mixed $parameters The parameters for the constructor.
-     * @param string $bulkUpload (Optional) The bulk upload value. Default is an empty string.
+     * @param mixed $bulkUpload (Optional) The bulk upload value. Default is an empty string.
      *
      * @return void
      */
