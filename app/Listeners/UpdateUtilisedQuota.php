@@ -27,12 +27,14 @@ class UpdateUtilisedQuota
     {
         $utilisedQuota = 0;
         $countryDetails = DirectRecruitmentOnboardingCountry::findOrFail($event->onBoardingCountryId);
-        if($event->type == 'increment') {
-            $utilisedQuota = $countryDetails->utilised_quota + $event->workerCount;
-        } else if($event->type == 'decrement') {
-            $utilisedQuota = (($countryDetails->utilised_quota - $event->workerCount) < 0) ? 0 : $countryDetails->utilised_quota - $event->workerCount;;
+        if(!is_null($countryDetails)) {
+            if($event->type == 'increment') {
+                $utilisedQuota = $countryDetails->utilised_quota + $event->workerCount;
+            } else if($event->type == 'decrement') {
+                $utilisedQuota = (($countryDetails->utilised_quota - $event->workerCount) < 0) ? 0 : $countryDetails->utilised_quota - $event->workerCount;;
+            }
+            $countryDetails->utilised_quota = $utilisedQuota;
+            $countryDetails->save();  
         }
-        $countryDetails->utilised_quota = $utilisedQuota;
-        $countryDetails->save();  
     }
 }

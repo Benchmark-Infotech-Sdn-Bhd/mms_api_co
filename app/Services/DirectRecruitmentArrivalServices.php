@@ -295,12 +295,8 @@ class DirectRecruitmentArrivalServices
                 ];
             }
 
-            $applicationCheck = $this->directRecruitmentOnboardingCountry
-                    ->join('directrecruitment_applications', function ($join) use($request) {
-                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
-                            ->where('directrecruitment_applications.company_id', $request['company_id']);
-                    })->select('directrecruitment_onboarding_countries.id', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_onboarding_countries.country_id', 'directrecruitment_onboarding_countries.quota', 'directrecruitment_onboarding_countries.utilised_quota', 'directrecruitment_onboarding_countries.status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_countries.created_by', 'directrecruitment_onboarding_countries.modified_by', 'directrecruitment_onboarding_countries.created_at', 'directrecruitment_onboarding_countries.updated_at', 'directrecruitment_onboarding_countries.deleted_at')
-                    ->find($request['onboarding_country_id']);
+            $applicationCheck = $this->checkForOnboardingCountryApplication($request['company_id'], $request['onboarding_country_id']);
+
             if(is_null($applicationCheck) || ($applicationCheck->application_id != $request['application_id'])) {
                 return [
                     'InvalidUser' => true
@@ -422,11 +418,8 @@ class DirectRecruitmentArrivalServices
                 ];
             }
 
-            $applicationCheck = $this->directrecruitmentArrival
-            ->join('directrecruitment_applications', function ($join) use($params) {
-                $join->on('directrecruitment_arrival.application_id', '=', 'directrecruitment_applications.id')
-                     ->where('directrecruitment_applications.company_id', $params['company_id']);
-            })->select('directrecruitment_arrival.id', 'directrecruitment_arrival.application_id', 'directrecruitment_arrival.onboarding_country_id', 'directrecruitment_arrival.item_name', 'directrecruitment_arrival.flight_date', 'directrecruitment_arrival.arrival_time', 'directrecruitment_arrival.flight_number', 'directrecruitment_arrival.status', 'directrecruitment_arrival.remarks', 'directrecruitment_arrival.created_by', 'directrecruitment_arrival.modified_by', 'directrecruitment_arrival.created_at', 'directrecruitment_arrival.updated_at', 'directrecruitment_arrival.deleted_at')->find($request['arrival_id']);
+            $applicationCheck = $this->checkForArrivalApplication($params['company_id'], $request['arrival_id']);
+
             if(is_null($applicationCheck)) {
                 return [
                     'InvalidUser' => true
@@ -570,11 +563,8 @@ class DirectRecruitmentArrivalServices
                 ];
             }
 
-            $applicationCheck = $this->directrecruitmentArrival
-            ->join('directrecruitment_applications', function ($join) use($request) {
-                $join->on('directrecruitment_arrival.application_id', '=', 'directrecruitment_applications.id')
-                        ->where('directrecruitment_applications.company_id', $request['company_id']);
-            })->select('directrecruitment_arrival.id', 'directrecruitment_arrival.application_id', 'directrecruitment_arrival.onboarding_country_id', 'directrecruitment_arrival.item_name', 'directrecruitment_arrival.flight_date', 'directrecruitment_arrival.arrival_time', 'directrecruitment_arrival.flight_number', 'directrecruitment_arrival.status', 'directrecruitment_arrival.remarks', 'directrecruitment_arrival.created_by', 'directrecruitment_arrival.modified_by', 'directrecruitment_arrival.created_at', 'directrecruitment_arrival.updated_at', 'directrecruitment_arrival.deleted_at')->find($request['arrival_id']);
+            $applicationCheck = $this->checkForArrivalApplication($request['company_id'], $request['arrival_id']);
+
             if(is_null($applicationCheck)) {
                 return [
                     'InvalidUser' => true
@@ -616,5 +606,35 @@ class DirectRecruitmentArrivalServices
         ->distinct()
         ->get();
     }
-    
+    /**
+     * checks the onbording country exists for the particular company
+     * 
+     * @param int $companyId
+     * @param int $onboardingCoyntryId
+     * @return mixed The onboarding country details
+     */
+    private function checkForOnboardingCountryApplication(int $companyId, int $onboardingCoyntryId): mixed
+    {
+        return $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($companyId) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $companyId);
+                    })->select('directrecruitment_onboarding_countries.id', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_onboarding_countries.country_id', 'directrecruitment_onboarding_countries.quota', 'directrecruitment_onboarding_countries.utilised_quota', 'directrecruitment_onboarding_countries.status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_countries.created_by', 'directrecruitment_onboarding_countries.modified_by', 'directrecruitment_onboarding_countries.created_at', 'directrecruitment_onboarding_countries.updated_at', 'directrecruitment_onboarding_countries.deleted_at')
+                    ->find($onboardingCoyntryId);
+    }
+    /**
+     * checks the onbording arrival exists for the particular company
+     * 
+     * @param int $companyId
+     * @param int $arrivalId
+     * @return mixed The onboarding arrival details
+     */
+    private function checkForArrivalApplication(int $companyId, int $arrivalId): mixed
+    {
+        return $this->directrecruitmentArrival
+        ->join('directrecruitment_applications', function ($join) use($companyId) {
+            $join->on('directrecruitment_arrival.application_id', '=', 'directrecruitment_applications.id')
+                 ->where('directrecruitment_applications.company_id', $companyId);
+        })->select('directrecruitment_arrival.id', 'directrecruitment_arrival.application_id', 'directrecruitment_arrival.onboarding_country_id', 'directrecruitment_arrival.item_name', 'directrecruitment_arrival.flight_date', 'directrecruitment_arrival.arrival_time', 'directrecruitment_arrival.flight_number', 'directrecruitment_arrival.status', 'directrecruitment_arrival.remarks', 'directrecruitment_arrival.created_by', 'directrecruitment_arrival.modified_by', 'directrecruitment_arrival.created_at', 'directrecruitment_arrival.updated_at', 'directrecruitment_arrival.deleted_at')->find($arrivalId);
+    }
 }

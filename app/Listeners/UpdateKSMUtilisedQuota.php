@@ -29,12 +29,14 @@ class UpdateKSMUtilisedQuota
         $ksmDetails = OnboardingCountriesKSMReferenceNumber::where('onboarding_country_id', $event->onBoardingCountryId)
                             ->where('ksm_reference_number', $event->ksmReferenceNumber)
                             ->first(['id', 'utilised_quota']);
-        if($event->type == 'increment') {
-            $utilisedQuota = $ksmDetails->utilised_quota + $event->workerCount;
-        } else if($event->type == 'decrement') {
-            // echo $event->workerCount;
-            $utilisedQuota = (($ksmDetails->utilised_quota - $event->workerCount) < 0) ? 0 : $ksmDetails->utilised_quota - $event->workerCount;
+        if(!is_null($ksmDetails)) {
+            if($event->type == 'increment') {
+                $utilisedQuota = $ksmDetails->utilised_quota + $event->workerCount;
+            } else if($event->type == 'decrement') {
+                // echo $event->workerCount;
+                $utilisedQuota = (($ksmDetails->utilised_quota - $event->workerCount) < 0) ? 0 : $ksmDetails->utilised_quota - $event->workerCount;
+            }
+            OnboardingCountriesKSMReferenceNumber::where('id', $ksmDetails->id)->update(['utilised_quota' => $utilisedQuota]);
         }
-        OnboardingCountriesKSMReferenceNumber::where('id', $ksmDetails->id)->update(['utilised_quota' => $utilisedQuota]);
     }
 }

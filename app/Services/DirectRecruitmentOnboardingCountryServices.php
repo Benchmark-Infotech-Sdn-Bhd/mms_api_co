@@ -247,10 +247,8 @@ class DirectRecruitmentOnboardingCountryServices
                 'error' => $validator->errors()
             ];
         }
-        $onboardingCountry = $this->directRecruitmentOnboardingCountry->join('directrecruitment_applications', function ($join) use($request) {
-                            $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
-                                ->where('directrecruitment_applications.company_id', $request['company_id']);
-                            })->select('directrecruitment_onboarding_countries.id', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_onboarding_countries.country_id', 'directrecruitment_onboarding_countries.quota', 'directrecruitment_onboarding_countries.utilised_quota', 'directrecruitment_onboarding_countries.status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_countries.created_by', 'directrecruitment_onboarding_countries.modified_by', 'directrecruitment_onboarding_countries.created_at', 'directrecruitment_onboarding_countries.updated_at', 'directrecruitment_onboarding_countries.deleted_at')->find($request['id']);
+        $onboardingCountry = $this->checkForApplication($request['company_id'], $request['id']);
+
         if(is_null($onboardingCountry)) {
             return [
                 'InvalidUser' =>true
@@ -458,10 +456,9 @@ class DirectRecruitmentOnboardingCountryServices
                 'error' => $validator->errors()
             ];
         }
-        $checkCountry = $this->directRecruitmentOnboardingCountry->join('directrecruitment_applications', function ($join) use($request) {
-                            $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
-                                ->where('directrecruitment_applications.company_id', $request['company_id']);
-                            })->find($request['onboarding_country_id']);
+
+        $checkCountry = $this->checkForApplication($request['company_id'], $request['onboarding_country_id']);
+
         if(is_null($checkCountry)) {
             return [
                 'InvalidUser' => true
@@ -502,5 +499,21 @@ class DirectRecruitmentOnboardingCountryServices
         $checkCountry->quota = $checkCountry->quota + $request['quota'];
         $checkCountry->save();
         return true;
+    }
+    /**
+     * checks the onbording country exists for the particular company
+     * 
+     * @param int $companyId
+     * @param int $onboardingCoyntryId
+     * @return mixed The onboarding country details
+     */
+    private function checkForApplication(int $companyId, int $onboardingCoyntryId): mixed
+    {
+        return $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($companyId) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $companyId);
+                    })->select('directrecruitment_onboarding_countries.id', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_onboarding_countries.country_id', 'directrecruitment_onboarding_countries.quota', 'directrecruitment_onboarding_countries.utilised_quota', 'directrecruitment_onboarding_countries.status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_countries.created_by', 'directrecruitment_onboarding_countries.modified_by', 'directrecruitment_onboarding_countries.created_at', 'directrecruitment_onboarding_countries.updated_at', 'directrecruitment_onboarding_countries.deleted_at')
+                    ->find($onboardingCoyntryId);
     }
 }
