@@ -350,7 +350,8 @@ class DirectRecruitmentServices
         $data = $this->directrecruitmentApplicationAttachments::join('directrecruitment_applications', function ($join) use($request) {
             $join->on('directrecruitment_application_attachments.file_id', '=', 'directrecruitment_applications.id')
                  ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
-        })->find($request['id']); 
+        })->select('directrecruitment_application_attachments.id', 'directrecruitment_application_attachments.file_id', 'directrecruitment_application_attachments.file_name', 'directrecruitment_application_attachments.file_type', 'directrecruitment_application_attachments.file_url', 'directrecruitment_application_attachments.created_by', 'directrecruitment_application_attachments.modified_by', 'directrecruitment_application_attachments.created_at', 'directrecruitment_application_attachments.updated_at', 'directrecruitment_application_attachments.deleted_at')
+        ->find($request['id']); 
 
         // $data = $this->directrecruitmentApplicationAttachments::leftJoin('directrecruitment_applications', function ($join) {
         //     $join->on('directrecruitment_application_attachments.file_id', '=', 'directrecruitment_applications.id');

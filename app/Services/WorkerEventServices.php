@@ -198,7 +198,8 @@ class WorkerEventServices
         $workerEvent = $this->workerEvent->join('workers', function ($join) use ($request) {
             $join->on('workers.id', '=', 'worker_event.worker_id')
                  ->whereIn('workers.company_id', $request['company_id']);
-        })->select('worker_event.*')->find($request['id']);
+        })->select('worker_event.id', 'worker_event.worker_id', 'worker_event.event_date', 'worker_event.event_type', 'worker_event.flight_number', 'worker_event.departure_date', 'worker_event.remarks', 'worker_event.created_by', 'worker_event.modified_by', 'worker_event.last_working_date', 'worker_event.created_at', 'worker_event.updated_at', 'worker_event.deleted_at')
+        ->find($request['id']);
         if(is_null($workerEvent)){
             return [
                 'unauthorizedError' => true
@@ -272,7 +273,8 @@ class WorkerEventServices
         return $this->workerEvent->with(['eventAttachments'])->join('workers', function ($join) use ($request) {
             $join->on('workers.id', '=', 'worker_event.worker_id')
                  ->whereIn('workers.company_id', $request['company_id']);
-        })->select('worker_event.*')->find($request['id']);
+        })->select('worker_event.id', 'worker_event.worker_id', 'worker_event.event_date', 'worker_event.event_type', 'worker_event.flight_number', 'worker_event.departure_date', 'worker_event.remarks', 'worker_event.created_by', 'worker_event.modified_by', 'worker_event.last_working_date', 'worker_event.created_at', 'worker_event.updated_at', 'worker_event.deleted_at')
+        ->find($request['id']);
     }
     /**
      *

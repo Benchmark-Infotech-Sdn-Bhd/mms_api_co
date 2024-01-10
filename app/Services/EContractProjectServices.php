@@ -130,7 +130,7 @@ class EContractProjectServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->whereIn('e-contract_applications.company_id', $request['company_id']);
         })
-        ->select('e-contract_project.*')
+        ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
         ->find($request['id']);
     }
     /**
@@ -216,7 +216,7 @@ class EContractProjectServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->whereIn('e-contract_applications.company_id', $request['company_id']);
         })
-        ->select('e-contract_project.*')
+        ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
         ->find($request['id']);
 
         if(is_null($eContractProject)){
@@ -275,7 +275,7 @@ class EContractProjectServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->whereIn('e-contract_applications.company_id', $request['company_id']);
         })
-        ->select('e-contract_project_attachments.*')
+        ->select('e-contract_project_attachments.id', 'e-contract_project_attachments.file_id', 'e-contract_project_attachments.file_name', 'e-contract_project_attachments.file_type', 'e-contract_project_attachments.file_url', 'e-contract_project_attachments.created_by', 'e-contract_project_attachments.modified_by', 'e-contract_project_attachments.created_at', 'e-contract_project_attachments.updated_at', 'e-contract_project_attachments.deleted_at')
         ->find($request['attachment_id']);
 
         if(is_null($data)){

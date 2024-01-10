@@ -265,7 +265,7 @@ class EContractPayrollServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $user['company_id']);
         })
-        ->select('e-contract_project.*')
+        ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
         ->find($request['project_id']);
         if(is_null($checkProject)){
             return [
@@ -364,7 +364,7 @@ class EContractPayrollServices
             $query->on('workers.id','=','e-contract_payroll.worker_id')
             ->where('workers.company_id', $user['company_id']);
         })
-        ->select('e-contract_payroll.*')
+        ->select('e-contract_payroll.id', 'e-contract_payroll.worker_id', 'e-contract_payroll.project_id', 'e-contract_payroll.month', 'e-contract_payroll.year', 'e-contract_payroll.basic_salary', 'e-contract_payroll.ot_1_5', 'e-contract_payroll.ot_2_0', 'e-contract_payroll.ot_3_0', 'e-contract_payroll.ph', 'e-contract_payroll.rest_day', 'e-contract_payroll.deduction_advance', 'e-contract_payroll.deduction_accommodation', 'e-contract_payroll.annual_leave', 'e-contract_payroll.medical_leave', 'e-contract_payroll.hospitalisation_leave', 'e-contract_payroll.amount', 'e-contract_payroll.no_of_workingdays', 'e-contract_payroll.normalday_ot_1_5', 'e-contract_payroll.ot_1_5_hrs_amount', 'e-contract_payroll.restday_daily_salary_rate', 'e-contract_payroll.hrs_ot_2_0', 'e-contract_payroll.ot_2_0_hrs_amount', 'e-contract_payroll.public_holiday_ot_3_0', 'e-contract_payroll.deduction_hostel', 'e-contract_payroll.created_by', 'e-contract_payroll.modified_by', 'e-contract_payroll.sosco_deduction', 'e-contract_payroll.sosco_contribution', 'e-contract_payroll.created_at', 'e-contract_payroll.updated_at', 'e-contract_payroll.deleted_at')
         ->find($request['id']);
         if(is_null($eContractPayroll)){
             return [
@@ -455,7 +455,7 @@ class EContractPayrollServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $user['company_id']);
         })
-        ->select('e-contract_project.*')
+        ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
         ->find($request['project_id']);
         if(is_null($checkProject)){
             return [
