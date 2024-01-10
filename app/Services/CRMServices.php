@@ -321,7 +321,6 @@ class CRMServices
                 'company_id' => $request['company_id']
             ]);
         }
-
         if(!$res){
             $prospect->delete();
             return [
