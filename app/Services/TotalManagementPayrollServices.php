@@ -356,7 +356,8 @@ class TotalManagementPayrollServices
         ->join('total_management_applications', function ($join) use ($request) {
             $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                  ->whereIn('total_management_applications.company_id', $request['company_id']);
-        })->select('total_management_payroll.*')->find($request['id']);
+        })->select('total_management_payroll.id', 'total_management_payroll.worker_id', 'total_management_payroll.project_id', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.created_by', 'total_management_payroll.modified_by', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution', 'total_management_payroll.created_at', 'total_management_payroll.updated_at', 'total_management_payroll.deleted_at')
+        ->find($request['id']);
         if(is_null($totalManagementPayroll)){
             return [
                 'unauthorizedError' => true

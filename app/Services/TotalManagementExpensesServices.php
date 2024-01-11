@@ -134,7 +134,7 @@ class TotalManagementExpensesServices
             $join->on('workers.id', '=', 'total_management_expenses.worker_id')
                 ->whereIn('workers.company_id', $request['company_id']);
         })
-        ->select('total_management_expenses.*')
+        ->select('total_management_expenses.id', 'total_management_expenses.worker_id', 'total_management_expenses.application_id', 'total_management_expenses.project_id', 'total_management_expenses.title', 'total_management_expenses.type', 'total_management_expenses.payment_reference_number', 'total_management_expenses.payment_date', 'total_management_expenses.amount', 'total_management_expenses.amount_paid', 'total_management_expenses.deduction', 'total_management_expenses.remaining_amount', 'total_management_expenses.remarks', 'total_management_expenses.created_by', 'total_management_expenses.modified_by', 'total_management_expenses.is_payroll', 'total_management_expenses.payroll_id', 'total_management_expenses.month', 'total_management_expenses.year', 'total_management_expenses.invoice_number', 'total_management_expenses.created_at', 'total_management_expenses.updated_at', 'total_management_expenses.deleted_at')
         ->find($request['id']);
     }
     /**
@@ -206,7 +206,7 @@ class TotalManagementExpensesServices
             $join->on('workers.id', '=', 'total_management_expenses.worker_id')
                 ->whereIn('workers.company_id', $params['company_id']);
         })
-        ->select('total_management_expenses.*')
+        ->select('total_management_expenses.id', 'total_management_expenses.worker_id', 'total_management_expenses.application_id', 'total_management_expenses.project_id', 'total_management_expenses.title', 'total_management_expenses.type', 'total_management_expenses.payment_reference_number', 'total_management_expenses.payment_date', 'total_management_expenses.amount', 'total_management_expenses.amount_paid', 'total_management_expenses.deduction', 'total_management_expenses.remaining_amount', 'total_management_expenses.remarks', 'total_management_expenses.created_by', 'total_management_expenses.modified_by', 'total_management_expenses.is_payroll', 'total_management_expenses.payroll_id', 'total_management_expenses.month', 'total_management_expenses.year', 'total_management_expenses.invoice_number', 'total_management_expenses.created_at', 'total_management_expenses.updated_at', 'total_management_expenses.deleted_at')
         ->find($request['id']);
         if(is_null($expense)){
             return [
@@ -301,7 +301,7 @@ class TotalManagementExpensesServices
         $request['modified_by'] = $user['id'];
         $params['company_id'] = $this->authServices->getCompanyIds($user);
         $expense = $this->totalManagementExpenses->leftJoin('workers', 'workers.id', 'total_management_expenses.worker_id')
-        ->whereIn('workers.company_id', $params['company_id'])->select('total_management_expenses.*')->findOrFail($request['id']);
+        ->whereIn('workers.company_id', $params['company_id'])->select('total_management_expenses.id', 'total_management_expenses.worker_id', 'total_management_expenses.application_id', 'total_management_expenses.project_id', 'total_management_expenses.title', 'total_management_expenses.type', 'total_management_expenses.payment_reference_number', 'total_management_expenses.payment_date', 'total_management_expenses.amount', 'total_management_expenses.amount_paid', 'total_management_expenses.deduction', 'total_management_expenses.remaining_amount', 'total_management_expenses.remarks', 'total_management_expenses.created_by', 'total_management_expenses.modified_by', 'total_management_expenses.is_payroll', 'total_management_expenses.payroll_id', 'total_management_expenses.month', 'total_management_expenses.year', 'total_management_expenses.invoice_number', 'total_management_expenses.created_at', 'total_management_expenses.updated_at', 'total_management_expenses.deleted_at')->findOrFail($request['id']);
         $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;
         if($totalPayBack > $expense->amount) {

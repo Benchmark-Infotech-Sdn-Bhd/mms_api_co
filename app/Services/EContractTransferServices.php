@@ -227,7 +227,7 @@ class EContractTransferServices
                 $query->on('e-contract_applications.id','=','e-contract_project.application_id')
                 ->where('e-contract_applications.company_id', $user['company_id']);
             })
-            ->select('e-contract_project.*')
+            ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
             ->find($request['new_project_id']);
             if(is_null($projectDetails)){
                 return [
