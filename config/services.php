@@ -169,4 +169,12 @@ return [
     'SERVICES_MODULES' => [5,6,7],
 
     'VIEW_PERMISSION' => 1,
+
+    'QUEUE_CONNECTION' => env('QUEUE_CONNECTION', "database"),
+    'WORKER_IMPORT_QUEUE' => env('WORKER_IMPORT_QUEUE', "worker_import"),
+    'COMMON_WORKER_IMPORT_QUEUE' => env('COMMON_WORKER_IMPORT_QUEUE', "common_worker_import"),
+    'ECONTRACT_PAYROLL_IMPORT' => env('ECONTRACT_PAYROLL_IMPORT', "e_contract_payrolls_import"),
+    'PAYROLL_IMPORT' => env('PAYROLL_IMPORT', "payrolls_import"),
+    'RUNNER_NOTIFICATION_MAIL' => env('RUNNER_NOTIFICATION_MAIL', "runner_notification_mail"),
+    
 ];

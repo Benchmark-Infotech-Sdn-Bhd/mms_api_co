@@ -14,6 +14,7 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Illuminate\Support\Facades\Config;
 
 class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow, WithMultipleSheets
 {
@@ -72,7 +73,7 @@ class WorkerImport implements ToModel, WithChunkReading, WithHeadingRow, WithMul
                 ];
                 
                 DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-                dispatch(new WorkersImport($workerParameter, $this->bulkUpload, $workerNonMandatory))->onQueue('worker_import')->onConnection('database');
+                dispatch(new WorkersImport(Config::get('database.connections.mysql.database'), $workerParameter, $this->bulkUpload, $workerNonMandatory))->onQueue(Config::get('services.WORKER_IMPORT_QUEUE'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
 
         } catch (\Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));

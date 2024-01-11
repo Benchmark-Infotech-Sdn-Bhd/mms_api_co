@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Illuminate\Support\Facades\Config;
 
 class CommonWorkerImport implements ToModel, WithChunkReading, WithHeadingRow
 {
@@ -81,7 +82,7 @@ class CommonWorkerImport implements ToModel, WithChunkReading, WithHeadingRow
                 // Log::info('Row Data' . print_r($workerParameter, true));
                 
                 DB::table('worker_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-                dispatch(new CommonWorkersImport($workerParameter, $this->bulkUpload, $workerNonMandatory))->onQueue('common_worker_import')->onConnection('database');
+                dispatch(new CommonWorkersImport(Config::get('database.connections.mysql.database'),$workerParameter, $this->bulkUpload, $workerNonMandatory))->onQueue(Config::get('services.COMMON_WORKER_IMPORT_QUEUE'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
 
         } catch (\Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Illuminate\Support\Facades\Config;
 
 class PayrollImport implements ToModel, WithChunkReading, WithHeadingRow
 {
@@ -75,7 +76,7 @@ class PayrollImport implements ToModel, WithChunkReading, WithHeadingRow
                 ];
                 
                 DB::table('payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-                dispatch(new PayrollsImport($payrollParameter, $this->bulkUpload))->onQueue('payrolls_import')->onConnection('database');
+                dispatch(new PayrollsImport(Config::get('database.connections.mysql.database'), $payrollParameter, $this->bulkUpload))->onQueue(Config::get('services.PAYROLL_IMPORT'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
 
         } catch (\Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));

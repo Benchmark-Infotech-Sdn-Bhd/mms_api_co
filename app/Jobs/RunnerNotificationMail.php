@@ -9,11 +9,13 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+use App\Services\DatabaseConnectionServices;
 
 class RunnerNotificationMail implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
+    private $dbName;
     public $user;
     public $message;
     public $timeout = 7200; // 2 hours
@@ -24,8 +26,9 @@ class RunnerNotificationMail implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($user, $message)
+    public function __construct($dbName, $user, $message)
     {
+        $this->dbName = $dbName;
         $this->user = $user;
         $this->message = $message;
     }
@@ -33,10 +36,13 @@ class RunnerNotificationMail implements ShouldQueue
     /**
      * Execute the job.
      *
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * @return void
      */
-    public function handle()
+    public function handle(DatabaseConnectionServices $databaseConnectionServices)
     {   
+        $databaseConnectionServices->dbConnectQueue($this->dbName);
+        
         Log::channel('cron_activity_logs')->info('Runners notification mail process started');
 
         $input = [];
