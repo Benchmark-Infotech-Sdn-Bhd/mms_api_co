@@ -164,38 +164,53 @@ class TotalManagementServices
         ->groupBy('total_management_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.from_existing', 'total_management_applications.status', 'total_management_applications.quota_applied')
         ->orderBy('total_management_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
-    }        
+    } 
     /**
-     * @param $request
-     * @return bool|array
+     * Checks if the given quota is valid for the provided request.
+     *
+     * @param mixed $request The request that contains the 'initial_quota' and 'service_quota' fields.
+     * @return bool Returns true if the quota is valid for the request, false otherwise.
      */
-    public function addService($request): bool|array
+    private function isValidQuota($request): bool
     {
-        $validator = Validator::make($request, $this->addServiceValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
-        }
-        if(isset($request['initial_quota']) && !empty($request['initial_quota'])) {
-            if($request['initial_quota'] < $request['service_quota']) {
-                return [
-                    'quotaError' => true
-                ];
-            }
-        }
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['created_by'] = $user['id'];
-        $service = $this->services->findOrFail(Config::get('services.TOTAL_MANAGEMENT_SERVICE'));
-        if(isset($request['sector']) && !empty($request['sector'])) {
-            $sector = $this->sectors->findOrFail($request['sector']);
-        }
-        $prospectService = $this->crmProspectService->create([
+        return $request['initial_quota'] < $request['service_quota'];
+    }
+
+    /**
+     * Returns an array indicating that the quota is error.
+     *
+     * @return array An array containing the key 'quotaError' set to true.
+     */
+    private function quotaErrorResponse(): array
+    {
+        return ['quotaError' => true];
+    }
+    /**
+     * Creates a new Prospect Service from the given request data.
+     *
+     * @param mixed $request The data of the prospect to be created. It should contain the following keys:
+     *                       - id: (int) The ID of the prospect service.
+     *                       - service_id: (string) The service id of the prospect.
+     *                       - service_name: (string) The service name of the prospect.
+     *                       - sector_id: (int) The sector id of the prospect.
+     *                       - sector_name: (string) The sector name of the prospect.
+     *                       - status: (string) The status of prospect.
+     *                       - from_existing: (int) The from existing of prospect.
+     *                       - client_quota: (int) The client quota of prospect.
+     *                       - fomnext_quota: (int) The fomnext quota of prospect.
+     *                       - initial_quota: (int) The initial quota of prospect.
+     *                        - service_quota: (int) The service quota of prospect.
+     *
+     * @return mixed The created prospect service object. Check the documentation for the specific type of prospect service object.
+     */
+    private function createProspectService($request): mixed
+    {
+        return $this->crmProspectService->create([
             'crm_prospect_id'   => $request['id'],
-            'service_id'        => $service->id,
-            'service_name'      => $service->service_name,
+            'service_id'        => $request['service_id'],
+            'service_name'      => $request['service_name'],
             'sector_id'         => $request['sector'] ?? 0,
-            'sector_name'       => $sector->sector_name ?? '',
+            'sector_name'       => $request['sector_name'] ?? '',
             'status'            => $request['status'] ?? 0,
             'from_existing'     => $request['from_existing'] ?? 0,
             'client_quota'      => $request['client_quota'] ?? 0,
@@ -203,6 +218,18 @@ class TotalManagementServices
             'initial_quota'     => $request['initial_quota'] ?? 0,
             'service_quota'     => $request['service_quota'] ?? 0,
         ]);
+    }
+    /**
+     * create total management application.
+     *
+     * This method create the total managment application based on the provided userRole object and request data.
+     *
+     * @param array $request An array containing the request data, including the new id,from_existing,created_by,company_id fields.
+     * @param $prospectService - The prospectService object representing the prospect service.
+     * * @return void
+     */
+    private function createTotalManagementApplications($request,$prospectService)
+    {
         $this->totalManagementApplications::create([
             'crm_prospect_id' => $request['id'],
             'service_id' => $prospectService->id,
@@ -212,8 +239,49 @@ class TotalManagementServices
             'status' => 'Pending Proposal',
             'remarks' => '',
             'created_by' => $request["created_by"] ?? 0,
-            'company_id' => $user['company_id']
+            'company_id' => $request['company_id']
         ]);
+    }
+    /**
+     * Creates a new service.
+     *
+     * This method creates a new service :
+    
+     *
+     * @param array $request The request data containing the service and application detail.
+     *
+     * @return bool Returns true if the service was successfully created.
+     */
+    public function addService($request): bool|array
+    {
+        $validator = Validator::make($request, $this->addServiceValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        if (!$this->isValidQuota($request)) {
+            return $this->quotaErrorResponse();
+        }
+
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
+        $request['company_id'] = $user['company_id'];
+
+        $service = $this->services->findOrFail(Config::get('services.TOTAL_MANAGEMENT_SERVICE'));
+        $request['service_id'] = $service->id;
+        $request['service_name'] = $service->service_name;
+
+        if(isset($request['sector']) && !empty($request['sector'])) {
+            $sector = $this->sectors->findOrFail($request['sector']);
+            $request['sector_name'] = $sector->sector_name ?? '';
+        }
+
+        $prospectService = $this->createProspectService($request);
+
+        $this->createTotalManagementApplications($request,$prospectService);
+
         return true;
     }
     /**
