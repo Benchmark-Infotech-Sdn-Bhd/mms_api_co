@@ -9,7 +9,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
-use App\Services\DatabaseConnectionServices;
+use App\Services\DatabaseConnectionServices; 
 
 class RunnerNotificationMail implements ShouldQueue
 {

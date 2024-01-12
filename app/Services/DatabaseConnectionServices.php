@@ -38,15 +38,24 @@ class DatabaseConnectionServices
                 ->where('db_name', $request)
                 ->first(['db_name', 'db_host', 'db_username', 'db_password', 'identifier']);
             Config::set('cache.prefix', $dbDetails->identifier);
-            Log::info('Sub Domain name - '.$request." ## ".$dbDetails->db_host." ~~ ".$dbDetails->db_username." ~~ ".$dbDetails->db_password." ~~ ".$dbDetails->db_name." ~~ ".print_r($dbDetails));
-            Config::set('database.default', 'mysql');
-            Config::set('database.connections.mysql.host', $dbDetails->db_host);
-            Config::set('database.connections.mysql.username', $dbDetails->db_username);
-            Config::set('database.connections.mysql.password', $dbDetails->db_password);
-            Config::set('database.connections.mysql.database', $dbDetails->db_name);
+
             DB::purge('mysql');
-            DB::reconnect('mysql');
-            Schema::connection('mysql')->getConnection()->reconnect();
+            try
+            {
+                
+                Config::set('database.default', 'mysql');
+                Config::set('database.connections.mysql.host', $dbDetails->db_host);
+                Config::set('database.connections.mysql.username', $dbDetails->db_username);
+                Config::set('database.connections.mysql.password', $dbDetails->db_password);
+                Config::set('database.connections.mysql.database', $dbDetails->db_name);
+            
+                DB::reconnect('mysql');
+                Schema::connection('mysql')->getConnection()->reconnect();
+
+            }catch (\Exception $e)
+            {
+                throw new \Exception($e);
+            }
         //}
     }
 }
