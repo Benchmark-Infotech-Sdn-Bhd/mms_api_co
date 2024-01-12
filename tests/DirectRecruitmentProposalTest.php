@@ -14,33 +14,18 @@ class DirectRecruitmentProposalTest extends TestCase
     {
         parent::setUp();
     }
-    // /**
-    //  * A test method for validate id
-    //  * 
-    //  * @return void
-    //  */
-    // public function testAddProposalIdValidation(): void
-    // {
-    //     $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), ['id' => '']), $this->getHeader());
-    //     $response->seeStatusCode(422);
-    //     $this->response->assertJsonStructure([
-    //         'data' => [
-    //             'id' => ['The id field is required.']
-    //         ]
-    //     ]);
-    // }
     /**
-     * A test method for validate crm prospect id
+     * A test method for validate id
      * 
      * @return void
      */
-    public function testAddProposalCrmProspectIdValidation(): void
+    public function testAddProposalIdValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), ['crm_prospect_id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), ['id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'crm_prospect_id' => ['The crm prospect id field is required.']
+                'id' => ['The id field is required.']
             ]
         ]);
     }
@@ -106,8 +91,8 @@ class DirectRecruitmentProposalTest extends TestCase
                 "cost_quoted" => [
                     "The cost quoted field is required."
                 ],
-                "crm_prospect_id" => [
-                    "The crm prospect id field is required."
+                "id" => [
+                    "The id field is required."
                 ],
                 "person_incharge" => [
                     "The person incharge field is required."
@@ -151,22 +136,6 @@ class DirectRecruitmentProposalTest extends TestCase
             ]
         ]);
     }
-    // /**
-    //  * Functional test to validate size of cost coated in proposal creation
-    //  * 
-    //  * @return void
-    //  */
-    // public function testToAddProposalCostQuotedSizeValidation(): void
-    // {
-    //     $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', array_merge($this->addProposalData(), 
-    //     ['id' => '1', 'quota_applied' => '10', 'person_incharge' => 'test', 'cost_quoted' => '2748358465476743668768768768768678.6876876865437647']), $this->getHeader());
-    //     $response->seeStatusCode(422);
-    //     $this->response->assertJson([
-    //         "data" => [ 
-    //             "cost_quoted" => ["The cost quoted must not be greater than 150 characters."]
-    //         ]
-    //     ]);
-    // }
     /**
      * Functional test to validate format of cost coated in proposal creation
      * 

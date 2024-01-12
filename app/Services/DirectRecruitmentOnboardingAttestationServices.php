@@ -278,6 +278,12 @@ class DirectRecruitmentOnboardingAttestationServices
      */
     public function updateDispatch($request): bool|array
     {
+        $validator = Validator::make($request, $this->updateDispatchValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
         $attestationCheck = $this->onboardingAttestation->join('directrecruitment_applications', function ($join) use($request) {
             $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
                 ->where('directrecruitment_applications.company_id', $request['company_id']);
@@ -295,13 +301,6 @@ class DirectRecruitmentOnboardingAttestationServices
         )->first(['id', 'onboarding_attestation_id', 'date', 'time', 'reference_number', 'employee_id', 'from', 'calltime', 'area', 'employer_name', 'phone_number', 'remarks']);
 
         $request['reference_number'] = 'JO00000'.$this->onboardingDispatch->count() + 1;
-
-        $validator = Validator::make($request, $this->updateDispatchValidation());
-            if($validator->fails()) {
-                return [
-                    'error' => $validator->errors()
-                ];
-            }
         
         if(is_null($onboardingDispatch)){
             $this->onboardingDispatch->create([

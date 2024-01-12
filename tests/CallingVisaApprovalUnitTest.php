@@ -104,7 +104,7 @@ class CallingVisaApprovalUnitTest extends TestCase
     public function testForCallingVisaApprovalCallingVisaValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/approvalStatusUpdate', array_merge($this->creationData(), ['workers' => [1,2]]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/approvalStatusUpdate', array_merge($this->creationData(), ['workers' => [1,2]]), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Please select workers from same calling visa reference number']

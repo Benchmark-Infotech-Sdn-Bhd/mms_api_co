@@ -53,7 +53,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     public function testToShowOnboardingAttestation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/show', ['id' => 1], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data'
@@ -96,7 +96,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     public function testToShowDispatchOnboardingAttestation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/showDispatch', ['onboarding_attestation_id' => 1], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/showDispatch', ['onboarding_attestation_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data'
@@ -109,7 +109,8 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
      */
     public function testToUpdateDispatchOnboardingAttestationIdValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/updateDispatch', array_merge($this->dipatchUpdateData(), ['onboarding_attestation_id' => '']), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/updateDispatch', array_merge($this->dipatchUpdateData(), ['onboarding_attestation_id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -139,7 +140,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     public function testToShowEmbassyOnboardingAttestation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/showEmbassyFile', ['onboarding_attestation_id' => 1, 'embassy_attestation_id' => 1], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/showEmbassyFile', ['onboarding_attestation_id' => 1, 'embassy_attestation_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data'
@@ -170,7 +171,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     {
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/uploadEmbassyFile', array_merge($this->UploadEmbassyData(), ['onboarding_attestation_id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/uploadEmbassyFile', array_merge($this->UploadEmbassyData(), ['onboarding_attestation_id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -410,6 +411,7 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     {
         return [
                 "onboarding_attestation_id" => 1,
+                "reference_number" => '7847823647',
                 "date" => Carbon::now()->format('Y-m-d'),
                 "time" => "12:00 AM",
                 "employee_id" => 1,

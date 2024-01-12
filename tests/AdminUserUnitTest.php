@@ -24,8 +24,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testToListAdminUsers(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminList', ['search_param' => ''], $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminList', ['search_param' => ''], $this->getSuperHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -54,8 +54,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testToListAdminUsersWithSearchParamValidation(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminList', ['search_param' => 'te'], $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminList', ['search_param' => 'te'], $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -71,8 +71,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testToListAdminUsersWithSearchParam(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminList', ['search_param' => 'test'], $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminList', ['search_param' => 'test'], $this->getSuperHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -101,8 +101,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testForDisplayAdminUsersDetailsIdRequiredValidation(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminShow', ['id' => ''], $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminShow', ['id' => ''], $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -118,8 +118,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testToDisplayAdminUsersDetails(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminShow', ['id' => '1'], $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminShow', ['id' => '1'], $this->getSuperHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' => 
@@ -135,8 +135,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testForUpdateAdminUserStatusIdRequiredValidation(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['status' => 0], $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['status' => 0], $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -152,8 +152,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testForUpdateAdminUserStatusStatusRequiredValidation(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1], $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1], $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -169,8 +169,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testForUpdateAdminUserStatusStatusFormatValidation(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 5], $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 5], $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -186,8 +186,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testForUpdateAdminUserDisableStatus(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 0], $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 0], $this->getSuperHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             "data" =>
@@ -205,8 +205,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testForUpdateAdminUserEnableStatus(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 1], $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 1], $this->getSuperHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             "data" =>
@@ -225,7 +225,7 @@ class AdminUserUnitTest extends TestCase
     public function testForUpdateAdminUserIdRequiredValidation(): void
     {
         //$this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['id' => '']), $this->getSuperHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -241,8 +241,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testForUpdateAdminUserNameRequiredValidation(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['name' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['name' => '']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -258,8 +258,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testForUpdateAdminUserEmailRequiredValidation(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['email' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['email' => '']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -275,8 +275,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testForUpdateAdminUserEmailUniqueValidation(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['email' => 'unittest@gmail.com']), $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['email' => 'unittest@gmail.com']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -292,8 +292,8 @@ class AdminUserUnitTest extends TestCase
      */
     public function testForUpdateAdminUser(): void
     {
-        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/adminUpdate', $this->updationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdate', $this->updationData(), $this->getSuperHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             "data" =>

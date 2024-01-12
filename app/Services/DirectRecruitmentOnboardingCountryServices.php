@@ -414,15 +414,15 @@ class DirectRecruitmentOnboardingCountryServices
     public function deleteKSM($request): bool|array
     {
         $ksmDetails = $this->onboardingCountriesKSMReferenceNumber->find($request['id']);
+        if(empty($ksmDetails)) {
+            return [
+                'dataError' => true
+            ];
+        }
         $applicationCheck = $this->directrecruitmentApplications->find($ksmDetails->application_id);
         if($applicationCheck->company_id != $request['company_id']) {
             return [
                 'InvalidUser' =>true
-            ];
-        }
-        if(empty($ksmDetails)) {
-            return [
-                'dataError' => true
             ];
         }
         $agentDetails = $this->directRecruitmentOnboardingAgent

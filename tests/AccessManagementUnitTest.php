@@ -112,16 +112,15 @@ class AccessManagementUnitTest extends TestCase
     public function accessCreationData(bool $artisan = true): array
     {
         if($artisan === true) {
-            $this->artisan("db:seed --class=ModuleSeeder");
             $this->json('POST', 'api/v1/role/create', ['name' => 'HR', 'special_permission' => '', 'system_role' => 0, 'status' => 1, 'parent_id' => 0, 'company_id' => 1], $this->getHeader());
         }
-        return ['role_id' => 1, 'modules' => [1,2,3]];
+        return ['role_id' => 1, 'modules' => json_encode([["module_id" => 1, "permission_id" => 1], ["module_id" => 1, "permission_id" => 2], ["module_id" => 1, "permission_id" => 3], ["module_id" => 1, "permission_id" => 4], ["module_id" => 1, "permission_id" => 5], ["module_id" => 2, "permission_id"=> 1], ["module_id" => 2, "permission_id" => 2], ["module_id" => 2, "permission_id" => 3], ["module_id" => 2, "permission_id" => 4], ["module_id" => 2, "permission_id" => 5]])];
     }
     /**
      * @return array
      */
     public function accessUpdationData(): array
     {
-        return ['role_id' => 1, 'modules' => [4,5]];
+        return ['role_id' => 1, 'modules' => json_encode([["module_id" => 1, "permission_id" => 1], ["module_id" => 1, "permission_id" => 2], ["module_id" => 1, "permission_id" => 3], ["module_id" => 1, "permission_id" => 4], ["module_id" => 1, "permission_id" => 5], ["module_id" => 2, "permission_id"=> 1], ["module_id" => 2, "permission_id" => 2], ["module_id" => 2, "permission_id" => 3], ["module_id" => 2, "permission_id" => 4], ["module_id" => 2, "permission_id" => 5]])];
     }
 }

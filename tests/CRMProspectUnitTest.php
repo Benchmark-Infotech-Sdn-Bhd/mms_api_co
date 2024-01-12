@@ -796,7 +796,7 @@ class CRMProspectUnitTest extends TestCase
     {
         $this->creationSeeder();
         $this->json('POST', 'api/v1/crm/create', $this->creationData(), $this->getHeader(false));
-        $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['email' => 'testcrm@gmail.com', 'roc_number' => 'APS63769']), $this->getHeader());
+        $this->json('POST', 'api/v1/crm/create', array_merge($this->creationData(), ['email' => 'testcrm@gmail.com', 'roc_number' => 'APS63769']), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/crm/update', array_merge($this->updationData(), ['id' => 2, 'email' => 'testcrm@gmail.com', 'roc_number' => 'APS63769']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([

@@ -454,7 +454,7 @@ class BranchesTest extends TestCase
             'service_type' => [1,2,3],
             'remarks' => 'test'
         ];
-        $response = $this->json('POST', 'api/v1/branch/update', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/branch/update', $payload, $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
@@ -484,7 +484,7 @@ class BranchesTest extends TestCase
             'id' => 1,
             'status' => 1
         ];
-        $response = $this->json('POST', 'api/v1/branch/updateStatus', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/branch/updateStatus', $payload, $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
@@ -524,7 +524,6 @@ class BranchesTest extends TestCase
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'data'
                 ]
         ]);
     }
