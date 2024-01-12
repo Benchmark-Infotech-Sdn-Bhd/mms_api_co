@@ -176,5 +176,8 @@ return [
     'ECONTRACT_PAYROLL_IMPORT' => env('ECONTRACT_PAYROLL_IMPORT', "e_contract_payrolls_import"),
     'PAYROLL_IMPORT' => env('PAYROLL_IMPORT', "payrolls_import"),
     'RUNNER_NOTIFICATION_MAIL' => env('RUNNER_NOTIFICATION_MAIL', "runner_notification_mail"),
+
+    'SUB_DOMAIN_DB_NAME_ONE' => env('SUB_DOMAIN_DB_NAME_ONE'),
+    'SUB_DOMAIN_DB_NAME_TWO' => env('SUB_DOMAIN_DB_NAME_TWO'),
     
 ];
