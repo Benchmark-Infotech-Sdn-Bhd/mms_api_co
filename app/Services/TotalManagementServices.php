@@ -306,13 +306,16 @@ class TotalManagementServices
             ];
         }
         $user = JWTAuth::parseToken()->authenticate();
-        $params['company_id'] = $this->authServices->getCompanyIds($user);
-        $applicationDetails = $this->totalManagementApplications->whereIn('company_id', $params['company_id'])->find($request['id']);
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        $applicationDetails = $this->getApplicationDetails($request->toArray());
+
         if(is_null($applicationDetails)){
             return [
                 'unauthorizedError' => true
             ];
         }
+
         $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
         if($serviceDetails->from_existing == 0) {
             $totalQuota = $serviceDetails->client_quota + $serviceDetails->fomnext_quota;
@@ -325,6 +328,21 @@ class TotalManagementServices
         
         $params = $request->all();
         $params['modified_by'] = $user['id'];
+
+        $this->updateApplicationDetail($applicationDetails, $params);
+
+        $this->uploadProposalAttachments($request);
+
+        return true;
+    }
+    /**
+     * Update application based on the provided request.
+     *
+     * @param mixed $costManaapplicationDetailsgement
+     * @param $params
+     */
+    private function updateApplicationDetail($applicationDetails, $params)
+    {
         $applicationDetails->quota_applied = $params['quota_requested'] ?? $applicationDetails->quota_applied;
         $applicationDetails->person_incharge = $params['person_incharge'] ?? $applicationDetails->person_incharge;
         $applicationDetails->cost_quoted = $params['cost_quoted'] ?? $applicationDetails->cost_quoted;
@@ -332,10 +350,6 @@ class TotalManagementServices
         $applicationDetails->remarks = $params['remarks'] ?? $applicationDetails->remarks;
         $applicationDetails->modified_by = $params['modified_by'];
         $applicationDetails->save();
-
-        $this->uploadProposalAttachments($request);
-
-        return true;
     }
     /**
      * Upload attachments for the proposal.

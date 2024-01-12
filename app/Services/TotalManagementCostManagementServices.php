@@ -14,13 +14,18 @@ use Illuminate\Support\Carbon;
 
 class TotalManagementCostManagementServices
 {
+    public const ATTACHMENT_FILE_TYPE = 'COSTMANAGEMENT';
+    public const MESSAGE_NOT_FOUND = "Data not found";
+    public const MESSAGE_DELETED_SUCCESSFULLY = "Deleted Successfully";
+
     private TotalManagementCostManagement $totalManagementCostManagement;
     private TotalManagementCostManagementAttachments $totalManagementCostManagementAttachments;
     private ValidationServices $validationServices;
     private AuthServices $authServices;
     private Storage $storage;
     /**
-     * WorkersServices constructor.
+     * TotalManagementCostManagementServices constructor.
+     * 
      * @param TotalManagementCostManagement $totalManagementCostManagement
      * @param TotalManagementCostManagementAttachments $totalManagementCostManagementsAttachments
      * @param ValidationServices $validationServices
@@ -43,20 +48,38 @@ class TotalManagementCostManagementServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Create a cost management.
+     *
+     * @param mixed $request The request data.
+     *
+     * @return mixed The response data.
      */
     public function create($request) : mixed
     {
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
+        $request['created_by'] = $user['id'];
         if(!($this->validationServices->validate($request->toArray(),$this->totalManagementCostManagement->rules))){
             return [
               'validate' => $this->validationServices->errors()
             ];
         }
-        $costManagement = $this->totalManagementCostManagement->create([
+        
+        $costManagement = $this->createTotalManagementCostManagement($request);
+
+        $this->uploadCostManagementFiles($request, $costManagement->id);
+
+        return $costManagement;
+    }
+    /**
+     * create total management cost management.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function createTotalManagementCostManagement($request): mixed
+    {
+        return $this->totalManagementCostManagement->create([
             'application_id' => $request['application_id'],
             'project_id' => $request['project_id'],
             'title' => $request['title'] ?? '',
@@ -65,30 +88,49 @@ class TotalManagementCostManagementServices
             'quantity' => $request['quantity'] ?? '',
             'amount' => $request['amount'] ?? '',
             'remarks' => $request['remarks'] ?? '',
-            'created_by'    => $params['created_by'] ?? 0,
-            'modified_by'   => $params['created_by'] ?? 0
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0
         ]);
-
-        if (request()->hasFile('attachment')){
-            foreach($request->file('attachment') as $file){
+    }
+    /**
+     * Upload attachment of cost management.
+     *
+     * @param array $request
+     * @param int $costManagement
+     * @return void
+     */
+    private function uploadCostManagementFiles($request, $costManagementId): void
+    {
+        if ($request->hasFile('attachment')) {
+            foreach ($request->file('attachment') as $file) {
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/tmCostManagement/'.$costManagement['id']. $fileName; 
+                $filePath = '/tmCostManagement/' . $costManagementId . $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
+
                 $this->totalManagementCostManagementAttachments::create([
-                        "file_id" => $costManagement['id'],
-                        "file_name" => $fileName,
-                        "file_type" => 'COSTMANAGEMENT',
-                        "file_url" =>  $fileUrl
-                    ]);  
+                    'file_id' => $costManagementId,
+                    'file_name' => $fileName,
+                    'file_type' => self::ATTACHMENT_FILE_TYPE,
+                    'file_url' => $fileUrl,
+                ]);
             }
         }
-
-        return $costManagement;
     }
-
     /**
+     * delete attachment of cost management.
+     *
+     * @param int $costManagementId
+     * @return void
+     */
+    private function deleteCostManagementFiles($costManagementId): void
+    {
+        $this->totalManagementCostManagementAttachments->where('file_id', $costManagementId)->where('file_type', self::ATTACHMENT_FILE_TYPE)->delete();
+    }
+    /**
+     * update total management cost management.
+     * 
      * @param $request
      * @return bool|array
      */
@@ -97,7 +139,7 @@ class TotalManagementCostManagementServices
 
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
-        $params['modified_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
         $params['company_id'] = $this->authServices->getCompanyIds($user);
 
         if(!($this->validationServices->validate($request->toArray(),$this->totalManagementCostManagement->rulesForUpdation($request['id'])))){
@@ -106,20 +148,48 @@ class TotalManagementCostManagementServices
             ];
         }
 
-        $costManagement = $this->totalManagementCostManagement
-        ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
-        ->join('total_management_applications', function ($join) use ($params) {
-            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
-                ->whereIn('total_management_applications.company_id', $params['company_id']);
-        })
-        ->select('total_management_cost_management.*')->find($request['id']);
+        $costManagement = $this->getCostManagement($request['id'], $params['company_id']);
 
-        if(is_null($costManagement)){
-            return [
-                'unauthorizedError' => true
-            ];
+        if (is_null($costManagement)) {
+            return ['unauthorizedError' => true];
         }
 
+        $this->updateTotalManagementCostManagement($costManagement, $request);
+
+        $this->deleteCostManagementFiles($request['id']);
+
+        $this->uploadCostManagementFiles($request, $costManagement->id);
+
+    return true;
+
+    }
+
+    /**
+     * Retrieve cost management record by ID and company ID.
+     *
+     * @param int $costManagementId
+     * @param array $companyIds
+     * @return mixed
+     */
+    private function getCostManagement(int $costManagementId, array $companyIds)
+    {
+        return $this->totalManagementCostManagement
+            ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+            ->join('total_management_applications', function ($join) use ($companyIds) {
+                $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                    ->whereIn('total_management_applications.company_id', $companyIds);
+            })
+            ->select('total_management_cost_management.*')
+            ->find($costManagementId);
+    }
+    /**
+     * Update cost management based on the provided request.
+     *
+     * @param mixed $costManagement
+     * @param $request
+     */
+    private function updateTotalManagementCostManagement($costManagement, $request)
+    {
         $costManagement->application_id = $request['application_id'] ?? $costManagement->application_id;
         $costManagement->project_id = $request['project_id'] ?? $costManagement->project_id;
         $costManagement->title = $request['title'] ?? $costManagement->title;
@@ -129,33 +199,13 @@ class TotalManagementCostManagementServices
         $costManagement->quantity = $request['quantity'] ?? $costManagement->quantity;
         $costManagement->remarks = $request['remarks'] ?? $costManagement->remarks;
         $costManagement->created_by = $request['created_by'] ?? $costManagement->created_by;
-        $costManagement->modified_by = $params['modified_by'];
+        $costManagement->modified_by = $request['modified_by'];
         $costManagement->save();
-
-        if (request()->hasFile('attachment')){
-
-            $this->totalManagementCostManagementAttachments->where('file_id', $request['id'])->where('file_type', 'COSTMANAGEMENT')->delete();
-
-            foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/tmCostManagement/'.$request['id']. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->totalManagementCostManagementAttachments::create([
-                    "file_id" => $request['id'],
-                    "file_name" => $fileName,
-                    "file_type" => 'COSTMANAGEMENT',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
-
-        return true;
     }
-    
-    
+
     /**
+     * show total management cost management.
+     * 
      * @param $request
      * @return mixed
      */
@@ -177,6 +227,8 @@ class TotalManagementCostManagementServices
     }
     
     /**
+     * list total management cost management.
+     * 
      * @param $request
      * @return mixed
      */
@@ -212,59 +264,86 @@ class TotalManagementCostManagementServices
     }
 
     /**
-     * delete the specified Vendors data.
+     * delete the cost management.
      *
      * @param $request
      * @return mixed
      */    
     public function delete($request): mixed
-    {   
-        $totalManagementCostManagement = $this->totalManagementCostManagement
-        ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
-        ->join('total_management_applications', function ($join) use ($request) {
-            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
-                ->whereIn('total_management_applications.company_id', $request['company_id']);
-        })
-        ->select('total_management_cost_management.id')
-        ->find($request['id']);
+    {
+        $totalManagementCostManagement = $this->getCostManagementToDelete($request);
 
         if(is_null($totalManagementCostManagement)){
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_NOT_FOUND
             ];
         }
         $totalManagementCostManagement->totalManagementCostManagementAttachments()->delete();
         $totalManagementCostManagement->delete();
         return [
             "isDeleted" => true,
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
     }
 
     /**
+     * Get the cost management data to delete.
+     *
+     * @param $request
+     * @return mixed
+     */
+    private function getCostManagementToDelete($request)
+    {
+        return $this->totalManagementCostManagement
+            ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+            ->join('total_management_applications', function ($join) use ($request) {
+                $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                    ->whereIn('total_management_applications.company_id', $request['company_id']);
+            })
+            ->select('total_management_cost_management.id')
+            ->find($request['id']);
+    }
+
+    /**
+     * delete the attchment of cost management.
      *
      * @param $request
      * @return mixed
      */    
     public function deleteAttachment($request): mixed
-    {   
-        $data = $this->totalManagementCostManagementAttachments::join('total_management_cost_management', 'total_management_cost_management.id', 'total_management_cost_management_attachments.file_id')
-        ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
-        ->join('total_management_applications', function ($join) use ($request) {
-            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
-                ->whereIn('total_management_applications.company_id', $request['company_id']);
-        })->select('total_management_cost_management_attachments.id')->find($request['id']); 
+    {
+        $data = $this->getAttachmentToDelete($request);
+
         if(is_null($data)){
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_NOT_FOUND
             ];
         }
         return [
             "isDeleted" => $data->delete(),
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
+    }
+
+    /**
+     * Get the attachment data to delete.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function getAttachmentToDelete($request)
+    {
+        return $this->totalManagementCostManagementAttachments
+            ->join('total_management_cost_management', 'total_management_cost_management.id', 'total_management_cost_management_attachments.file_id')
+            ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+            ->join('total_management_applications', function ($join) use ($request) {
+                $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                    ->whereIn('total_management_applications.company_id', $request['company_id']);
+            })
+            ->select('total_management_cost_management_attachments.id')
+            ->find($request['id']);
     }
 
 }
