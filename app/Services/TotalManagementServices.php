@@ -19,52 +19,21 @@ use App\Services\AuthServices;
 
 class TotalManagementServices
 {
-    /**
-     * @var CRMProspect
-     */
     private CRMProspect $crmProspect;
-    /**
-     * @var CRMProspectService
-     */
     private CRMProspectService $crmProspectService;
-    /**
-     * @var CRMProspectAttachment
-     */
     private CRMProspectAttachment $crmProspectAttachment;
-    /**
-     * @var Services
-     */
     private Services $services;
-    /**
-     * @var Sectors
-     */
     private Sectors $sectors;
-    /**
-     * @var TotalManagementApplications
-     */
     private TotalManagementApplications $totalManagementApplications;
-    /**
-     * @var TotalManagementApplicationAttachments
-     */
     private TotalManagementApplicationAttachments $totalManagementApplicationAttachments;
-    /**
-     * @var DirectrecruitmentApplications
-     */
     private DirectrecruitmentApplications $directrecruitmentApplications;
-    /**
-     * @var DirectRecruitmentOnboardingCountry
-     */
     private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
-    /**
-     * @var Storage
-     */
     private Storage $storage;
-    /**
-     * @var AuthServices
-     */
     private AuthServices $authServices;
+    
     /**
-     * TotalManagementServices constructor.
+     * TotalManagementServices Constructor method for the class.
+     *
      * @param CRMProspect $crmProspect
      * @param CRMProspectService $crmProspectService
      * @param CRMProspectAttachment $crmProspectAttachment
@@ -93,6 +62,8 @@ class TotalManagementServices
         $this->authServices = $authServices;
     }
     /**
+     * Validates the search request.
+     *
      * @return array
      */
     public function searchValidation(): array
@@ -102,6 +73,8 @@ class TotalManagementServices
         ];
     }
     /**
+     * Validates the service request.
+     *
      * @return array
      */
     public function addServiceValidation(): array
@@ -120,6 +93,8 @@ class TotalManagementServices
         ];
     }
     /**
+     * Returns a paginated list of list based on the given search request.
+     *
      * @param $request
      * @return mixed
      */
@@ -285,6 +260,8 @@ class TotalManagementServices
         return true;
     }
     /**
+     * Returns a quota for given request.
+     *
      * @param $request
      * @return int
      */
@@ -299,7 +276,8 @@ class TotalManagementServices
         return $initialQuota;
     }
     /**
-     *
+     * Retrieves a proposal based on the provided request.
+     * 
      * @param $request
      * @return mixed
      */
@@ -314,6 +292,8 @@ class TotalManagementServices
         }])->select('total_management_applications.id', 'total_management_applications.quota_applied', 'total_management_applications.person_incharge', 'total_management_applications.cost_quoted', 'total_management_applications.remarks', 'crm_prospect_services.sector_name')->get();
     }
     /**
+     * Submit the Proposal.
+     * 
      * @param $request
      * @return bool|array
      */
@@ -353,63 +333,122 @@ class TotalManagementServices
         $applicationDetails->modified_by = $params['modified_by'];
         $applicationDetails->save();
 
-        if (request()->hasFile('attachment')){
-            foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/totalManagement/proposal/' . $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->totalManagementApplicationAttachments::create([
-                        "file_id" => $request['id'],
-                        "file_name" => $fileName,
-                        "file_type" => 'proposal',
-                        "file_url" =>  $fileUrl         
-                    ]);  
-            }
-        }
+        $this->uploadProposalAttachments($request);
+
         return true;
     }
     /**
+     * Upload attachments for the proposal.
+     *
+     * @param $request
+     */
+    private function uploadProposalAttachments($request)
+    {
+        if ($request->hasFile('attachment')) {
+            foreach ($request->file('attachment') as $file) {
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/totalManagement/proposal/' . $fileName;
+                
+                $linode = Storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                
+                $fileUrl = $linode->url($filePath);
+
+                $this->totalManagementApplicationAttachments::create([
+                    'file_id' => $request->id,
+                    'file_name' => $fileName,
+                    'file_type' => 'proposal',
+                    'file_url' => $fileUrl,
+                ]);
+            }
+        }
+    }
+    /**
+     * allocateQuota for application.
+     * 
      * @param $request
      * @return array|bool
      */
     public function allocateQuota($request): array|bool
     {
-        if(isset($request['initial_quota'])) {
-            if($request['initial_quota'] < $request['service_quota']) {
-                return [
-                    'quotaError' => true
-                ];
-            }
+        if (isset($request['initial_quota']) && $request['initial_quota'] < $request['service_quota']) {
+            return ['quotaError' => true];
         }
-        $prospectService = $this->crmProspectService->join('crm_prospects', function ($join) use ($request) {
+    
+        $prospectService = $this->getCrmProspectService($request);
+        if (is_null($prospectService)) {
+            return ['unauthorizedError' => true];
+        }
+    
+        $this->updateProspectService($prospectService, $request);
+    
+        $applicationDetails = $this->getApplicationDetails($request);
+        if (is_null($applicationDetails)) {
+            return ['unauthorizedError' => true];
+        }
+    
+        $this->updateApplicationDetails($applicationDetails, $prospectService, $request);
+    
+        return true;
+    }
+    /**
+     * Get CRM Prospect Service based on the provided request.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function getCrmProspectService(array $request)
+    {
+        return $this->crmProspectService->join('crm_prospects', function ($join) use ($request) {
             $join->on('crm_prospects.id', '=', 'crm_prospect_services.crm_prospect_id')
-                 ->whereIn('crm_prospects.company_id', $request['company_id']);
+                ->whereIn('crm_prospects.company_id', $request['company_id']);
         })->select('crm_prospect_services.*')->find($request['prospect_service_id']);
-        if(is_null($prospectService)){
-            return [
-                'unauthorizedError' => true
-            ];
-        }
-        $prospectService->from_existing =  $request['from_existing'] ?? 0;
+    }
+
+    /**
+     * Update Prospect Service details based on the provided request.
+     *
+     * @param mixed $prospectService
+     * @param array $request
+     */
+    private function updateProspectService($prospectService, array $request)
+    {
+        $prospectService->from_existing = $request['from_existing'] ?? 0;
         $prospectService->client_quota = $request['client_quota'] ?? $prospectService->client_quota;
         $prospectService->fomnext_quota = $request['fomnext_quota'] ?? $prospectService->fomnext_quota;
         $prospectService->initial_quota = $request['initial_quota'] ?? $prospectService->initial_quota;
         $prospectService->service_quota = $request['service_quota'] ?? $prospectService->service_quota;
         $prospectService->save();
+    }
 
-        $applicationDetails = $this->totalManagementApplications->whereIn('company_id', $request['company_id'])->find($request['id']);
-        if(is_null($applicationDetails)){
-            return [
-                'unauthorizedError' => true
-            ];
-        }
-        $applicationDetails->quota_applied = ($request['from_existing'] == 0) ? ($prospectService->client_quota + $prospectService->fomnext_quota) : $prospectService->service_quota;
+    /**
+     * Get Application Details based on the provided request.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function getApplicationDetails(array $request)
+    {
+        return $this->totalManagementApplications->whereIn('company_id', $request['company_id'])->find($request['id']);
+    }
+
+    /**
+     * Update Application Details based on the provided Prospect Service and request.
+     *
+     * @param mixed $applicationDetails
+     * @param mixed $prospectService
+     * @param array $request
+     */
+    private function updateApplicationDetails($applicationDetails, $prospectService, array $request)
+    {
+        $applicationDetails->quota_applied = ($request['from_existing'] == 0) ?
+            ($prospectService->client_quota + $prospectService->fomnext_quota) :
+            $prospectService->service_quota;
+
         $applicationDetails->save();
-        return true;
     }
     /**
+     * Retrieves a service details based on the provided request.
      *
      * @param $request
      * @return mixed
