@@ -79,8 +79,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('show', 'V1\CompanyController@accountSystemShow');
                     });
                 });
-                $router->post('parentDropDown', 'V1\CompanyController@parentDropDown');  
-                $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');    
+                $router->post('parentDropDown', 'V1\CompanyController@parentDropDown');      
                 $router->post('dropdown', 'V1\CompanyController@dropdown');     
             });
             
@@ -92,6 +91,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
             $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');
             $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
             $router->post('subsidiaryDropDown', 'V1\CompanyController@subsidiaryDropDown');
+            $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');
         });  
         /**
          * Routes for Modules.
