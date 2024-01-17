@@ -19,36 +19,19 @@ use App\Models\TotalManagementCostManagement;
 
 class TotalManagementPayrollServices
 {
-    /**
-     * @var Workers
-     */
+    public const PAYROLL_BULK_UPLOAD_TYPE = 'Payroll Bulk Upload';
+    
     private Workers $workers;
-    /**
-     * @var TotalManagementPayroll
-     */
     private TotalManagementPayroll $totalManagementPayroll;
-    /**
-     * @var TotalManagementPayrollAttachments
-     */
     private TotalManagementPayrollAttachments $totalManagementPayrollAttachments;
-    /**
-     * @var PayrollBulkUpload
-     */
     private PayrollBulkUpload $payrollBulkUpload;
-    /**
-     * @var TotalManagementCostManagement
-     */
     private TotalManagementCostManagement $totalManagementCostManagement;
-    /**
-     * @var Storage
-     */
     private Storage $storage;
-    /**
-     * @var TotalManagementProject
-     */
     private TotalManagementProject $totalManagementProject;
+
     /**
      * TotalManagementPayrollServices constructor.
+     * 
      * @param TotalManagementProject $totalManagementProject
      * @param TotalManagementPayroll $totalManagementPayroll
      * @param TotalManagementPayrollAttachments $totalManagementPayrollAttachments
@@ -68,6 +51,8 @@ class TotalManagementPayrollServices
         $this->totalManagementCostManagement = $totalManagementCostManagement;
     }
     /**
+     * validate the add request data
+     * 
      * @return array
      */
     public function addValidation(): array
@@ -80,6 +65,8 @@ class TotalManagementPayrollServices
         ];
     }
     /**
+     * validate the update request data
+     * 
      * @return array
      */
     public function updateValidation(): array
@@ -89,6 +76,8 @@ class TotalManagementPayrollServices
         ];
     }
     /**
+     * validate the upload timesheet request data
+     * 
      * @return array
      */
     public function uploadTimesheetValidation(): array
@@ -99,7 +88,9 @@ class TotalManagementPayrollServices
             'year' => 'required'
         ];
     }
-        /**
+    /**
+     * validate the import request data
+     * 
      * @return array
      */
     public function importValidation(): array
@@ -109,6 +100,8 @@ class TotalManagementPayrollServices
         ];
     }
     /**
+     * show the project detail
+     * 
      * @param $request
      * @return mixed
      */   
@@ -131,6 +124,8 @@ class TotalManagementPayrollServices
             ->get();
     }
     /**
+     * Get a list of workers for the specified project
+     * 
      * @param $request
      * @return mixed
      */   
@@ -178,6 +173,8 @@ class TotalManagementPayrollServices
             ->paginate(Config::get('services.paginate_row'));
     }
     /**
+     * Export worker data based on specified project.
+     * 
      * @param $request
      * @return mixed
      */   
@@ -228,6 +225,8 @@ class TotalManagementPayrollServices
             ->orderBy('workers.created_at','DESC')->get();
     }
     /**
+     * show the details of a total management payroll record
+     * 
      * @param $request
      * @return mixed
      */   
@@ -255,6 +254,8 @@ class TotalManagementPayrollServices
             ->distinct('workers.id','total_management_payroll.id')->get();
     }
     /**
+     * Import payroll data from a file
+     * 
      * @param $request
      * @return bool|array
      */   
@@ -271,18 +272,29 @@ class TotalManagementPayrollServices
                 'error' => $validator->errors()
             ];
         }
-        
-        $payrollBulkUpload = $this->payrollBulkUpload->create([
-                'project_id' => $request['project_id'] ?? '',
-                'name' => 'Payroll Bulk Upload',
-                'type' => 'Payroll bulk upload'
-            ]
-        );
+
+        $payrollBulkUpload = $this->createPayrollBulkUpload($request);
 
         Excel::import(new PayrollImport($params, $payrollBulkUpload), $file);
         return true;
     } 
     /**
+     * create payroll bulk upload.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function createPayrollBulkUpload($request): mixed
+    {
+        return $payrollBulkUpload = $this->payrollBulkUpload->create([
+            'project_id' => $request['project_id'] ?? '',
+            'name' => self::PAYROLL_BULK_UPLOAD_TYPE,
+            'type' => self::PAYROLL_BULK_UPLOAD_TYPE
+        ]);
+    }
+    /**
+     * Add a new entry to the total management payroll.
+     * 
      * @param $request
      * @return bool|array
      */   
@@ -295,50 +307,72 @@ class TotalManagementPayrollServices
             ];
         }
 
-        $totalManagementPayroll = $this->totalManagementPayroll->where([
-            ['worker_id', $request['worker_id']],
-            ['project_id', $request['project_id']],
-            ['month', $request['month']],
-            ['year', $request['year']],
-        ])->first(['id', 'worker_id', 'project_id', 'month', 'year']);
+        $totalManagementPayroll = $this->getPayrollRecord($request);
 
         if(is_null($totalManagementPayroll)){
-            $this->totalManagementPayroll->create([
-                'worker_id' => $request['worker_id'] ?? 0,
-                'project_id' => $request['project_id'] ?? 0,
-                'month' => $request['month'] ?? 0,
-                'year' => $request['year'] ?? 0,
-                'basic_salary' => $request['basic_salary'] ?? 0,
-                'ot_1_5' => $request['ot_1_5'] ?? 0,
-                'ot_2_0' => $request['ot_2_0'] ?? 0,
-                'ot_3_0' => $request['ot_3_0'] ?? 0,
-                'ph' => $request['ph'] ?? 0,
-                'rest_day' => $request['rest_day'] ?? 0,
-                'deduction_advance' => $request['deduction_advance'] ?? 0,
-                'deduction_accommodation' => $request['deduction_accommodation'] ?? 0,
-                'annual_leave' => $request['annual_leave'] ?? 0,
-                'medical_leave' => $request['medical_leave'] ?? 0,
-                'hospitalisation_leave' => $request['hospitalisation_leave'] ?? 0,
-                'amount' => $request['amount'] ?? 0,
-                'no_of_workingdays' => $request['no_of_workingdays'] ?? 0,
-                'normalday_ot_1_5' => $request['normalday_ot_1_5'] ?? 0,
-                'ot_1_5_hrs_amount' => $request['ot_1_5_hrs_amount'] ?? 0,
-                'restday_daily_salary_rate' => $request['restday_daily_salary_rate'] ?? 0,
-                'hrs_ot_2_0' => $request['hrs_ot_2_0'] ?? 0,
-                'ot_2_0_hrs_amount' => $request['ot_2_0_hrs_amount'] ?? 0,
-                'public_holiday_ot_3_0' => $request['public_holiday_ot_3_0'] ?? 0,
-                'deduction_hostel' => $request['deduction_hostel'] ?? 0,
-                'sosco_deduction' => $request['sosco_deduction'] ?? 0,
-                'sosco_contribution' => $request['sosco_contribution'] ?? 0,
-                'created_by' => $request['created_by'] ?? 0,
-                'modified_by' => $request['created_by'] ?? 0
-            ]);
+            $this->createTotalManagementPayroll($request);
             return true;
         }else{
             return false;
         }
     }
     /**
+     * Retrieve payroll record.
+     *
+     * @param array request
+     * @return mixed
+     */
+    private function getPayrollRecord($request)
+    {
+        return $this->totalManagementPayroll->where([
+            ['worker_id', $request['worker_id']],
+            ['project_id', $request['project_id']],
+            ['month', $request['month']],
+            ['year', $request['year']],
+        ])->first(['id', 'worker_id', 'project_id', 'month', 'year']);
+    }
+    /**
+     * create total management payroll record.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function createTotalManagementPayroll($request): mixed
+    {
+        return $this->totalManagementPayroll->create([
+            'worker_id' => $request['worker_id'] ?? 0,
+            'project_id' => $request['project_id'] ?? 0,
+            'month' => $request['month'] ?? 0,
+            'year' => $request['year'] ?? 0,
+            'basic_salary' => $request['basic_salary'] ?? 0,
+            'ot_1_5' => $request['ot_1_5'] ?? 0,
+            'ot_2_0' => $request['ot_2_0'] ?? 0,
+            'ot_3_0' => $request['ot_3_0'] ?? 0,
+            'ph' => $request['ph'] ?? 0,
+            'rest_day' => $request['rest_day'] ?? 0,
+            'deduction_advance' => $request['deduction_advance'] ?? 0,
+            'deduction_accommodation' => $request['deduction_accommodation'] ?? 0,
+            'annual_leave' => $request['annual_leave'] ?? 0,
+            'medical_leave' => $request['medical_leave'] ?? 0,
+            'hospitalisation_leave' => $request['hospitalisation_leave'] ?? 0,
+            'amount' => $request['amount'] ?? 0,
+            'no_of_workingdays' => $request['no_of_workingdays'] ?? 0,
+            'normalday_ot_1_5' => $request['normalday_ot_1_5'] ?? 0,
+            'ot_1_5_hrs_amount' => $request['ot_1_5_hrs_amount'] ?? 0,
+            'restday_daily_salary_rate' => $request['restday_daily_salary_rate'] ?? 0,
+            'hrs_ot_2_0' => $request['hrs_ot_2_0'] ?? 0,
+            'ot_2_0_hrs_amount' => $request['ot_2_0_hrs_amount'] ?? 0,
+            'public_holiday_ot_3_0' => $request['public_holiday_ot_3_0'] ?? 0,
+            'deduction_hostel' => $request['deduction_hostel'] ?? 0,
+            'sosco_deduction' => $request['sosco_deduction'] ?? 0,
+            'sosco_contribution' => $request['sosco_contribution'] ?? 0,
+            'created_by' => $request['created_by'] ?? 0,
+            'modified_by' => $request['created_by'] ?? 0
+        ]);
+    }
+    /**
+     * pdate the Total Management Payroll.
+     * 
      * @param $request
      * @return bool|array
      */
@@ -350,19 +384,41 @@ class TotalManagementPayrollServices
                 'error' => $validator->errors()
             ];
         }
+        
+        $totalManagementPayroll = $this->getPayrollRecordToUpdate($request);
 
-        $totalManagementPayroll = $this->totalManagementPayroll
-        ->join('total_management_project', 'total_management_project.id', 'total_management_payroll.project_id')
-        ->join('total_management_applications', function ($join) use ($request) {
-            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
-                 ->whereIn('total_management_applications.company_id', $request['company_id']);
-        })->select('total_management_payroll.*')->find($request['id']);
         if(is_null($totalManagementPayroll)){
             return [
                 'unauthorizedError' => true
             ];
         }
-
+        $this->updatePayroll($totalManagementPayroll, $request);
+        
+        return true;
+    }
+    /**
+     * Retrieve payroll record for update.
+     *
+     * @param array request
+     * @return mixed
+     */
+    private function getPayrollRecordToUpdate($request)
+    {
+        return $this->totalManagementPayroll
+        ->join('total_management_project', 'total_management_project.id', 'total_management_payroll.project_id')
+        ->join('total_management_applications', function ($join) use ($request) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                 ->whereIn('total_management_applications.company_id', $request['company_id']);
+        })->select('total_management_payroll.*')->find($request['id']);
+    }
+    /**
+     * Update payroll based on the provided request.
+     *
+     * @param mixed $totalManagementPayroll
+     * @param $request
+     */
+    private function updatePayroll($totalManagementPayroll, $request)
+    {
         $totalManagementPayroll->basic_salary =  $request['basic_salary'] ?? $totalManagementPayroll->basic_salary;
         $totalManagementPayroll->ot_1_5 =  $request['ot_1_5'] ?? $totalManagementPayroll->ot_1_5;
         $totalManagementPayroll->ot_2_0 =  $request['ot_2_0'] ?? $totalManagementPayroll->ot_2_0;
@@ -387,10 +443,10 @@ class TotalManagementPayrollServices
         $totalManagementPayroll->sosco_contribution =  $request['sosco_contribution'] ?? $totalManagementPayroll->sosco_contribution;
         $totalManagementPayroll->modified_by =  $request['modified_by'] ?? $totalManagementPayroll->modified_by;
         $totalManagementPayroll->save();
-
-        return true;
     }
     /**
+     * list timesheet
+     * 
      * @param $request
      * @return mixed
      */   
@@ -404,6 +460,8 @@ class TotalManagementPayrollServices
             ->paginate(Config::get('services.paginate_row'));
     }
     /**
+     * view timesheet
+     * 
      * @param $request
      * @return mixed
      */   
@@ -420,6 +478,7 @@ class TotalManagementPayrollServices
     }
     /**
      * upload Timesheet
+     * 
      * @param $request
      * @return bool|array
      */
@@ -427,7 +486,7 @@ class TotalManagementPayrollServices
     {
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
+        $request['created_by'] = $user['id'];
 
         $validator = Validator::make($request->toArray(), $this->uploadTimesheetValidation());
         if($validator->fails()) {
@@ -436,69 +495,118 @@ class TotalManagementPayrollServices
             ];
         }
 
-        $totalManagementPayrollAttachments = $this->totalManagementPayrollAttachments
-        ->where([
-            'file_id' => $request['project_id'],
-            'month' => $request['month'],
-            'year' => $request['year']
-        ])->first(['id', 'month', 'year', 'file_id', 'file_name', 'file_type', 'file_url', 'created_at']);
-        
-        if (request()->hasFile('attachment')){
-            foreach($request->file('attachment') as $file){
-                
-                if(is_null($totalManagementPayrollAttachments)){
+        $totalManagementPayrollAttachments = $this->getPayrollAttachments($request);
 
-                    $fileName = $file->getClientOriginalName();
-                    $filePath = '/totalManagement/payroll/timesheet/' . $fileName; 
-                    $linode = $this->storage::disk('linode');
-                    $linode->put($filePath, file_get_contents($file));
-                    $fileUrl = $this->storage::disk('linode')->url($filePath);
-
-                    $this->totalManagementPayrollAttachments::create([
-                        'file_id' => $request['project_id'],
-                        "month" => $request['month'] ?? 0,
-                        "year" => $request['year'] ?? 0,
-                        "file_name" => $fileName,
-                        "file_type" => 'Timesheet',
-                        "file_url" =>  $fileUrl,
-                        "created_by" =>  $params['created_by'] ?? 0,
-                        "modified_by" =>  $params['created_by'] ?? 0
-                    ]);
-
-                    return true;
-                    
-                }else{
-                    return [
-                        'existsError' => true
-                    ];
-                }
-            }
+        if(is_null($totalManagementPayrollAttachments)){
+            $this->uploadPayrollTimesheet($request);
+        }else{
+            return [
+                'existsError' => true
+            ];
         }
         return false;
     }
+    /**
+     * Retrieve attachments.
+     *
+     * @param array request
+     * @return mixed
+     */
+    private function getPayrollAttachments($request)
+    {
+        return $this->totalManagementPayroll
+        ->join('total_management_project', 'total_management_project.id', 'total_management_payroll.project_id')
+        ->join('total_management_applications', function ($join) use ($request) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                 ->whereIn('total_management_applications.company_id', $request['company_id']);
+        })->select('total_management_payroll.*')->find($request['id']);
+    }
+    /**
+     * Upload attachment of payroll.
+     *
+     * @param array $request
+     * @param int $expenseId
+     * @return void
+     */
+    private function uploadPayrollTimesheet($request): void
+    {
+        if (request()->hasFile('attachment')){
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/totalManagement/payroll/timesheet/' . $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+
+                $this->totalManagementPayrollAttachments::create([
+                    'file_id' => $request['project_id'],
+                    "month" => $request['month'] ?? 0,
+                    "year" => $request['year'] ?? 0,
+                    "file_name" => $fileName,
+                    "file_type" => 'Timesheet',
+                    "file_url" =>  $fileUrl,
+                    "created_by" =>  $request['created_by'] ?? 0,
+                    "modified_by" =>  $request['created_by'] ?? 0
+                ]);
+            }
+        }
+    }
 
     /**
-     * upload Timesheet
+     * process the authorize Payroll
+     * 
      * @param $request
      * @return bool|array
      */
     public function authorizePayroll($request): bool|array
     {
-
-        $checkTotalManagementCostManagement = $this->totalManagementCostManagement
-        ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
-        ->join('total_management_applications', function ($join) use ($request) {
-            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
-                ->whereIn('total_management_applications.company_id', $request['company_id']);
-        })->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
-        
+        $checkTotalManagementCostManagement = $this->countTotalManagementCostManagement($request);
         if($checkTotalManagementCostManagement > 0) {
             return [
                 'existsError' => true
             ];
         }
 
-        $payrollWorkers = $this->workers
+        $payrollWorkers = $this->getPayrollWorkers($request);
+
+        if(isset($payrollWorkers) && count($payrollWorkers) > 0 ){
+            foreach($payrollWorkers as $result){
+                $user = JWTAuth::parseToken()->authenticate();
+                $this->createCostmanagementEntry($result,$request,$user);
+                $this->createCostmanagementSocsoEntry($result,$request,$user);
+            }
+        } else {
+            return [
+                'noRecords' => true
+            ];
+        }
+        return true;
+    }
+
+    /**
+     * count cost management specified project request data.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function countTotalManagementCostManagement($request)
+    {
+        return $this->totalManagementCostManagement
+        ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
+        ->join('total_management_applications', function ($join) use ($request) {
+            $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
+                ->whereIn('total_management_applications.company_id', $request['company_id']);
+        })->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
+    }
+    /**
+     * get payroll workers.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function getPayrollWorkers($request)
+    {
+        return $this->workers
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.worker_id','=','workers.id');
         })
@@ -530,53 +638,65 @@ class TotalManagementPayrollServices
         ->select('workers.id as worker_id', 'workers.name', 'total_management_payroll.id as payroll_id', 'total_management_payroll.amount', 'total_management_payroll.sosco_contribution', 'total_management_project.application_id')
         ->distinct('workers.id')
         ->orderBy('workers.created_at','DESC')->get();
-
-        if(isset($payrollWorkers) && count($payrollWorkers) > 0 ){
-            foreach($payrollWorkers as $result){
-                $user = JWTAuth::parseToken()->authenticate();
-                $this->totalManagementCostManagement->create([
-                    'application_id' => $result['application_id'],
-                    'project_id' => $request['project_id'],
-                    'title' => $result['name'],
-                    'type' => 'Payroll',
-                    'payment_reference_number' => 1,
-                    'payment_date' => Carbon::now(),
-                    'is_payroll' => 1,
-                    'quantity' => 1,
-                    'amount' => $result['amount'],
-                    'remarks' => $result['name'],
-                    'is_payroll' => 1,
-                    'payroll_id' => $result['payroll_id'],
-                    'month' => $request['month'],
-                    'year' => $request['year'],
-                    'created_by'    => $user['worker_id'] ?? 0,
-                    'modified_by'   => $user['worker_id'] ?? 0,
-                ]);
-                $this->totalManagementCostManagement->create([
-                    'application_id' => $result['application_id'],
-                    'project_id' => $request['project_id'],
-                    'title' => "SOCSO Contribution (" . $result['name'] . " )",
-                    'type' => 'Payroll',
-                    'payment_reference_number' => 1,
-                    'payment_date' => Carbon::now(),
-                    'is_payroll' => 1,
-                    'quantity' => 1,
-                    'amount' => $result['amount'],
-                    'remarks' => "SOCSO Contribution (" . $result['name'] . " )",
-                    'is_payroll' => 1,
-                    'payroll_id' => $result['payroll_id'],
-                    'month' => $request['month'],
-                    'year' => $request['year'],
-                    'created_by'    => $user['worker_id'] ?? 0,
-                    'modified_by'   => $user['worker_id'] ?? 0,
-                ]);
-            }
-        } else {
-            return [
-                'noRecords' => true
-            ];
-        }
-        return true;
     }
+    /**
+     * create Costmanagement Entry .
+     *
+     * @param array $result
+     * @param array $request
+     * @param array $user
+     * @return void
+     */
+    private function createCostmanagementEntry($result,$request,$user): void
+    {
+        $this->totalManagementCostManagement->create([
+            'application_id' => $result['application_id'],
+            'project_id' => $request['project_id'],
+            'title' => $result['name'],
+            'type' => 'Payroll',
+            'payment_reference_number' => 1,
+            'payment_date' => Carbon::now(),
+            'is_payroll' => 1,
+            'quantity' => 1,
+            'amount' => $result['amount'],
+            'remarks' => $result['name'],
+            'is_payroll' => 1,
+            'payroll_id' => $result['payroll_id'],
+            'month' => $request['month'],
+            'year' => $request['year'],
+            'created_by'    => $user['worker_id'] ?? 0,
+            'modified_by'   => $user['worker_id'] ?? 0,
+        ]);
+    }
+    /**
+     * create Costmanagement socso Entry .
+     *
+     * @param array $result
+     * @param array $request
+     * @param array $user
+     * @return void
+     */
+    private function createCostmanagementSocsoEntry($result,$request,$user): void
+    {
+        $this->totalManagementCostManagement->create([
+            'application_id' => $result['application_id'],
+            'project_id' => $request['project_id'],
+            'title' => "SOCSO Contribution (" . $result['name'] . " )",
+            'type' => 'Payroll',
+            'payment_reference_number' => 1,
+            'payment_date' => Carbon::now(),
+            'is_payroll' => 1,
+            'quantity' => 1,
+            'amount' => $result['amount'],
+            'remarks' => "SOCSO Contribution (" . $result['name'] . " )",
+            'is_payroll' => 1,
+            'payroll_id' => $result['payroll_id'],
+            'month' => $request['month'],
+            'year' => $request['year'],
+            'created_by'    => $user['worker_id'] ?? 0,
+            'modified_by'   => $user['worker_id'] ?? 0,
+        ]);
+    }
+
 
 }

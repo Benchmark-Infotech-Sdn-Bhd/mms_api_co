@@ -12,12 +12,15 @@ use Illuminate\Support\Facades\Storage;
 
 class TotalManagementExpensesServices
 {
+    public const ATTACHMENT_FILE_TYPE = 'Total Management Expenses';
+
     private TotalManagementExpenses $totalManagementExpenses;
     private TotalManagementExpensesAttachments $totalManagementExpensesAttachments;
     private AuthServices $authServices;
     private Storage $storage;
     /**
-     * WorkersServices constructor.
+     * TotalManagementExpensesServices constructor.
+     * 
      * @param TotalManagementExpenses $totalManagementExpenses
      * @param TotalManagementExpensesAttachments $totalManagementExpensesAttachments
      * @param AuthServices $authServices
@@ -37,6 +40,8 @@ class TotalManagementExpensesServices
     }
 
     /**
+     * validate the search request data
+     * 
      * @return array
      */
     public function searchValidation(): array
@@ -46,6 +51,8 @@ class TotalManagementExpensesServices
         ];
     }
     /**
+     * validate the create request data
+     * 
      * @return array
      */
     public function createValidation(): array
@@ -63,6 +70,8 @@ class TotalManagementExpensesServices
         ];
     }
     /**
+     * validate the update request data
+     * 
      * @return array
      */
     public function updateValidation(): array
@@ -81,6 +90,8 @@ class TotalManagementExpensesServices
         ];
     }
     /**
+     * validate the payback request data
+     * 
      * @return array
      */
     public function payBackValidation(): array
@@ -92,6 +103,8 @@ class TotalManagementExpensesServices
         ];
     }
     /**
+     * Get a paginated list of total management expenses.
+     * 
      * @param $request
      * @return mixed
      */
@@ -122,6 +135,8 @@ class TotalManagementExpensesServices
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
+     * Show details of a total management expense
+     * 
      * @param $request
      * @return mixed
      */
@@ -138,6 +153,8 @@ class TotalManagementExpensesServices
         ->find($request['id']);
     }
     /**
+     * Create a new total management expense.
+     * 
      * @param $request
      * @return bool|array
      */
@@ -152,7 +169,23 @@ class TotalManagementExpensesServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
-        $expenses = $this->totalManagementExpenses->create([
+        $request['created_by'] = $user['id'];
+
+        $expense = $this->createTotalManagementExpense($params);
+
+        $this->uploadExpenseFiles($request, $expense->id);
+
+        return true;
+    }
+    /**
+     * create total management expense.
+     *
+     * @param array $params
+     * @return mixed
+     */
+    private function createTotalManagementExpense($params): mixed
+    {
+        return $this->totalManagementExpenses->create([
             'worker_id' => $params['worker_id'] ?? 0,
             'application_id' => $params['application_id'] ?? 0,
             'project_id' => $params['project_id'] ?? 0,
@@ -165,27 +198,38 @@ class TotalManagementExpensesServices
             'created_by'    => $params['created_by'] ?? 0,
             'modified_by'   => $params['created_by'] ?? 0,
         ]);
-
+    }
+    /**
+     * Upload attachment of expense.
+     *
+     * @param array $request
+     * @param int $expenseId
+     * @return void
+     */
+    private function uploadExpenseFiles($request, $expenseId): void
+    {
         if (request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/TotalManagementExpenses/'.$expenses['id']. $fileName; 
+                $filePath = '/TotalManagementExpenses/'.$expenseId. $fileName; 
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
+
                 $this->totalManagementExpensesAttachments::create([
-                        'file_id' => $expenses->id,
+                        'file_id' => $expenseId,
                         'file_name' => $fileName,
-                        'file_type' => 'Total Management Expenses',
+                        'file_type' => self::ATTACHMENT_FILE_TYPE,
                         'file_url' =>  $fileUrl,
-                        'created_by' => $params['created_by'] ?? 0,
-                        'modified_by' => $params['created_by'] ?? 0,
+                        'created_by' => $request['created_by'] ?? 0,
+                        'modified_by' => $request['modified_by'] ?? 0,
                     ]);  
             }
         }
-        return true;
     }
     /**
+     * Update a total management expense.
+     * 
      * @param $request
      * @return bool|array
      */
@@ -200,19 +244,46 @@ class TotalManagementExpensesServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['modified_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
         $params['company_id'] = $this->authServices->getCompanyIds($user);
-        $expense = $this->totalManagementExpenses
+
+        $expense = $this->getExpense($request['id'], $params['company_id']);
+
+        if (is_null($expense)) {
+            return ['unauthorizedError' => true];
+        }
+
+        $this->updateExpense($expense, $params);
+
+        $this->uploadExpenseFiles($request, $expense->id);
+
+        return true;
+    }
+    /**
+     * Retrieve expense record by ID and company ID.
+     *
+     * @param int $expenseId
+     * @param array $companyIds
+     * @return mixed
+     */
+    private function getExpense(int $expenseId, array $companyIds)
+    {
+        return $this->totalManagementExpenses
         ->join('workers', function ($join) use ($params) {
             $join->on('workers.id', '=', 'total_management_expenses.worker_id')
-                ->whereIn('workers.company_id', $params['company_id']);
+                ->whereIn('workers.company_id', $companyIds);
         })
         ->select('total_management_expenses.*')
-        ->find($request['id']);
-        if(is_null($expense)){
-            return [
-                'unauthorizedError' => true
-            ];
-        }
+        ->find($expenseId);
+    }
+    /**
+     * Update expense based on the provided request.
+     *
+     * @param mixed $expense
+     * @param $params
+     */
+    private function updateExpense($expense, $params)
+    {
         $expense->worker_id = $params['worker_id'] ?? $expense->worker_id;
         $expense->application_id = $params['application_id'] ?? $expense->application_id;
         $expense->project_id = $params['project_id'] ?? $expense->project_id;
@@ -224,39 +295,16 @@ class TotalManagementExpensesServices
         $expense->remarks = $params['remarks'] ?? $expense->remarks;
         $expense->modified_by = $params['modified_by'] ?? $expense->modified_by;
         $expense->save();
-
-        if (request()->hasFile('attachment')) {
-            foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/eContractExpenses/'.$expense['id']. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->totalManagementExpensesAttachments::create([
-                        'file_id' => $expense->id,
-                        'file_name' => $fileName,
-                        'file_type' => 'Total Management Expenses',
-                        'file_url' =>  $fileUrl,
-                        'created_by' => $params['modified_by'] ?? 0,
-                        'modified_by' => $params['modified_by'] ?? 0,
-                    ]);  
-            }
-        }
-        return true;
     }
     /**
+     * Delete a total management expense.
+     * 
      * @param $request
      * @return bool
      */
     public function delete($request) : bool
     {
-        $expense = $this->totalManagementExpenses
-        ->join('workers', function ($join) use ($request) {
-            $join->on('workers.id', '=', 'total_management_expenses.worker_id')
-                ->whereIn('workers.company_id', $request['company_id']);
-        })
-        ->select('total_management_expenses.id')
-        ->find($request['id']);
+        $expense = $this->getExpenseToDelete($request);
 
         if(is_null($expense)){
             return false;
@@ -266,19 +314,31 @@ class TotalManagementExpensesServices
         return true;
     }
     /**
+     * Get the expense to delete.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function getExpenseToDelete(array $request)
+    {
+        return $this->totalManagementExpenses
+            ->join('workers', function ($join) use ($request) {
+                $join->on('workers.id', '=', 'total_management_expenses.worker_id')
+                    ->whereIn('workers.company_id', $request['company_id']);
+            })
+            ->select('total_management_expenses.id')
+            ->find($request['id']);
+    }
+    /**
+     * Delete an attachment associated with a total management expense.
      *
      * @param $request
      * @return bool
      */    
     public function deleteAttachment($request): bool
-    {   
-        $data = $this->totalManagementExpensesAttachments::join('total_management_expenses', 'total_management_expenses.id', 'total_management_expenses_attachments.file_id')
-        ->join('workers', function ($join) use ($request) {
-            $join->on('workers.id', '=', 'total_management_expenses.worker_id')
-                ->whereIn('workers.company_id', $request['company_id']);
-        })
-        ->select('total_management_expenses.id')
-        ->find($request['id']); 
+    {
+        $data = $this->getAttachmentToDelete($request);
+
         if(is_null($data)){
             return false;
         }
@@ -286,6 +346,24 @@ class TotalManagementExpensesServices
         return true;
     }
     /**
+     * Get the attachment to delete.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function getAttachmentToDelete(array $request): mixed
+    {
+        return $this->totalManagementExpensesAttachments::join('total_management_expenses', 'total_management_expenses.id', 'total_management_expenses_attachments.file_id')
+        ->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'total_management_expenses.worker_id')
+                ->whereIn('workers.company_id', $request['company_id']);
+        })
+        ->select('total_management_expenses.id')
+        ->find($request['id']);
+    }
+    /**
+     * payback submit for a total management expense.
+     * 
      * @param $request
      * @return bool|array
      */
@@ -300,22 +378,37 @@ class TotalManagementExpensesServices
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
         $params['company_id'] = $this->authServices->getCompanyIds($user);
-        $expense = $this->totalManagementExpenses->leftJoin('workers', 'workers.id', 'total_management_expenses.worker_id')
-        ->whereIn('workers.company_id', $params['company_id'])->findOrFail($request['id']);
+
+        $expense = $this->getExpense($request['id'], $params['company_id']);
+
         $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;
+
         if($totalPayBack > $expense->amount) {
             return [
                 'payBackError' => true
             ];
         }
+
+        $this->updateExpenseAfterPayBack($expense, $request, $remainingAmount);
+
+        return true;
+    }
+    /**
+     * Update the expense after payback.
+     *
+     * @param $expense
+     * @param $request
+     * @param $remainingAmount
+     * @return void
+     */
+    private function updateExpenseAfterPayBack($expense, $request, $remainingAmount)
+    {
         $expense->amount_paid = $request['amount_paid'];
-        $expense->deduction = $totalPayBack;
+        $expense->deduction = $expense->deduction + $request['amount_paid'];
         $expense->payment_date = $request['payment_date'] ?? $expense->payment_date;
         $expense->remaining_amount = $remainingAmount;
         $expense->modified_by = $request['modified_by'] ?? $expense->modified_by;
         $expense->save();
-
-        return true;
     }
 }
