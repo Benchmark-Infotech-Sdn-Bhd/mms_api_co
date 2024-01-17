@@ -103,8 +103,8 @@ class FWCMSUnitTest extends TestCase
      */
     public function testForFWCMSCreationAppliedQuotaMaxValidation(): void
     {
-        $this->creationSeeder(false);
-        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['applied_quota' => 1000]), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/fwcms/create', array_merge($this->creationData(), ['applied_quota' => 1000]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -183,7 +183,7 @@ class FWCMSUnitTest extends TestCase
     {
         $this->creationSeeder();
         $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['id' => '', 'ksm_reference_number' => 'My/567/7698']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/fwcms/update', array_merge($this->updationData(), ['id' => '', 'ksm_reference_number' => 'My/567/7698']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [

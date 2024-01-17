@@ -24,7 +24,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationApplicationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -40,7 +40,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationPaymentDateRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_date' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_date' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -56,7 +56,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationPaymentAmountRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_amount' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_amount' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -72,7 +72,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationApprovedQuotaRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['approved_quota' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['approved_quota' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -88,7 +88,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationKSMReferenceNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['ksm_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['ksm_reference_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -104,7 +104,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationPaymentReferenceNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_reference_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -120,7 +120,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationApprovalNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['approval_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['approval_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -136,7 +136,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationNewKSMReferenceNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['new_ksm_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['new_ksm_reference_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -152,7 +152,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationPaymentDateFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_date' => '05-05-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_date' => '05-05-2023']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -168,7 +168,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationPaymentFutureDateValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_date' => '2100-05-10']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_date' => '2100-05-10']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -184,7 +184,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationPaymentAmountDecimalValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_amount' => 10.6565]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_amount' => 10.6565]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -200,7 +200,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationApprovedQuotaMaximumValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['approved_quota' => 10000]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['approved_quota' => 10000]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -216,7 +216,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationApprovedQuotaFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['approved_quota' => 'ABC']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['approved_quota' => 'ABC']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -232,7 +232,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationPaymentReferenceNumberFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_reference_number' => 'SVZ498787$$']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['payment_reference_number' => 'SVZ498787$$']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -248,7 +248,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationApprovalNumberFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['approval_number' => 'SVZ498787$$']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['approval_number' => 'SVZ498787$$']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -264,7 +264,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreationNewKMSReferenceNumberTypeValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['new_ksm_reference_number' => 'My/992/095648967*%$']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['new_ksm_reference_number' => 'My/992/095648967*%$']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -280,7 +280,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyCreation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Levy Details Created SUccessfully']
@@ -294,7 +294,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -310,7 +310,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationApplicationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['application_id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['application_id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -326,7 +326,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationPaymentDateRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_date' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_date' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -342,7 +342,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationPaymentAmountRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_amount' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_amount' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -358,7 +358,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationApprovedQuotaRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approved_quota' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approved_quota' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -374,7 +374,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationKSMReferenceNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['ksm_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['ksm_reference_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -390,7 +390,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationPaymentReferenceNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_reference_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -406,7 +406,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationApprovalNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approval_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approval_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -422,7 +422,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationNewKSMReferenceNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['new_ksm_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['new_ksm_reference_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -438,7 +438,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationPaymentDateFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_date' => '05-05-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_date' => '05-05-2023']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -454,7 +454,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationPaymentFutureDateValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_date' => '2100-05-10']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_date' => '2100-05-10']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -470,7 +470,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationPaymentAmountDecimalValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_amount' => 10.6565]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_amount' => 10.6565]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -486,7 +486,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationApprovedQuotaMaximumValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approved_quota' => 10000]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approved_quota' => 10000]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -502,7 +502,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationApprovedQuotaFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approved_quota' => 'ABC']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approved_quota' => 'ABC']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -518,7 +518,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationPaymentReferenceNumberFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_reference_number' => 'SVZ498787$$']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['payment_reference_number' => 'SVZ498787$$']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -534,7 +534,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationApprovalNumberFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approval_number' => 'SVZ498787$$']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approval_number' => 'SVZ498787$$']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -550,7 +550,7 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdationNewKMSReferenceNumberTypeValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['new_ksm_reference_number' => 'My/992/095648967*%$']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['new_ksm_reference_number' => 'My/992/095648967*%$']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -566,8 +566,8 @@ class LevyUnitTest extends TestCase
     public function testForLevyUpdation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/levy/update', $this->updationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/levy/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Levy Details Updated SUccessfully']
@@ -581,8 +581,8 @@ class LevyUnitTest extends TestCase
     public function testToListLevyDetails(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/levy/list', ['application_id' => 1], $this->getHeader());
+        $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/levy/list', ['application_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -611,8 +611,8 @@ class LevyUnitTest extends TestCase
     public function testToDisplayLevyDetails(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/levy/show', ['id' => 1], $this->getHeader());
+        $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/levy/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' => [

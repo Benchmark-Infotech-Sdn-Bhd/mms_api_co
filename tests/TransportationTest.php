@@ -29,7 +29,7 @@ class TransportationTest extends TestCase
             'vehicle_capacity' => random_int(10, 1000),
             'vendor_id' => 1
        ];
-        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['driver_name']
@@ -51,7 +51,7 @@ class TransportationTest extends TestCase
             'vehicle_capacity' => random_int(10, 1000),
             'vendor_id' => 1
        ];
-        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['driver_contact_number']
@@ -73,7 +73,7 @@ class TransportationTest extends TestCase
             'vehicle_capacity' => random_int(10, 1000),
             'vendor_id' => 1
        ];
-        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['vehicle_type']
@@ -95,7 +95,7 @@ class TransportationTest extends TestCase
             'vehicle_capacity' => random_int(10, 1000),
             'vendor_id' => 1
        ];
-        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['number_plate']
@@ -117,7 +117,7 @@ class TransportationTest extends TestCase
             'vehicle_capacity' => '',
             'vendor_id' => 1
        ];
-        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['vehicle_capacity']
@@ -131,7 +131,7 @@ class TransportationTest extends TestCase
     public function testCreateTransportation()
     {
         $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/transportation/create', $this->creationTransportationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/transportation/create', $this->creationTransportationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
@@ -155,7 +155,7 @@ class TransportationTest extends TestCase
     public function testUpdateTransportation()
     {
         $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/transportation/update', $this->updateTransportationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/transportation/update', $this->updateTransportationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
