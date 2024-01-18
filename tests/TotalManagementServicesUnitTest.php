@@ -266,7 +266,7 @@ class TotalManagementServicesUnitTest extends TestCase
     public function testForTotalManagementAllocateQuotaNotFromExisting(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/totalManagement/allocateQuota', array_merge($this->allocateQuotaData(), ['from_existing' => 0, 'initial_quota' => NULL, 'service_quota' => NULL]), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/totalManagement/allocateQuota', array_merge($this->allocateQuotaData(), ['from_existing' => 0, 'initial_quota' => 50, 'service_quota' => NULL]), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Quota Allocated Successfully.']

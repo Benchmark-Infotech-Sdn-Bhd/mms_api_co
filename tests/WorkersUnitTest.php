@@ -39,7 +39,7 @@ class WorkersUnitTest extends TestCase
     public function testForWorkersCreatePassportValidation(): void
     {
         $response = $this->json('POST', 'api/v1/worker/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/worker/create', array_merge($this->creationData(), ['passport_number' => 'PASS0001']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/worker/create', array_merge($this->creationData(), ['passport_number' => 'PASS0001']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -397,7 +397,8 @@ class WorkersUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Supervisor'
+            'name' => 'Supervisor',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -417,7 +418,8 @@ class WorkersUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 

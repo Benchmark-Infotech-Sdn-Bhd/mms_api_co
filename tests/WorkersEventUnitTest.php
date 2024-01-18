@@ -5,7 +5,7 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-class WorkerEventUnitTest extends TestCase
+class WorkersEventUnitTest extends TestCase
 {
     use DatabaseMigrations;
     
@@ -155,7 +155,8 @@ class WorkerEventUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'Supervisor'
+            'name' => 'Supervisor',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -175,7 +176,8 @@ class WorkerEventUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -192,17 +194,17 @@ class WorkerEventUnitTest extends TestCase
             'postcode' => random_int(10, 1000),
             'remarks' => 'test',
        ];
-       $response = $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
+       $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
 
        $payload =  [
-        'driver_name' => 'name',
-        'driver_contact_number' => random_int(10, 1000),
-        'vehicle_type' => 'type',
-        'number_plate' => random_int(10, 1000),
-        'vehicle_capacity' => random_int(10, 1000),
-        'vendor_id' => 1
-   ];
-   $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
+            'driver_name' => 'name',
+            'driver_contact_number' => random_int(10, 1000),
+            'vehicle_type' => 'type',
+            'number_plate' => random_int(10, 1000),
+            'vehicle_capacity' => random_int(10, 1000),
+            'vendor_id' => 1
+        ];
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
 
         $payload =  [
             'sector_name' => 'Agriculture',
@@ -333,20 +335,50 @@ class WorkerEventUnitTest extends TestCase
         $this->json('POST', 'api/v1/totalManagement/addService', $payload, $this->getHeader(false));
 
         $payload = [
+            "id" => 1, 
+            "quota_requested" => 10, 
+            "person_incharge" => "PICTest", 
+            "cost_quoted" => 10.5, 
+            "reamrks" => "remarks", 
+            "file_url" => "test"
+        ];
+        $this->json('POST', 'api/v1/totalManagement/submitProposal', $payload, $this->getHeader(false));
+
+        $payload = [
             "application_id" => 1,
             "name" => "test name",
             "state" => "state test",
             "city" => "city test",
             "address" => "test address",
             "employee_id" => 1,
-            "transportation_provider_id" => 1,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee",
+            "transportation_provider_id" => 2,
             "driver_id" => 1,
             "assign_as_supervisor" => 0,
             "annual_leave" => 10,
             "medical_leave" => 10,
             "hospitalization_leave" => 10
         ];
-        $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
+
+        // $payload = [
+        //     "application_id" => 1,
+        //     "name" => "test name",
+        //     "state" => "state test",
+        //     "city" => "city test",
+        //     "address" => "test address",
+        //     "employee_id" => 1,
+        //     "supervisor_id" => 1,
+        //     "supervisor_type" => "employee",
+        //     "transportation_provider_id" => 1,
+        //     "driver_id" => 1,
+        //     "assign_as_supervisor" => 0,
+        //     "annual_leave" => 10,
+        //     "medical_leave" => 10,
+        //     "hospitalization_leave" => 10
+        // ];
+        // $this->json('POST', 'api/v1/totalManagement/project/add', $payload, $this->getHeader(false));
 
         $payload = [
             "project_id" => 1,
