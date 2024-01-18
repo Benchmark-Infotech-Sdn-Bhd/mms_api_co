@@ -39,7 +39,7 @@ class EContractPayrollImport implements ToModel, WithChunkReading, WithHeadingRo
     public function model(array $row)
     {
         try {
-                //Log::info('Payroll Row Data' . print_r($row, true));
+                Log::info('Payroll Row Data' . print_r($row, true));
 
                 $payrollParameter = [
                     'project_id' => $this->parameters['project_id'],

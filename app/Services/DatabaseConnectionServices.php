@@ -39,7 +39,7 @@ class DatabaseConnectionServices
                 ->first(['db_name', 'db_host', 'db_username', 'db_password', 'identifier']);
             Config::set('cache.prefix', $dbDetails->identifier);
 
-            DB::purge('mysql');
+            //DB::purge('mysql');
             try
             {
                 
@@ -48,7 +48,8 @@ class DatabaseConnectionServices
                 Config::set('database.connections.mysql.username', $dbDetails->db_username);
                 Config::set('database.connections.mysql.password', $dbDetails->db_password);
                 Config::set('database.connections.mysql.database', $dbDetails->db_name);
-            
+                
+                DB::disconnect('mysql');
                 DB::reconnect('mysql');
                 Schema::connection('mysql')->getConnection()->reconnect();
 
