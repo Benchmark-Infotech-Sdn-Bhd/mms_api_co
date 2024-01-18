@@ -10,5 +10,5 @@ class PayrollUploadRecords extends Model implements Auditable
     use \OwenIt\Auditing\Auditable;
 
     protected $table = 'payroll_upload_records';
-    protected $fillable = ['bulk_upload_id', 'parameter', 'comments', 'status'];
+    protected $fillable = ['bulk_upload_id', 'parameter', 'comments', 'status', 'success_flag', 'company_id'];
 }

@@ -16,6 +16,8 @@ use App\Models\EContractCostManagement;
 use App\Models\EContractProject;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\EContractPayrollImport;
+use App\Exports\EContractPayrollFailureExport;
+use App\Services\AuthServices;
 
 class EContractPayrollServices
 {
@@ -48,6 +50,10 @@ class EContractPayrollServices
      */
     private EContractProject $eContractProject;
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
      * EContractPayrollServices constructor.
      * @param EContractProject $eContractProject
      * @param EContractPayroll $eContractPayroll
@@ -56,8 +62,9 @@ class EContractPayrollServices
      * @param EContractCostManagement $eContractCostManagement
      * @param Storage $storage
      * @param EContractProject $eContractProject
+     * @param AuthServices $authServices;
      */
-    public function __construct(Workers $workers, EContractPayroll $eContractPayroll, EContractPayrollAttachments $eContractPayrollAttachments, Storage $storage, EContractPayrollBulkUpload $eContractPayrollBulkUpload, EContractCostManagement $eContractCostManagement, EContractProject $eContractProject)
+    public function __construct(Workers $workers, EContractPayroll $eContractPayroll, EContractPayrollAttachments $eContractPayrollAttachments, Storage $storage, EContractPayrollBulkUpload $eContractPayrollBulkUpload, EContractCostManagement $eContractCostManagement, EContractProject $eContractProject, AuthServices $authServices)
     {
         $this->workers = $workers;
         $this->eContractPayroll = $eContractPayroll;
@@ -66,6 +73,7 @@ class EContractPayrollServices
         $this->eContractPayrollBulkUpload = $eContractPayrollBulkUpload;
         $this->eContractCostManagement = $eContractCostManagement;
         $this->eContractProject = $eContractProject;
+        $this->authServices = $authServices;
     }
     /**
      * @return array
@@ -259,6 +267,7 @@ class EContractPayrollServices
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
         $params['modified_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
 
         $checkProject = $this->eContractProject
         ->join('e-contract_applications', function($query) use($user) {
@@ -283,9 +292,17 @@ class EContractPayrollServices
         $eContractPayrollBulkUpload = $this->eContractPayrollBulkUpload->create([
                 'project_id' => $request['project_id'] ?? '',
                 'name' => 'Payroll Bulk Upload',
-                'type' => 'Payroll bulk upload'
+                'type' => 'Payroll bulk upload',
+                'company_id' => $params['company_id'],
+                'created_by' => $params['created_by'],
+                'modified_by' => $params['created_by']
             ]
         );
+
+        $rows = Excel::toArray(new EContractPayrollImport($params, $eContractPayrollBulkUpload), $file);
+        
+        $this->eContractPayrollBulkUpload->where('id', $eContractPayrollBulkUpload->id)
+        ->update(['actual_row_count' => count($rows[0])]);
 
         Excel::import(new EContractPayrollImport($params, $eContractPayrollBulkUpload), $file);
         return true;
@@ -607,5 +624,116 @@ class EContractPayrollServices
         }
         return true;
     }
+    /**
+     * e-Contract payroll import history
+     * 
+     * @param $request
+     * @return mixed
+     */
+    public function importHistory($request): mixed
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $this->eContractPayrollBulkUpload
+        ->select('id', 'actual_row_count', 'total_success', 'total_failure', 'process_status', 'created_at')
+        ->where('process_status', 'Processed')
+        ->whereNotNull('failure_case_url')
+        ->whereIn('company_id', $request['company_id'])
+        ->orderBy('id', 'desc')
+        ->paginate(Config::get('services.paginate_row'));
+    }
+
+    /**
+     * e-Contract payroll import failure excel download
+     * 
+     * @param $request
+     * @return array
+     */
+    public function failureExport($request): array
+    {        
+        $payrollBulkUpload = $this->eContractPayrollBulkUpload
+                        ->where('company_id', $request['company_id'])
+                        ->where('id', $request['bulk_upload_id'])
+                        ->first();
+        if(is_null($payrollBulkUpload)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        if($payrollBulkUpload->process_status != 'Processed' || is_null($payrollBulkUpload->failure_case_url)) {
+            return [
+                'queueError' => true
+            ];
+        }
+        return [
+            'file_url' => $payrollBulkUpload->failure_case_url
+        ];
+    }
+    /**
+     * e-Contract payroll import failure case excel file creation
+     * 
+     * @return bool
+     */
+    public function prepareExcelForFailureCases(): bool
+    {
+        $ids = [];
+        $bulkUploads = $this->getPayrollBulkUploadRows();
+
+        foreach($bulkUploads as $bulkUpload) {
+            if($bulkUpload['actual_row_count'] == ($bulkUpload['total_success'] + $bulkUpload['total_failure'])) {
+                array_push($ids, $bulkUpload['id']);
+            }
+        }
+
+        $this->updatePayrollBulkUploadStatus($ids);
+        $this->createPayrollFailureCasesDocument($ids);
+        return true;
+    }
+
+    /**
+     * Get the payroll bulk upload rows.
+     *
+     * @return mixed
+     */
+    private function getPayrollBulkUploadRows(): mixed
+    {
+        return $this->eContractPayrollBulkUpload
+        ->where( function ($query) {
+            $query->whereNull('process_status')
+            ->orWhereNull('failure_case_url');
+        })
+        ->select('id', 'total_records', 'total_success', 'total_failure', 'actual_row_count')
+        ->get()->toArray();
+    }
+
+    /**
+     * Update the status of payroll bulk upload rows.
+     *
+     * @param $ids
+     * @return void
+     */
+    private function updatePayrollBulkUploadStatus($ids)
+    {
+        $this->eContractPayrollBulkUpload->whereIn('id', $ids)->update(['process_status' => 'Processed']);
+    }
+
+    /**
+     * create payroll failure cases document.
+     *
+     * @param $ids
+     * @return void
+     */
+    private function createPayrollFailureCasesDocument($ids)
+    {
+        foreach($ids as $id) {
+            $fileName = "FailureCases" . $id . ".xlsx";
+            $filePath = '/FailureCases/eContract/' . $fileName; 
+            Excel::store(new EContractPayrollFailureExport($id), $filePath, 'linode');
+            $fileUrl = $this->storage::disk('linode')->url($filePath);
+            $this->eContractPayrollBulkUpload->where('id', $id)->update(['failure_case_url' => $fileUrl]);
+        }
+    }
+
 
 }

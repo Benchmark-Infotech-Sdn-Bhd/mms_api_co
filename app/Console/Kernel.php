@@ -22,7 +22,9 @@ class Kernel extends ConsoleKernel
         Commands\RenewalNotifications::class,
         Commands\UpdateCallingVisaExpiry::class,
         Commands\ThirdPartyDeleteData::class,
-        Commands\InvoiceFailureResubmit::class
+        Commands\InvoiceFailureResubmit::class,
+        Commands\TotalManagementPayrollImportFailure::class,
+        Commands\EContractPayrollImportFailure::class,
     ];
 
     /**
@@ -43,5 +45,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('command:UpdateCallingVisaExpiry')->cron('0 0 * * *');
         $schedule->command('command:ThirdPartyDeleteData')->cron('0 0 * * *');
         $schedule->command('command:InvoiceFailureResubmit')->everyThirtyMinutes();
+        $schedule->command('command:TotalManagementPayrollImportFailure')->everyTwoMinutes();
+        $schedule->command('command:EContractPayrollImportFailure')->everyTwoMinutes();
     }
 }
