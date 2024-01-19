@@ -32,7 +32,7 @@ class DatabaseConnectionServices
      */
     public function dbConnectQueue($request): void
     {
-        //if (DB::getDriverName() !== 'sqlite') {
+        if (DB::getDriverName() !== 'sqlite') {
             $dbDetails = DB::connection('tenant')->table('domains')
                 ->where('active_flag', 1)
                 ->where('db_name', $request)
@@ -57,6 +57,6 @@ class DatabaseConnectionServices
             {
                 throw new \Exception($e);
             }
-        //}
+        }
     }
 }

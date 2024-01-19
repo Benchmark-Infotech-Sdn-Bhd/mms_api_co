@@ -34,7 +34,7 @@ class ServiceAgreementExport implements FromQuery, WithHeadings
         })
         ->leftjoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
         ->leftjoin('crm_prospects', 'crm_prospects.id', '=', 'e-contract_applications.crm_prospect_id')
-        ->select('crm_prospects.company_name', 'e-contract_project.name as project_name', DB::raw('count(distinct workers.id) as no_of_workers'), 'e-contract_project.valid_until as service_agreement_expiry_date')
+        ->select('crm_prospects.company_name', 'e-contract_project.name as project_name', DB::raw('count(distinct workers.id) as no_of_workers'), 'e-contract_project.valid_until as service_agreement_expiry_date', 'e-contract_project.id')
         ->distinct('e-contract_project.id', 'e-contract_project.name', 'e-contract_project.valid_until', 'crm_prospects.company_name')
         ->groupBy('e-contract_project.id', 'e-contract_project.name', 'e-contract_project.valid_until', 'crm_prospects.company_name')
         ->whereDate('e-contract_project.valid_until', '<', Carbon::now()->addMonths(3))
