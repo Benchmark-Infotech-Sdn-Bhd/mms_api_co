@@ -3,8 +3,10 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+
 use App\Services\EContractPayrollServices;
-use Log;
+use App\Services\DatabaseConnectionServices;
+use Illuminate\Support\Facades\Log;
 
 class EContractPayrollImportFailure extends Command
 {
@@ -13,7 +15,7 @@ class EContractPayrollImportFailure extends Command
      *
      * @var string
      */
-    protected $signature = 'command:EContractPayrollImportFailure';
+    protected $signature = 'command:EContractPayrollImportFailure {database}';
 
     /**
      * The console command description.
@@ -23,20 +25,27 @@ class EContractPayrollImportFailure extends Command
     protected $description = 'Generate Excel File For Failure Cases';
 
     /**
-     * @var EContractPayrollServices
+     * @var EContractPayrollServices $eContractPayrollServices
      */
     private $eContractPayrollServices;
 
     /**
+     * @var DatabaseConnectionServices $databaseConnectionServices
+     */
+    private $databaseConnectionServices;
+
+    /**
      * Create a new command instance.
      * @param EContractPayrollServices $eContractPayrollServices
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * 
      * @return void
      */
-    public function __construct(EContractPayrollServices $eContractPayrollServices)
+    public function __construct(EContractPayrollServices $eContractPayrollServices, DatabaseConnectionServices $databaseConnectionServices)
     {
         parent::__construct();
         $this->eContractPayrollServices = $eContractPayrollServices;
+        $this->databaseConnectionServices = $databaseConnectionServices;
     }
 
     /**
@@ -46,8 +55,9 @@ class EContractPayrollImportFailure extends Command
      */
     public function handle()
     {
-        Log::channel('cron_activity_logs')->info('Cron Job Started - eContract Payroll Import Failure Cases Excel Generation');
+        $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
+        Log::channel('cron_activity_logs')->info('Cron Job Started - eContract Payroll Import Failure Cases Excel Generation for Tenant DB - '.$this->argument('database'));
         $this->eContractPayrollServices->prepareExcelForFailureCases();
-        Log::channel('cron_activity_logs')->info('Cron Job Ended - eContract Payroll Import Failure Cases Excel Generation');
+        Log::channel('cron_activity_logs')->info('Cron Job Ended - eContract Payroll Import Failure Cases Excel Generation for Tenant DB - '.$this->argument('database'));
     }
 }

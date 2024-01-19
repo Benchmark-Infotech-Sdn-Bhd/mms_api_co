@@ -3,8 +3,10 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+
 use App\Services\TotalManagementPayrollServices;
-use Log;
+use App\Services\DatabaseConnectionServices;
+use Illuminate\Support\Facades\Log;
 
 class TotalManagementPayrollImportFailure extends Command
 {
@@ -13,7 +15,7 @@ class TotalManagementPayrollImportFailure extends Command
      *
      * @var string
      */
-    protected $signature = 'command:TotalManagementPayrollImportFailure';
+    protected $signature = 'command:TotalManagementPayrollImportFailure {database}';
 
     /**
      * The console command description.
@@ -23,20 +25,27 @@ class TotalManagementPayrollImportFailure extends Command
     protected $description = 'Generate Excel File For Failure Cases';
 
     /**
-     * @var TotalManagementPayrollServices
+     * @var TotalManagementPayrollServices $totalManagementPayrollServices
      */
     private $totalManagementPayrollServices;
 
     /**
+     * @var DatabaseConnectionServices $databaseConnectionServices
+     */
+    private $databaseConnectionServices;
+
+    /**
      * Create a new command instance.
      * @param TotalManagementPayrollServices $totalManagementPayrollServices
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * 
      * @return void
      */
-    public function __construct(TotalManagementPayrollServices $totalManagementPayrollServices)
+    public function __construct(TotalManagementPayrollServices $totalManagementPayrollServices, DatabaseConnectionServices $databaseConnectionServices)
     {
         parent::__construct();
         $this->totalManagementPayrollServices = $totalManagementPayrollServices;
+        $this->databaseConnectionServices = $databaseConnectionServices;
     }
 
     /**
@@ -46,8 +55,9 @@ class TotalManagementPayrollImportFailure extends Command
      */
     public function handle()
     {
-        Log::channel('cron_activity_logs')->info('Cron Job Started - Total Management Payroll Import Failure Cases Excel Generation');
+        $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
+        Log::channel('cron_activity_logs')->info('Cron Job Started - Total Management Payroll Import Failure Cases Excel Generation for Tenant DB - '.$this->argument('database'));
         $this->totalManagementPayrollServices->prepareExcelForFailureCases();
-        Log::channel('cron_activity_logs')->info('Cron Job Ended - Total Management Payroll Import Failure Cases Excel Generation');
+        Log::channel('cron_activity_logs')->info('Cron Job Ended - Total Management Payroll Import Failure Cases Excel Generation for Tenant DB - '.$this->argument('database'));
     }
 }
