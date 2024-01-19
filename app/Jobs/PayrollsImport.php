@@ -7,12 +7,15 @@ use App\Models\PayrollUploadRecords;
 use App\Models\TotalManagementProject;
 use App\Models\WorkerEmployment;
 use App\Models\TotalManagementPayroll;
+use App\Services\DatabaseConnectionServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Config;
 
 
 class PayrollsImport extends Job
 {
+    private $dbName;
     private $payrollParameter;
     private $bulkUpload;
 
@@ -22,19 +25,24 @@ class PayrollsImport extends Job
      * @param $payrollParameter
      * @param $bulkUpload
      */
-    public function __construct($payrollParameter, $bulkUpload)
+    public function __construct($dbName, $payrollParameter, $bulkUpload)
     {
+        $this->dbName = $dbName;
         $this->payrollParameter = $payrollParameter;
         $this->bulkUpload = $bulkUpload;
     }
 
     /**
      * Execute the job.
+     * 
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * @return void
      * @throws \JsonException
      */
-    public function handle(): void
+    public function handle(DatabaseConnectionServices $databaseConnectionServices): void
     { 
+        $databaseConnectionServices->dbConnectQueue($this->dbName);
+
         if( !empty($this->payrollParameter['passport_number']) && !empty($this->payrollParameter['project_id']) && !empty($this->payrollParameter['month']) && !empty($this->payrollParameter['year']) ){
 
             $worker = DB::table('workers')->where('passport_number', $this->payrollParameter['passport_number'])->first('id');

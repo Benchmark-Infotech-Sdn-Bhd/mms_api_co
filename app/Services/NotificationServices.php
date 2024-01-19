@@ -128,7 +128,7 @@ class NotificationServices
             }
             
             if(!empty($message['fomemaRenewal']) || !empty($message['passportRenewal']) || !empty($message['plksRenewal']) || !empty($message['callingVisaRenewal']) || !empty($message['specialPassRenewal']) || !empty($message['insuranceRenewal']) || !empty($message['entryVisaRenewal']) || !empty($message['serviceAgreement'])){
-                dispatch(new \App\Jobs\EmployerNotificationMail($user,$message))->onQueue('employer_notification_mail')->onConnection('database');
+                dispatch(new \App\Jobs\EmployerNotificationMail(Config::get('database.connections.mysql.database'),$user,$message))->onQueue(Config::get('services.EMPLOYER_NOTIFICATION_MAIL'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
             }
         }
 
@@ -150,11 +150,11 @@ class NotificationServices
             $message['dispatchPending'] = $this->dispatchSummaryNotifications($user);
 
             if(!empty($message['dispatchPending'])){
-                dispatch(new \App\Jobs\RunnerNotificationMail($user,$message['dispatchPending']))->onQueue('runner_notification_mail')->onConnection('database');
+                dispatch(new \App\Jobs\RunnerNotificationMail(Config::get('database.connections.mysql.database'), $user,$message['dispatchPending']))->onQueue(Config::get('services.RUNNER_NOTIFICATION_MAIL'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
             }
             
             if(!empty($message['fomemaRenewal']) || !empty($message['passportRenewal']) || !empty($message['plksRenewal']) || !empty($message['callingVisaRenewal']) || !empty($message['specialPassRenewal']) || !empty($message['insuranceRenewal']) || !empty($message['entryVisaRenewal']) || !empty($message['serviceAgreement'])){
-                dispatch(new \App\Jobs\AdminNotificationMail($user,$message))->onQueue('admin_notification_mail')->onConnection('database');
+                dispatch(new \App\Jobs\AdminNotificationMail(Config::get('database.connections.mysql.database'),$user,$message))->onQueue(Config::get('services.ADMIN_NOTIFICATION_MAIL'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
             }
             
         }
@@ -450,7 +450,7 @@ class NotificationServices
             foreach($adminUsers as $user){
                 $params['user_id'] = $user['id'];
                 $this->insertNotification($params);
-                dispatch(new \App\Jobs\RunnerNotificationMail($user,$params['message']))->onQueue('runner_notification_mail')->onConnection('database');
+                dispatch(new \App\Jobs\RunnerNotificationMail(Config::get('database.connections.mysql.database'), $user,$params['message']))->onQueue(Config::get('services.RUNNER_NOTIFICATION_MAIL'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
             }
 
             if(\DB::getDriverName() !== 'sqlite'){
@@ -472,7 +472,7 @@ class NotificationServices
                 foreach($employeeUsers as $user){
                     $params['user_id'] = $user['id'];
                     $this->insertNotification($params);
-                    dispatch(new \App\Jobs\RunnerNotificationMail($user,$params['message']))->onQueue('runner_notification_mail')->onConnection('database');
+                    dispatch(new \App\Jobs\RunnerNotificationMail(Config::get('database.connections.mysql.database'), $user,$params['message']))->onQueue(Config::get('services.RUNNER_NOTIFICATION_MAIL'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
                 }
 
             }

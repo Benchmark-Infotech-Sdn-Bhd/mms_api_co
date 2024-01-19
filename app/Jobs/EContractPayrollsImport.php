@@ -7,34 +7,43 @@ use App\Models\EContractPayrollUploadRecords;
 use App\Models\EContractProject;
 use App\Models\WorkerEmployment;
 use App\Models\EContractPayroll;
+use App\Services\DatabaseConnectionServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Config;
 
 
 class EContractPayrollsImport extends Job
 {
+    private $dbName;
     private $payrollParameter;
     private $bulkUpload;
 
     /**
      * Create a new job instance.
-     *
+     * 
+     * @param $dbName
      * @param $payrollParameter
      * @param $bulkUpload
      */
-    public function __construct($payrollParameter, $bulkUpload)
+    public function __construct($dbName, $payrollParameter, $bulkUpload)
     {
+        $this->dbName = $dbName;
         $this->payrollParameter = $payrollParameter;
         $this->bulkUpload = $bulkUpload;
     }
 
     /**
      * Execute the job.
+     * 
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * @return void
      * @throws \JsonException
      */
-    public function handle(): void
+    public function handle(DatabaseConnectionServices $databaseConnectionServices): void
     { 
+        $databaseConnectionServices->dbConnectQueue($this->dbName);
+        
         if( !empty($this->payrollParameter['passport_number']) && !empty($this->payrollParameter['project_id']) && !empty($this->payrollParameter['month']) && !empty($this->payrollParameter['year']) ){
 
             $worker = DB::table('workers')->where('passport_number', $this->payrollParameter['passport_number'])->first('id');
