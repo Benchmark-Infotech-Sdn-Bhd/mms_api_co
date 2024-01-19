@@ -23,7 +23,9 @@ class Kernel extends ConsoleKernel
         Commands\RenewalNotifications::class,
         Commands\UpdateCallingVisaExpiry::class,
         Commands\ThirdPartyDeleteData::class,
-        Commands\InvoiceFailureResubmit::class
+        Commands\InvoiceFailureResubmit::class,
+        Commands\TotalManagementPayrollImportFailure::class,
+        Commands\EContractPayrollImportFailure::class,
     ];
 
     /**
@@ -44,5 +46,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('command:UpdateCallingVisaExpiry '.Config::get('services.SUB_DOMAIN_DB_NAME_ONE'))->dailyAt('00:01');
         $schedule->command('command:ThirdPartyDeleteData '.Config::get('services.SUB_DOMAIN_DB_NAME_ONE'))->dailyAt('00:01');
         $schedule->command('command:InvoiceFailureResubmit '.Config::get('services.SUB_DOMAIN_DB_NAME_ONE'))->everyThirtyMinutes()->withoutOverlapping();
+        $schedule->command('command:TotalManagementPayrollImportFailure '.Config::get('services.SUB_DOMAIN_DB_NAME_ONE'))->everyTwoMinutes()->withoutOverlapping();
+        $schedule->command('command:EContractPayrollImportFailure '.Config::get('services.SUB_DOMAIN_DB_NAME_ONE'))->everyTwoMinutes()->withoutOverlapping();
     }
 }

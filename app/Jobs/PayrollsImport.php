@@ -11,7 +11,7 @@ use App\Services\DatabaseConnectionServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
-
+use Illuminate\Support\Facades\Validator;
 
 class PayrollsImport extends Job
 {
@@ -31,6 +31,20 @@ class PayrollsImport extends Job
         $this->payrollParameter = $payrollParameter;
         $this->bulkUpload = $bulkUpload;
     }
+    /**
+     * validate the payroll import request data
+     * 
+     * @return array
+     */
+    public function formatValidation(): array
+    {
+        return [
+            'passport_number' => 'required',
+            'project_id' => 'required',
+            'month' => 'required',
+            'year' => 'required'
+        ];
+    }
 
     /**
      * Execute the job.
@@ -42,8 +56,16 @@ class PayrollsImport extends Job
     public function handle(DatabaseConnectionServices $databaseConnectionServices): void
     { 
         $databaseConnectionServices->dbConnectQueue($this->dbName);
+        
+        $comments = '';
+        $successFlag = 0;
+        $validationError = [];
+        $validator = Validator::make($this->payrollParameter, $this->formatValidation());
+        if($validator->fails()) {
+            $validationError = str_replace(".","", implode(",",$validator->messages()->all()));
+        }
 
-        if( !empty($this->payrollParameter['passport_number']) && !empty($this->payrollParameter['project_id']) && !empty($this->payrollParameter['month']) && !empty($this->payrollParameter['year']) ){
+        if(empty($validationError)) {
 
             $worker = DB::table('workers')->where('passport_number', $this->payrollParameter['passport_number'])->first('id');
 
@@ -105,35 +127,44 @@ class PayrollsImport extends Job
                     DB::table('payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_success');
         
                     Log::info('payroll instert end -  '.$totalManagementPayroll['id']);
+                    $successFlag = 1;
+                    $comments .= ' SUCCESS - payroll imported';
 
                 }else{
                     Log::info('ERROR - WORKER EMPLOYMENT DATA NOT FOUND');
                     DB::table('payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
+                    $comments .= ' ERROR - Worker not exist in the project';
                 }
 
             }else{
                 Log::info('ERROR - WORKER DATA NOT FOUND');
                 DB::table('payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
+                $comments .= ' ERROR - Worker passport number is not found';
             }
         }else{
             Log::info('ERROR - EMPTY INPUT');
             DB::table('payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_failure');
+            $comments .= ' ERROR - ' . $validationError;
         }
-        $this->insertRecord();
+        $this->insertRecord($comments, 1, $successFlag, $this->payrollParameter['company_id']);
     }
 
     /**
      * @param string $comments
      * @param int $status
+     * @param int $successFlag
+     * @param int $companyId
      */
-    public function insertRecord($comments = '', $status = 1): void
+    public function insertRecord($comments = '', $status = 1, $successFlag, $companyId): void
     {
         PayrollUploadRecords::create(
             [
                 'bulk_upload_id' => $this->bulkUpload->id,
                 'parameter' => json_encode($this->payrollParameter),
                 'comments' => $comments,
-                'status' => $status
+                'status' => $status,
+                'success_flag' => $successFlag,
+                'company_id' => $companyId
             ]
         );
     }

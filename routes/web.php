@@ -905,6 +905,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('export', 'V1\EContractPayrollController@export');
                         $router->post('listTimesheet', 'V1\EContractPayrollController@listTimesheet');
                         $router->post('viewTimesheet', 'V1\EContractPayrollController@viewTimesheet');
+                        $router->post('importHistory', 'V1\EContractPayrollController@importHistory');
+                        $router->post('failureExport', 'V1\EContractPayrollController@failureExport');
                     });
                     $router->group(['prefix' => '', 'middleware' => ['permissions:6,Add']], function () use ($router) {
                         $router->post('import', 'V1\EContractPayrollController@import');
@@ -1015,6 +1017,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('show', 'V1\TotalManagementPayrollController@show');
                         $router->post('listTimesheet', 'V1\TotalManagementPayrollController@listTimesheet');
                         $router->post('viewTimesheet', 'V1\TotalManagementPayrollController@viewTimesheet');
+                        $router->post('importHistory', 'V1\TotalManagementPayrollController@importHistory');
+                        $router->post('failureExport', 'V1\TotalManagementPayrollController@failureExport');
                     });
                     $router->group(['prefix' => '', 'middleware' => ['permissions:7,Add']], function () use ($router) {
                         $router->post('import', 'V1\TotalManagementPayrollController@import');
