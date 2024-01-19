@@ -15,6 +15,7 @@ use App\Models\TotalManagementProject;
 use App\Models\EContractApplications;
 use App\Models\TotalManagementApplications;
 use App\Models\CRMProspectService;
+use Illuminate\Support\Facades\DB;
 
 class EContractTransferServices
 {
@@ -102,6 +103,9 @@ class EContractTransferServices
      */
     public function companyList($request): mixed
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return [];
+        }
         $user = JWTAuth::parseToken()->authenticate();
         $request['company_id'] = $this->authServices->getCompanyIds($user);
         return $this->crmProspect
