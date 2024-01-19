@@ -7,13 +7,15 @@ use App\Models\PayrollUploadRecords;
 use App\Models\TotalManagementProject;
 use App\Models\WorkerEmployment;
 use App\Models\TotalManagementPayroll;
+use App\Services\DatabaseConnectionServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
-
 
 class PayrollsImport extends Job
 {
+    private $dbName;
     private $payrollParameter;
     private $bulkUpload;
 
@@ -23,8 +25,9 @@ class PayrollsImport extends Job
      * @param $payrollParameter
      * @param $bulkUpload
      */
-    public function __construct($payrollParameter, $bulkUpload)
+    public function __construct($dbName, $payrollParameter, $bulkUpload)
     {
+        $this->dbName = $dbName;
         $this->payrollParameter = $payrollParameter;
         $this->bulkUpload = $bulkUpload;
     }
@@ -45,11 +48,15 @@ class PayrollsImport extends Job
 
     /**
      * Execute the job.
+     * 
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * @return void
      * @throws \JsonException
      */
-    public function handle(): void
+    public function handle(DatabaseConnectionServices $databaseConnectionServices): void
     { 
+        $databaseConnectionServices->dbConnectQueue($this->dbName);
+        
         $comments = '';
         $successFlag = 0;
         $validationError = [];
