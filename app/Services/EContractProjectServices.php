@@ -13,26 +13,37 @@ use App\Services\AuthServices;
 
 class EContractProjectServices
 {
+    public const SERVICE_TYPE = 'e-Contract';
+    public const SERVICE_AGREEMENT = 'Service Agreement';
+    public const MESSAGE_DELETED_NOT_FOUND = "Data not found";
+    public const MESSAGE_DELETED_SUCCESSFULLY = "Deleted Successfully";
+    public const UNAUTHORIZED_ERROR = 'Unauthorized';
+
     /**
      * @var EContractProject
      */
     private EContractProject $eContractProject;
+
     /**
      * @var EContractProjectAttachments
      */
     private EContractProjectAttachments $eContractProjectAttachments;
+
     /**
      * @var Storage
      */
     private Storage $storage;
+
     /**
      * @var EContractApplications
      */
     private EContractApplications $eContractApplications;
+
     /**
      * @var AuthServices
      */
     private AuthServices $authServices;
+
     /**
      * EContractProjectServices constructor.
      * @param EContractProject $eContractProject
@@ -41,7 +52,13 @@ class EContractProjectServices
      * @param EContractApplications $eContractApplications
      * @param AuthServices $authServices
      */
-    public function __construct(EContractProject $eContractProject, EContractProjectAttachments $eContractProjectAttachments, Storage $storage, EContractApplications $eContractApplications, AuthServices $authServices)
+    public function __construct(
+        EContractProject $eContractProject, 
+        EContractProjectAttachments $eContractProjectAttachments, 
+        Storage $storage, 
+        EContractApplications $eContractApplications, 
+        AuthServices $authServices
+    )
     {
         $this->eContractProject = $eContractProject;
         $this->eContractProjectAttachments = $eContractProjectAttachments;
@@ -49,6 +66,7 @@ class EContractProjectServices
         $this->eContractApplications = $eContractApplications;
         $this->authServices = $authServices;
     }
+
     /**
      * @return array
      */
@@ -66,6 +84,7 @@ class EContractProjectServices
             'valid_until' => 'required|date|date_format:Y-m-d'
         ];
     }
+
     /**
      * @return array
      */
@@ -83,6 +102,7 @@ class EContractProjectServices
             'valid_until' => 'required|date|date_format:Y-m-d'
         ];
     }
+
     /**
      * @param $request
      * @return mixed
@@ -92,7 +112,7 @@ class EContractProjectServices
         return $this->eContractProject
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.project_id','=','e-contract_project.id')
-            ->where('worker_employment.service_type', 'e-Contract')
+            ->where('worker_employment.service_type', self::SERVICE_TYPE)
             ->where('worker_employment.transfer_flag', 0)
             ->whereNull('worker_employment.remove_date');
         })
@@ -106,7 +126,7 @@ class EContractProjectServices
         })
         ->where('e-contract_project.application_id',$request['application_id'])
         ->where(function ($query) use ($request) {
-            if(isset($request['search']) && !empty($request['search'])) {
+            if (isset($request['search']) && !empty($request['search'])) {
                 $query->where('e-contract_project.name', 'like', '%'.$request['search'].'%')
                 ->orWhere('e-contract_project.state', 'like', '%'.$request['search'].'%')
                 ->orWhere('e-contract_project.city', 'like', '%'.$request['search'].'%');
@@ -119,6 +139,7 @@ class EContractProjectServices
         ->orderBy('e-contract_project.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
+
     /**
      * @param $request
      * @return mixed
@@ -133,6 +154,7 @@ class EContractProjectServices
         ->select('e-contract_project.*')
         ->find($request['id']);
     }
+
     /**
      * @param $request
      * @return bool|array
@@ -140,22 +162,22 @@ class EContractProjectServices
     public function add($request): bool|array
     {
         $user = JWTAuth::parseToken()->authenticate();
-        $params = $request->all();
-        $params['created_by'] = $user['id'];
+        $request['created_by'] = $user['id'];
 
         $validator = Validator::make($request->toArray(), $this->addValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
         $applicationDetails = $this->eContractApplications->whereIn('company_id', $request['company_id'])->find($request['application_id']);
-        
-        if(is_null($applicationDetails)){
+        if (is_null($applicationDetails)) {
             return [
-                'unauthorizedError' => 'Unauthorized'
+                'unauthorizedError' => self::UNAUTHORIZED_ERROR
             ];
         }
+
         $eContractProject = $this->eContractProject->create([
             'application_id' => $request['application_id'] ?? 0,
             'name' => $request['name'] ?? '',
@@ -166,8 +188,8 @@ class EContractProjectServices
             'medical_leave' => $request['medical_leave'] ?? 0,
             'hospitalization_leave' => $request['hospitalization_leave'] ?? 0,
             "valid_until" =>  $request['valid_until'] ?? null,
-            'created_by' => $params['created_by'] ?? 0,
-            'modified_by' => $params['created_by'] ?? 0
+            'created_by' => $request['created_by'] ?? 0,
+            'modified_by' => $request['created_by'] ?? 0
         ]);
 
         if (request()->hasFile('attachment') && isset($eContractProject['id']) && !empty($request['valid_until'])) {
@@ -183,17 +205,19 @@ class EContractProjectServices
                         "file_id" => $eContractProject['id']
                     ],
                     [
-                    "file_name" => $fileName,
-                    "file_type" => 'Service Agreement',
-                    "file_url" =>  $fileUrl,
-                    'created_by' => $params['created_by'] ?? 0,
-                    'modified_by' => $params['created_by'] ?? 0
-                ]);
+                        "file_name" => $fileName,
+                        "file_type" => self::SERVICE_AGREEMENT,
+                        "file_url" =>  $fileUrl,
+                        'created_by' => $request['created_by'] ?? 0,
+                        'modified_by' => $request['created_by'] ?? 0
+                    ]
+                );
             }
         }
 
         return true;
     }
+
     /**
      * @param $request
      * @return bool|array
@@ -201,11 +225,11 @@ class EContractProjectServices
     public function update($request): bool|array
     {
         $user = JWTAuth::parseToken()->authenticate();
-        $params = $request->all();
-        $params['modified_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
+
         $request['company_id'] = $this->authServices->getCompanyIds($user);
         $validator = Validator::make($request->toArray(), $this->updateValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
@@ -218,10 +242,9 @@ class EContractProjectServices
         })
         ->select('e-contract_project.*')
         ->find($request['id']);
-
-        if(is_null($eContractProject)){
+        if (is_null($eContractProject)) {
             return [
-                'unauthorizedError' => 'Unauthorized'
+                'unauthorizedError' => self::UNAUTHORIZED_ERROR
             ];
         }
         
@@ -249,15 +272,18 @@ class EContractProjectServices
                         "file_id" => $request['id']
                     ],
                     [
-                    "file_name" => $fileName,
-                    "file_type" => 'Service Agreement',
-                    "file_url" =>  $fileUrl,
-                    'modified_by' => $params['modified_by'] ?? 0
-                ]);
+                        "file_name" => $fileName,
+                        "file_type" => self::SERVICE_AGREEMENT,
+                        "file_url" =>  $fileUrl,
+                        'modified_by' => $params['modified_by'] ?? 0
+                    ]
+                );
             }
         }
+
         return true;
     }
+
     /**
      * delete attachment
      * @param $request
@@ -265,8 +291,6 @@ class EContractProjectServices
      */    
     public function deleteAttachment($request): array
     {   
-        //$data = $this->eContractProjectAttachments::find($request['attachment_id']); 
-
         $data = $this->eContractProjectAttachments
         ->join('e-contract_project', function($query) use($request) {
             $query->on('e-contract_project.id','=','e-contract_project_attachments.file_id');
@@ -277,16 +301,16 @@ class EContractProjectServices
         })
         ->select('e-contract_project_attachments.*')
         ->find($request['attachment_id']);
-
-        if(is_null($data)){
+        if (is_null($data)) {
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_DELETED_NOT_FOUND
             ];
         }
+
         return [
             "isDeleted" => $data->delete(),
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
     }
 }
