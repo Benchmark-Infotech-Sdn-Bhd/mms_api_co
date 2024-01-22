@@ -17,6 +17,9 @@ class EContractProjectServices
     public const SERVICE_AGREEMENT = 'Service Agreement';
     public const MESSAGE_DELETED_NOT_FOUND = "Data not found";
     public const MESSAGE_DELETED_SUCCESSFULLY = "Deleted Successfully";
+    public const EMPLOYMENT_TRANSFER_FLAG = 0;
+    public const ATTACHMENT_ACTION_CREATE = 'CREATE';
+    public const ATTACHMENT_ACTION_UPDATE = 'UPDATE';
     public const UNAUTHORIZED_ERROR = 'Unauthorized';
 
     /**
@@ -68,7 +71,9 @@ class EContractProjectServices
     }
 
     /**
-     * @return array
+     * Validates the input and returns the errors if validation fails.
+     *
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function addValidation(): array
     {
@@ -86,7 +91,9 @@ class EContractProjectServices
     }
 
     /**
-     * @return array
+     * Validates the input and returns the errors if validation fails.
+     *
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function updateValidation(): array
     {
@@ -104,16 +111,18 @@ class EContractProjectServices
     }
 
     /**
-     * @param $request
-     * @return mixed
-     */   
+     * Lists the eContract project list
+     * 
+     * @param $request The request data containing application list.
+     * @return mixed Returns list of application.
+     */
     public function list($request): mixed
     {
         return $this->eContractProject
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.project_id','=','e-contract_project.id')
             ->where('worker_employment.service_type', self::SERVICE_TYPE)
-            ->where('worker_employment.transfer_flag', 0)
+            ->where('worker_employment.transfer_flag', self::EMPLOYMENT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date');
         })
         ->leftJoin('workers', function($query) {
@@ -141,9 +150,11 @@ class EContractProjectServices
     }
 
     /**
-     * @param $request
+     * Show e-contract project.
+     * 
+     * @param $request The request data containing e-contract project id,  company_id
      * @return mixed
-     */   
+     */
     public function show($request): mixed
     {
         return $this->eContractProject->with('projectAttachments')
@@ -156,9 +167,12 @@ class EContractProjectServices
     }
 
     /**
-     * @param $request
-     * @return bool|array
-     */   
+     * @param $request The request data containing project details.
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "unauthorizedError": A array returns unauthorized if e-contract applications is null.
+     * - "isSubmit": A boolean indicating if the e-contract project was successfully created.
+     */
     public function add($request): bool|array
     {
         $user = JWTAuth::parseToken()->authenticate();
@@ -178,56 +192,26 @@ class EContractProjectServices
             ];
         }
 
-        $eContractProject = $this->eContractProject->create([
-            'application_id' => $request['application_id'] ?? 0,
-            'name' => $request['name'] ?? '',
-            'state' => $request['state'] ?? '',
-            'city' => $request['city'] ?? '',
-            'address' => $request['address'] ?? '',
-            'annual_leave' => $request['annual_leave'] ?? 0,
-            'medical_leave' => $request['medical_leave'] ?? 0,
-            'hospitalization_leave' => $request['hospitalization_leave'] ?? 0,
-            "valid_until" =>  $request['valid_until'] ?? null,
-            'created_by' => $request['created_by'] ?? 0,
-            'modified_by' => $request['created_by'] ?? 0
-        ]);
+        $eContractProject = $this->createEContractProject($request);
 
-        if (request()->hasFile('attachment') && isset($eContractProject['id']) && !empty($request['valid_until'])) {
-            foreach($request->file('attachment') as $file) {                
-                $fileName = $file->getClientOriginalName();                 
-                $filePath = '/eContract/project/'. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-
-                $this->eContractProjectAttachments->updateOrCreate(
-                    [
-                        "file_id" => $eContractProject['id']
-                    ],
-                    [
-                        "file_name" => $fileName,
-                        "file_type" => self::SERVICE_AGREEMENT,
-                        "file_url" =>  $fileUrl,
-                        'created_by' => $request['created_by'] ?? 0,
-                        'modified_by' => $request['created_by'] ?? 0
-                    ]
-                );
-            }
-        }
+        $this->updateEContractProjectAttachments(self::ATTACHMENT_ACTION_CREATE, $request, $eContractProject['id']);
 
         return true;
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * @param $request The request data containing project details.
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "unauthorizedError": A array returns unauthorized if e-contract project is null.
+     * - "isSubmit": A boolean indicating if the e-contract project was successfully updated.
      */
     public function update($request): bool|array
     {
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
-
         $request['company_id'] = $this->authServices->getCompanyIds($user);
+
         $validator = Validator::make($request->toArray(), $this->updateValidation());
         if ($validator->fails()) {
             return [
@@ -247,45 +231,17 @@ class EContractProjectServices
                 'unauthorizedError' => self::UNAUTHORIZED_ERROR
             ];
         }
-        
-        $eContractProject->name =  $request['name'] ?? $eContractProject->name;
-        $eContractProject->state =  $request['state'] ?? $eContractProject->state;
-        $eContractProject->city =  $request['city'] ?? $eContractProject->city;
-        $eContractProject->address =  $request['address'] ?? $eContractProject->address;
-        $eContractProject->annual_leave =  $request['annual_leave'] ?? $eContractProject->annual_leave;
-        $eContractProject->medical_leave =  $request['medical_leave'] ?? $eContractProject->medical_leave;
-        $eContractProject->hospitalization_leave =  $request['hospitalization_leave'] ?? $eContractProject->hospitalization_leave;
-        $eContractProject->valid_until =  $request['valid_until'] ?? $eContractProject->valid_until;
-        $eContractProject->modified_by =  $params['modified_by'] ?? $eContractProject->modified_by;
-        $eContractProject->save();
 
-        if (request()->hasFile('attachment') && !empty($request['id']) && !empty($request['valid_until'])) {
-            foreach($request->file('attachment') as $file) {                
-                $fileName = $file->getClientOriginalName();                 
-                $filePath = '/eContract/project/'. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
+        $this->updateEContractProject($eContractProject, $request);
 
-                $this->eContractProjectAttachments->updateOrCreate(
-                    [
-                        "file_id" => $request['id']
-                    ],
-                    [
-                        "file_name" => $fileName,
-                        "file_type" => self::SERVICE_AGREEMENT,
-                        "file_url" =>  $fileUrl,
-                        'modified_by' => $params['modified_by'] ?? 0
-                    ]
-                );
-            }
-        }
+        $this->updateEContractProjectAttachments(self::ATTACHMENT_ACTION_UPDATE, $request, $request['id']);
 
         return true;
     }
 
     /**
-     * delete attachment
+     * Delete the e-contract project attachment
+     * 
      * @param $request
      * @return array
      */    
@@ -312,5 +268,71 @@ class EContractProjectServices
             "isDeleted" => $data->delete(),
             "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
+    }
+
+    public function createEContractProject($request)
+    {
+        $eContractProject = $this->eContractProject->create([
+            'application_id' => $request['application_id'] ?? 0,
+            'name' => $request['name'] ?? '',
+            'state' => $request['state'] ?? '',
+            'city' => $request['city'] ?? '',
+            'address' => $request['address'] ?? '',
+            'annual_leave' => $request['annual_leave'] ?? 0,
+            'medical_leave' => $request['medical_leave'] ?? 0,
+            'hospitalization_leave' => $request['hospitalization_leave'] ?? 0,
+            "valid_until" =>  $request['valid_until'] ?? null,
+            'created_by' => $request['created_by'] ?? 0,
+            'modified_by' => $request['created_by'] ?? 0
+        ]);
+
+        return $eContractProject;
+    }
+
+    public function updateEContractProject($eContractProject, $request)
+    {
+        $eContractProject->name =  $request['name'] ?? $eContractProject->name;
+        $eContractProject->state =  $request['state'] ?? $eContractProject->state;
+        $eContractProject->city =  $request['city'] ?? $eContractProject->city;
+        $eContractProject->address =  $request['address'] ?? $eContractProject->address;
+        $eContractProject->annual_leave =  $request['annual_leave'] ?? $eContractProject->annual_leave;
+        $eContractProject->medical_leave =  $request['medical_leave'] ?? $eContractProject->medical_leave;
+        $eContractProject->hospitalization_leave =  $request['hospitalization_leave'] ?? $eContractProject->hospitalization_leave;
+        $eContractProject->valid_until =  $request['valid_until'] ?? $eContractProject->valid_until;
+        $eContractProject->modified_by =  $request['modified_by'] ?? $eContractProject->modified_by;
+        $eContractProject->save();
+    }
+
+    public function updateEContractProjectAttachments($action, $request, $eContractProjectId)
+    {
+        if (request()->hasFile('attachment') && isset($eContractProjectId) && !empty($request['valid_until'])) {
+            foreach($request->file('attachment') as $file) {                
+                $fileName = $file->getClientOriginalName();                 
+                $filePath = '/eContract/project/'. $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+
+                $processData = [
+                    "file_name" => $fileName,
+                    "file_type" => self::SERVICE_AGREEMENT,
+                    "file_url" =>  $fileUrl
+                ];
+
+                if ($action == self::ATTACHMENT_ACTION_CREATE) {
+                    $processData['created_by'] = $request['created_by'] ?? 0;
+                    $processData['modified_by'] = $request['created_by'] ?? 0;
+                }
+                else
+                {
+                    $processData['modified_by'] = $request['modified_by'] ?? 0;
+                }
+
+                $this->eContractProjectAttachments->updateOrCreate(
+                    ["file_id" => $eContractProjectId],
+                    $processData
+                );
+            }
+        }
     }
 }

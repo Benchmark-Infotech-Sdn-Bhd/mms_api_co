@@ -24,6 +24,9 @@ class EContractServices
     public const PROPOSAL_SUBMITTED = 'Proposal Submitted';
     public const PROSPECT_SERVICE = 'prospect service';
     public const PENDING_PROPOSAL = 'Pending Proposal';
+    public const EMPLOYMENT_TRANSFER_FLAG = 0;
+    public const PROSPECT_SERVICES_ID = 2;
+    public const APPLICATION_COST_QUOTED = 0;
     public const UNAUTHORIZED_ERROR = 'Unauthorized';
 
     /**
@@ -181,14 +184,14 @@ class EContractServices
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.project_id','=','e-contract_project.id')
             ->where('worker_employment.service_type', self::SERVICE_TYPE)
-            ->where('worker_employment.transfer_flag', 0)
+            ->where('worker_employment.transfer_flag', self::EMPLOYMENT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date');
         })
         ->leftJoin('workers', function($query) {
             $query->on('workers.id','=','worker_employment.worker_id')
             ->whereIN('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
         })
-        ->where('crm_prospect_services.service_id', 2)
+        ->where('crm_prospect_services.service_id', self::PROSPECT_SERVICES_ID)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->whereIn('e-contract_applications.company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
@@ -275,7 +278,6 @@ class EContractServices
     }
 
     /**
-     *
      * @param $request The request data containing e-contract applications id,  company_id
      * @return mixed The list of proposal
      */
@@ -331,9 +333,16 @@ class EContractServices
     }
 
     /**
-     * show crm prospect.
+     * Show crm prospect.
      * 
      * @param $request
+     * @return mixed
+     */
+
+    /**
+     * show crm prospect service.
+     * 
+     * @param $request The request data containing crm prospect service id,  company_id
      * @return mixed
      */
     public function showService($request): mixed
@@ -398,7 +407,7 @@ class EContractServices
     }
 
     /**
-     * Create eContract applications based on the provided request.
+     * Create e-contract applications based on the provided request.
      *
      * @param array $request
      * @param int $crmProspectServiceId
@@ -410,7 +419,7 @@ class EContractServices
             'service_id' => $crmProspectServiceId,
             'quota_requested' => $request['fomnext_quota'] ?? 0,
             'person_incharge' => '',
-            'cost_quoted' => 0,
+            'cost_quoted' => self::APPLICATION_COST_QUOTED,
             'status' => self::PENDING_PROPOSAL,
             'remarks' => '',
             'created_by' => $request["created_by"] ?? 0,
@@ -420,7 +429,7 @@ class EContractServices
     }
 
     /**
-     * Update eContract applications based on the provided request.
+     * Update e-contract applications based on the provided request.
      *
      * @param mixed $applicationDetails
      * @param $request
@@ -477,7 +486,7 @@ class EContractServices
     }
 
     /**
-     * Update eContract application quota based on the provided request.
+     * Update e-contract application quota based on the provided request.
      *
      * @param mixed $applicationDetails
      * @param $request
