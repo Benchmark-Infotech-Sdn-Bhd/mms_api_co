@@ -17,6 +17,22 @@ use App\Models\User;
 
 class DirectRecruitmentOnboardingAttestationServices
 {
+
+    public const REQUEST_COMPANY_ID = 'company_id';
+    public const REQUEST_APPLICATION_ID = 'application_id';
+    public const REQUEST_ONBOARDING_COUNTRY_ID = 'onboarding_country_id';
+    public const REQUEST_ONBOARDING_AGENT_ID = 'onboarding_agent_id';
+    public const REQUEST_KSM_REFERENCE_NUMBER = 'ksm_reference_number';
+    public const REQUEST_ONBOARDING_ATTESTATION_ID = 'onboarding_attestation_id';
+
+    public const REQUEST_ITEM_NAME = 'Attestation Submission';
+    public const REQUEST_ATTESTATION_STATUS = 'Pending';
+
+    public const ONBOARDING_STATUS = 2;
+    public const DEFAULT_INT_VALUE = 0;
+    public const STATUS_ACTIVE = 1;
+    public const STATUS_IN_ACTIVE = 0;
+
     /**
      * @var OnboardingAttestation
      */
@@ -61,19 +77,30 @@ class DirectRecruitmentOnboardingAttestationServices
     private NotificationServices $notificationServices;
 
     /**
-     * DirectRecruitmentOnboardingAttestationServices constructor.
-     * @param OnboardingAttestation $onboardingAttestation;
-     * @param OnboardingDispatch $onboardingDispatch;
-     * @param OnboardingEmbassy $onboardingEmbassy;
-     * @param EmbassyAttestationFileCosting $embassyAttestationFileCosting;
-     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
-     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
-     * @param Storage $storage;
-     * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices
-     * @param NotificationServices $notificationServices
+     * DirectRecruitmentOnboardingAttestationServices constructor method.
+     * 
+     * @param OnboardingAttestation $onboardingAttestation The onBoarding Attestation Object;
+     * @param OnboardingDispatch $onboardingDispatch The onBoarding Dispatch Object;
+     * @param OnboardingEmbassy $onboardingEmbassy The onBoarding Embassy Object;
+     * @param EmbassyAttestationFileCosting $embassyAttestationFileCosting The Embassy Attestation File Costing Object;
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices The Direct Recruitment OnBoarding Country Services;
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry The Direct Recruitment OnBoarding Country Object;
+     * @param Storage $storage The storage ;
+     * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices The Direct Recruitment Expenses services
+     * @param NotificationServices $notificationServices The Notification services
      */
 
-    public function __construct(OnboardingAttestation $onboardingAttestation, OnboardingDispatch $onboardingDispatch, OnboardingEmbassy $onboardingEmbassy, EmbassyAttestationFileCosting $embassyAttestationFileCosting, DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage, DirectRecruitmentExpensesServices $directRecruitmentExpensesServices, NotificationServices $notificationServices)
+    public function __construct(
+        OnboardingAttestation $onboardingAttestation, 
+        OnboardingDispatch $onboardingDispatch, 
+        OnboardingEmbassy $onboardingEmbassy, 
+        EmbassyAttestationFileCosting $embassyAttestationFileCosting, 
+        DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices, 
+        DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, 
+        Storage $storage, 
+        DirectRecruitmentExpensesServices $directRecruitmentExpensesServices, 
+        NotificationServices $notificationServices
+    )
     {
         $this->onboardingAttestation = $onboardingAttestation;
         $this->onboardingDispatch = $onboardingDispatch;
@@ -86,7 +113,9 @@ class DirectRecruitmentOnboardingAttestationServices
         $this->notificationServices = $notificationServices;
     }
     /**
-     * @return array
+     * Validates the input and returns the errors if validation fails.
+     *
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function createValidation(): array
     {
@@ -97,7 +126,9 @@ class DirectRecruitmentOnboardingAttestationServices
         ];
     }
     /**
-     * @return array
+     * Validates the input and returns the errors if validation fails.
+     *
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function updateValidation(): array
     {
@@ -106,7 +137,9 @@ class DirectRecruitmentOnboardingAttestationServices
         ];
     }
     /**
-     * @return array
+     * Validates the input and returns the errors if validation fails.
+     *
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function updateDispatchValidation(): array
     {
@@ -124,7 +157,9 @@ class DirectRecruitmentOnboardingAttestationServices
         ];
     }
     /**
-     * @return array
+     * Validates the input and returns the errors if validation fails.
+     *
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function uploadEmbassyFileValidation(): array
     {
@@ -134,49 +169,111 @@ class DirectRecruitmentOnboardingAttestationServices
         ];
     }
     /**
-     * @param $request
-     * @return mixed
-     */   
+     * Returns a paginated list of on Boarding Attestation details with direct recruitment application details.
+     *
+     * @param array $request The request data containing company id,  application_id, onboarding_country_id
+     * @return mixed \Illuminate\Pagination\LengthAwarePaginator The paginated list of direct recruitment onboarding agent with direct recruitment application details.
+     */ 
     public function list($request): mixed
     {
         return $this->onboardingAttestation
         ->join('directrecruitment_applications', function ($join) use($request) {
             $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
-                ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+                ->whereIn('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
         })
         ->where([
-            ['onboarding_attestation.application_id', $request['application_id']],
-            ['onboarding_attestation.onboarding_country_id', $request['onboarding_country_id']],
+            ['onboarding_attestation.application_id', $request[self::REQUEST_APPLICATION_ID]],
+            ['onboarding_attestation.onboarding_country_id', $request[self::REQUEST_ONBOARDING_COUNTRY_ID]],
         ])
         ->select('onboarding_attestation.id', 'onboarding_attestation.application_id', 'onboarding_attestation.onboarding_country_id', 'onboarding_attestation.onboarding_agent_id', 'onboarding_attestation.ksm_reference_number', 'onboarding_attestation.item_name', 'onboarding_attestation.status', 'onboarding_attestation.submission_date', 'onboarding_attestation.collection_date', 'onboarding_attestation.created_at', 'onboarding_attestation.updated_at')
         ->orderBy('onboarding_attestation.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
-     * @param $request
-     * @return mixed
-     */   
+     * Show the Boarding Attestation details.
+     *
+     * @param array $request The request data containing id, company id
+     * @return mixed Returns details of  direct recruitment on boarding Attestation.
+     */
     public function show($request): mixed
     {
         return $this->onboardingAttestation->join('directrecruitment_applications', function ($join) use($request) {
             $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
-                ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+                ->whereIn('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
             })
             ->where('onboarding_attestation.id', $request['id'])
             ->first('onboarding_attestation.*');
     }
+
     /**
-     * @param $request
-     * @return bool|array
-     */   
+     * Get the onBoarding Attestation details for the given input details
+     * 
+     * - application_id: Direct Recruitment Application Id
+     * - onboarding_country_id: Direct Recruitment Onboarding Country Id.
+     * - onboarding_agent_id: on Boarding Agent Id.
+     * - ksm_reference_number: KSM Reference Number.
+     *
+     * @param array $request The data used to get the Direct Recruitment Attestation details.
+     * Return mixed the Attestation object
+     */
+    public function checkOnboardingAttestationData(mixed $request): mixed
+    {
+        return $this->onboardingAttestation->where([
+            ['application_id', $request[self::REQUEST_APPLICATION_ID]],
+            ['onboarding_country_id', $request[self::REQUEST_ONBOARDING_COUNTRY_ID]],
+            ['onboarding_agent_id', $request[self::REQUEST_ONBOARDING_AGENT_ID]],
+            ['ksm_reference_number', $request[self::REQUEST_KSM_REFERENCE_NUMBER]]
+        ])->first(['id', 'application_id', 'onboarding_country_id']);
+    }
+
+    /**
+     * Create a new Direct Recruitment onboarding Attestation .
+     *
+     * @param array $inputData The data used to create the Direct Recruitment Onboarding Attestation.
+     * The array should contain the following keys:
+     * - application_id: Direct Recruitment Application Id.
+     * - onboarding_country_id: OnBoarding Country Id.
+     * - onboarding_agent_id: On Boarding Agent Id.
+     * - ksm_reference_number: KSM Reference Number.
+     * - item_name: Item Name.
+     * - status: Direct Recruitment Onboarding Attestation status .
+     * - created_by: The user who created the Direct Recruitment Onboarding Attestation.
+     * - modified_by: The user who modified the Direct Recruitment Onboarding Attestation.
+     *
+     * @return mixed The newly created Direct Recruitment Onboarding Attestation.
+     */
+    public function createDirectRecruitmentOnboardingAttestation(array $request):void
+    {
+        $this->onboardingAttestation->create([
+            'application_id' => $request[self::REQUEST_APPLICATION_ID] ?? 0,
+            'onboarding_country_id' => $request[self::REQUEST_ONBOARDING_COUNTRY_ID] ?? 0,
+            'onboarding_agent_id' => $request[self::REQUEST_ONBOARDING_AGENT_ID] ?? 0,
+            'ksm_reference_number' => $request[self::REQUEST_KSM_REFERENCE_NUMBER] ?? '',
+            'item_name' => self::REQUEST_ITEM_NAME,
+            'status' => self::REQUEST_ATTESTATION_STATUS,
+            'created_by' => $request['created_by'] ?? 0,
+            'modified_by' => $request['created_by'] ?? 0
+        ]);
+    }
+
+    /**
+     * Create a new Direct Recruitment Onboarding Attestation .
+     *
+     * @param array $inputData The data used to create the Direct Recruitment Onboarding Attestation.
+     * The array should contain the following keys:
+     * - application_id: Direct Recruitment Application Id.
+     * - onboarding_country_id: OnBoarding Country Id.
+     * - onboarding_agent_id: on Boarding Agent Id.
+     * - ksm_reference_number: KSM Reference Number.
+     * - status: Direct Recruitment Onboarding Attestation status .
+     * - created_by: The user who created the Direct Recruitment Onboarding Attestation.
+     * - modified_by: The user who modified the Direct Recruitment Onboarding Attestation.
+     *
+     * @return mixed The newly created Direct Recruitment Onboarding Attestation.
+     */  
     public function create($request): bool|array
     {
-        $onboardingAttestation = $this->onboardingAttestation->where([
-            ['application_id', $request['application_id']],
-            ['onboarding_country_id', $request['onboarding_country_id']],
-            ['onboarding_agent_id', $request['onboarding_agent_id']],
-            ['ksm_reference_number', $request['ksm_reference_number']]
-        ])->first(['id', 'application_id', 'onboarding_country_id']);
+        $onboardingAttestation = $this->checkOnboardingAttestationData($request);
 
         if(is_null($onboardingAttestation)){
             $validator = Validator::make($request, $this->createValidation());
@@ -185,16 +282,8 @@ class DirectRecruitmentOnboardingAttestationServices
                     'error' => $validator->errors()
                 ];
             }
-            $this->onboardingAttestation->create([
-                'application_id' => $request['application_id'] ?? 0,
-                'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
-                'onboarding_agent_id' => $request['onboarding_agent_id'] ?? 0,
-                'ksm_reference_number' => $request['ksm_reference_number'] ?? '',
-                'item_name' => 'Attestation Submission',
-                'status' => 'Pending',
-                'created_by' => $request['created_by'] ?? 0,
-                'modified_by' => $request['created_by'] ?? 0
-            ]);
+            
+            $this->createDirectRecruitmentOnboardingAttestation($request);
 
             return true;
         }else{
@@ -255,18 +344,19 @@ class DirectRecruitmentOnboardingAttestationServices
         return true;
     }
     /**
-     * show Dispatch
-     * @param $request
-     * @return mixed
-     */   
+     * Show the direct recruitment on boarding agent details.
+     *
+     * @param array $request The request data containing company_id, onboarding_attestation_id
+     * @return mixed Returns details of direct recruitment on-boarding agent details.
+     */
     public function showDispatch($request): mixed
     {
         return $this->onboardingDispatch
         ->join('onboarding_attestation', 'onboarding_attestation.id', 'onboarding_dispatch.onboarding_attestation_id')
         ->join('directrecruitment_applications', function ($join) use($request) {
             $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
-            ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
-        })->where('onboarding_dispatch.onboarding_attestation_id', $request['onboarding_attestation_id'])
+            ->whereIn('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
+        })->where('onboarding_dispatch.onboarding_attestation_id', $request[self::REQUEST_ONBOARDING_ATTESTATION_ID])
         ->select('onboarding_dispatch.*')
         ->get();
     }
