@@ -165,12 +165,14 @@ class EContractServices
     {
         if (isset($request['search']) && !empty($request['search'])) {
             $validator = Validator::make($request, $this->searchValidation());
+            
             if ($validator->fails()) {
                 return [
                     'error' => $validator->errors()
                 ];
             }
         }
+
         return $this->eContractApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'e-contract_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'e-contract_applications.service_id')
         ->leftJoin('e-contract_project', 'e-contract_project.application_id', 'e-contract_applications.id')
@@ -293,6 +295,7 @@ class EContractServices
         $params = $request->all();
         $params['modified_by'] = $user['id'];
         $applicationDetails = $this->eContractApplications->where('company_id', $request['company_id'])->find($params['id']);
+
         if (is_null($applicationDetails)) {
             return [
                 'unauthorizedError' => 'Unauthorized'
@@ -356,6 +359,7 @@ class EContractServices
     public function allocateQuota($request): bool|array
     {
         $validator = Validator::make($request, $this->allocateQuotaValidation());
+
         if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
