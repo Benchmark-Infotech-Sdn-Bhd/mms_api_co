@@ -11,12 +11,11 @@ use App\Models\TotalManagementProject;
 
 class TotalManagementSupervisorServices
 {
-    /**
-     * @var TotalManagementProject
-     */
+    
     private TotalManagementProject $totalManagementProject;
     /**
      * TotalManagementSupervisorServices constructor.
+     * 
      * @param TotalManagementProject $totalManagementProject
      */
     public function __construct(TotalManagementProject $totalManagementProject)
@@ -24,6 +23,8 @@ class TotalManagementSupervisorServices
         $this->totalManagementProject = $totalManagementProject;
     }
     /**
+     * list the total management project supervisor
+     * 
      * @param $request
      * @return mixed
      */   
@@ -34,9 +35,10 @@ class TotalManagementSupervisorServices
         ->leftJoin('employee', 'employee.id', '=', 'users.reference_id')
         ->leftJoin('transportation as supervisorTransportation', 'supervisorTransportation.id', '=', 'users.reference_id')
         ->where(function ($query) use ($request) {
-            if(isset($request['search']) && !empty($request['search'])) {
-                $query->where('employee.employee_name', 'like', '%'.$request['search'].'%')
-                ->orWhere('supervisorTransportation.driver_name', 'like', '%'.$request['search'].'%');
+            $search = $request['search'] ?? '';
+              if(!empty($search)) {
+                $query->where('employee.employee_name', 'like', '%'.$search.'%')
+                ->orWhere('supervisorTransportation.driver_name', 'like', '%'.$search.'%');
             }
         })
         ->whereIn('employee.company_id', $request['company_id'])
@@ -49,6 +51,8 @@ class TotalManagementSupervisorServices
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
+     * list the total management project assignments
+     * 
      * @param $request
      * @return mixed
      */   
@@ -63,19 +67,23 @@ class TotalManagementSupervisorServices
         ->leftJoin('vendors', 'vendors.id', '=', 'total_management_project.transportation_provider_id')
         ->leftJoin('transportation', 'transportation.id', '=', 'total_management_project.driver_id')
         ->where(function ($query) use ($request) {
-            if(isset($request['employee_id']) && !empty($request['employee_id'])) {
-                $query->where('total_management_project.supervisor_id', $request['employee_id']);
+            $employeeId = $request['employee_id'] ?? '';
+            $driverId = $request['driver_id'] ?? '';
+            $supervisorId = $request['supervisor_id'] ?? '';
+            $search = $request['search'] ?? '';
+            if(!empty($employeeId)) {  
+                $query->where('total_management_project.supervisor_id', $employeeId);
             }
-            if(isset($request['driver_id']) && !empty($request['driver_id'])) {
-                $query->where('total_management_project.driver_id', $request['driver_id']);
+            if(!empty($driverId)) {  
+                $query->where('total_management_project.driver_id', $driverId);
                 //$query->where('total_management_project.assign_as_supervisor', '=', 1);
+             }
+             if(!empty($supervisorId)) {   
+                $query->where('total_management_project.supervisor_id', $supervisorId);
             }
-            if(isset($request['supervisor_id']) && !empty($request['supervisor_id'])) {
-                $query->where('total_management_project.supervisor_id', $request['supervisor_id']);
-            }
-            if(isset($request['search']) && !empty($request['search'])) {
-                $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%')
-                ->orWhere('total_management_project.name', 'like', '%'.$request['search'].'%');
+            if(!empty($search)) {
+                $query->where('crm_prospects.company_name', 'like', '%'.$search.'%')
+                ->orWhere('total_management_project.name', 'like', '%'.$search.'%');
             }
         })
         ->whereIn('employee.company_id', $request['company_id'])

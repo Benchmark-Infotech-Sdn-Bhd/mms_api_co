@@ -10,12 +10,10 @@ use App\Models\TotalManagementProject;
 
 class TotalManagementProjectServices
 {
-    /**
-     * @var TotalManagementProject
-     */
     private TotalManagementProject $totalManagementProject;
     /**
      * TotalManagementProjectServices constructor.
+     * 
      * @param TotalManagementProject $totalManagementProject
      */
     public function __construct(TotalManagementProject $totalManagementProject)
@@ -23,6 +21,8 @@ class TotalManagementProjectServices
         $this->totalManagementProject = $totalManagementProject;
     }
     /**
+     * validate the add project request data
+     * 
      * @return array
      */
     public function addValidation(): array
@@ -44,6 +44,8 @@ class TotalManagementProjectServices
         ];
     }
     /**
+     * validate the update project request data
+     * 
      * @return array
      */
     public function updateValidation(): array
@@ -65,6 +67,8 @@ class TotalManagementProjectServices
         ];
     }
     /**
+     * list the total management projects
+     * 
      * @param $request
      * @return mixed
      */   
@@ -89,11 +93,12 @@ class TotalManagementProjectServices
         })
         ->where('total_management_project.application_id',$request['application_id'])
         ->where(function ($query) use ($request) {
-            if(isset($request['search']) && !empty($request['search'])) {
-                $query->where('total_management_project.name', 'like', '%'.$request['search'].'%')
-                ->orWhere('total_management_project.state', 'like', '%'.$request['search'].'%')
-                ->orWhere('total_management_project.city', 'like', '%'.$request['search'].'%')
-                ->orWhere('employee.employee_name', 'like', '%'.$request['search'].'%');
+            $search = $request['search'] ?? '';
+            if(!empty($search)) {
+                $query->where('total_management_project.name', 'like', '%'.$search.'%')
+                ->orWhere('total_management_project.state', 'like', '%'.$search.'%')
+                ->orWhere('total_management_project.city', 'like', '%'.$search.'%')
+                ->orWhere('employee.employee_name', 'like', '%'.$search.'%');
             }
         })
         ->select('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.supervisor_id', 'total_management_project.supervisor_type', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name as vendor_name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.created_at', 'total_management_project.updated_at')
@@ -103,7 +108,11 @@ class TotalManagementProjectServices
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
+     * show the total management project detail
+     * 
      * @param $request
+     *   - id (int) The ID of the project
+     * 
      * @return mixed
      */   
     public function show($request): mixed
@@ -117,6 +126,8 @@ class TotalManagementProjectServices
         ->find($request['id']);
     }
     /**
+     * add a total management project 
+     * 
      * @param $request
      * @return bool|array
      */   
@@ -128,6 +139,17 @@ class TotalManagementProjectServices
                 'error' => $validator->errors()
             ];
         }
+        $this->createTotalMangementProject($request);
+        return true;
+    }
+    /**
+     * create a new entry for total management project.
+     *
+     * @param array $request
+     * @return void
+     */
+    private function createTotalMangementProject($request)
+    {
         $this->totalManagementProject->create([
             'application_id' => $request['application_id'] ?? 0,
             'name' => $request['name'] ?? '',
@@ -146,10 +168,15 @@ class TotalManagementProjectServices
             'created_by' => $request['created_by'] ?? 0,
             'modified_by' => $request['created_by'] ?? 0
         ]);
-        return true;
+        
     }
     /**
+     * update the total management project
+     * 
      * @param $request
+     *        id (int) total management project id
+     *        request total mangement project data
+     * 
      * @return bool|array
      */
     public function update($request): bool|array
@@ -160,13 +187,35 @@ class TotalManagementProjectServices
                 'error' => $validator->errors()
             ];
         }
-
-        $totalManagementProject = $this->totalManagementProject
+        $totalManagementProject = $this->getTotalManagementProject($request);
+        $this->updateTotalManagementProject($totalManagementProject, $request);
+        return true;
+    }
+    /**
+     * Retrieve totalmanagement project record.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function getTotalManagementProject($request)
+    {
+        return $this->totalManagementProject
         ->join('total_management_applications', function ($join) use ($request) {
             $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                  ->whereIn('total_management_applications.company_id', $request['company_id']);
-        })->findOrFail($request['id']);
-        
+        })->select('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.supervisor_id', 'total_management_project.supervisor_type', 'total_management_project.employee_id', 'total_management_project.transportation_provider_id', 'total_management_project.driver_id', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.created_by', 'total_management_project.modified_by', 'total_management_project.created_at', 'total_management_project.updated_at', 'total_management_project.deleted_at')
+        ->find($request['id']);
+    }
+
+    /**
+     * Update totalmanagement project based on the provided request.
+     *
+     * @param mixed $totalManagementProject
+     * @param $request
+     * @return void
+     */
+    private function updateTotalManagementProject($totalManagementProject, $request)
+    {
         $totalManagementProject->name =  $request['name'] ?? $totalManagementProject->name;
         $totalManagementProject->state =  $request['state'] ?? $totalManagementProject->state;
         $totalManagementProject->city =  $request['city'] ?? $totalManagementProject->city;
@@ -182,7 +231,5 @@ class TotalManagementProjectServices
         $totalManagementProject->hospitalization_leave =  $request['hospitalization_leave'] ?? $totalManagementProject->hospitalization_leave;
         $totalManagementProject->modified_by =  $request['modified_by'] ?? $totalManagementProject->modified_by;
         $totalManagementProject->save();
-
-        return true;
     }
 }

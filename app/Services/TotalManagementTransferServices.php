@@ -18,45 +18,29 @@ use App\Models\CRMProspectService;
 
 class TotalManagementTransferServices
 {
-    /**
-     * @var Workers
-     */
+    const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
+    const ERROR_PROJECT_EXIST = ['projectExist' => true];
+    const ERROR_FROM_EXISTING = ['fromExistingError' => true];
+    const ERROR_OTHER_COMPANY = ['otherCompanyError' => true];
+    const ERROR_QUOTA = ['quotaError' => true];
+    const ERROR_QUOTA_FROM_EXISTING = ['quotaFromExistingError' => true];
+    const ERROR_FROM_EXISTING_WORKER = ['fromExistingWorkerError' => true];
+    const ERROR_FOMNEXT_QUOTA = ['fomnextQuotaError' => true];
+    const ERROR_CLIENT_QUOTA = ['clientQuotaError' => true];
+
     private Workers $workers;
-    /**
-     * @var WorkerEmployment
-     */
     private WorkerEmployment $workerEmployment;
-    /**
-     * @var TotalManagementApplications
-     */
     private TotalManagementApplications $totalManagementApplications;
-    /**
-     * @var CRMProspect
-     */
     private CRMProspect $crmProspect;
-    /**
-     * @var TotalManagementProject
-     */
     private TotalManagementProject $totalManagementProject;
-    /**
-     * @var AuthServices
-     */
     private AuthServices $authServices;
-    /**
-     * @var EContractProject
-     */
     private EContractProject $eContractProject;
-    /**
-     * @var EContractApplications
-     */
     private EContractApplications $eContractApplications;
-    /**
-     * @var CRMProspectService
-     */
     private CRMProspectService $crmProspectService;
     
     /**
-     * TotalManagementWorkerServices constructor.
+     * TotalManagementTransferServices constructor.
+     * 
      * @param Workers $workers
      * @param WorkerEmployment $workerEmployment
      * @param CRMProspect $crmProspect
@@ -81,6 +65,8 @@ class TotalManagementTransferServices
         $this->crmProspectService = $crmProspectService;
     }
     /**
+     * validate the transfer submit request data
+     * 
      * @return array
      */
     public function submitValidation(): array
@@ -97,6 +83,8 @@ class TotalManagementTransferServices
         ];
     }
     /**
+     * get the worker emplyment detail
+     * 
      * @param $request
      * @return mixed
      */
@@ -111,7 +99,13 @@ class TotalManagementTransferServices
                     ->get();
     }
     /**
+     * get the company list
+     * 
      * @param $request
+     *        from_existing (int)
+     *        company_id (array) user company ID
+     *        search (text) search text for company name
+     *        filter (int) CRM service ID
      * @return mixed
      */
     public function companyList($request): mixed
@@ -140,13 +134,15 @@ class TotalManagementTransferServices
             }
         })
         ->where(function ($query) use ($request) {
-            if(isset($request['search']) && !empty($request['search'])) {
-                $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
+            $search = $request['search'] ?? '';
+            if(!empty($search)) {
+                $query->where('crm_prospects.company_name', 'like', '%'.$search.'%');
             }
         })
         ->where(function ($query) use ($request) {
-            if(isset($request['filter']) && !empty($request['filter'])) {
-                $query->where('crm_prospect_services.service_id', $request['filter']);
+            $filter = $request['filter'] ?? '';
+            if(!empty($filter)) {
+                $query->where('crm_prospect_services.service_id', $filter);
             }
         })
         ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospect_services.service_id', 'sectors.sector_name', 'crm_prospect_services.from_existing')
@@ -156,41 +152,70 @@ class TotalManagementTransferServices
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
+     * get the total management project list based on request data
+     * 
      * @param $request
+     *        service_type
+     *        crm_prospect_id (int)
+     *        prospect_service_id (int)
+     *        from_existing (int)
+     * 
      * @return mixed
      */
     public function projectList($request): mixed
     {
         if($request['service_type'] == 'Total Management') {
-            return $this->totalManagementProject
-            ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-            ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'total_management_applications.service_id')
-            ->where('crm_prospect_services.crm_prospect_id',$request['crm_prospect_id'])
-            ->where('crm_prospect_services.id',$request['prospect_service_id'])
-            ->where(function ($query) use ($request) {
-                if(isset($request['from_existing']) && $request['from_existing'] == 1) {
-                    $query->where('crm_prospect_services.from_existing', 1);
-                }else{
-                    $query->where('crm_prospect_services.from_existing', 0);
-                }
-            })
-            ->select('total_management_project.id', 'total_management_project.name')
-            ->distinct('total_management_project.id')
-            ->orderBy('total_management_project.id', 'desc')
-            ->get();
+            return $this->getTotalManagementProjectList($request);
         } else if($request['service_type'] == 'e-Contract') {
-            return $this->eContractProject
-            ->leftJoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
-            ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'e-contract_applications.service_id')
-            ->where('crm_prospect_services.crm_prospect_id',$request['crm_prospect_id'])
-            ->where('crm_prospect_services.id',$request['prospect_service_id'])
-            ->select('e-contract_project.id', 'e-contract_project.name')
-            ->distinct('e-contract_project.id')
-            ->orderBy('e-contract_project.id', 'desc')
-            ->get();
+            return $this->geteContractProjectList($request);
         }
     }
     /**
+     * Retrieve totalmanagement project list.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function getTotalManagementProjectList($request)
+    {
+        return $this->totalManagementProject
+        ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+        ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'total_management_applications.service_id')
+        ->where('crm_prospect_services.crm_prospect_id',$request['crm_prospect_id'])
+        ->where('crm_prospect_services.id',$request['prospect_service_id'])
+        ->where(function ($query) use ($request) {
+            if(isset($request['from_existing']) && $request['from_existing'] == 1) {
+                $query->where('crm_prospect_services.from_existing', 1);
+            }else{
+                $query->where('crm_prospect_services.from_existing', 0);
+            }
+        })
+        ->select('total_management_project.id', 'total_management_project.name')
+        ->distinct('total_management_project.id')
+        ->orderBy('total_management_project.id', 'desc')
+        ->get();
+    }
+    /**
+     * Retrieve econtract project list.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function geteContractProjectList($request)
+    {
+        return $this->eContractProject
+        ->leftJoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
+        ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'e-contract_applications.service_id')
+        ->where('crm_prospect_services.crm_prospect_id',$request['crm_prospect_id'])
+        ->where('crm_prospect_services.id',$request['prospect_service_id'])
+        ->select('e-contract_project.id', 'e-contract_project.name')
+        ->distinct('e-contract_project.id')
+        ->orderBy('e-contract_project.id', 'desc')
+        ->get();
+    }
+    /**
+     * submit the total mangement worker transfer
+     * 
      * @param $request
      * @return array|bool
      */
@@ -207,15 +232,49 @@ class TotalManagementTransferServices
         $request['modified_by'] = $user['id'];
         $request['company_id'] = $this->authServices->getCompanyIds($user);
 
-        $workerData = $this->workers::whereIn('company_id', $request['company_id'])->find($request['worker_id']);
+        $workerData = $this->getWorker($request);
         if(is_null($workerData)){
-                return [
-                    'unauthorizedError' => true
-                ];
+            return self::ERROR_UNAUTHORIZED;
             }
 
         // CHECK WORKER EMPLOYMENT DATA - SAME PROJECT ID
-        $workerEmployment = $this->workerEmployment->where([
+        $workerEmployment = $this->getWorkerEmploymentCount($request);
+
+        if($workerEmployment > 0) {
+            return self::ERROR_PROJECT_EXIST;
+        }
+
+        if($request['service_type'] == 'e-Contract') {
+            return $this->processEContractService($request);
+        } else if($request['service_type'] == 'Total Management') {
+            return $this->processTotalManagementService($request);
+        }
+        // UPDATE WORKERS TABLE
+        $this->updateWorkerTransferDetail($request);
+
+        $this->updateWorkerEmploymentDetail($request);
+        
+        return true;
+    }
+    /**
+     * Retrieve worker record.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function getWorker($request)
+    {
+        return $this->workers::whereIn('company_id', $request['company_id'])->find($request['worker_id']);
+    }
+    /**
+     * Retrieve worker Employemnt count.
+     *
+     * @param array $request
+     * @return mixed
+     */
+    private function getWorkerEmploymentCount($request)
+    {
+        return $this->workerEmployment->where([
             ['worker_id', $request['worker_id']],
             ['project_id', $request['new_project_id']],
             ['service_type', $request['service_type']]
@@ -223,33 +282,28 @@ class TotalManagementTransferServices
         ->where('transfer_flag', 0)
         ->whereNull('remove_date')
         ->count();
-
-        if($workerEmployment > 0) {
-            return [
-                'projectExist' => true
-            ];
-        }
-
-        if($request['service_type'] == 'e-Contract') {
-            $workerDetail = $this->workers->findOrFail($request['worker_id']);
+    }
+    /**
+     * process EContract Service based on provided request data.
+     *
+     * @param array $request
+     * @return array
+     */
+    private function processEContractService($request)
+    {
+        $workerDetail = $this->workers->findOrFail($request['worker_id']);
             if($request['from_existing'] == 1) {
-                return [
-                    'fromExistingError' => true
-                ];
+                return self::ERROR_FROM_EXISTING;
             } else if ($request['from_existing'] == 0) {
                 if($workerDetail->crm_prospect_id != 0) {
                     if($workerDetail->crm_prospect_id != $request['new_prospect_id']) {
-                        return [
-                            'otherCompanyError' => true
-                        ];
+                        return self::ERROR_OTHER_COMPANY;
                     }
                 }
                 $projectDetails = $this->eContractProject->findOrFail($request['new_project_id']);
                 $applicationDeatils = $this->eContractApplications::whereIn('company_id', $request['company_id'])->find($projectDetails->application_id);
                 if(is_null($applicationDeatils)){
-                    return [
-                        'unauthorizedError' => true
-                    ];
+                    return self::ERROR_UNAUTHORIZED;
                 }
                 $projectIds = $this->eContractProject->where('application_id', $projectDetails->application_id)
                                 ->select('id')
@@ -270,32 +324,32 @@ class TotalManagementTransferServices
                 $assignedWorkerCount++;
 
                 if($assignedWorkerCount > $applicationDeatils->quota_requested) {
-                    return [
-                        'quotaError' => true
-                    ];
+                    return self::ERROR_QUOTA;
                 }
             }
-        } else if($request['service_type'] == 'Total Management') {
-            $projectDetails = $this->totalManagementProject->findOrFail($request['new_project_id']);
+    }
+    /**
+     * process TotalManagement Service based on provided request data
+     *
+     * @param array $request
+     * @return array
+     */
+    private function processTotalManagementService($request)
+    {
+        $projectDetails = $this->totalManagementProject->findOrFail($request['new_project_id']);
             $applicationDetails = $this->totalManagementApplications::whereIn('company_id', $request['company_id'])->find($projectDetails->application_id);
             if(is_null($applicationDetails)){
-                return [
-                    'unauthorizedError' => true
-                ];
+                return self::ERROR_UNAUTHORIZED;
             }
             $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
             
             if($serviceDetails->from_existing == 1) {
                 $workerDetail = $this->workers->findOrFail($request['worker_id']);
                 if($request['from_existing'] == 0) {
-                    return [
-                        'quotaFromExistingError' => true
-                    ];
+                    return self::ERROR_QUOTA_FROM_EXISTING;
                 } else if($request['from_existing'] == 1) {
                     if($workerDetail->crm_prospect_id != $request['new_prospect_id']) {
-                        return [
-                            'otherCompanyError' => true
-                        ];
+                        return self::ERROR_OTHER_COMPANY;
                     } else if($workerDetail->crm_prospect_id == $request['new_prospect_id']) {
                         $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
                         $currentProjectDetails = $this->totalManagementProject->findOrFail($request['current_project_id']);
@@ -303,9 +357,7 @@ class TotalManagementTransferServices
                             $workerCountArray['clientWorkersCount']++;
                         }
                         if($workerCountArray['clientWorkersCount'] > $applicationDetails->quota_applied) {
-                            return [
-                                'quotaError' => true
-                            ];
+                            return self::ERROR_QUOTA;
                         }
                     }
                 }
@@ -314,9 +366,7 @@ class TotalManagementTransferServices
                 $workerDetail = $this->workers->findOrFail($request['worker_id']);
                 if($request['from_existing'] == 1) {
                     // if($workerDetail->crm_prospect_id != $request['new_prospect_id']) { // Waiting for confirmation
-                        return [
-                            'fromExistingWorkerError' => true
-                        ];
+                        return self::ERROR_FROM_EXISTING_WORKER;
                     /*} else if($workerDetail->crm_prospect_id == $request['new_prospect_id']) { // Waiting for confirmation
                         $workerCountArray['clientWorkersCount']++;
                         if($workerCountArray['clientWorkersCount'] > $serviceDetails->client_quota) {
@@ -329,28 +379,29 @@ class TotalManagementTransferServices
                     if($workerDetail->crm_prospect_id == 0) {
                         $workerCountArray['fomnextWorkersCount']++;
                         if($workerCountArray['fomnextWorkersCount'] > $serviceDetails->fomnext_quota) {
-                            return [
-                                'fomnextQuotaError' => true
-                            ];
+                            return self::ERROR_FOMNEXT_QUOTA;
                         }
                     } else if($workerDetail->crm_prospect_id != 0) {
                         if($workerDetail->crm_prospect_id != $request['new_prospect_id']) {
-                            return [
-                                'otherCompanyError' => true
-                            ];
+                            return self::ERROR_OTHER_COMPANY;
                         } else if($workerDetail->crm_prospect_id == $request['new_prospect_id']) {
                             $workerCountArray['clientWorkersCount']++;
                             if($workerCountArray['clientWorkersCount'] > $serviceDetails->client_quota) {
-                                return [
-                                    'clientQuotaError' => true
-                                ];
+                                return self::ERROR_CLIENT_QUOTA;
                             }
                         }
                     }
                 }
             }
-        }
-        // UPDATE WORKERS TABLE
+    }
+    /**
+     * update the worker transfer record based on provided request data
+     *
+     * @param array $request
+     * @return void
+     */
+    private function updateWorkerTransferDetail($request)
+    {
         $this->workers->where([
             'id' => $request['worker_id'],
         ])->update([
@@ -380,7 +431,15 @@ class TotalManagementTransferServices
             }
             $worker->save();
         }
-
+    }
+    /**
+     * update the worker employment record based on provided request data
+     *
+     * @param array $request
+     * @return void
+     */
+    private function updateWorkerEmploymentDetail($request)
+    {
         // UPDATE WORKER EMPLOYMENT TABLE
         $this->workerEmployment->where([
             'project_id' => $request['current_project_id'],
@@ -406,10 +465,10 @@ class TotalManagementTransferServices
             'created_by' => $request['modified_by'],
             'modified_by' => $request['modified_by']
         ]);
-
-        return true;
     }
     /**
+     * Retrive the worker count based on request data
+     * 
      * @param $applicationId, $prospectId
      * @return array
      */
@@ -421,7 +480,24 @@ class TotalManagementTransferServices
                             ->toArray();
         $projectIds = array_column($projectIds, 'id');
 
-        $clientWorkersCount = $this->workers
+        $clientWorkersCount = $this->getClientWorkersCount($prospectId,$projectIds);
+        $fomnextWorkersCount = $this->getFomnextWorkersCount($projectIds);
+
+        return [
+            'clientWorkersCount' => $clientWorkersCount,
+            'fomnextWorkersCount' => $fomnextWorkersCount
+        ];
+    }
+    /**
+     * Retrieve cleint worker count.
+     *
+     * @param $prospectId
+     * @param $projectIds
+     * @return mixed
+     */
+    private function getClientWorkersCount($prospectId,$projectIds)
+    {
+        return $this->workers
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.worker_id','=','workers.id')
             ->where('worker_employment.service_type', 'Total Management')
@@ -435,8 +511,16 @@ class TotalManagementTransferServices
         ->whereIn('worker_employment.project_id', $projectIds)
         ->distinct('workers.id')
         ->count('workers.id');
-
-        $fomnextWorkersCount = $this->workers
+    }
+    /**
+     * Retrieve formnext worker count.
+     *
+     * @param $projectIds
+     * @return mixed
+     */
+    private function getFomnextWorkersCount($projectIds)
+    {
+        return $this->workers
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.worker_id','=','workers.id')
             ->where('worker_employment.service_type', 'Total Management')
@@ -450,10 +534,5 @@ class TotalManagementTransferServices
         ->where('worker_employment.project_id', $projectIds)
         ->distinct('workers.id')
         ->count('workers.id');
-
-        return [
-            'clientWorkersCount' => $clientWorkersCount,
-            'fomnextWorkersCount' => $fomnextWorkersCount
-        ];
     }
 }
