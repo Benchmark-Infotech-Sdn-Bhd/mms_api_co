@@ -168,6 +168,8 @@ class EContractProjectServices
     }
 
     /**
+     * Creates a new Project from the given request data.
+     * 
      * @param $request The request data containing project details.
      * @return bool|array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -201,6 +203,8 @@ class EContractProjectServices
     }
 
     /**
+     * Updates the project data with the given request.
+     * 
      * @param $request The request data containing project details.
      * @return bool|array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -272,7 +276,7 @@ class EContractProjectServices
     }
 
     /**
-     * Creates a new Project object and persists it in the database.
+     * Creates a new Project from the given request data.
      *
      * @param array $request The array containing project data.
      *                      The array should have the following keys:
@@ -337,6 +341,13 @@ class EContractProjectServices
         $eContractProject->save();
     }
 
+    /**
+     * Upload attachment of e-contract project.
+     *
+     * @param string $action The action value find the [create or update] functionality
+     * @param array $request The request data containing e-contract project attachments
+     * @param int $eContractProjectId The attachments was upload against the application Id
+     */
     public function updateEContractProjectAttachments($action, $request, $eContractProjectId)
     {
         if (request()->hasFile('attachment') && isset($eContractProjectId) && !empty($request['valid_until'])) {

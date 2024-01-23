@@ -76,7 +76,7 @@ class EContractExpensesServices
     }
 
     /**
-     * Creates the validation rules for creating a new e-contract project.
+     * Creates the validation rules for e-contract expenses list search.
      *
      * @return array The array containing the validation rules.
      */
@@ -88,7 +88,9 @@ class EContractExpensesServices
     }
 
     /**
-     * @return array
+     * Creates the validation rules for create a new e-contract expenses.
+     *
+     * @return array The array containing the validation rules.
      */
     public function createValidation(): array
     {
@@ -106,7 +108,9 @@ class EContractExpensesServices
     }
 
     /**
-     * @return array
+     * Creates the validation rules for updating the e-contract expenses.
+     *
+     * @return array The array containing the validation rules.
      */
     public function updateValidation(): array
     {
@@ -125,7 +129,9 @@ class EContractExpensesServices
     }
 
     /**
-     * @return array
+     * Creates the validation rules for pay the e-contract expenses.
+     *
+     * @return array The array containing the validation rules.
      */
     public function payBackValidation(): array
     {
@@ -137,8 +143,10 @@ class EContractExpensesServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Returns a paginated list of e-contract expenses based on the given search request.
+     * 
+     * @param array $request The search request parameters.
+     * @return mixed Returns an array with a 'validate' key containing the validation errors, if the search request is invalid. Otherwise, returns a paginated list of e-contract expenses.
      */
     public function list($request): mixed
     {
@@ -176,8 +184,10 @@ class EContractExpensesServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Show the e-contract expenses with related attachment and (e-contract project and application).
+     * 
+     * @param array $request The request data containing e-contract expenses id, company id
+     * @return mixed Returns the e-contract expenses details with related attachment and (e-contract project and application).
      */
     public function show($request): mixed
     {
@@ -197,8 +207,24 @@ class EContractExpensesServices
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * Creates a new e-contract expenses from the given request data.
+     * 
+     * @param array $request The array containing expenses data.
+     *                      The array should have the following keys:
+     *                      - worker_id: The worker id of the expenses.
+     *                      - application_id: The application id of the expenses.
+     *                      - project_id: The project id id of the expenses.
+     *                      - title: The title of the expenses.
+     *                      - type: The type of the expenses.
+     *                      - payment_reference_number: The payment reference number of the expenses.
+     *                      - payment_date: The payment date of the expenses.
+     *                      - amount: The amount of the expenses.
+     *                      - remarks: The remarks of the expenses.
+     *                      - created_by: The ID of the user who created the expenses.
+     * @return bool|array Returns an array with the following keys:
+     * - "unauthorizedError": A array returns unauthorized if e-contract [applications or project] is null.
+     * - "validate": An array of validation errors, if any.
+     * - "isSubmit": A boolean indicating if the e-contract expenses was successfully updated.
      */
     public function create($request): bool|array
     {
@@ -254,8 +280,24 @@ class EContractExpensesServices
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * Updates the e-contract expenses from the given request data.
+     * 
+     * @param array $request The array containing expenses data.
+     *                      The array should have the following keys:
+     *                      - worker_id: The updated worker id.
+     *                      - application_id: The updated application id.
+     *                      - project_id: The updated project id.
+     *                      - title: The updated title.
+     *                      - type: The updated type.
+     *                      - payment_reference_number: The updated payment reference number.
+     *                      - payment_date: The updated payment date.
+     *                      - amount: The updated amount.
+     *                      - remarks: The updated remarks.
+     *                      - modified_by: The updated expenses modified by.
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "unauthorizedError": A array returns unauthorized if e-contract expenses is null.
+     * - "isSubmit": A boolean indicating if the e-contract expenses was successfully updated.
      */
     public function update($request): bool|array
     {
@@ -299,8 +341,10 @@ class EContractExpensesServices
     }
 
     /**
-     * @param $request
-     * @return bool
+     * Delete the e-contract expenses
+     * 
+     * @param array $request The request data containing the expenses ID and company ID.
+     * @return boolean The result of the delete operation containing the deletion status.
      */
     public function delete($request): bool
     {
@@ -323,10 +367,11 @@ class EContractExpensesServices
     }
 
     /**
-     *
-     * @param $request
-     * @return bool
-     */    
+     * Delete the e-contract expenses attachment
+     * 
+     * @param array $request The request data containing the expenses ID and company ID.
+     * @return boolean The result of the delete operation containing the deletion status.
+     */ 
     public function deleteAttachment($request): bool
     {
         $user = JWTAuth::parseToken()->authenticate();
@@ -349,8 +394,18 @@ class EContractExpensesServices
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * Creates a new pay expenses from the given request data.
+     *
+     * @param array $request The array containing expenses data.
+     *                      The array should have the following keys:
+     *                      - id: The id of the expenses.
+     *                      - amount_paid: The amount paid of the expenses.
+     *                      - payment_date: The payment date of the expenses.
+     *                      - modified_by: (int) The updated expenses modified by.
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "unauthorizedError": A array returns unauthorized if e-contract expenses is null.
+     * - "isSubmit": A boolean indicating if the pay expenses was successfully updated.
      */
     public function payBack($request): bool|array
     {
@@ -394,6 +449,13 @@ class EContractExpensesServices
         return true;
     }
 
+    /**
+     * Upload attachment of e-contract expenses.
+     *
+     * @param string $action The action value find the [create or update] functionality
+     * @param array $request The request data containing e-contract expenses attachments
+     * @param int $expensesId The attachments was upload against the expenses Id
+     */
     public function updateEContractExpensesAttachments($action, $request, $expensesId)
     {
         if (request()->hasFile('attachment')) {
