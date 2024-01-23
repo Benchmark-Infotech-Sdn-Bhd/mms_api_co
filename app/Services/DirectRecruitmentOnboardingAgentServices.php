@@ -229,7 +229,9 @@ class DirectRecruitmentOnboardingAgentServices
      * - created_by: The user who created the Direct Recruitment Onboarding Agent.
      * - modified_by: The user who modified the Direct Recruitment Onboarding Agent.
      *
+     * @param array $request to create a new Direct Recruitment Onboarding Agent .
      * @return mixed The newly created Direct Recruitment Onboarding Agent.
+     * 
      */
     public function createDirectRecruitmentOnboardingAgent(array $request):mixed
     {
@@ -276,7 +278,13 @@ class DirectRecruitmentOnboardingAgentServices
      * - created_by: The user who created the Direct Recruitment Arrival.
      * - modified_by: The user who modified the Direct Recruitment Arrival.
      *
-     * @return bool|array 
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "isInvalidUser": A boolean returns true if user is invalid.
+     * - "isInvalidUser": A boolean returns true if user access invalid application which is not not in his beloning company
+     * - "agentError": A boolean returns true if agent is not mapped with application, onBoardingAgent and KSM reference number.
+     * - "quotaError": A boolean returns true if the given quota exceeds the country quota.
+     * 
      */
     public function create($request): bool|array
     {
@@ -405,7 +413,13 @@ class DirectRecruitmentOnboardingAgentServices
      * - created_by: The user who created the Direct Recruitment Arrival.
      * - modified_by: The user who modified the Direct Recruitment Arrival.
      *
-     * @return bool|array 
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "isInvalidUser": A boolean returns true if user is invalid.
+     * - "isInvalidUser": A boolean returns true if user access invalid application which is not not in his beloning company
+     * - "editError": A boolean returns true if requested attestation status in 'Collected'
+     * - "agentError": A boolean returns true if agent is not mapped with application, onBoardingAgent and KSM reference number.
+     * - "quotaError": A boolean returns true if the given quota exceeds the country quota.
      */
     public function update($request): bool|array
     {

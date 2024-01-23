@@ -29,9 +29,16 @@ class DirectRecruitmentOnboardingAttestationServices
     public const REQUEST_ATTESTATION_STATUS = 'Pending';
 
     public const ONBOARDING_STATUS = 2;
+    public const ONBOARDING_STATUS_AGENT_ADDED = 3;
     public const DEFAULT_INT_VALUE = 0;
     public const STATUS_ACTIVE = 1;
     public const STATUS_IN_ACTIVE = 0;
+    public const REFERENCE_NUMBER_PREFIX = 'JO00000';
+    public const DISPATCH_NOTIFICATION_TYPE = 'Dispatches';
+    public const DISPATCH_NOTIFICATION_TITLE = 'Dispatches';
+    public const DISPATCH_NOTIFICATION_MESSAGE = ' Dispatch is Assigned';
+    public const MESSAGE_DELETED_NOT_FOUND = 'Data not found';
+    public const MESSAGE_DELETED_SUCCESSFULLY = 'Deleted Successfully';
 
     /**
      * @var OnboardingAttestation
@@ -259,7 +266,7 @@ class DirectRecruitmentOnboardingAttestationServices
     /**
      * Create a new Direct Recruitment Onboarding Attestation .
      *
-     * @param array $inputData The data used to create the Direct Recruitment Onboarding Attestation.
+     * @param array $request The data used to create the Direct Recruitment Onboarding Attestation.
      * The array should contain the following keys:
      * - application_id: Direct Recruitment Application Id.
      * - onboarding_country_id: OnBoarding Country Id.
@@ -269,7 +276,11 @@ class DirectRecruitmentOnboardingAttestationServices
      * - created_by: The user who created the Direct Recruitment Onboarding Attestation.
      * - modified_by: The user who modified the Direct Recruitment Onboarding Attestation.
      *
-     * @return mixed The newly created Direct Recruitment Onboarding Attestation.
+     * * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "true": A boolean returns true if attestatiion created successfully
+     * - "false": A boolean returns false if attestatiion created failed
+     *
      */  
     public function create($request): bool|array
     {
@@ -292,9 +303,77 @@ class DirectRecruitmentOnboardingAttestationServices
         
     }
     /**
-     * @param $request
-     * @return bool|array
+     * Get the onBoardingAttestation details for the given input details
+     * 
+     * @param array $request The data used to get the onBoardingAttestation details
+     * - id: onBoardingAttestation id
+     * - company_id: Direct Recruitment company id
+     *
+     * @return object onBoardingAttestation details
      */
+    public function getOnboardingAttestation(array $request): object
+    {
+        return $this->onboardingAttestation
+        ->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+            ->where('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
+        })
+        ->select('onboarding_attestation.id', 'onboarding_attestation.application_id', 'onboarding_attestation.onboarding_country_id', 'onboarding_attestation.onboarding_agent_id', 'onboarding_attestation.ksm_reference_number', 'onboarding_attestation.submission_date', 'onboarding_attestation.collection_date', 'onboarding_attestation.item_name', 'onboarding_attestation.status', 'onboarding_attestation.file_url', 'onboarding_attestation.remarks', 'onboarding_attestation.created_by', 'onboarding_attestation.modified_by', 'onboarding_attestation.created_at', 'onboarding_attestation.updated_at', 'onboarding_attestation.deleted_at')
+        ->find($request['id']);
+    }
+    /**
+     * Get the onBoardingAttestation collected count on the input of application_id, onBoarding_country_id
+     * 
+     * @param int $applicationId, int $onboardingCountryId The data used to get the collected count in onBoardingAttestation
+     * - applicationId (int): application id
+     * - onboardingCountryId (int): onBoarding Country id
+     *
+     * @return int onBoardingAttestation details
+     */
+    public function getOnboardingAttestationCollectedCount($applicationId, $onboardingCountryId): int
+    {
+        return $this->onboardingAttestation->where('application_id', $applicationId)
+        ->where('onboarding_country_id', $onboardingCountryId)
+        ->where('status', 'Collected')
+        ->count();
+    }
+    /**
+     * Get the agent quota for the given input $requestApplicationId, $requestOnboardingCountryId
+     * 
+     * - requestApplicationId: Direct Recruitment Application Id
+     * - requestOnboardingCountryId: Direct Recruitment Onboarding Country Id.
+     *
+     * @param int $requestApplicationId, int $requestOnboardingCountryId
+     * Return void
+     */
+    public function onboardingStatusUpdate(int $requestApplicationId, int $requestOnboardingCountryId): void
+    {
+        $onBoardingStatus['application_id'] = $requestApplicationId;
+        $onBoardingStatus['country_id'] = $requestOnboardingCountryId;
+        $onBoardingStatus['onboarding_status'] = self::ONBOARDING_STATUS_AGENT_ADDED; //Agent Added
+        $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+    }
+    /**
+     * Update a new Direct Recruitment Onboarding Attestation .
+     *
+     * @param array $request The data used to update the Direct Recruitment Onboarding Attestation.
+     * The array should contain the following keys:
+     * - company_id: Direct Recruitment application company_id.
+     * - submission_date: attestation submission date
+     * - collection_date: attestation collection date
+     * - application_id: Direct Recruitment application id
+     * - onboarding_country_id: Direct Recruitment Onboarding country id.
+     * - file_url: file Attachment.
+     * - remarks: attestation remarks
+     * - status: attestation status
+     * - modified_by: The user who modified the Direct Recruitment Onboarding Attestation.
+     *
+     * * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "InvalidUser": A boolean returns true if user is invalid.
+     * - "true": A boolean returns true if attestatiion updated successfully
+     *
+     */  
     public function update($request): bool|array
     {
         $validator = Validator::make($request, $this->updateValidation());
@@ -303,37 +382,27 @@ class DirectRecruitmentOnboardingAttestationServices
                 'error' => $validator->errors()
             ];
         }
-        $onboardingAttestation = $this->onboardingAttestation
-            ->join('directrecruitment_applications', function ($join) use($request) {
-                $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
-                ->where('directrecruitment_applications.company_id', $request['company_id']);
-            })->select('onboarding_attestation.*')->find($request['id']);
+    
+        $onboardingAttestation = $this->getOnboardingAttestation($request);
+        
         if(is_null($onboardingAttestation)) {
             return[
                 'InvalidUser' => true
             ];
         }
-        if (isset($request['submission_date']) && !empty($request['submission_date'])) {
+        
+        if (!empty($request['submission_date'])) {
             $request['status'] = 'Submitted';
-        }
-        if (isset($request['collection_date']) && !empty($request['collection_date'])) {
-            $request['status'] = 'Collected';
-        }
-        if(isset($request['submission_date']) && !empty($request['submission_date'])){
             $onboardingAttestation->submission_date =  $request['submission_date'];
         }
-        if(isset($request['collection_date']) && !empty($request['collection_date'])){
+        if (!empty($request['collection_date'])) {
+            $request['status'] = 'Collected';
             $onboardingAttestation->collection_date =  $request['collection_date'];
 
-            $attestationCount = $this->onboardingAttestation->where('application_id', $onboardingAttestation->application_id)
-                                    ->where('onboarding_country_id', $onboardingAttestation->onboarding_country_id)
-                                    ->where('status', 'Collected')
-                                    ->count();
+            $attestationCount = $this->getOnboardingAttestationCollectedCount($onboardingAttestation->application_id, $onboardingAttestation->onboarding_country_id); 
+
             if($attestationCount == 0) {
-                $onBoardingStatus['application_id'] = $onboardingAttestation->application_id;
-                $onBoardingStatus['country_id'] = $onboardingAttestation->onboarding_country_id;
-                $onBoardingStatus['onboarding_status'] = 3; //Agent Added
-                $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+                $this->onboardingStatusUpdate($request[self::REQUEST_APPLICATION_ID], $request[self::REQUEST_ONBOARDING_COUNTRY_ID]);  
             }
         }
         $onboardingAttestation->file_url =  $request['file_url'] ?? $onboardingAttestation->file_url;
@@ -360,20 +429,165 @@ class DirectRecruitmentOnboardingAttestationServices
         ->select('onboarding_dispatch.*')
         ->get();
     }
+
     /**
-     * update dispatch
-     * @param $request
-     * @return bool|array
+     * Get the onBoardingAttestation details for the given input details
+     * 
+     * @param array $request The data used to get the onBoardingAttestation details
+     * - id: onBoardingAttestation id
+     * - company_id: Direct Recruitment company id
+     *
+     * @return object onBoardingAttestation data
      */
+    public function getOnboardingAttestationData(array $request): object
+    {
+
+        return $this->onboardingAttestation->join('directrecruitment_applications', function ($join) use($request) {
+            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+                ->where('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
+            })
+            ->where('onboarding_attestation.id', $request[self::REQUEST_ONBOARDING_ATTESTATION_ID])
+            ->select('onboarding_attestation.id', 'onboarding_attestation.application_id', 'onboarding_attestation.onboarding_country_id', 'onboarding_attestation.onboarding_agent_id', 'onboarding_attestation.ksm_reference_number', 'onboarding_attestation.submission_date', 'onboarding_attestation.collection_date', 'onboarding_attestation.item_name', 'onboarding_attestation.status', 'onboarding_attestation.file_url', 'onboarding_attestation.remarks', 'onboarding_attestation.created_by', 'onboarding_attestation.modified_by', 'onboarding_attestation.created_at', 'onboarding_attestation.updated_at', 'onboarding_attestation.deleted_at')->first();
+    }
+
+    /**
+     * Create a new Dispatch .
+     *
+     * @param array $request The data used to create the Dispatch.
+     * The array should contain the following keys:
+     * 
+     * - onboarding_attestation_id: on boarding attestation id
+     * - date: Dispath date
+     * - time: Dispath time
+     * - employee_id: employee id
+     * - from: from user details
+     * - calltime: call Time
+     * - area: area details
+     * - employer_name: employer mapped with this dispatch
+     * - phone_number: contact number
+     * - remarks: Remarks on the updating the dispatch
+     * - created_by: The user who created the Dispatch.
+     * - modified_by: The user who modified the Dispatch.
+     *
+     * @param array $request to create a new Dispatch .
+     * @return void new Dispatch detail.
+     * 
+     */
+    public function onBoardingDispatchCreate(array $request):void
+    {
+        $this->onboardingDispatch->create([
+            'onboarding_attestation_id' => $request[self::REQUEST_ONBOARDING_ATTESTATION_ID] ?? 0,
+            'date' => $request['date'] ?? null,
+            'time' => $request['time'] ?? '',
+            'reference_number' => $request['reference_number'],
+            'employee_id' => $request['employee_id'] ?? '',
+            'from' => $request['from'] ?? '',
+            'calltime' => $request['calltime'] ?? null,
+            'area' => $request['area'] ?? '',
+            'employer_name' => $request['employer_name'] ?? '',
+            'phone_number' => $request['phone_number'] ?? '',
+            'remarks' => $request['remarks'] ?? '',
+            'created_by' =>  $request['created_by'] ?? 0,
+            'modified_by' =>  $request['created_by'] ?? 0
+        ]);
+    }
+
+    /**
+     * Update a Dispatch on the given request
+     *
+     * @param array $request The data used to update the Dispatch.
+     * The array should contain the following keys:
+     * 
+     * - date: Dispath date
+     * - time: Dispath time
+     * - employee_id: employee id
+     * - from: from user details
+     * - calltime: call Time
+     * - area: area details
+     * - employer_name: employer mapped with this dispatch
+     * - phone_number: contact number
+     * - remarks: Remarks on the updating the dispatch
+     * - modified_by: The user who modified the Dispatch.
+     *
+     * @param array $request to update a Dispatch .
+     * @return void update Dispatch detail
+     * 
+     */
+    public function onBoardingDispatchUpdate($onboardingDispatch, array $request):void
+    {
+        $onboardingDispatch->update([
+            'date' => $request['date'] ?? null,
+            'time' => $request['time'] ?? '',
+            'employee_id' => $request['employee_id'] ?? '',
+            'from' => $request['from'] ?? '',
+            'calltime' => $request['calltime'] ?? null,
+            'area' => $request['area'] ?? '',
+            'employer_name' => $request['employer_name'] ?? '',
+            'phone_number' => $request['phone_number'] ?? '',
+            'remarks' => $request['remarks'] ?? '',
+            'modified_by' =>  $request['created_by'] ?? 0
+        ]);
+    }
+
+    /**
+     * Create a new Dispatch Notification .
+     *
+     * @param array $request The data used to create the Dispatch Notification.
+     * The array should contain the following keys:
+     * 
+     * - employee_id: employee id
+     * - company_id:company id
+     * - reference_number: dispatch reference number
+     * - created_by: The user who created the Dispatch Notification.
+     * - modified_by: The user who modified the Dispatch Notification.
+     * 
+     * @param array $request to create a new Dispatch Notification.
+     * @return void new Dispatch Notification.
+     * 
+     */
+    public function createDispatchNotification($getUser, array $request):void
+    {
+        $NotificationParams['user_id'] = $request['employee_id'];
+        $NotificationParams['from_user_id'] = $request['created_by'];
+        $NotificationParams['type'] = 'Dispatches';
+        $NotificationParams['title'] = 'Dispatches';
+        $NotificationParams['message'] = $request['reference_number'].' Dispatch is Assigned';
+        $NotificationParams['status'] = self::STATUS_ACTIVE;
+        $NotificationParams['read_flag'] = self::STATUS_IN_ACTIVE;
+        $NotificationParams['created_by'] = $request['created_by'];
+        $NotificationParams['modified_by'] = $request['created_by'];
+        $NotificationParams['company_id'] = $request[self::REQUEST_COMPANY_ID];
+        $this->notificationServices->insertDispatchNotification($NotificationParams);
+        dispatch(new \App\Jobs\RunnerNotificationMail(Config::get('database.connections.mysql.database'), $getUser,$NotificationParams['message']))->onQueue(Config::get('services.RUNNER_NOTIFICATION_MAIL'))->onConnection(Config::get('services.QUEUE_CONNECTION'));        
+    }
+    
+    /**
+     * Update a dispatch details
+     *
+     * @param array $request The data used to update the dispatch.
+     * The array should contain the following keys:
+     * - company_id: Direct Recruitment application company_id.
+     * - onboarding_attestation_id: on boarding attestation id
+     * - date: Dispath date
+     * - time: Dispath time
+     * - employee_id: employee id
+     * - from: from user details
+     * - calltime: call Time
+     * - area: area details
+     * - employer_name: employer mapped with this dispatch
+     * - phone_number: contact number
+     * - remarks: Remarks on the updating the dispatch
+     *
+     * * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "InvalidUser": A boolean returns true if user is invalid.
+     * - "true": A boolean returns true if attestatiion updated successfully
+     *
+     */ 
     public function updateDispatch($request): bool|array
     {
-        $attestationCheck = $this->onboardingAttestation->join('directrecruitment_applications', function ($join) use($request) {
-            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
-                ->where('directrecruitment_applications.company_id', $request['company_id']);
-            })
-            ->where('onboarding_attestation.id', $request['onboarding_attestation_id'])
-            ->first('onboarding_attestation.*');
-            
+
+        $attestationCheck = $this->getOnboardingAttestationData($request);
         if(is_null($attestationCheck)) {
             return [
                 'InvalidUser' => true
@@ -383,7 +597,7 @@ class DirectRecruitmentOnboardingAttestationServices
             'onboarding_attestation_id', $request['onboarding_attestation_id']
         )->first(['id', 'onboarding_attestation_id', 'date', 'time', 'reference_number', 'employee_id', 'from', 'calltime', 'area', 'employer_name', 'phone_number', 'remarks']);
 
-        $request['reference_number'] = 'JO00000'.$this->onboardingDispatch->count() + 1;
+        $request['reference_number'] = self::REFERENCE_NUMBER_PREFIX.$this->onboardingDispatch->count() + 1;
 
         $validator = Validator::make($request, $this->updateDispatchValidation());
             if($validator->fails()) {
@@ -393,83 +607,50 @@ class DirectRecruitmentOnboardingAttestationServices
             }
         
         if(is_null($onboardingDispatch)){
-            $this->onboardingDispatch->create([
-                'onboarding_attestation_id' => $request['onboarding_attestation_id'] ?? 0,
-                'date' => $request['date'] ?? null,
-                'time' => $request['time'] ?? '',
-                'reference_number' => $request['reference_number'],
-                'employee_id' => $request['employee_id'] ?? '',
-                'from' => $request['from'] ?? '',
-                'calltime' => $request['calltime'] ?? null,
-                'area' => $request['area'] ?? '',
-                'employer_name' => $request['employer_name'] ?? '',
-                'phone_number' => $request['phone_number'] ?? '',
-                'remarks' => $request['remarks'] ?? '',
-                'created_by' =>  $request['created_by'] ?? 0,
-                'modified_by' =>  $request['created_by'] ?? 0
-            ]);
+            $this->onBoardingDispatchCreate($request);
         }else{
-            $onboardingDispatch->update([
-                'date' => $request['date'] ?? null,
-                'time' => $request['time'] ?? '',
-                'employee_id' => $request['employee_id'] ?? '',
-                'from' => $request['from'] ?? '',
-                'calltime' => $request['calltime'] ?? null,
-                'area' => $request['area'] ?? '',
-                'employer_name' => $request['employer_name'] ?? '',
-                'phone_number' => $request['phone_number'] ?? '',
-                'remarks' => $request['remarks'] ?? '',
-                'modified_by' =>  $request['created_by'] ?? 0
-            ]);
+            $this->onBoardingDispatchUpdate($onboardingDispatch, $request);
+            
         }
 
         $getUser = $this->getUser($request['employee_id']);
         if($getUser){
-            $NotificationParams['user_id'] = $request['employee_id'];
-            $NotificationParams['from_user_id'] = $request['created_by'];
-            $NotificationParams['type'] = 'Dispatches';
-            $NotificationParams['title'] = 'Dispatches';
-            $NotificationParams['message'] = $request['reference_number'].' Dispatch is Assigned';
-            $NotificationParams['status'] = 1;
-            $NotificationParams['read_flag'] = 0;
-            $NotificationParams['created_by'] = $request['created_by'];
-            $NotificationParams['modified_by'] = $request['created_by'];
-            $NotificationParams['company_id'] = $request['company_id'];
-            $this->notificationServices->insertDispatchNotification($NotificationParams);
-            dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']));
+            $this->createDispatchNotification($getUser, $request);
         }
         
         return true;
     }
     /**
-     * list embassy file
-     * @param $request
-     * @return mixed
-     */   
+     * Returns a paginated list of embassy attestation file costing with onboarding embassy details.
+     *
+     * @param array $request The request data containing company id, onboarding_attestation_id, country_id
+     * @return mixed \Illuminate\Pagination\LengthAwarePaginator The paginated list of embassy attestation file costing with onboarding embassy details.
+     * - "InvalidUser": A boolean returns true if user is invalid.
+     */  
     public function listEmbassy($request): mixed
     {
         $onboardingAttestation = $this->onboardingAttestation
         ->leftJoin('directrecruitment_onboarding_countries', 'directrecruitment_onboarding_countries.id', 'onboarding_attestation.onboarding_country_id')
         ->join('directrecruitment_applications', function ($join) use($request) {
             $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
-                ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+                ->whereIn('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
         })
-        ->where('onboarding_attestation.id', $request['onboarding_attestation_id'])
+        ->where('onboarding_attestation.id', $request[self::REQUEST_ONBOARDING_ATTESTATION_ID])
         ->select('directrecruitment_onboarding_countries.country_id')
         ->distinct('directrecruitment_onboarding_countries.country_id')
         ->get();
-        if(count($onboardingAttestation) == 0) {
+        if(count($onboardingAttestation) == self::DEFAULT_INT_VALUE) {
             return [
                 'InvalidUser' => true
             ];
         }
-        $request['country_id'] = $onboardingAttestation[0]['country_id'] ?? 0;
+        $request['country_id'] = $onboardingAttestation[0]['country_id'] ?? self::DEFAULT_INT_VALUE;
 
         return $this->embassyAttestationFileCosting
         ->leftJoin('onboarding_embassy', function ($join) use ($request) {
             $join->on('onboarding_embassy.embassy_attestation_id', '=', 'embassy_attestation_file_costing.id')
             ->where([
-                ['onboarding_embassy.onboarding_attestation_id', $request['onboarding_attestation_id']],
+                ['onboarding_embassy.onboarding_attestation_id', $request[self::REQUEST_ONBOARDING_ATTESTATION_ID]],
                 ['onboarding_embassy.deleted_at', null],
             ]);
         })
@@ -482,17 +663,19 @@ class DirectRecruitmentOnboardingAttestationServices
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
-     * show embassy file
-     * @param $request
-     * @return mixed
+     * Returns a embassy attestation file costing with onboarding embassy details.
+     *
+     * @param array $request The request data containing company id, onboarding_attestation_id, country_id
+     * @return mixed show embassy attestation file costing with onboarding embassy details.
+     * - "InvalidUser": A boolean returns true if user is invalid.
      */   
     public function showEmbassyFile($request): mixed
     {
         $attestationCheck = $this->onboardingAttestation->join('directrecruitment_applications', function ($join) use($request) {
             $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
-                ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+                ->whereIn('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
             })
-            ->where('onboarding_attestation.id', $request['onboarding_attestation_id'])
+            ->where('onboarding_attestation.id', $request[self::REQUEST_ONBOARDING_ATTESTATION_ID])
             ->first('onboarding_attestation.*');
 
         if(is_null($attestationCheck)) {
@@ -504,7 +687,7 @@ class DirectRecruitmentOnboardingAttestationServices
         ->leftJoin('onboarding_embassy', function ($join) use ($request) {
             $join->on('onboarding_embassy.embassy_attestation_id', '=', 'embassy_attestation_file_costing.id')
             ->where([
-                ['onboarding_embassy.onboarding_attestation_id', $request['onboarding_attestation_id']],
+                ['onboarding_embassy.onboarding_attestation_id', $request[self::REQUEST_ONBOARDING_ATTESTATION_ID]],
                 ['onboarding_embassy.deleted_at', null],
             ]);
         })
@@ -517,16 +700,22 @@ class DirectRecruitmentOnboardingAttestationServices
     }
 
     /**
-     * upload embassy file 
-     * @param $request
-     * @return bool|array
-     */
+     * Uploads a embassy file
+     *
+     * @param array $request has the following keys 
+     * The request data containing company id, onboarding_attestation_id, country_id
+     * embassy_attestation_id
+     * 
+     * @return mixed show embassy attestation file costing with onboarding embassy details.
+     * - "InvalidUser": A boolean returns true if user is invalid.
+     * - "validate": An array of validation errors, if any.
+     */  
     public function uploadEmbassyFile($request): bool|array
     {
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
-        $params['company_id'] = $user['company_id'];
+        $params['company_id'] = $user[self::REQUEST_COMPANY_ID];
 
         $validator = Validator::make($request->toArray(), $this->uploadEmbassyFileValidation());
         if($validator->fails()) {
@@ -538,7 +727,7 @@ class DirectRecruitmentOnboardingAttestationServices
         $onboardingAttestation = $this->onboardingAttestation
         ->join('directrecruitment_applications', function ($join) use($params) {
             $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
-                ->where('directrecruitment_applications.company_id', $params['company_id']);
+                ->where('directrecruitment_applications.company_id', $params[self::REQUEST_COMPANY_ID]);
         })
         ->where('onboarding_attestation.id', $params['onboarding_attestation_id'])
         ->first(['onboarding_attestation.application_id']);
@@ -584,7 +773,7 @@ class DirectRecruitmentOnboardingAttestationServices
                     ]); 
                 }
                 // ADD OTHER EXPENSES - Onboarding - Attestation Costing
-                $request['expenses_application_id'] = $request['application_id'] ?? 0;
+                $request['expenses_application_id'] = $request[self::REQUEST_APPLICATION_ID] ?? 0;
                 $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[2];
                 $request['expenses_payment_reference_number'] = '';
                 $request['expenses_payment_date'] = Carbon::now();
@@ -609,7 +798,7 @@ class DirectRecruitmentOnboardingAttestationServices
                 ]); 
             }
             // ADD OTHER EXPENSES - Onboarding - Attestation Costing
-            $request['expenses_application_id'] = $request['application_id'] ?? 0;
+            $request['expenses_application_id'] = $request[self::REQUEST_APPLICATION_ID] ?? 0;
             $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[2];
             $request['expenses_payment_reference_number'] = '';
             $request['expenses_payment_date'] = Carbon::now();
@@ -621,51 +810,68 @@ class DirectRecruitmentOnboardingAttestationServices
         }
         return true;
     }
-
-
+    
     /**
-     * delete embassy file
-     * @param $request
-     * @return array
-     */    
+     * Delete a embassy file
+     *
+     * @param array $request has the following keys 
+     * - company_id : company id
+     * - onboarding_embassy_id : on boarding embassy id
+     * 
+     * @return array information with below returns.
+     * - "isDeleted": returns false, if the request data not found 
+     * - "isDeleted": returns true on successful delete.
+     */   
     public function deleteEmbassyFile($request): array
     {   
         $data = $this->onboardingEmbassy
         ->join('onboarding_attestation', 'onboarding_attestation.id', 'onboarding_embassy.onboarding_attestation_id')
         ->join('directrecruitment_applications', function ($join) use($request) {
             $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
-            ->where('directrecruitment_applications.company_id', $request['company_id']);
+            ->where('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
         })->find($request['onboarding_embassy_id']); 
         if(is_null($data)){
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_DELETED_NOT_FOUND
             ];
         }
         return [
             "isDeleted" => $data->delete(),
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
     }
     /**
-     * * get user
-     * @param $request
-     */    
+     * Get User details
+     *
+     * @param int $referenceId 
+     * 
+     * @return array use details for the requested reference id
+     */      
     public function getUser($referenceId)
     {   
         return User::where('reference_id',$referenceId)->where('user_type','Employee')->first('id', 'name', 'email');
     }
+    
     /**
-     * @param $request
-     * @return bool
-     */    
-    public function updateKSMReferenceNumber($request): bool
+     * Update the new KSM Reference Number for the requested attestation id with following details
+     * - application_id : the application is
+     * - onboarding_country_id : on boarding application id
+     * - id : onboarding agent id
+     * - old_ksm_reference_number: existing ksm reference number to update
+     * - ksm_reference_number: new ksm reference number to be updates.
+     * 
+     * @param array $request to update the new ksm reference number
+     * - returns bool value on the udation of onboarding attestation table
+     *
+     */ 
+    public function updateKSMReferenceNumber(array $request): bool
     {   
-        return $this->onboardingAttestation->where('application_id', $request['application_id'])
-                ->where('onboarding_country_id', $request['onboarding_country_id'])
+        return $this->onboardingAttestation->where('application_id', $request[self::REQUEST_APPLICATION_ID])
+                ->where('onboarding_country_id', $request[self::REQUEST_ONBOARDING_COUNTRY_ID])
                 ->where('onboarding_agent_id', $request['id'])
                 ->where('ksm_reference_number', $request['old_ksm_reference_number'])
-                ->update(['ksm_reference_number' => $request['ksm_reference_number']]); 
+                ->update(['ksm_reference_number' => $request[self::REQUEST_KSM_REFERENCE_NUMBER]]); 
     }
 
 }
