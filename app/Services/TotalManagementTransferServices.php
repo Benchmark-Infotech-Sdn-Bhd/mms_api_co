@@ -28,6 +28,10 @@ class TotalManagementTransferServices
     const ERROR_FOMNEXT_QUOTA = ['fomnextQuotaError' => true];
     const ERROR_CLIENT_QUOTA = ['clientQuotaError' => true];
 
+    const CUSTOMER = 'Customer';
+    const SERVICE_TYPE = [1 => 'Direct Recruitment', 2 => 'e-Contract', 3 => 'Total Management'];
+    const WORKER_STATUS = ['assigned' => 'Assigned', 'on-bench' => 'On-Bench'];
+
     private Workers $workers;
     private WorkerEmployment $workerEmployment;
     private TotalManagementApplications $totalManagementApplications;
@@ -52,7 +56,17 @@ class TotalManagementTransferServices
      * @param TotalManagementApplications $totalManagementApplications
      * @param CRMProspectService $crmProspectService
      */
-    public function __construct(Workers $workers, WorkerEmployment $workerEmployment, CRMProspect $crmProspect, TotalManagementProject $totalManagementProject, AuthServices $authServices, EContractProject $eContractProject, EContractApplications $eContractApplications, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService)
+    public function __construct(
+        Workers $workers, 
+        WorkerEmployment $workerEmployment, 
+        CRMProspect $crmProspect, 
+        TotalManagementProject $totalManagementProject, 
+        AuthServices $authServices, 
+        EContractProject $eContractProject, 
+        EContractApplications $eContractApplications, 
+        TotalManagementApplications $totalManagementApplications, 
+        CRMProspectService $crmProspectService
+    )
     {
         $this->workers = $workers;
         $this->workerEmployment = $workerEmployment;
@@ -83,9 +97,11 @@ class TotalManagementTransferServices
         ];
     }
     /**
-     * get the worker emplyment detail
+     * get the worker emplyment detail based on worker id
      * 
      * @param $request
+     *        worker_id (int) worker ID
+     * 
      * @return mixed
      */
     public function workerEmploymentDetail($request): mixed
@@ -99,10 +115,10 @@ class TotalManagementTransferServices
                     ->get();
     }
     /**
-     * get the company list
+     * get the company list based on request data
      * 
      * @param $request
-     *        from_existing (int)
+     *        from_existing (int) from existing company
      *        company_id (array) user company ID
      *        search (text) search text for company name
      *        filter (int) CRM service ID
@@ -117,7 +133,7 @@ class TotalManagementTransferServices
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
         ->leftJoin('sectors', 'sectors.id', 'crm_prospect_services.sector_id')
         ->where('crm_prospects.status', 1)
-        ->where('crm_prospect_services.deleted_at', NULL)
+        ->whereNull('crm_prospect_services.deleted_at')
         ->where(function ($query) use ($request) {
             if(isset($request['from_existing']) && $request['from_existing'] == 1) {
                 $query->where('crm_prospect_services.from_existing', 1)
@@ -129,7 +145,7 @@ class TotalManagementTransferServices
         })
         ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where(function ($query) use ($user) {
-            if ($user['user_type'] == 'Customer') {
+            if ($user['user_type'] == self::CUSTOMER) {
                 $query->where('crm_prospects.id', '=', $user['reference_id']);
             }
         })
@@ -155,18 +171,18 @@ class TotalManagementTransferServices
      * get the total management project list based on request data
      * 
      * @param $request
-     *        service_type
-     *        crm_prospect_id (int)
-     *        prospect_service_id (int)
-     *        from_existing (int)
+     *        service_type (string) type of service
+     *        crm_prospect_id (int) ID of crm prospect
+     *        prospect_service_id (int) service ID of prospect
+     *        from_existing (int) from existing
      * 
      * @return mixed
      */
     public function projectList($request): mixed
     {
-        if($request['service_type'] == 'Total Management') {
+        if($request['service_type'] == self::SERVICE_TYPE[3]) {
             return $this->getTotalManagementProjectList($request);
-        } else if($request['service_type'] == 'e-Contract') {
+        } else if($request['service_type'] == self::SERVICE_TYPE[2]) {
             return $this->geteContractProjectList($request);
         }
     }
@@ -174,6 +190,10 @@ class TotalManagementTransferServices
      * Retrieve totalmanagement project list.
      *
      * @param array $request
+     *              crm_prospect_id (int) ID of crm prospect
+     *              prospect_service_id (int) service ID of prospect
+     *              from_existing (int) from existing
+     * 
      * @return mixed
      */
     private function getTotalManagementProjectList($request)
@@ -199,6 +219,9 @@ class TotalManagementTransferServices
      * Retrieve econtract project list.
      *
      * @param array $request
+     *              crm_prospect_id (int) ID of crm prospect
+     *              prospect_service_id (int) service ID of prospect
+     *
      * @return mixed
      */
     private function geteContractProjectList($request)
@@ -216,7 +239,9 @@ class TotalManagementTransferServices
     /**
      * submit the total mangement worker transfer
      * 
-     * @param $request
+     * @param $request The request data containing transfer details
+     * 
+     * 
      * @return array|bool
      */
     public function submit($request): array|bool
@@ -244,10 +269,16 @@ class TotalManagementTransferServices
             return self::ERROR_PROJECT_EXIST;
         }
 
-        if($request['service_type'] == 'e-Contract') {
-            return $this->processEContractService($request);
-        } else if($request['service_type'] == 'Total Management') {
-            return $this->processTotalManagementService($request);
+        if($request['service_type'] == self::SERVICE_TYPE[2]) {
+            $processEContractService = $this->processEContractService($request);
+            if($processEContractService){
+                return $processEContractService;
+            }
+        } else if($request['service_type'] == self::SERVICE_TYPE[3]) {
+            $processTotalManagementService = $this->processTotalManagementService($request);
+            if($processTotalManagementService){
+                return $processTotalManagementService;
+            }
         }
         // UPDATE WORKERS TABLE
         $this->updateWorkerTransferDetail($request);
@@ -260,6 +291,9 @@ class TotalManagementTransferServices
      * Retrieve worker record.
      *
      * @param array $request
+     *              company_id (array) company ID's of the user
+     *              worker_id (int) ID of the worker
+     * 
      * @return mixed
      */
     private function getWorker($request)
@@ -270,6 +304,9 @@ class TotalManagementTransferServices
      * Retrieve worker Employemnt count.
      *
      * @param array $request
+     *              worker_id (int) ID of the worker
+     *              new_project_id (int) ID of the new transfer project 
+     *              service_type (string) type of the service
      * @return mixed
      */
     private function getWorkerEmploymentCount($request)
@@ -287,6 +324,10 @@ class TotalManagementTransferServices
      * process EContract Service based on provided request data.
      *
      * @param array $request
+     *              worker_id (int) ID of the worker
+     *              new_prospect_id (int) ID of the new prospect 
+     *              company_id (array) company ID's of the user
+     * 
      * @return array
      */
     private function processEContractService($request)
@@ -314,7 +355,7 @@ class TotalManagementTransferServices
                 $assignedWorkerCount = $this->workers
                 ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
                 ->whereIn('worker_employment.project_id', $projectIds)
-                ->where('worker_employment.service_type', 'e-Contract')
+                ->where('worker_employment.service_type', self::SERVICE_TYPE[2])
                 ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
                 ->where('worker_employment.transfer_flag', 0)
                 ->whereNull('worker_employment.work_end_date')
@@ -332,6 +373,13 @@ class TotalManagementTransferServices
      * process TotalManagement Service based on provided request data
      *
      * @param array $request
+     *              new_project_id (int) ID of the new transfer project
+     *              company_id (array) company ID's of the user
+     *              worker_id (int) ID of the worker
+     *              from_existing (int) from existing
+     *              new_prospect_id (int) ID of the new prospect
+     *              current_project_id (int) current project ID of the worker
+     * 
      * @return array
      */
     private function processTotalManagementService($request)
@@ -398,6 +446,10 @@ class TotalManagementTransferServices
      * update the worker transfer record based on provided request data
      *
      * @param array $request
+     *              worker_id (int) ID of the worker
+     *              service_type (string) type of the service
+     *              modified_by (int) modified user ID
+     * 
      * @return void
      */
     private function updateWorkerTransferDetail($request)
@@ -415,9 +467,9 @@ class TotalManagementTransferServices
             $worker->updated_at = Carbon::now();
             $worker->modified_by = $request['modified_by'];
             $worker->module_type = $request['service_type'];
-            $worker->econtract_status = "Assigned";
+            $worker->econtract_status = self::WORKER_STATUS['assigned'];
             if(in_array($worker->total_management_status, ['Assigned', 'Counselling'])) {
-                $worker->total_management_status = "On-Bench";
+                $worker->total_management_status = self::WORKER_STATUS['on-bench'];
             }
             $worker->save();
         } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
@@ -425,9 +477,9 @@ class TotalManagementTransferServices
             $worker->updated_at = Carbon::now();
             $worker->modified_by = $request['modified_by'];
             $worker->module_type = $request['service_type'];
-            $worker->total_management_status = "Assigned";
+            $worker->total_management_status = self::WORKER_STATUS['assigned'];
             if(in_array($worker->econtract_status, ['Assigned', 'Counselling'])) {
-                $worker->econtract_status = "On-Bench";
+                $worker->econtract_status = self::WORKER_STATUS['on-bench'];
             }
             $worker->save();
         }
@@ -436,6 +488,18 @@ class TotalManagementTransferServices
      * update the worker employment record based on provided request data
      *
      * @param array $request
+     *              current_project_id (int) current project ID of the worker
+     *              worker_id (int) ID of the worker
+     *              last_working_day (date) last working date of the worker
+     *              modified_by (int) modified user ID
+     *              new_project_id (int) new transfer project ID
+     *              accommodation_provider_id (int) ID of the accommodation
+     *              accommodation_unit_id (int) ID of the accommodation unit
+     *              department (string) department of worker
+     *              sub_department (string) sub department of worker
+     *              new_joining_date (date) date of worker joining date
+     *              service_type (string) type of the service
+     * 
      * @return void
      */
     private function updateWorkerEmploymentDetail($request)
@@ -455,10 +519,10 @@ class TotalManagementTransferServices
         $this->workerEmployment->create([
             'worker_id' => $request['worker_id'],
             'project_id' => $request['new_project_id'],
-            'accommodation_provider_id' => (isset($request['accommodation_provider_id']) && !empty($request['accommodation_provider_id'])) ? $request['accommodation_provider_id'] : null,
-            'accommodation_unit_id' => (isset($request['accommodation_unit_id']) && !empty($request['accommodation_unit_id'])) ? $request['accommodation_unit_id'] : null,
-            'department' => (isset($request['department']) && !empty($request['department'])) ? $request['department'] : null,
-            'sub_department' => (isset($request['sub_department']) && !empty($request['sub_department'])) ? $request['sub_department'] : null,
+            'accommodation_provider_id' => $request['accommodation_provider_id'] ?? null,
+            'accommodation_unit_id' => $request['accommodation_unit_id'] ?? null,
+            'department' => $request['department'] ?? null,
+            'sub_department' => $request['sub_department'] ?? null,
             'work_start_date' => $request['new_joining_date'],
             'service_type' => $request['service_type'],
             'transfer_flag' => 0,
@@ -500,7 +564,7 @@ class TotalManagementTransferServices
         return $this->workers
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.worker_id','=','workers.id')
-            ->where('worker_employment.service_type', 'Total Management')
+            ->where('worker_employment.service_type', self::SERVICE_TYPE[3])
             ->where('worker_employment.transfer_flag', 0)
             ->whereNull('worker_employment.remove_date')
             ->whereNull('worker_employment.work_end_date')
@@ -523,7 +587,7 @@ class TotalManagementTransferServices
         return $this->workers
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.worker_id','=','workers.id')
-            ->where('worker_employment.service_type', 'Total Management')
+            ->where('worker_employment.service_type', self::SERVICE_TYPE[3])
             ->where('worker_employment.transfer_flag', 0)
             ->whereNull('worker_employment.remove_date')
             ->whereNull('worker_employment.work_end_date')
