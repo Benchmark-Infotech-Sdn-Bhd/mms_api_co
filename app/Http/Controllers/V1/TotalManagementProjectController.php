@@ -106,6 +106,8 @@ class TotalManagementProjectController extends Controller
             $response = $this->totalManagementProjectServices->update($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            }else if(isset($data['unauthorizedError'])) {
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess(['message' => 'Total Management Project Updated Successfully']);
         } catch (Exception $e) {

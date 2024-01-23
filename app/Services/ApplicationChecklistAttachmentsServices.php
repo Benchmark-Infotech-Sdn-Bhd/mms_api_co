@@ -148,7 +148,7 @@ class ApplicationChecklistAttachmentsServices
                                     ->join('directrecruitment_applications', function ($join) use($request) {
                                         $join->on('directrecruitment_applications.id', '=', 'application_checklist_attachments.application_id')
                                         ->where('directrecruitment_applications.company_id', $request['company_id']);
-                                    })->select('application_checklist_attachments.*')->find($request['id']);
+                                    })->select('application_checklist_attachments.id', 'application_checklist_attachments.application_id', 'application_checklist_attachments.application_checklist_id', 'application_checklist_attachments.document_checklist_id', 'application_checklist_attachments.file_type', 'application_checklist_attachments.file_url', 'application_checklist_attachments.created_by', 'application_checklist_attachments.modified_by', 'application_checklist_attachments.created_at', 'application_checklist_attachments.updated_at', 'application_checklist_attachments.deleted_at')->find($request['id']);
         if(is_null($directrecruitmentApplicationAttachment)){
             return [
                 "isDeleted" => false,

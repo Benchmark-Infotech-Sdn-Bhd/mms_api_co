@@ -161,4 +161,25 @@ return [
     'SUPER_ADMIN_MODULES' => [14,15],
 
     'INVOICE_RESUBMISSION_FAILED_MAIL' => env('INVOICE_RESUBMISSION_FAILED_MAIL', "muralidharan.n@codtesma.com"),
+
+    'COMPANY_ACCOUNT_SYSTEM_TITLE' => ['XERO', 'ZOHO'],
+
+    'CUSTOMER_LOGIN' => 16,
+
+    'SERVICES_MODULES' => [5,6,7],
+
+    'VIEW_PERMISSION' => 1,
+
+    'QUEUE_CONNECTION' => env('QUEUE_CONNECTION', "database"),
+    'WORKER_IMPORT_QUEUE' => env('WORKER_IMPORT_QUEUE', "worker_import"),
+    'COMMON_WORKER_IMPORT_QUEUE' => env('COMMON_WORKER_IMPORT_QUEUE', "common_worker_import"),
+    'ECONTRACT_PAYROLL_IMPORT' => env('ECONTRACT_PAYROLL_IMPORT', "e_contract_payrolls_import"),
+    'PAYROLL_IMPORT' => env('PAYROLL_IMPORT', "payrolls_import"),
+    'RUNNER_NOTIFICATION_MAIL' => env('RUNNER_NOTIFICATION_MAIL', "runner_notification_mail"),
+    'ADMIN_NOTIFICATION_MAIL' => env('ADMIN_NOTIFICATION_MAIL', "admin_notification_mail"),
+    'EMPLOYER_NOTIFICATION_MAIL' => env('EMPLOYER_NOTIFICATION_MAIL', "employer_notification_mail"),
+
+    'SUB_DOMAIN_DB_NAME_ONE' => env('DB_DATABASE'),
+    'SUB_DOMAIN_DB_NAME_TWO' => env('SUB_DOMAIN_DB_NAME_TWO'),
+    
 ];

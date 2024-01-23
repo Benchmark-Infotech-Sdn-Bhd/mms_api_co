@@ -202,7 +202,7 @@ class EContractExpensesServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $params['company_id']);
         })
-        ->select('e-contract_expenses.*')
+        ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.application_id', 'e-contract_expenses.project_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount', 'e-contract_expenses.amount_paid', 'e-contract_expenses.deduction', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses.created_by', 'e-contract_expenses.modified_by', 'e-contract_expenses.is_payroll', 'e-contract_expenses.payroll_id', 'e-contract_expenses.month', 'e-contract_expenses.year', 'e-contract_expenses.invoice_number', 'e-contract_expenses.created_at', 'e-contract_expenses.updated_at', 'e-contract_expenses.deleted_at')
         ->find($request['id']);
     }
 
@@ -315,7 +315,7 @@ class EContractExpensesServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $user['company_id']);
         })
-        ->select('e-contract_expenses.*')
+        ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.application_id', 'e-contract_expenses.project_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount', 'e-contract_expenses.amount_paid', 'e-contract_expenses.deduction', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses.created_by', 'e-contract_expenses.modified_by', 'e-contract_expenses.is_payroll', 'e-contract_expenses.payroll_id', 'e-contract_expenses.month', 'e-contract_expenses.year', 'e-contract_expenses.invoice_number', 'e-contract_expenses.created_at', 'e-contract_expenses.updated_at', 'e-contract_expenses.deleted_at')
         ->find($request['id']);
         if (is_null($expense)) {
             return [
@@ -356,7 +356,7 @@ class EContractExpensesServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $user['company_id']);
         })
-        ->select('e-contract_expenses.*')
+        ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.application_id', 'e-contract_expenses.project_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount', 'e-contract_expenses.amount_paid', 'e-contract_expenses.deduction', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses.created_by', 'e-contract_expenses.modified_by', 'e-contract_expenses.is_payroll', 'e-contract_expenses.payroll_id', 'e-contract_expenses.month', 'e-contract_expenses.year', 'e-contract_expenses.invoice_number', 'e-contract_expenses.created_at', 'e-contract_expenses.updated_at', 'e-contract_expenses.deleted_at')
         ->find($request['id']);
         if (is_null($expense)) {
             return false;
@@ -383,7 +383,7 @@ class EContractExpensesServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $user['company_id']);
         })
-        ->select('e-contract_expenses_attachments.*')
+        ->select('e-contract_expenses_attachments.id', 'e-contract_expenses_attachments.file_id', 'e-contract_expenses_attachments.file_name', 'e-contract_expenses_attachments.file_type', 'e-contract_expenses_attachments.file_url', 'e-contract_expenses_attachments.created_by', 'e-contract_expenses_attachments.modified_by', 'e-contract_expenses_attachments.created_at', 'e-contract_expenses_attachments.updated_at', 'e-contract_expenses_attachments.deleted_at')
         ->find($request['id']);
         if (is_null($data)) {
             return false;
@@ -423,7 +423,7 @@ class EContractExpensesServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $user['company_id']);
         })
-        ->select('e-contract_expenses.*')
+        ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.application_id', 'e-contract_expenses.project_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount', 'e-contract_expenses.amount_paid', 'e-contract_expenses.deduction', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses.created_by', 'e-contract_expenses.modified_by', 'e-contract_expenses.is_payroll', 'e-contract_expenses.payroll_id', 'e-contract_expenses.month', 'e-contract_expenses.year', 'e-contract_expenses.invoice_number', 'e-contract_expenses.created_at', 'e-contract_expenses.updated_at', 'e-contract_expenses.deleted_at')
         ->find($request['id']);
         if (is_null($expense)) {
             return [

@@ -16,13 +16,12 @@ class ModulesUnitTest extends TestCase
         parent::setUp();
     }
     /**
-     * Functional test to validate name in Role creation
+     * Functional test to list modules in a dropdown
      * 
      * @return void
      */
-    public function testForRoleCreationNameValidation(): void
+    public function testForDropdownModules(): void
     {
-        $this->moduleTableSeed();
         $response = $this->json('POST', 'api/v1/module/dropDown', [], $this->getHeader());
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
@@ -32,10 +31,18 @@ class ModulesUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test to list features in a dropdown
+     * 
      * @return void
      */
-    public function moduleTableSeed(): void
+    public function testForDropdownFeatures(): void
     {
-        $this->artisan("db:seed --class=ModuleSeeder");
+        $response = $this->json('POST', 'api/v1/module/featureDropDown', [], $this->getHeader());
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
     }
 }
