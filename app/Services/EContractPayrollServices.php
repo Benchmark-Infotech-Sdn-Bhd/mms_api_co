@@ -23,30 +23,37 @@ class EContractPayrollServices
      * @var Workers
      */
     private Workers $workers;
+
     /**
      * @var EContractPayroll
      */
     private EContractPayroll $eContractPayroll;
+
     /**
      * @var EContractPayrollAttachments
      */
     private EContractPayrollAttachments $eContractPayrollAttachments;
+
     /**
      * @var EContractPayrollBulkUpload
      */
     private EContractPayrollBulkUpload $eContractPayrollBulkUpload;
+
     /**
      * @var EContractCostManagement
      */
     private EContractCostManagement $eContractCostManagement;
+
     /**
      * @var Storage
      */
     private Storage $storage;
+
     /**
      * @var EContractProject
      */
     private EContractProject $eContractProject;
+
     /**
      * EContractPayrollServices constructor.
      * @param EContractProject $eContractProject
@@ -57,7 +64,15 @@ class EContractPayrollServices
      * @param Storage $storage
      * @param EContractProject $eContractProject
      */
-    public function __construct(Workers $workers, EContractPayroll $eContractPayroll, EContractPayrollAttachments $eContractPayrollAttachments, Storage $storage, EContractPayrollBulkUpload $eContractPayrollBulkUpload, EContractCostManagement $eContractCostManagement, EContractProject $eContractProject)
+    public function __construct(
+        Workers $workers, 
+        EContractPayroll $eContractPayroll, 
+        EContractPayrollAttachments $eContractPayrollAttachments, 
+        Storage $storage, 
+        EContractPayrollBulkUpload $eContractPayrollBulkUpload, 
+        EContractCostManagement $eContractCostManagement, 
+        EContractProject $eContractProject
+    )
     {
         $this->workers = $workers;
         $this->eContractPayroll = $eContractPayroll;
@@ -67,6 +82,7 @@ class EContractPayrollServices
         $this->eContractCostManagement = $eContractCostManagement;
         $this->eContractProject = $eContractProject;
     }
+
     /**
      * @return array
      */
@@ -79,6 +95,7 @@ class EContractPayrollServices
             'year' => 'required'
         ];
     }
+
     /**
      * @return array
      */
@@ -88,6 +105,7 @@ class EContractPayrollServices
             'id' => 'required'
         ];
     }
+
     /**
      * @return array
      */
@@ -99,7 +117,8 @@ class EContractPayrollServices
             'year' => 'required'
         ];
     }
-        /**
+
+    /**
      * @return array
      */
     public function importValidation(): array
@@ -108,6 +127,7 @@ class EContractPayrollServices
             'project_id' => 'required'
         ];
     }
+
     /**
      * @param $request
      * @return mixed
@@ -129,6 +149,7 @@ class EContractPayrollServices
             ->distinct('workers.id')
             ->get();
     }
+
     /**
      * @param $request
      * @return mixed
@@ -147,7 +168,7 @@ class EContractPayrollServices
             })
             ->leftJoin('e-contract_payroll', function($query) use ($request) {
                 $query->on('e-contract_payroll.worker_id','=','worker_employment.worker_id');
-                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                if (isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])) {
                 $query->whereRaw("`e-contract_payroll`.`id` IN (select MAX(PAY.id) from `e-contract_payroll` as PAY JOIN workers as WORKER ON WORKER.id = PAY.worker_id group by WORKER.id)");
                 }
             })
@@ -167,7 +188,7 @@ class EContractPayrollServices
                 if (isset($request['year']) && !empty($request['year'])) {
                     $query->where('e-contract_payroll.year', $request['year']);
                 }
-                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                if (isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])) {
                     $query->whereNull('worker_employment.work_end_date');
                     $query->whereNull('worker_employment.remove_date');
                     $query->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
@@ -178,6 +199,7 @@ class EContractPayrollServices
             ->orderBy('workers.created_at','DESC')
             ->paginate(Config::get('services.paginate_row'));
     }
+
     /**
      * @param $request
      * @return mixed
@@ -196,7 +218,7 @@ class EContractPayrollServices
             })
             ->leftJoin('e-contract_payroll', function($query) use ($request) {
                 $query->on('e-contract_payroll.worker_id','=','worker_employment.worker_id');
-                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                if (isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])) {
                 $query->whereRaw("`e-contract_payroll`.`id` IN (select MAX(PAY.id) from `e-contract_payroll` as PAY JOIN workers as WORKER ON WORKER.id = PAY.worker_id group by WORKER.id)");
                 }
             })
@@ -216,7 +238,7 @@ class EContractPayrollServices
                 if (isset($request['year']) && !empty($request['year'])) {
                     $query->where('e-contract_payroll.year', $request['year']);
                 }
-                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                if (isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])) {
                     $query->whereNull('worker_employment.work_end_date');
                     $query->whereNull('worker_employment.remove_date');
                     $query->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
@@ -226,6 +248,7 @@ class EContractPayrollServices
             ->distinct('workers.id')
             ->orderBy('workers.created_at','DESC')->get();
     }
+
     /**
      * @param $request
      * @return mixed
@@ -249,6 +272,7 @@ class EContractPayrollServices
             ->select('workers.id', 'workers.name', 'worker_bank_details.account_number', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'workers.passport_number', 'worker_employment.department', 'e-contract_payroll.month', 'e-contract_payroll.year', 'e-contract_payroll.basic_salary', 'e-contract_payroll.ot_1_5', 'e-contract_payroll.ot_2_0', 'e-contract_payroll.ot_3_0', 'e-contract_payroll.ph', 'e-contract_payroll.rest_day', 'e-contract_payroll.deduction_advance', 'e-contract_payroll.deduction_accommodation', 'e-contract_payroll.annual_leave', 'e-contract_payroll.medical_leave', 'e-contract_payroll.hospitalisation_leave', 'e-contract_payroll.amount', 'e-contract_payroll.no_of_workingdays', 'e-contract_payroll.normalday_ot_1_5', 'e-contract_payroll.ot_1_5_hrs_amount', 'e-contract_payroll.restday_daily_salary_rate', 'e-contract_payroll.hrs_ot_2_0', 'e-contract_payroll.ot_2_0_hrs_amount', 'e-contract_payroll.public_holiday_ot_3_0', 'e-contract_payroll.deduction_hostel', 'e-contract_payroll.sosco_deduction', 'e-contract_payroll.sosco_contribution')
             ->distinct('workers.id')->get();
     }
+
     /**
      * @param $request
      * @return bool|array
@@ -267,14 +291,14 @@ class EContractPayrollServices
         })
         ->select('e-contract_project.*')
         ->find($request['project_id']);
-        if(is_null($checkProject)){
+        if (is_null($checkProject)) {
             return [
                 'unauthorizedError' => true
             ];
         }
 
         $validator = Validator::make($request->toArray(), $this->importValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
@@ -289,7 +313,8 @@ class EContractPayrollServices
 
         Excel::import(new EContractPayrollImport($params, $eContractPayrollBulkUpload), $file);
         return true;
-    } 
+    }
+
     /**
      * @param $request
      * @return bool|array
@@ -297,7 +322,7 @@ class EContractPayrollServices
     public function add($request): bool|array
     {
         $validator = Validator::make($request, $this->addValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
@@ -310,7 +335,7 @@ class EContractPayrollServices
             ['year', $request['year']],
         ])->first(['id', 'worker_id', 'project_id', 'month', 'year']);
 
-        if(is_null($eContractPayroll)){
+        if (is_null($eContractPayroll)) {
             $this->eContractPayroll->create([
                 'worker_id' => $request['worker_id'] ?? 0,
                 'project_id' => $request['project_id'] ?? 0,
@@ -346,6 +371,7 @@ class EContractPayrollServices
             return false;
         }
     }
+
     /**
      * @param $request
      * @return bool|array
@@ -353,7 +379,7 @@ class EContractPayrollServices
     public function update($request): bool|array
     {
         $validator = Validator::make($request, $this->updateValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
@@ -366,7 +392,7 @@ class EContractPayrollServices
         })
         ->select('e-contract_payroll.*')
         ->find($request['id']);
-        if(is_null($eContractPayroll)){
+        if (is_null($eContractPayroll)) {
             return [
                 'unauthorizedError' => true
             ];
@@ -399,6 +425,7 @@ class EContractPayrollServices
 
         return true;
     }
+
     /**
      * @param $request
      * @return mixed
@@ -418,6 +445,7 @@ class EContractPayrollServices
             ->orderBy('e-contract_payroll_attachments.id','DESC')
             ->paginate(Config::get('services.paginate_row'));
     }
+
     /**
      * @param $request
      * @return mixed
@@ -439,6 +467,7 @@ class EContractPayrollServices
         ->select('e-contract_payroll_attachments.id', 'e-contract_payroll_attachments.month', 'e-contract_payroll_attachments.year', 'e-contract_payroll_attachments.file_id', 'e-contract_payroll_attachments.file_name', 'e-contract_payroll_attachments.file_type', 'e-contract_payroll_attachments.file_url', 'e-contract_payroll_attachments.created_at')
         ->get();
     }
+
     /**
      * upload Timesheet
      * @param $request
@@ -457,14 +486,14 @@ class EContractPayrollServices
         })
         ->select('e-contract_project.*')
         ->find($request['project_id']);
-        if(is_null($checkProject)){
+        if (is_null($checkProject)) {
             return [
                 'unauthorizedError' => true
             ];
         }
 
         $validator = Validator::make($request->toArray(), $this->uploadTimesheetValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
@@ -482,10 +511,10 @@ class EContractPayrollServices
             'e-contract_payroll_attachments.year' => $request['year']
         ])->first(['e-contract_payroll_attachments.id', 'e-contract_payroll_attachments.month', 'e-contract_payroll_attachments.year', 'e-contract_payroll_attachments.file_id', 'e-contract_payroll_attachments.file_name', 'e-contract_payroll_attachments.file_type', 'e-contract_payroll_attachments.file_url', 'e-contract_payroll_attachments.created_at']);
         
-        if (request()->hasFile('attachment')){
+        if (request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file){
                 
-                if(is_null($eContractPayrollAttachments)){
+                if (is_null($eContractPayrollAttachments)) {
 
                     $fileName = $file->getClientOriginalName();
                     $filePath = '/eContract/payroll/timesheet/' . $fileName; 
@@ -526,7 +555,7 @@ class EContractPayrollServices
         $user = JWTAuth::parseToken()->authenticate();
         $checkEContractCostManagement = $this->eContractCostManagement->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
 
-        if($checkEContractCostManagement > 0) {
+        if ($checkEContractCostManagement > 0) {
             return [
                 'existsError' => true
             ];
@@ -538,7 +567,7 @@ class EContractPayrollServices
         })
         ->leftJoin('e-contract_payroll', function($query) use ($request) {
             $query->on('e-contract_payroll.worker_id','=','workers.id');
-            if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+            if (isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])) {
             $query->whereRaw('e-contract_payroll.id IN (select MAX(TMPAY.id) from e-contract_payroll as TMPAY JOIN workers as WORKER ON WORKER.id = TMPAY.worker_id group by WORKER.id)');
             }
         })
@@ -552,7 +581,7 @@ class EContractPayrollServices
             if (isset($request['year']) && !empty($request['year'])) {
                 $query->where('e-contract_payroll.year', $request['year']);
             }
-            if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+            if (isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])) {
                 $query->whereNull('worker_employment.work_end_date');
                 $query->whereNull('worker_employment.remove_date');
             }
@@ -562,7 +591,7 @@ class EContractPayrollServices
         ->distinct('workers.id')
         ->orderBy('workers.created_at','DESC')->get();
 
-        if(isset($payrollWorkers) && count($payrollWorkers) > 0){
+        if (isset($payrollWorkers) && count($payrollWorkers) > 0) {
             foreach($payrollWorkers as $result){
                 $user = JWTAuth::parseToken()->authenticate();
                 $this->eContractCostManagement->create([

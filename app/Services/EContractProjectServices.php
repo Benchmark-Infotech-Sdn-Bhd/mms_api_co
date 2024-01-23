@@ -48,12 +48,13 @@ class EContractProjectServices
     private AuthServices $authServices;
 
     /**
-     * EContractProjectServices constructor.
-     * @param EContractProject $eContractProject
-     * @param EContractProjectAttachments $eContractProjectAttachments
-     * @param Storage $storage
-     * @param EContractApplications $eContractApplications
-     * @param AuthServices $authServices
+     * Constructs a new instance of the class.
+     * 
+     * @param EContractProject $eContractProject The e-contract project object.
+     * @param EContractProjectAttachments $eContractProjectAttachments The e-contract project attachments object.
+     * @param Storage $storage The storage object.
+     * @param EContractApplications $eContractApplications The e-contract applications object.
+     * @param AuthServices $authServices The auth services object.
      */
     public function __construct(
         EContractProject $eContractProject, 
@@ -71,9 +72,9 @@ class EContractProjectServices
     }
 
     /**
-     * Validates the input and returns the errors if validation fails.
+     * Creates the validation rules for creating a new e-contract project.
      *
-     * @return array The validation error messages if validation fails, otherwise false.
+     * @return array The array containing the validation rules.
      */
     public function addValidation(): array
     {
@@ -91,9 +92,9 @@ class EContractProjectServices
     }
 
     /**
-     * Validates the input and returns the errors if validation fails.
+     * Creates the validation rules for updating the e-contract project.
      *
-     * @return array The validation error messages if validation fails, otherwise false.
+     * @return array The array containing the validation rules.
      */
     public function updateValidation(): array
     {
@@ -111,10 +112,10 @@ class EContractProjectServices
     }
 
     /**
-     * Lists the eContract project list
+     * Returns a paginated list of e-contract project based on the given search request.
      * 
-     * @param $request The request data containing application list.
-     * @return mixed Returns list of application.
+     * @param array $request The search request parameters.
+     * @return mixed Returns a paginated list of e-contract project.
      */
     public function list($request): mixed
     {
@@ -150,10 +151,10 @@ class EContractProjectServices
     }
 
     /**
-     * Show e-contract project.
+     * Show the e-contract project with related project attachments.
      * 
-     * @param $request The request data containing e-contract project id,  company_id
-     * @return mixed
+     * @param array $request The request data containing e-contract project id,  company_id
+     * @return mixed Returns the e-contract project details with related project attachments.
      */
     public function show($request): mixed
     {
@@ -242,8 +243,8 @@ class EContractProjectServices
     /**
      * Delete the e-contract project attachment
      * 
-     * @param $request
-     * @return array
+     * @param array $request The request data containing the attachment ID and company ID.
+     * @return array The result of the delete operation containing the deletion status and message.
      */    
     public function deleteAttachment($request): array
     {   
@@ -270,6 +271,24 @@ class EContractProjectServices
         ];
     }
 
+    /**
+     * Creates a new Project object and persists it in the database.
+     *
+     * @param array $request The array containing project data.
+     *                      The array should have the following keys:
+     *                      - application_id: The application of the project.
+     *                      - name: The name of the project.
+     *                      - state: The state of the project.
+     *                      - city: The city of the project.
+     *                      - address: The address of the project.
+     *                      - annual_leave: The annual leave of the project.
+     *                      - medical_leave: The medical leave of the project.
+     *                      - hospitalization_leave: The hospitalization leave of the project.
+     *                      - valid_until: The valid until of the project.
+     *                      - created_by: The ID of the user who created the project.
+     *
+     * @return Project The newly created project object.
+     */
     public function createEContractProject($request)
     {
         $eContractProject = $this->eContractProject->create([
@@ -289,6 +308,21 @@ class EContractProjectServices
         return $eContractProject;
     }
 
+    /**
+     * Updates the project data with the given request.
+     *
+     * @param object $eContractProject The project object to be updated.
+     * @param array $request The request containing the updated project data.
+     *               - name: (string) The updated project name.
+     *               - state: (int) The updated project state.
+     *               - city: (int) The updated project city.
+     *               - address: (string) The updated project address.
+     *               - annual_leave: (int) The updated project annual leave.
+     *               - medical_leave: (int) The updated project medical leave.
+     *               - hospitalization_leave: (int) The updated project hospitalization leave.
+     *               - valid_until: (int) The updated project valid until.
+     *               - modified_by: (int) The updated project modified by.
+     */
     public function updateEContractProject($eContractProject, $request)
     {
         $eContractProject->name =  $request['name'] ?? $eContractProject->name;

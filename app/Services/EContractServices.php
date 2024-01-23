@@ -213,7 +213,16 @@ class EContractServices
     /**
      * Creates a new service from the given request data.
      * 
-     * @param $request The request data containing service details.
+     * @param array $request The array containing service data.
+     *                      The array should have the following keys:
+     *                      - prospect_id: The prospect id of the service.
+     *                      - service_id: The service id of the service.
+     *                      - service_name: The service name of the service.
+     *                      - sector_id: The sector id of the service.
+     *                      - sector_name: The sector name of the service.
+     *                      - status: The status of the service.
+     *                      - fomnext_quota: The fomnext quota of the service.
+     *                      - air_ticket_deposit: The ticket deposit of the service.
      * @return bool|array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
      * - "unauthorizedError": A array returns unauthorized if prospect company is null.
@@ -249,41 +258,23 @@ class EContractServices
             'air_ticket_deposit' => $request['air_ticket_deposit'] ?? 0,
         ]);
 
-        if (request()->hasFile('attachment')) {
-            foreach($request->file('attachment') as $file) {                
-                $fileName = $file->getClientOriginalName();                 
-                $filePath = '/crm/prospect/' . $request['service_name'] . '/' . $request['sector_name']. '/'. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->crmProspectAttachment->create([
-                    "file_id" => $request['prospect_id'],
-                    "prospect_service_id" => $prospectService->id,
-                    "file_name" => $fileName,
-                    "file_type" => self::PROSPECT_SERVICE,
-                    "file_url" =>  $fileUrl          
-                ]);  
-            }
-        }
+        $this->updateCrmProspectServiceAttachments($request, $prospectService->id);
 
-        $this->eContractApplications::create([
-            'crm_prospect_id' => $request['prospect_id'],
-            'service_id' => $prospectService->id,
-            'quota_requested' => $request['fomnext_quota'] ?? 0,
-            'person_incharge' => '',
-            'cost_quoted' => self::APPLICATION_COST_QUOTED,
-            'status' => self::PENDING_PROPOSAL,
-            'remarks' => '',
-            'created_by' => $request["created_by"] ?? 0,
-            'modified_by' => $request["created_by"] ?? 0,
-            'company_id' => $request['company_id']
-        ]);
+        $this->createEContractApplications($request, $prospectService->id);
 
         return true;
     }
 
     /**
-     * @param $request The request data containing proposal details.
+     * Updates the proposal data with the given request.
+     * 
+     * @param array $request The array containing application data.
+     *                      The array should have the following keys:
+     *                      - quota_requested: (string) The updated application quota requested.
+     *                      - person_incharge: (string) The updated application person incharge.
+     *                      - cost_quoted: (int) The updated application cost quoted.
+     *                      - remarks: (string) The updated application remarks.
+     *                      - modified_by: (int) The updated application modified by.
      * @return bool|array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
      * - "unauthorizedError": A array returns unauthorized if application details is null.
@@ -316,30 +307,16 @@ class EContractServices
         $applicationDetails->modified_by = $request['modified_by'];
         $applicationDetails->save();
 
-        if (request()->hasFile('attachment')) {
-            foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/eContract/proposal/' . $request['id'] . '/' . $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->eContractApplicationAttachments::create([
-                    "file_id" => $request['id'],
-                    "file_name" => $fileName,
-                    "file_type" => self::PROPOSAL,
-                    "file_url" =>  $fileUrl, 
-                    "created_by" => $request['modified_by'],
-                    "modified_by" => $request['modified_by']
-                ]);  
-            }
-        }
+        $this->updateSubmitProposalAttachments($request, $request['id']);
 
         return true;
     }
 
     /**
-     * @param $request The request data containing e-contract applications id,  company_id
-     * @return mixed The list of proposal
+     * Show the e-contract applications with related prospect services.
+     * 
+     * @param array $request The request data containing e-contract applications id,  company_id
+     * @return mixed Returns the e-contract applications details with related prospect services.
      */
     public function showProposal($request): mixed
     {
@@ -353,7 +330,15 @@ class EContractServices
     }
 
     /**
-     * @param $request The request data containing quota details.
+     * Updates the quota details with the given request.
+     * 
+     * @param array $request The array containing quota details.
+     *                       The array should have the following keys:
+     *                      - fomnext_quota: (string) The updated fomnext quota.
+     *                      - air_ticket_deposit: (string) The updated air ticket deposit.
+     *                      - cost_quoted: (int) The updated application cost quoted.
+     *                      - remarks: (string) The updated application remarks.
+     *                      - modified_by: (int) The updated application modified by.
      * @return bool|array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
      * - "unauthorizedError": A array returns unauthorized if service details is null.
@@ -368,7 +353,6 @@ class EContractServices
             ];
         }
 
-        //$serviceDetails = $this->crmProspectService->findOrFail($request['prospect_service_id']);
         $serviceDetails = $this->crmProspectService
         ->join('crm_prospects', function($query) use($request) {
             $query->on('crm_prospects.id','=','crm_prospect_services.crm_prospect_id')
@@ -385,19 +369,17 @@ class EContractServices
         $serviceDetails->fomnext_quota = $request['fomnext_quota'] ?? $serviceDetails->fomnext_quota;
         $serviceDetails->air_ticket_deposit = $request['air_ticket_deposit'] ?? $serviceDetails->air_ticket_deposit;
         $serviceDetails->save();
-
-        $applicationDetails = $this->eContractApplications->findOrFail($request['id']);
-        $applicationDetails->quota_requested = $request['fomnext_quota'] ?? $serviceDetails->fomnext_quota;
-        $applicationDetails->save();
+        
+        $this->updateEContractApplicationsFomnextQuota($request);
 
         return true;
     }
 
     /**
-     * show crm prospect service.
+     * Show the crm prospect service with related crm prospects.
      * 
-     * @param $request The request data containing crm prospect service id,  company_id
-     * @return mixed
+     * @param array $request The request data containing crm prospect services id,  company_id
+     * @return mixed Returns the crm prospect service details with related crm prospects.
      */
     public function showService($request): mixed
     {
@@ -408,6 +390,99 @@ class EContractServices
         })
         ->select('crm_prospect_services.*')
         ->find($request['prospect_service_id']);
+    }
+    
+    /**
+     * Upload attachment of crm prospect service.
+     *
+     * @param array $request The request data containing prospect service attachments
+     * @param int $prospectServiceId The attachments was upload against the prospect service Id
+     */
+    public function updateCrmProspectServiceAttachments($request, $prospectServiceId)
+    {
+        if (request()->hasFile('attachment')) {
+            foreach($request->file('attachment') as $file) {                
+                $fileName = $file->getClientOriginalName();                 
+                $filePath = '/crm/prospect/' . $request['service_name'] . '/' . $request['sector_name']. '/'. $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $this->crmProspectAttachment->create([
+                    "file_id" => $request['prospect_id'],
+                    "prospect_service_id" => $prospectServiceId,
+                    "file_name" => $fileName,
+                    "file_type" => self::PROSPECT_SERVICE,
+                    "file_url" =>  $fileUrl          
+                ]);  
+            }
+        }
+    }
+    
+    /**
+     * Creates a new applications object and persists it in the database.
+     *
+     * @param array $request The array containing applications data.
+     *                      The array should have the following keys:
+     *                      - prospect_id: The prospec id of the application.
+     *                      - fomnext_quota: The fomnext quota of the application.
+     *                      - created_by: The ID of the user who created the application.
+     *                      - company_id: The ID of the company the branch belongs to.
+     *
+     * @param int $prospectServiceId The application was created against the prospect service Id
+     */
+    public function createEContractApplications($request, $prospectServiceId)
+    {
+        $this->eContractApplications::create([
+            'crm_prospect_id' => $request['prospect_id'],
+            'service_id' => $prospectServiceId,
+            'quota_requested' => $request['fomnext_quota'] ?? 0,
+            'person_incharge' => '',
+            'cost_quoted' => self::APPLICATION_COST_QUOTED,
+            'status' => self::PENDING_PROPOSAL,
+            'remarks' => '',
+            'created_by' => $request["created_by"] ?? 0,
+            'modified_by' => $request["created_by"] ?? 0,
+            'company_id' => $request['company_id']
+        ]);
+    }
+
+    /**
+     * Upload attachment of submit proposal.
+     *
+     * @param array $request The request data containing proposal attachments
+     * @param int $applicationId The attachments was upload against the application Id
+     */
+    public function updateSubmitProposalAttachments($request, $applicationId)
+    {
+        if (request()->hasFile('attachment')) {
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/eContract/proposal/' . $applicationId . '/' . $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $this->eContractApplicationAttachments::create([
+                    "file_id" => $applicationId,
+                    "file_name" => $fileName,
+                    "file_type" => self::PROPOSAL,
+                    "file_url" =>  $fileUrl, 
+                    "created_by" => $request['modified_by'],
+                    "modified_by" => $request['modified_by']
+                ]);  
+            }
+        }
+    }
+
+    /**
+     * Updates the application quota details with the given request.
+     * 
+     * @param array $request Array with 'id' and 'fomnext quota' keys
+     */
+    public function updateEContractApplicationsFomnextQuota($request)
+    {
+        $applicationDetails = $this->eContractApplications->findOrFail($request['id']);
+        $applicationDetails->quota_requested = $request['fomnext_quota'] ?? $serviceDetails->fomnext_quota;
+        $applicationDetails->save();
     }
 
 }
