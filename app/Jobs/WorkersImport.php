@@ -152,7 +152,7 @@ class WorkersImport extends Job
             $ksmError = 0; 
             if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
                 if(!in_array($this->workerParameter['ksm_reference_number'], $ksmReferenceNumbers)){
-                    Log::info('Row Data - KSM Reference Number Error - ' . print_r($workerRelationship->id, true));   
+                    Log::info('Row Data - KSM Reference Number Error - ');   
                     $ksmError = 1; 
                     $comments .= 'ERROR - KSM Reference Number is mis-matched.';
                 }
