@@ -18,35 +18,62 @@ use App\Models\CRMProspectService;
 
 class TotalManagementTransferServices
 {
-    const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
-    const ERROR_PROJECT_EXIST = ['projectExist' => true];
-    const ERROR_FROM_EXISTING = ['fromExistingError' => true];
-    const ERROR_OTHER_COMPANY = ['otherCompanyError' => true];
-    const ERROR_QUOTA = ['quotaError' => true];
-    const ERROR_QUOTA_FROM_EXISTING = ['quotaFromExistingError' => true];
-    const ERROR_FROM_EXISTING_WORKER = ['fromExistingWorkerError' => true];
-    const ERROR_FOMNEXT_QUOTA = ['fomnextQuotaError' => true];
-    const ERROR_CLIENT_QUOTA = ['clientQuotaError' => true];
+    public const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
+    public const ERROR_PROJECT_EXIST = ['projectExist' => true];
+    public const ERROR_FROM_EXISTING = ['fromExistingError' => true];
+    public const ERROR_OTHER_COMPANY = ['otherCompanyError' => true];
+    public const ERROR_QUOTA = ['quotaError' => true];
+    public const ERROR_QUOTA_FROM_EXISTING = ['quotaFromExistingError' => true];
+    public const ERROR_FROM_EXISTING_WORKER = ['fromExistingWorkerError' => true];
+    public const ERROR_FOMNEXT_QUOTA = ['fomnextQuotaError' => true];
+    public const ERROR_CLIENT_QUOTA = ['clientQuotaError' => true];
 
-    const CUSTOMER = 'Customer';
-    const WORKER_STATUS_ASSIGNED = 'Assigned';
-    const WORKER_STATUS_ONBENCH = 'On-Bench';
-    const FROM_EXISTING = 1;
-    const NOT_FROM_EXISTING = 0;
-    const DIRECT_RECRUITMENT_SERVICE_ID = 1;
-    const TOTAL_MANAGEMENT_SERVICE_ID = 3;
-    const DEFAULT_TRANSFER_FLAG = 0;
-    const ACTIVE_TRANSFER_FLAG = 1;
-    const STATUS_ACTIVE = 1;
+    public const CUSTOMER = 'Customer';
+    public const WORKER_STATUS_ASSIGNED = 'Assigned';
+    public const WORKER_STATUS_ONBENCH = 'On-Bench';
+    public const FROM_EXISTING = 1;
+    public const NOT_FROM_EXISTING = 0;
+    public const DIRECT_RECRUITMENT_SERVICE_ID = 1;
+    public const TOTAL_MANAGEMENT_SERVICE_ID = 3;
+    public const DEFAULT_TRANSFER_FLAG = 0;
+    public const ACTIVE_TRANSFER_FLAG = 1;
+    public const STATUS_ACTIVE = 1;
 
+    /**
+     * @var workers
+     */
     private Workers $workers;
+    /**
+     * @var workerEmployment
+     */
     private WorkerEmployment $workerEmployment;
+    /**
+     * @var totalManagementApplications
+     */
     private TotalManagementApplications $totalManagementApplications;
+    /**
+     * @var crmProspect
+     */
     private CRMProspect $crmProspect;
+    /**
+     * @var totalManagementProject
+     */
     private TotalManagementProject $totalManagementProject;
+    /**
+     * @var authServices
+     */
     private AuthServices $authServices;
+    /**
+     * @var eContractProject
+     */
     private EContractProject $eContractProject;
+    /**
+     * @var eContractApplications
+     */
     private EContractApplications $eContractApplications;
+    /**
+     * @var crmProspectService
+     */
     private CRMProspectService $crmProspectService;
     
     /**
@@ -88,7 +115,7 @@ class TotalManagementTransferServices
     /**
      * validate the transfer submit request data
      * 
-     * @return array
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function submitValidation(): array
     {
@@ -109,7 +136,7 @@ class TotalManagementTransferServices
      * @param $request
      *        worker_id (int) worker ID
      * 
-     * @return mixed
+     * @return mixed returns worker employment detail
      */
     public function workerEmploymentDetail($request): mixed
     {
@@ -129,7 +156,7 @@ class TotalManagementTransferServices
      *        company_id (array) user company ID
      *        search (text) search text for company name
      *        filter (int) CRM service ID
-     * @return mixed
+     * @return mixed Returns a paginated list of company.
      */
     public function companyList($request): mixed
     {
@@ -142,15 +169,12 @@ class TotalManagementTransferServices
         ->where('crm_prospects.status', self::STATUS_ACTIVE)
         ->whereNull('crm_prospect_services.deleted_at')
         ->where(function ($query) use ($request) {
-            $request['from_existing_value'] = self::FROM_EXISTING;
-            $request['total_management_service_id'] = self::TOTAL_MANAGEMENT_SERVICE_ID;
-            $request['direct_recruitment_service_id'] = self::DIRECT_RECRUITMENT_SERVICE_ID;
-            if(isset($request['from_existing']) && $request['from_existing'] == $request['from_existing_value']) {
-                $query->where('crm_prospect_services.from_existing', $request['from_existing_value'])
-                ->where('crm_prospect_services.service_id', '=', $request['total_management_service_id']);
+            if(isset($request['from_existing']) && $request['from_existing'] == self::FROM_EXISTING) {
+                $query->where('crm_prospect_services.from_existing', self::FROM_EXISTING)
+                ->where('crm_prospect_services.service_id', '=', self::TOTAL_MANAGEMENT_SERVICE_ID);
             }else{
-                $query->where('crm_prospect_services.service_id', '!=', $request['direct_recruitment_service_id'])
-                ->where('crm_prospect_services.from_existing', '!=', $request['from_existing_value']);
+                $query->where('crm_prospect_services.service_id', '!=', self::DIRECT_RECRUITMENT_SERVICE_ID)
+                ->where('crm_prospect_services.from_existing', '!=', self::FROM_EXISTING);
             }
         })
         ->whereIn('crm_prospects.company_id', $request['company_id'])
@@ -186,13 +210,13 @@ class TotalManagementTransferServices
      *        prospect_service_id (int) service ID of prospect
      *        from_existing (int) from existing
      * 
-     * @return mixed
+     * @return mixed Returns the list of projects.
      */
     public function projectList($request): mixed
     {
-        if($request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[2]) {
+        if($request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]) {
             return $this->getTotalManagementProjectList($request);
-        } else if($request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[3]) {
+        } else if($request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[2]) {
             return $this->geteContractProjectList($request);
         }
     }
@@ -204,7 +228,7 @@ class TotalManagementTransferServices
      *              prospect_service_id (int) service ID of prospect
      *              from_existing (int) from existing
      * 
-     * @return mixed
+     * @return mixed Returns the Total management Projects
      */
     private function getTotalManagementProjectList($request)
     {
@@ -232,7 +256,7 @@ class TotalManagementTransferServices
      *              crm_prospect_id (int) ID of crm prospect
      *              prospect_service_id (int) service ID of prospect
      *
-     * @return mixed
+     * @return mixed Returns the eContract Projects
      */
     private function geteContractProjectList($request)
     {
@@ -252,7 +276,7 @@ class TotalManagementTransferServices
      * @param $request The request data containing transfer details
      * 
      * 
-     * @return array|bool
+     * @return array|bool Returns true if the transfer is submitted successfully, otherwise returns an array with error details
      */
     public function submit($request): array|bool
     {
@@ -279,12 +303,12 @@ class TotalManagementTransferServices
             return self::ERROR_PROJECT_EXIST;
         }
 
-        if($request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[3]) {
+        if($request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[2]) {
             $processEContractService = $this->processEContractService($request);
             if($processEContractService){
                 return $processEContractService;
             }
-        } else if($request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[2]) {
+        } else if($request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]) {
             $processTotalManagementService = $this->processTotalManagementService($request);
             if($processTotalManagementService){
                 return $processTotalManagementService;
@@ -304,7 +328,7 @@ class TotalManagementTransferServices
      *              company_id (array) company ID's of the user
      *              worker_id (int) ID of the worker
      * 
-     * @return mixed
+     * @return mixed Returns the worker detail
      */
     private function getWorker($request)
     {
@@ -317,7 +341,7 @@ class TotalManagementTransferServices
      *              worker_id (int) ID of the worker
      *              new_project_id (int) ID of the new transfer project 
      *              service_type (string) type of the service
-     * @return mixed
+     * @return mixed Returns the worker employment count
      */
     private function getWorkerEmploymentCount($request)
     {
@@ -338,7 +362,7 @@ class TotalManagementTransferServices
      *              new_prospect_id (int) ID of the new prospect 
      *              company_id (array) company ID's of the user
      * 
-     * @return array
+     * @return array if false returns an array with error details, otherwise process is successfully submitted
      */
     private function processEContractService($request)
     {
@@ -365,7 +389,7 @@ class TotalManagementTransferServices
                 $assignedWorkerCount = $this->workers
                 ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
                 ->whereIn('worker_employment.project_id', $projectIds)
-                ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[3])
+                ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[2])
                 ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
                 ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
                 ->whereNull('worker_employment.work_end_date')
@@ -390,7 +414,7 @@ class TotalManagementTransferServices
      *              new_prospect_id (int) ID of the new prospect
      *              current_project_id (int) current project ID of the worker
      * 
-     * @return array
+     * @return array if false returns an array with error details, otherwise process is successfully submitted
      */
     private function processTotalManagementService($request)
     {
@@ -423,16 +447,7 @@ class TotalManagementTransferServices
                 $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
                 $workerDetail = $this->workers->findOrFail($request['worker_id']);
                 if($request['from_existing'] == self::FROM_EXISTING) {
-                    // if($workerDetail->crm_prospect_id != $request['new_prospect_id']) { // Waiting for confirmation
                         return self::ERROR_FROM_EXISTING_WORKER;
-                    /*} else if($workerDetail->crm_prospect_id == $request['new_prospect_id']) { // Waiting for confirmation
-                        $workerCountArray['clientWorkersCount']++;
-                        if($workerCountArray['clientWorkersCount'] > $serviceDetails->client_quota) {
-                            return [
-                                'clientQuotaError' => true
-                            ];
-                        }
-                    }*/
                 } else if($request['from_existing'] == self::NOT_FROM_EXISTING) {
                     if($workerDetail->crm_prospect_id == 0) {
                         $workerCountArray['fomnextWorkersCount']++;
@@ -471,26 +486,22 @@ class TotalManagementTransferServices
             'updated_at' => Carbon::now(), 
             'modified_by' => $request['modified_by']
         ]);
+        $worker = $this->workers->findOrFail($request['worker_id']);
         if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[2]){
-            $worker = $this->workers->findOrFail($request['worker_id']);
-            $worker->crm_prospect_id = 0;
-            $worker->updated_at = Carbon::now();
-            $worker->modified_by = $request['modified_by'];
             $worker->module_type = $request['service_type'];
+            $worker->crm_prospect_id = 0;
             $worker->econtract_status = self::WORKER_STATUS_ASSIGNED;
             if(in_array($worker->total_management_status, Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))) {
                 $worker->total_management_status = self::WORKER_STATUS_ONBENCH;
             }
-            $worker->save();
         } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
-            $worker = $this->workers->findOrFail($request['worker_id']);
-            $worker->updated_at = Carbon::now();
-            $worker->modified_by = $request['modified_by'];
             $worker->module_type = $request['service_type'];
             $worker->total_management_status = self::WORKER_STATUS_ASSIGNED;
             if(in_array($worker->econtract_status, Config::get('services.ECONTRACT_WORKER_STATUS'))) {
                 $worker->econtract_status = self::WORKER_STATUS_ONBENCH;
             }
+            $worker->updated_at = Carbon::now();
+            $worker->modified_by = $request['modified_by'];
             $worker->save();
         }
     }
@@ -544,7 +555,7 @@ class TotalManagementTransferServices
      * Retrive the worker count based on request data
      * 
      * @param $applicationId, $prospectId
-     * @return array
+     * @return array Returns an array with client woker count and fomnext worker count
      */
     public function getWorkerCount($applicationId, $prospectId): array
     {
@@ -567,7 +578,7 @@ class TotalManagementTransferServices
      *
      * @param $prospectId
      * @param $projectIds
-     * @return mixed
+     * @return mixed Returns the client worker count
      */
     private function getClientWorkersCount($prospectId,$projectIds)
     {
@@ -590,7 +601,7 @@ class TotalManagementTransferServices
      * Retrieve formnext worker count.
      *
      * @param $projectIds
-     * @return mixed
+     * @return mixed Returns formnext workers count
      */
     private function getFomnextWorkersCount($projectIds)
     {
