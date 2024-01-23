@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-
-use App\Services\InvoiceServices;
 use Illuminate\Support\Facades\Log;
+use App\Services\InvoiceServices;
+use App\Services\DatabaseConnectionServices;
 
 class XeroGetItems extends Command
 {
@@ -14,7 +14,7 @@ class XeroGetItems extends Command
      *
      * @var string
      */
-    protected $signature = 'command:XeroGetItems';
+    protected $signature = 'command:XeroGetItems {database}';
 
     /**
      * The console command description.
@@ -24,19 +24,25 @@ class XeroGetItems extends Command
     protected $description = 'XeroGetItems Generation';
 
     /**
-     * @var InvoiceServices
+     * @var InvoiceServices $invoiceServices
      */
     private InvoiceServices $invoiceServices;
+
+    /**
+     * @var DatabaseConnectionServices $databaseConnectionServices
+     */
+    private $databaseConnectionServices;
 
     /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct(InvoiceServices $invoiceServices)
+    public function __construct(InvoiceServices $invoiceServices, DatabaseConnectionServices $databaseConnectionServices)
     {
         parent::__construct();
         $this->invoiceServices = $invoiceServices;
+        $this->databaseConnectionServices = $databaseConnectionServices;
     }
 
     /**
@@ -46,8 +52,9 @@ class XeroGetItems extends Command
      */
     public function handle(): void
     {
-        Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Save Items Generation');
-        $this->invoiceServices->saveItems();
-        Log::channel('cron_activity_logs')->info('Cron Job Ended - InvoiceServices Save Items Generation');
+        $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
+        Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Save Items Generation for Tenant DB - '.$this->argument('database'));
+        $data = $this->invoiceServices->saveItems();
+        Log::channel('cron_activity_logs')->info('Cron Job Ended - InvoiceServices Save Items Generation for Tenant DB - '.$this->argument('database'));
     }
 }

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Services\WorkersServices;
 use Illuminate\Support\Facades\Log;
+use App\Services\DatabaseConnectionServices;
 
 class WorkerImportFailure extends Command
 {
@@ -13,7 +14,7 @@ class WorkerImportFailure extends Command
      *
      * @var string
      */
-    protected $signature = 'command:WorkerImportFailure';
+    protected $signature = 'command:WorkerImportFailure {database}';
 
     /**
      * The console command description.
@@ -23,9 +24,14 @@ class WorkerImportFailure extends Command
     protected $description = 'Generate Excel File For Failure Cases';
 
     /**
-     * @var WorkersServices
+     * @var WorkersServices $workersServices
      */
     private WorkersServices $workersServices;
+
+    /**
+     * @var DatabaseConnectionServices $databaseConnectionServices
+     */
+    private $databaseConnectionServices;
 
     /**
      * Constructor for the class.
@@ -35,10 +41,11 @@ class WorkerImportFailure extends Command
      *
      * @return void
      */
-    public function __construct(WorkersServices $workersServices)
+    public function __construct(WorkersServices $workersServices, DatabaseConnectionServices $databaseConnectionServices)
     {
         parent::__construct();
         $this->workersServices = $workersServices;
+        $this->databaseConnectionServices = $databaseConnectionServices;
     }
 
     /**
@@ -48,8 +55,9 @@ class WorkerImportFailure extends Command
      */
     public function handle(): void
     {
-        Log::channel('cron_activity_logs')->info('Cron Job Started - Worker Import Failure Cases Excel Generation');
-        $this->workersServices->prepareExcelForFailureCases();
-        Log::channel('cron_activity_logs')->info('Cron Job Ended - Worker Import Failure Cases Excel Generation');
+        $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
+        Log::channel('cron_activity_logs')->info('Cron Job Started - Worker Import Failure Cases Excel Generation for Tenant DB - '.$this->argument('database'));
+        $data = $this->workersServices->prepareExcelForFailureCases();
+        Log::channel('cron_activity_logs')->info('Cron Job Ended - Worker Import Failure Cases Excel Generation for Tenant DB - '.$this->argument('database'));
     }
 }

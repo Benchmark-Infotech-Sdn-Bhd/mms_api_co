@@ -224,7 +224,7 @@ class TransportationServices
             $query->on('vendors.id','=','transportation.vendor_id')
             ->whereIn('vendors.company_id', $user['company_id']);
         })
-        ->select('transportation.*')
+        ->select('transportation.id', 'transportation.driver_name', 'transportation.driver_contact_number', 'transportation.driver_email', 'transportation.vehicle_type', 'transportation.number_plate', 'transportation.vehicle_capacity', 'transportation.vendor_id', 'transportation.assigned_supervisor', 'transportation.created_by', 'transportation.modified_by', 'transportation.created_at', 'transportation.updated_at', 'transportation.deleted_at')
         ->find($request['id']);
     }
 	 /**
@@ -240,7 +240,7 @@ class TransportationServices
             $query->on('vendors.id','=','transportation.vendor_id')
             ->where('vendors.company_id', $user['company_id']);
         })
-        ->select('transportation.*')
+        ->select('transportation.id', 'transportation.driver_name', 'transportation.driver_contact_number', 'transportation.driver_email', 'transportation.vehicle_type', 'transportation.number_plate', 'transportation.vehicle_capacity', 'transportation.vendor_id', 'transportation.assigned_supervisor', 'transportation.created_by', 'transportation.modified_by', 'transportation.created_at', 'transportation.updated_at', 'transportation.deleted_at')
         ->find($request['id']);
         if(is_null($data)){
             return [
@@ -348,7 +348,7 @@ class TransportationServices
             $query->on('vendors.id','=','transportation.vendor_id')
             ->where('vendors.company_id', $user['company_id']);
         })
-        ->select('transportation.*')
+        ->select('transportation.id', 'transportation.driver_name', 'transportation.driver_contact_number', 'transportation.driver_email', 'transportation.vehicle_type', 'transportation.number_plate', 'transportation.vehicle_capacity', 'transportation.vendor_id', 'transportation.assigned_supervisor', 'transportation.created_by', 'transportation.modified_by', 'transportation.created_at', 'transportation.updated_at', 'transportation.deleted_at')
         ->find($request['id']);
 
         if(is_null($data)){
@@ -387,7 +387,7 @@ class TransportationServices
             $query->on('vendors.id','=','transportation.vendor_id')
             ->where('vendors.company_id', $user['company_id']);
         })
-        ->select('transportation_attachments.*')
+        ->select('transportation_attachments.id', 'transportation_attachments.file_id', 'transportation_attachments.file_name', 'transportation_attachments.file_type', 'transportation_attachments.file_url', 'transportation_attachments.created_at', 'transportation_attachments.updated_at', 'transportation_attachments.deleted_at', 'transportation_attachments.created_by', 'transportation_attachments.modified_by')
         ->find($request['id']);
 
         if(is_null($data)){

@@ -37,6 +37,7 @@ class ServiceAgreementExport implements FromQuery, WithHeadings
     public function query()
     {
         return EContractProject::query()
+<<<<<<< HEAD
             ->leftJoin('worker_employment', function ($query) {
                 $query->on('worker_employment.project_id', '=', 'e-contract_project.id')
                     ->where('worker_employment.service_type', 'e-Contract')
@@ -54,6 +55,25 @@ class ServiceAgreementExport implements FromQuery, WithHeadings
             ->groupBy('e-contract_project.id', 'e-contract_project.name', 'e-contract_project.valid_until', 'crm_prospects.company_name')
             ->whereDate('e-contract_project.valid_until', '<', Carbon::now()->addMonths(3))
             ->where('e-contract_applications.company_id', $this->companyId);
+=======
+        ->leftJoin('worker_employment', function($query) {
+            $query->on('worker_employment.project_id','=','e-contract_project.id')
+            ->where('worker_employment.service_type', 'e-Contract')
+            ->where('worker_employment.transfer_flag', 0)
+            ->whereNull('worker_employment.remove_date');
+        })
+        ->leftJoin('workers', function($query) {
+            $query->on('workers.id','=','worker_employment.worker_id')
+            ->whereIN('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
+        })
+        ->leftjoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
+        ->leftjoin('crm_prospects', 'crm_prospects.id', '=', 'e-contract_applications.crm_prospect_id')
+        ->select('crm_prospects.company_name', 'e-contract_project.name as project_name', DB::raw('count(distinct workers.id) as no_of_workers'), 'e-contract_project.valid_until as service_agreement_expiry_date', 'e-contract_project.id')
+        ->distinct('e-contract_project.id', 'e-contract_project.name', 'e-contract_project.valid_until', 'crm_prospects.company_name')
+        ->groupBy('e-contract_project.id', 'e-contract_project.name', 'e-contract_project.valid_until', 'crm_prospects.company_name')
+        ->whereDate('e-contract_project.valid_until', '<', Carbon::now()->addMonths(3))
+        ->where('e-contract_applications.company_id',$this->companyId);
+>>>>>>> d5d817a2ad0bb0a10237dcdf1a50ad2acc99c9f4
     }
 
     /**

@@ -196,7 +196,7 @@ class DirectRecruitmentExpensesServices
         return $this->directRecruitmentExpenses->with(['directRecruitmentExpensesAttachments'])->join('directrecruitment_applications', function ($join) use ($request) {
             $join->on('directrecruitment_applications.id', '=', 'directrecruitment_expenses.application_id')
                  ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
-        })->select('directrecruitment_expenses.*')->find($request['id']);
+        })->select('directrecruitment_expenses.id', 'directrecruitment_expenses.application_id', 'directrecruitment_expenses.title', 'directrecruitment_expenses.payment_reference_number', 'directrecruitment_expenses.payment_date', 'directrecruitment_expenses.quantity', 'directrecruitment_expenses.amount', 'directrecruitment_expenses.remarks', 'directrecruitment_expenses.created_by', 'directrecruitment_expenses.modified_by', 'directrecruitment_expenses.created_at', 'directrecruitment_expenses.updated_at', 'directrecruitment_expenses.deleted_at', 'directrecruitment_expenses.invoice_number')->find($request['id']);
     }
     
     /**

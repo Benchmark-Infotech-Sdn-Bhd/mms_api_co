@@ -214,7 +214,7 @@ class VendorServices
             $query->on('vendors.id','=','vendor_attachments.file_id')
             ->where('vendors.company_id', $request['company_id']);
         })
-        ->select('vendors.*')
+        ->select('vendor_attachments.id', 'vendor_attachments.file_id', 'vendor_attachments.file_name', 'vendor_attachments.file_type', 'vendor_attachments.file_url', 'vendor_attachments.created_by', 'vendor_attachments.modified_by', 'vendor_attachments.created_at', 'vendor_attachments.updated_at', 'vendor_attachments.deleted_at')
         ->find($request['id']); 
         if(is_null($data)){
             return [

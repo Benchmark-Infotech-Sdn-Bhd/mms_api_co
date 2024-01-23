@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Services\DirectRecruitmentPostponedServices;
 use Illuminate\Support\Facades\Log;
+use App\Services\DatabaseConnectionServices;
 
 class UpdateCallingVisaExpiry extends Command
 {
@@ -13,7 +14,7 @@ class UpdateCallingVisaExpiry extends Command
      *
      * @var string
      */
-    protected $signature = 'command:UpdateCallingVisaExpiry';
+    protected $signature = 'command:UpdateCallingVisaExpiry {database}';
 
     /**
      * The console command description.
@@ -23,19 +24,25 @@ class UpdateCallingVisaExpiry extends Command
     protected $description = 'Update status for calling visa expired postponed workers';
 
     /**
-     * @var DirectRecruitmentPostponedServices
+     * @var DirectRecruitmentPostponedServices $directRecruitmentPostponedServices
      */
     private DirectRecruitmentPostponedServices $directRecruitmentPostponedServices;
+
+    /**
+     * @var DatabaseConnectionServices $databaseConnectionServices
+     */
+    private $databaseConnectionServices;
 
     /**
      * Class constructor.
      *
      * @param DirectRecruitmentPostponedServices $directRecruitmentPostponedServices The instance of DirectRecruitmentPostponedServices class.
      */
-    public function __construct(DirectRecruitmentPostponedServices $directRecruitmentPostponedServices)
+    public function __construct(DirectRecruitmentPostponedServices $directRecruitmentPostponedServices, DatabaseConnectionServices $databaseConnectionServices)
     {
         parent::__construct();
         $this->directRecruitmentPostponedServices = $directRecruitmentPostponedServices;
+        $this->databaseConnectionServices = $databaseConnectionServices;
     }
 
     /**
@@ -45,8 +52,9 @@ class UpdateCallingVisaExpiry extends Command
      */
     public function handle(): void
     {
-        Log::channel('cron_activity_logs')->info('Cron Job Started - Update Expiry Status');
-        $this->directRecruitmentPostponedServices->updateCallingVisaExpiry();
-        Log::channel('cron_activity_logs')->info('Cron Job Ended - Update Expiry Status');
+        $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
+        Log::channel('cron_activity_logs')->info('Cron Job Started - Update Expiry Status for Tenant DB - '.$this->argument('database'));
+        $data = $this->directRecruitmentPostponedServices->updateCallingVisaExpiry();
+        Log::channel('cron_activity_logs')->info('Cron Job Ended - Update Expiry Status for Tenant DB - '.$this->argument('database'));
     }
 }

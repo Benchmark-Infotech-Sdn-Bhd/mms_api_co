@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-
-use App\Services\ThirdPartyLogServices;
 use Illuminate\Support\Facades\Log;
+use App\Services\ThirdPartyLogServices;
+use App\Services\DatabaseConnectionServices;
 
 class ThirdPartyDeleteData extends Command
 {
@@ -14,7 +14,7 @@ class ThirdPartyDeleteData extends Command
      *
      * @var string
      */
-    protected $signature = 'command:ThirdPartyDeleteData';
+    protected $signature = 'command:ThirdPartyDeleteData {database}';
 
     /**
      * The console command description.
@@ -24,9 +24,14 @@ class ThirdPartyDeleteData extends Command
     protected $description = 'Third-Party Log Delete Data';
 
     /**
-     * @var ThirdPartyLogServices
+     * @var ThirdPartyLogServices $thirdPartyLogServices
      */
     private ThirdPartyLogServices $thirdPartyLogServices;
+
+    /**
+     * @var DatabaseConnectionServices $databaseConnectionServices
+     */
+    private $databaseConnectionServices;
 
     /**
      * __construct method
@@ -34,13 +39,13 @@ class ThirdPartyDeleteData extends Command
      * This method is the constructor of the class.
      *
      * @param ThirdPartyLogServices $thirdPartyLogServices An instance of the ThirdPartyLogServices class.
-     *
      * @return void
      */
-    public function __construct(ThirdPartyLogServices $thirdPartyLogServices)
+    public function __construct(ThirdPartyLogServices $thirdPartyLogServices, DatabaseConnectionServices $databaseConnectionServices)
     {
         parent::__construct();
         $this->thirdPartyLogServices = $thirdPartyLogServices;
+        $this->databaseConnectionServices = $databaseConnectionServices;
     }
 
     /**
@@ -50,8 +55,9 @@ class ThirdPartyDeleteData extends Command
      */
     public function handle(): void
     {
-        Log::channel('cron_activity_logs')->info('Cron Job Started - Third-Party Log Delete Data');
+        $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
+        Log::channel('cron_activity_logs')->info('Cron Job Started - Third-Party Log Delete Data for Tenant DB - '.$this->argument('database'));
         $data = $this->thirdPartyLogServices->delete();
-        Log::channel('cron_activity_logs')->info('Cron Job Ended - Third-Party Log Delete Data');
+        Log::channel('cron_activity_logs')->info('Cron Job Ended - Third-Party Log Delete Data for Tenant DB - '.$this->argument('database'));
     }
 }
