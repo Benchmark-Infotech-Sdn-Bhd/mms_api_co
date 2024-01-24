@@ -501,22 +501,21 @@ class TotalManagementTransferServices
         ]);
         $worker = $this->workers->findOrFail($request['worker_id']);
         if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[2]){
-            $worker->module_type = $request['service_type'];
             $worker->crm_prospect_id = self::FOMNEXT_PROSPECT_ID;
             $worker->econtract_status = self::WORKER_STATUS_ASSIGNED;
             if(in_array($worker->total_management_status, Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))) {
                 $worker->total_management_status = self::WORKER_STATUS_ONBENCH;
             }
         } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
-            $worker->module_type = $request['service_type'];
             $worker->total_management_status = self::WORKER_STATUS_ASSIGNED;
             if(in_array($worker->econtract_status, Config::get('services.ECONTRACT_WORKER_STATUS'))) {
                 $worker->econtract_status = self::WORKER_STATUS_ONBENCH;
             }
-            $worker->updated_at = Carbon::now();
-            $worker->modified_by = $request['modified_by'];
-            $worker->save();
         }
+        $worker->module_type = $request['service_type'];
+        $worker->updated_at = Carbon::now();
+        $worker->modified_by = $request['modified_by'];
+        $worker->save();
     }
     /**
      * update the worker employment record based on provided request data
