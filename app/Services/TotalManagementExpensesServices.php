@@ -13,18 +13,32 @@ use Illuminate\Support\Facades\Storage;
 class TotalManagementExpensesServices
 {
     public const ATTACHMENT_FILE_TYPE = 'Total Management Expenses';
+    public const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
+    public const ERROR_PAYBACK = ['payBackError' => true];
 
+    /**
+     * @var totalManagementExpenses
+     */
     private TotalManagementExpenses $totalManagementExpenses;
+    /**
+     * @var totalManagementExpensesAttachments
+     */
     private TotalManagementExpensesAttachments $totalManagementExpensesAttachments;
+    /**
+     * @var authServices
+     */
     private AuthServices $authServices;
+    /**
+     * @var storage
+     */
     private Storage $storage;
     /**
      * TotalManagementExpensesServices constructor.
      * 
-     * @param TotalManagementExpenses $totalManagementExpenses
-     * @param TotalManagementExpensesAttachments $totalManagementExpensesAttachments
-     * @param AuthServices $authServices
-     * @param Storage $storage
+     * @param TotalManagementExpenses $totalManagementExpenses The totalManagementExpenses object.
+     * @param TotalManagementExpensesAttachments $totalManagementExpensesAttachments The totalManagementExpensesAttachments object.
+     * @param AuthServices $authServices The authServices object.
+     * @param Storage $storage The storage object.
      */
     public function __construct(
             TotalManagementExpenses                 $totalManagementExpenses,
@@ -42,7 +56,7 @@ class TotalManagementExpensesServices
     /**
      * validate the search request data
      * 
-     * @return array
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function searchValidation(): array
     {
@@ -53,7 +67,7 @@ class TotalManagementExpensesServices
     /**
      * validate the create request data
      * 
-     * @return array
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function createValidation(): array
     {
@@ -72,7 +86,7 @@ class TotalManagementExpensesServices
     /**
      * validate the update request data
      * 
-     * @return array
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function updateValidation(): array
     {
@@ -92,7 +106,7 @@ class TotalManagementExpensesServices
     /**
      * validate the payback request data
      * 
-     * @return array
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function payBackValidation(): array
     {
@@ -106,7 +120,10 @@ class TotalManagementExpensesServices
      * Get a paginated list of total management expenses.
      * 
      * @param $request
-     * @return mixed
+     *        worker_id (int) ID of the worker
+     *        search (text) search parameter
+     * 
+     * @return mixed Returns The paginated list of expense
      */
     public function list($request) : mixed
     {
@@ -125,8 +142,9 @@ class TotalManagementExpensesServices
           })
         ->where('total_management_expenses.worker_id', $request['worker_id'])
         ->where(function ($query) use ($request) {
-            if (isset($request['search']) && !empty($request['search'])) {
-                $query->where('total_management_expenses.title', 'like', '%'. $request['search']. '%');
+            $search = $request['search'] ?? '';
+            if (!empty($search)) {
+                $query->where('total_management_expenses.title', 'like', '%'. $search. '%');
             }
         })
         ->select('total_management_expenses.id', 'total_management_expenses.worker_id', 'total_management_expenses.title','total_management_expenses.type', 'total_management_expenses.amount', 'total_management_expenses.deduction','total_management_expenses.payment_reference_number', 'total_management_expenses.payment_date', 'total_management_expenses.amount_paid', 'total_management_expenses.remaining_amount', 'total_management_expenses.remarks', 'total_management_expenses_attachments.file_name','total_management_expenses_attachments.file_url', 'total_management_expenses.invoice_number')
@@ -138,7 +156,10 @@ class TotalManagementExpensesServices
      * Show details of a total management expense
      * 
      * @param $request
-     * @return mixed
+     *        id (int) ID of the expense
+     *        company_id (array) ID of the user company
+     * 
+     * @return mixed Returns the expense detail with related attachments
      */
     public function show($request) : mixed
     {
@@ -156,7 +177,8 @@ class TotalManagementExpensesServices
      * Create a new total management expense.
      * 
      * @param $request
-     * @return bool|array
+     * 
+     * @return bool|array Returns true if the create is successful. Returns an error array if validation fails or any error occurs during the create process.
      */
     public function create($request): bool|array
     {
@@ -181,7 +203,18 @@ class TotalManagementExpensesServices
      * create total management expense.
      *
      * @param array $params
-     * @return mixed
+     *              worker_id (int) ID of the worker
+     *              application_id (int) ID of the application
+     *              project_id (int) ID of the project
+     *              title (string) title of the expense
+     *              type (string) type of the expense
+     *              payment_reference_number (string) payment reference number
+     *              payment_date (date) payment date
+     *              amount (decimal) amount of the expense
+     *              remarks (string) remarks of expense
+     *              created_by The ID of the user who created the expense.
+     * 
+     * @return mixed Returns the created expense record.
      */
     private function createTotalManagementExpense($params): mixed
     {
@@ -192,7 +225,7 @@ class TotalManagementExpensesServices
             'title' => $params['title'] ?? '',
             'type' => $params['type'] ?? '',
             'payment_reference_number' => $params['payment_reference_number'] ?? '',
-            'payment_date' => ((isset($params['payment_date']) && !empty($params['payment_date'])) ? $params['payment_date'] : null),
+            'payment_date' => $params['payment_date'] ?? null,
             'amount' => $params['amount'] ?? 0,
             'remarks' => $params['remarks'] ?? '',
             'created_by'    => $params['created_by'] ?? 0,
@@ -203,7 +236,10 @@ class TotalManagementExpensesServices
      * Upload attachment of expense.
      *
      * @param array $request
+     *              attachment (file) uploaded file
+     *              created_by The ID of the user who upload attachment.
      * @param int $expenseId
+     * 
      * @return void
      */
     private function uploadExpenseFiles($request, $expenseId): void
@@ -231,7 +267,9 @@ class TotalManagementExpensesServices
      * Update a total management expense.
      * 
      * @param $request
-     * @return bool|array
+     * 
+     * @return bool|array Returns true if the update is successful. Returns an error array if validation fails or any error occurs during the update process.
+     *                    Returns self::ERROR_UNAUTHORIZED if the user access invalid expense
      */
     public function update($request) : bool|array
     {
@@ -250,7 +288,7 @@ class TotalManagementExpensesServices
         $expense = $this->getExpense($request['id'], $params['company_id']);
 
         if (is_null($expense)) {
-            return ['unauthorizedError' => true];
+            return self::ERROR_UNAUTHORIZED;
         }
 
         $this->updateExpense($expense, $params);
@@ -262,9 +300,10 @@ class TotalManagementExpensesServices
     /**
      * Retrieve expense record by ID and company ID.
      *
-     * @param int $expenseId
-     * @param array $companyIds
-     * @return mixed
+     * @param int $expenseId ID of the expense
+     * @param array $companyIds ID of the user company
+     * 
+     * @return mixed Returns the expense record
      */
     private function getExpense(int $expenseId, array $companyIds)
     {
@@ -281,6 +320,18 @@ class TotalManagementExpensesServices
      *
      * @param mixed $expense
      * @param $params
+     *        worker_id (int) ID of the worker
+     *        application_id (int) ID of the application
+     *        project_id (int) ID of the project
+     *        title (string) title of the expense
+     *        type (string) type of the expense
+     *        payment_reference_number (string) payment reference number
+     *        payment_date (date) payment date
+     *        amount (decimal) amount of the expense
+     *        remarks (string) remarks of expense
+     *        modified_by The ID of the user who modified the expense.
+     * 
+     * @return void
      */
     private function updateExpense($expense, $params)
     {
@@ -300,7 +351,9 @@ class TotalManagementExpensesServices
      * Delete a total management expense.
      * 
      * @param $request
-     * @return bool
+     * 
+     * 
+     * @return bool Returns true if the deletion is successful  otherwise false
      */
     public function delete($request) : bool
     {
@@ -317,7 +370,10 @@ class TotalManagementExpensesServices
      * Get the expense to delete.
      *
      * @param array $request
-     * @return mixed
+     *              id (int) ID of the expense
+     *              company_id (array) ID of the user company
+     * 
+     * @return mixed Returns the expense record
      */
     private function getExpenseToDelete(array $request)
     {
@@ -333,7 +389,8 @@ class TotalManagementExpensesServices
      * Delete an attachment associated with a total management expense.
      *
      * @param $request
-     * @return bool
+     * 
+     * @return bool Returns true if the deletion is successful  otherwise false
      */    
     public function deleteAttachment($request): bool
     {
@@ -349,7 +406,10 @@ class TotalManagementExpensesServices
      * Get the attachment to delete.
      *
      * @param array $request
-     * @return mixed
+     *              id (int) ID of the expense attachment
+     *              company_id (array) ID of the user company
+     * 
+     * @return mixed Returns the expense attachment record
      */
     private function getAttachmentToDelete(array $request): mixed
     {
@@ -365,7 +425,13 @@ class TotalManagementExpensesServices
      * payback submit for a total management expense.
      * 
      * @param $request
-     * @return bool|array
+     *        id (int) ID of the expense
+     *        company_id (array) ID of the user company
+     *        amount_paid (float) paid amount
+     *        payment_date (date) payment date
+     * 
+     * @return bool|array Returns true if the payback is successful. Returns an error array if validation fails or any error occurs during the payback process.
+     *                    Returns self::ERROR_PAYBACK if payback amount exceed actual amount
      */
     public function payBack($request) : bool|array
     {
@@ -385,9 +451,7 @@ class TotalManagementExpensesServices
         $remainingAmount = $expense->amount - $totalPayBack;
 
         if($totalPayBack > $expense->amount) {
-            return [
-                'payBackError' => true
-            ];
+            return self::ERROR_PAYBACK;
         }
 
         $this->updateExpenseAfterPayBack($expense, $request, $remainingAmount);
@@ -399,7 +463,11 @@ class TotalManagementExpensesServices
      *
      * @param $expense
      * @param $request
-     * @param $remainingAmount
+     *        amount_paid (float) paid amount
+     *        payment_date (date) payment date
+     *        modified_by (int) The ID of the user who modified the payback
+     * @param $remainingAmount remaining amount
+     * 
      * @return void
      */
     private function updateExpenseAfterPayBack($expense, $request, $remainingAmount)

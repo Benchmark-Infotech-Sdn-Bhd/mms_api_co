@@ -14,23 +14,40 @@ use Illuminate\Support\Carbon;
 
 class TotalManagementCostManagementServices
 {
+    public const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
     public const ATTACHMENT_FILE_TYPE = 'COSTMANAGEMENT';
     public const MESSAGE_NOT_FOUND = "Data not found";
     public const MESSAGE_DELETED_SUCCESSFULLY = "Deleted Successfully";
+    public const TOTALMANAGEMENT_SERVICE_ID = 3;
 
+    /**
+     * @var totalManagementCostManagement
+     */
     private TotalManagementCostManagement $totalManagementCostManagement;
+    /**
+     * @var totalManagementCostManagementAttachments
+     */
     private TotalManagementCostManagementAttachments $totalManagementCostManagementAttachments;
+    /**
+     * @var validationServices
+     */
     private ValidationServices $validationServices;
+    /**
+     * @var authServices
+     */
     private AuthServices $authServices;
+    /**
+     * @var storage
+     */
     private Storage $storage;
     /**
      * TotalManagementCostManagementServices constructor.
      * 
-     * @param TotalManagementCostManagement $totalManagementCostManagement
-     * @param TotalManagementCostManagementAttachments $totalManagementCostManagementsAttachments
-     * @param ValidationServices $validationServices
-     * @param AuthServices $authServices
-     * @param Storage $storage
+     * @param TotalManagementCostManagement $totalManagementCostManagement The totalManagementCostManagement object.
+     * @param TotalManagementCostManagementAttachments $totalManagementCostManagementsAttachments The totalManagementCostManagementsAttachments object.
+     * @param ValidationServices $validationServices The validationServices object.
+     * @param AuthServices $authServices The authServices object.
+     * @param Storage $storage The storage object.
      */
     public function __construct(
             TotalManagementCostManagement                 $totalManagementCostManagement,
@@ -52,7 +69,7 @@ class TotalManagementCostManagementServices
      *
      * @param mixed $request The request data.
      *
-     * @return mixed The response data.
+     * @return mixed Returns the created cost management record.
      */
     public function create($request) : mixed
     {
@@ -75,7 +92,17 @@ class TotalManagementCostManagementServices
      * create total management cost management.
      *
      * @param array $request
-     * @return mixed
+     *              application_id (in) ID of the application
+     *              project_id (int) ID of the project
+     *              title (string) title of the cost management
+     *              payment_reference_number (int) payment reference number
+     *              payment_date (date) date of the payment
+     *              quantity (int) quantity of cost management
+     *              amount (float) amount of payment
+     *              remarks (text) remarks of payment
+     *              created_by The ID of the user who created the cost mangment.
+     * 
+     * @return mixed Returns the created cost management record.
      */
     private function createTotalManagementCostManagement($request): mixed
     {
@@ -84,7 +111,7 @@ class TotalManagementCostManagementServices
             'project_id' => $request['project_id'],
             'title' => $request['title'] ?? '',
             'payment_reference_number' => $request['payment_reference_number'] ?? '',
-            'payment_date' => ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : null),
+            'payment_date' => $request['payment_date'] ?? null,
             'quantity' => $request['quantity'] ?? '',
             'amount' => $request['amount'] ?? '',
             'remarks' => $request['remarks'] ?? '',
@@ -96,7 +123,9 @@ class TotalManagementCostManagementServices
      * Upload attachment of cost management.
      *
      * @param array $request
+     *              attachment (file) 
      * @param int $costManagement
+     * 
      * @return void
      */
     private function uploadCostManagementFiles($request, $costManagementId): void
@@ -122,6 +151,7 @@ class TotalManagementCostManagementServices
      * delete attachment of cost management.
      *
      * @param int $costManagementId
+     * 
      * @return void
      */
     private function deleteCostManagementFiles($costManagementId): void
@@ -132,7 +162,9 @@ class TotalManagementCostManagementServices
      * update total management cost management.
      * 
      * @param $request
-     * @return bool|array
+     * 
+     * @return bool|array Returns true if the update is successful. Returns an error array if validation fails or any error occurs during the update process.
+     *                    Returns self::ERROR_UNAUTHORIZED if the user access invalid cost management
      */
     public function update($request): bool|array
     {
@@ -151,7 +183,7 @@ class TotalManagementCostManagementServices
         $costManagement = $this->getCostManagement($request['id'], $params['company_id']);
 
         if (is_null($costManagement)) {
-            return ['unauthorizedError' => true];
+            return self::ERROR_UNAUTHORIZED;
         }
 
         $this->updateTotalManagementCostManagement($costManagement, $request);
@@ -169,7 +201,8 @@ class TotalManagementCostManagementServices
      *
      * @param int $costManagementId
      * @param array $companyIds
-     * @return mixed
+     * @return mixed Returns the cost management detail
+
      */
     private function getCostManagement(int $costManagementId, array $companyIds)
     {
@@ -187,6 +220,16 @@ class TotalManagementCostManagementServices
      *
      * @param mixed $costManagement
      * @param $request
+     *        application_id (in) ID of the application
+     *        project_id (int) ID of the project
+     *        title (string) title of the cost management
+     *        payment_reference_number (int) payment reference number
+     *        payment_date (date) date of the payment
+     *        quantity (int) quantity of cost management
+     *        amount (float) amount of payment
+     *        remarks (text) remarks of payment
+     *        created_by The ID of the user who created the cost mangment.
+     *        modified_by The ID of the user who modified the cost mangment.
      */
     private function updateTotalManagementCostManagement($costManagement, $request)
     {
@@ -207,7 +250,10 @@ class TotalManagementCostManagementServices
      * show total management cost management.
      * 
      * @param $request
-     * @return mixed
+     *        id (int) ID of the cost management record
+     *        company_id (array) ID of the user company
+     * 
+     * @return mixed Returns the cost management detail with related attachments
      */
     public function show($request) : mixed
     {
@@ -230,7 +276,10 @@ class TotalManagementCostManagementServices
      * list total management cost management.
      * 
      * @param $request
-     * @return mixed
+     *        search_param (string) search search parameter
+     *        project_id (int) ID of the project
+     * 
+     * @return mixed Returns The paginated list of cost management
      */
     public function list($request) : mixed
     {
@@ -248,14 +297,15 @@ class TotalManagementCostManagementServices
           })
         ->LeftJoin('invoice_items_temp', function($join) use ($request){
             $join->on('invoice_items_temp.expense_id', '=', 'total_management_cost_management.id')
-            ->where('invoice_items_temp.service_id', '=', 3)
+            ->where('invoice_items_temp.service_id', '=', self::TOTALMANAGEMENT_SERVICE_ID)
             ->WhereNull('invoice_items_temp.deleted_at');
           })
         ->where('total_management_cost_management.project_id', $request['project_id'])
         ->where(function ($query) use ($request) {
-            if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('total_management_cost_management.title', 'like', "%{$request['search_param']}%")
-                ->orWhere('total_management_cost_management.payment_reference_number', 'like', '%'.$request['search_param'].'%');
+            $search = $request['search_param'] ?? '';
+            if(!empty($search)) {
+                $query->where('total_management_cost_management.title', 'like', "%{$search}%")
+                ->orWhere('total_management_cost_management.payment_reference_number', 'like', '%'.$search.'%');
             }            
         })->select('total_management_cost_management.id','total_management_cost_management.application_id','total_management_cost_management.project_id','total_management_cost_management.title','total_management_cost_management.payment_reference_number','total_management_cost_management.payment_date','total_management_cost_management.quantity','total_management_cost_management.amount','total_management_cost_management.remarks','total_management_cost_management_attachments.file_name','total_management_cost_management_attachments.file_url','total_management_cost_management.created_at','total_management_cost_management.invoice_number',\DB::raw('IF(invoice_items_temp.id is NULL, NULL, 1) as expense_flag'))
         ->distinct()
@@ -267,7 +317,9 @@ class TotalManagementCostManagementServices
      * delete the cost management.
      *
      * @param $request
-     * @return mixed
+     *        id (int) ID of the cost management
+     * 
+     * @return mixed The result of the delete operation containing the deletion status and message.
      */    
     public function delete($request): mixed
     {
@@ -291,7 +343,10 @@ class TotalManagementCostManagementServices
      * Get the cost management data to delete.
      *
      * @param $request
-     * @return mixed
+     *        id (int) ID of the cost management
+     *        company_id ID of the user company
+     * 
+     * @return mixed Returns the cost management data
      */
     private function getCostManagementToDelete($request)
     {
@@ -309,7 +364,9 @@ class TotalManagementCostManagementServices
      * delete the attchment of cost management.
      *
      * @param $request
-     * @return mixed
+     *        id (int) ID of the attachment
+     * 
+     * @return mixed Returns an array with two keys: 'isDeleted' and 'message'
      */    
     public function deleteAttachment($request): mixed
     {
@@ -331,7 +388,10 @@ class TotalManagementCostManagementServices
      * Get the attachment data to delete.
      *
      * @param array $request
-     * @return mixed
+     *              id (int) ID of the attachment
+     *              company_id (array) ID of the user company
+     * 
+     * @return mixed Returns the cost management attachment data
      */
     private function getAttachmentToDelete($request)
     {

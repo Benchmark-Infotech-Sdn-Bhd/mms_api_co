@@ -10,11 +10,16 @@ use App\Models\TotalManagementProject;
 
 class TotalManagementProjectServices
 {
+    public const DEFAULT_TRANSFER_FLAG = 0;
+
+    /**
+     * @var totalManagementProject
+     */
     private TotalManagementProject $totalManagementProject;
     /**
      * TotalManagementProjectServices constructor.
      * 
-     * @param TotalManagementProject $totalManagementProject
+     * @param TotalManagementProject $totalManagementProject The totalManagementProject object.
      */
     public function __construct(TotalManagementProject $totalManagementProject)
     {
@@ -23,7 +28,7 @@ class TotalManagementProjectServices
     /**
      * validate the add project request data
      * 
-     * @return array
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function addValidation(): array
     {
@@ -46,7 +51,7 @@ class TotalManagementProjectServices
     /**
      * validate the update project request data
      * 
-     * @return array
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function updateValidation(): array
     {
@@ -70,7 +75,10 @@ class TotalManagementProjectServices
      * list the total management projects
      * 
      * @param $request
-     * @return mixed
+     *        application_id (int) ID of the application
+     *        search (string) search parameter
+     * 
+     * @return mixed Returns The paginated list of project
      */   
     public function list($request): mixed
     {
@@ -83,8 +91,8 @@ class TotalManagementProjectServices
         ->leftJoin('transportation', 'transportation.id', '=', 'total_management_project.driver_id')
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.project_id','=','total_management_project.id')
-            ->where('worker_employment.service_type', 'Total Management')
-            ->where('worker_employment.transfer_flag', 0)
+            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
+            ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date');
         })
         ->leftJoin('workers', function($query) {
@@ -111,9 +119,10 @@ class TotalManagementProjectServices
      * show the total management project detail
      * 
      * @param $request
-     *   - id (int) The ID of the project
+     *        id (int) The ID of the project
+     *        company_id (array) ID of the user company
      * 
-     * @return mixed
+     * @return mixed Returns the total management project record
      */   
     public function show($request): mixed
     {
@@ -129,7 +138,8 @@ class TotalManagementProjectServices
      * add a total management project 
      * 
      * @param $request
-     * @return bool|array
+     * 
+     * @return bool|array Returns true if the create is successful. Returns an error array if validation fails or any error occurs during the create process.
      */   
     public function add($request): bool|array
     {
@@ -146,6 +156,20 @@ class TotalManagementProjectServices
      * create a new entry for total management project.
      *
      * @param array $request
+     *              application_id (int) ID of the application
+     *              name (string) name of the project
+     *              state (string) project state
+     *              city  (string) project city
+     *              address (string) project address
+     *              supervisor_id (int) ID of the supervisor 
+     *              supervisor_type (string) supervisor type
+     *              transportation_provider_id (int) ID of transportation provider
+     *              driver_id (int) ID of the driver
+     *              annual_leave (int) annual leave
+     *              medical_leave (int) medical leave
+     *              hospitalization_leave (int) hospitalization leave
+     *              created_by (int) The ID of the user who created the project.
+     * 
      * @return void
      */
     private function createTotalMangementProject($request)
@@ -174,10 +198,10 @@ class TotalManagementProjectServices
      * update the total management project
      * 
      * @param $request
-     *        id (int) total management project id
-     *        request total mangement project data
+     *        id (int) ID of the project
+     *        request data containg the total mangement project update data
      * 
-     * @return bool|array
+     * @return bool|array Returns true if the update is successful. Returns an error array if validation fails or any error occurs during the update process.
      */
     public function update($request): bool|array
     {
@@ -195,7 +219,10 @@ class TotalManagementProjectServices
      * Retrieve totalmanagement project record.
      *
      * @param array $request
-     * @return mixed
+     *              id (int) ID of the project
+     *              company_id (int) ID of the user company
+     * 
+     * @return mixed Returns the project record
      */
     private function getTotalManagementProject($request)
     {
@@ -212,6 +239,19 @@ class TotalManagementProjectServices
      *
      * @param mixed $totalManagementProject
      * @param $request
+     *        name (string) name of the project
+     *        state (string) project state
+     *        city  (string) project city
+     *        address (string) project address
+     *        supervisor_id (int) ID of the supervisor 
+     *        supervisor_type (string) supervisor type
+     *        transportation_provider_id (int) ID of transportation provider
+     *        driver_id (int) ID of the driver
+     *        annual_leave (int) annual leave
+     *        medical_leave (int) medical leave
+     *        hospitalization_leave (int) hospitalization leave
+     *        modified_by (int) The ID of the user who modified the project.
+     * 
      * @return void
      */
     private function updateTotalManagementProject($totalManagementProject, $request)

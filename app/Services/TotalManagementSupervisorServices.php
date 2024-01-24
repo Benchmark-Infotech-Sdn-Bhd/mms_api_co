@@ -11,12 +11,14 @@ use App\Models\TotalManagementProject;
 
 class TotalManagementSupervisorServices
 {
-    
+    /**
+     * @var totalManagementProject
+     */
     private TotalManagementProject $totalManagementProject;
     /**
      * TotalManagementSupervisorServices constructor.
      * 
-     * @param TotalManagementProject $totalManagementProject
+     * @param TotalManagementProject $totalManagementProject The totalManagementProject object.
      */
     public function __construct(TotalManagementProject $totalManagementProject)
     {
@@ -26,7 +28,10 @@ class TotalManagementSupervisorServices
      * list the total management project supervisor
      * 
      * @param $request
-     * @return mixed
+     *        company_id (array) ID of the user company
+     *        search (string) search parameter
+     * 
+     * @return mixed Returns The paginated list of supervisor
      */   
     public function list($request): mixed
     {
@@ -54,7 +59,13 @@ class TotalManagementSupervisorServices
      * list the total management project assignments
      * 
      * @param $request
-     * @return mixed
+     *        company_id (int) ID of the user company
+     *        employee_id (int) ID of the employee
+     *        driver_id (int) ID of the driver
+     *        supervisor_id (int) ID of the supervisor
+     *        search (string) search parameter
+     * 
+     * @return mixed Returns The paginated list of assignments
      */   
     public function viewAssignments($request): mixed
     {
