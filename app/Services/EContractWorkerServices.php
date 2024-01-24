@@ -17,55 +17,80 @@ use App\Models\EContractApplications;
 
 class EContractWorkerServices
 {
+    public const USER_TYPE_CUSTOMER = 'Customer'; // self::USER_TYPE_CUSTOMER
+    public const SERVICE_TYPE_ECONTRACT = 'e-Contract'; // self::SERVICE_TYPE_ECONTRACT
+    public const STATUS_ASSIGNED = 'Assigned'; // self::STATUS_ASSIGNED
+    public const STATUS_ONBENCH = 'On-Bench'; // self::STATUS_ONBENCH
+
     /**
      * @var Workers
      */
     private Workers $workers;
+
     /**
      * @var Vendor
      */
     private Vendor $vendor;
+
     /**
      * @var Accommodation
      */
     private Accommodation $accommodation;
+
     /**
      * @var WorkerEmployment
      */
     private WorkerEmployment $workerEmployment;
+
     /**
      * @var TotalManagementApplications
      */
     private TotalManagementApplications $totalManagementApplications;
+
     /**
      * @var CRMProspectService
      */
     private CRMProspectService $crmProspectService;
+
     /**
      * @var DirectrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
+
     /**
      * @var EContractProject
      */
     private EContractProject $eContractProject;
+
     /**
      * @var EContractApplications
      */
     private EContractApplications $eContractApplications;
+
     /**
-     * TotalManagementWorkerServices constructor.
-     * @param Workers $workers
-     * @param Vendor $vendor
-     * @param Accommodation $accommodation
-     * @param WorkerEmployment $workerEmployment
-     * @param TotalManagementApplications $totalManagementApplications
-     * @param CRMProspectService $crmProspectService
-     * @param DirectrecruitmentApplications $directrecruitmentApplications
-     * @param EContractProject $eContractProject
-     * @param EContractApplications $eContractApplications
+     * Constructs a new instance of the class.
+     * 
+     * @param Workers $workers The workers object.
+     * @param Vendor $vendor The vendor object.
+     * @param Accommodation $accommodation The accommodation object.
+     * @param WorkerEmployment $workerEmployment The worker employment object.
+     * @param TotalManagementApplications $totalManagementApplications The total management applications object.
+     * @param CRMProspectService $crmProspectService The crm prospect service object.
+     * @param DirectrecruitmentApplications $directrecruitmentApplications The directrec ruitment applications object.
+     * @param EContractProject $eContractProject The e-contract project object.
+     * @param EContractApplications $eContractApplications The e-contract applications object.
      */
-    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, EContractProject $eContractProject, EContractApplications $eContractApplications)
+    public function __construct(
+        Workers $workers, 
+        Vendor $vendor, 
+        Accommodation $accommodation, 
+        WorkerEmployment $workerEmployment, 
+        TotalManagementApplications $totalManagementApplications, 
+        CRMProspectService $crmProspectService, 
+        DirectrecruitmentApplications $directrecruitmentApplications, 
+        EContractProject $eContractProject, 
+        EContractApplications $eContractApplications
+    )
     {
         $this->workers = $workers;
         $this->vendor = $vendor;
@@ -77,8 +102,11 @@ class EContractWorkerServices
         $this->eContractProject = $eContractProject;
         $this->eContractApplications = $eContractApplications;
     }
+
     /**
-     * @return array
+     * Creates the validation rules for workers list search.
+     *
+     * @return array The array containing the validation rules.
      */
     public function searchValidation(): array
     {
@@ -86,8 +114,11 @@ class EContractWorkerServices
             'search' => 'required|min:3'
         ];
     }
+
     /**
-     * @return array
+     * Creates the validation rules for removing the worker from project.
+     *
+     * @return array The array containing the validation rules.
      */
     public function removeValidation(): array
     {
@@ -98,8 +129,11 @@ class EContractWorkerServices
             'last_working_day' => 'required|date|date_format:Y-m-d',
         ];
     }
+
     /**
-     * @return array
+     * Creates the validation rules for assigning a new worker to project.
+     *
+     * @return array The array containing the validation rules.
      */
     public function createValidation(): array
     {
@@ -109,31 +143,35 @@ class EContractWorkerServices
             'work_start_date' => 'required|date|date_format:Y-m-d'
         ];
     }
+
     /**
-     * @param $request
-     * @return mixed
+     * Returns a paginated list of workers based on the given search request.
+     * 
+     * @param array $request The search request parameters.
+     * @return mixed Returns an array with a 'validate' key containing the validation errors, if the search request is invalid. Otherwise, returns a paginated list of workers.
      */
     public function list($request): mixed
     {
-        if(isset($request['search']) && !empty($request['search'])){
+        if (isset($request['search']) && !empty($request['search'])) {
             $validator = Validator::make($request, $this->searchValidation());
-            if($validator->fails()) {
+            if ($validator->fails()) {
                 return [
                     'error' => $validator->errors()
                 ];
             }
         }
+
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
             ->leftJoin('e-contract_project', 'e-contract_project.id', 'worker_employment.project_id')
             ->where('e-contract_project.id', $request['project_id'])
-            ->where('worker_employment.service_type', 'e-Contract')
+            ->where('worker_employment.service_type', self::SERVICE_TYPE_ECONTRACT)
             ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
             ->where('worker_employment.transfer_flag', 0)
             ->whereNull('worker_employment.remove_date')
             ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
-                if ($request['user']['user_type'] == 'Customer') {
+                if ($request['user']['user_type'] == self::USER_TYPE_CUSTOMER) {
                     $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
                 }
             })
@@ -150,27 +188,31 @@ class EContractWorkerServices
             ->orderBy('workers.id','DESC')
             ->paginate(Config::get('services.paginate_worker_row'));
     }
+
     /**
-     * @param $request
-     * @return mixed
+     * Returns a paginated list of assign worker based on the given search request.
+     * 
+     * @param array $request The search request parameters.
+     * @return mixed Returns an array with a 'validate' key containing the validation errors, if the search request is invalid. Otherwise, returns a paginated list of assign worker.
      */
     public function workerListForAssignWorker($request): mixed
     {
-        if(isset($request['search']) && !empty($request['search'])){
+        if (isset($request['search']) && !empty($request['search'])) {
             $validator = Validator::make($request, $this->searchValidation());
-            if($validator->fails()) {
+            if ($validator->fails()) {
                 return [
                     'error' => $validator->errors()
                 ];
             }
         }
+
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->where('workers.total_management_status', 'On-Bench')
-            ->where('workers.econtract_status', 'On-Bench')
+            ->where('workers.total_management_status', self::STATUS_ONBENCH)
+            ->where('workers.econtract_status', self::STATUS_ONBENCH)
             ->where('workers.crm_prospect_id', 0)
             ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
-                if ($request['user']['user_type'] == 'Customer') {
+                if ($request['user']['user_type'] == self::USER_TYPE_CUSTOMER) {
                     $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
                 }
             })
@@ -187,22 +229,28 @@ class EContractWorkerServices
             ->orderBy('workers.created_at','DESC')
             ->paginate(Config::get('services.paginate_worker_row'));
     }
+
     /**
-     * @param $request
-     * @return array|bool
+     * Assigning a new worker to project from the given request data.
+     * 
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "unauthorizedError": A array returns unauthorized if e-contract project details is null.
+     * - "isSubmit": A boolean indicating if the workers are assigned successfully updated.
      */
     public function assignWorker($request): array|bool
     {
         $validator = Validator::make($request, $this->createValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
 
-        if(isset($request['workers']) && !empty($request['workers'])) {
+        if (isset($request['workers']) && !empty($request['workers'])) {
 
             $projectDetails = $this->eContractProject->join('e-contract_applications', function($query) use($user) {
                 $query->on('e-contract_applications.id','=','e-contract_project.application_id')
@@ -210,24 +258,21 @@ class EContractWorkerServices
                 })
                 ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
             ->find($request['project_id']);
-
-            if(is_null($projectDetails)){
+            if (is_null($projectDetails)) {
                 return [
                     'unauthorizedError' => true
                 ];
             }
 
             $applicationDeatils = $this->eContractApplications->findOrFail($projectDetails->application_id);
-            $projectIds = $this->eContractProject->where('application_id', $projectDetails->application_id)
-                            ->select('id')
-                            ->get()
-                            ->toArray();
-            $projectIds = array_column($projectIds, 'id');
+            $projectIds = $this->eContractProject->where('application_id', $projectDetails->application_id)->select('id')
+            ->get()->toArray();
 
+            $projectIds = array_column($projectIds, 'id');
             $assignedWorkerCount = $this->workers
             ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
             ->whereIn('worker_employment.project_id', $projectIds)
-            ->where('worker_employment.service_type', 'e-Contract')
+            ->where('worker_employment.service_type', self::SERVICE_TYPE_ECONTRACT)
             ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
             ->where('worker_employment.transfer_flag', 0)
             ->whereNull('worker_employment.work_end_date')
@@ -235,45 +280,36 @@ class EContractWorkerServices
             ->distinct('workers.id')->count('workers.id');
 
             $assignedWorkerCount += count($request['workers']);
-
-            if($assignedWorkerCount > $applicationDeatils->quota_requested) {
+            if ($assignedWorkerCount > $applicationDeatils->quota_requested) {
                 return [
                     'quotaError' => true
                 ];
             }
 
-            foreach ($request['workers'] as $workerId) {
-                $this->workerEmployment->create([
-                    'worker_id' => $workerId,
-                    'project_id' => $request['project_id'],
-                    'department' => $request['department'],
-                    'sub_department' => $request['sub_department'],
-                    'work_start_date' => $request['work_start_date'],
-                    'service_type' => 'e-Contract',
-                    'created_by' => $request['created_by'],
-                    'modified_by' => $request['created_by']
-                ]);
-            }
-            $this->workers->whereIn('id', $request['workers'])
-                ->update([
-                    'econtract_status' => 'Assigned',
-                    'modified_by' => $request['created_by']
-                ]);
+            $this->updateAssignWorkerEmployment($request);
+
         }
+
         return true;
     }
+
     /**
-     * @param $request
-     * @return array|bool
+     * Removing a worker from project from the given request data.
+     * 
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "unauthorizedError": A array returns unauthorized if e-contract project details is null.
+     * - "isSubmit": A boolean indicating if the worker removed successfully updated.
      */
     public function removeWorker($request): array|bool
     {
         $validator = Validator::make($request, $this->removeValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
 
@@ -283,8 +319,7 @@ class EContractWorkerServices
             })
             ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
         ->find($request['project_id']);
-
-        if(is_null($projectDetails)){
+        if (is_null($projectDetails)) {
             return [
                 'unauthorizedError' => true
             ];
@@ -292,12 +327,68 @@ class EContractWorkerServices
 
         $workerDetails = $this->workerEmployment->where("worker_id", $request['worker_id'])
                         ->where("project_id", $request['project_id'])
-                        ->where("service_type", "e-Contract")
+                        ->where("service_type", self::SERVICE_TYPE_ECONTRACT)
                         ->get();
 
+        $this->updateRemoveWorkerEmployment($request);
+
+        return true;
+    }
+
+    /**
+     * Assigning a new worker to project from the given request data.
+     *
+     * @param array $request The array containing project and worker data.
+     *                      The array should have the following keys:
+     *                      - worker_id: The worker of the project.
+     *                      - department: The department of the project.
+     *                      - sub_department: The sub department of the project.
+     *                      - work_start_date: The work start date of the project.
+     *                      - service_type: The service type of the project.
+     *                      - created_by: The ID of the user who created the project.
+     *                      - modified_by: The updated project modified by.
+     *
+     * @return Project The newly created project object.
+     */
+    public function updateAssignWorkerEmployment($request)
+    {
+        foreach ($request['workers'] as $workerId) {
+            $this->workerEmployment->create([
+                'worker_id' => $workerId,
+                'project_id' => $request['project_id'],
+                'department' => $request['department'],
+                'sub_department' => $request['sub_department'],
+                'work_start_date' => $request['work_start_date'],
+                'service_type' => self::SERVICE_TYPE_ECONTRACT,
+                'created_by' => $request['created_by'],
+                'modified_by' => $request['created_by']
+            ]);
+        }
+
+        $this->workers->whereIn('id', $request['workers'])
+        ->update([
+            'econtract_status' => self::STATUS_ASSIGNED,
+            'modified_by' => $request['created_by']
+        ]);
+    }
+    
+    /**
+     * Removing a worker from project from the given request data.
+     *
+     * @param array $request The request containing the updated project and worker data.
+     *               - worker_id: (int) The updated worker id.
+     *               - status: (string) The updated status.
+     *               - work_end_date: (int) The updated work end date.
+     *               - remove_date: (string) The updated remove date.
+     *               - remarks: (int) The updated remarks.
+     *               - econtract_status: (int) The updated econtract status.
+     *               - modified_by: (int) The updated project modified by.
+     */
+    public function updateRemoveWorkerEmployment($request)
+    {
         $this->workerEmployment->where("worker_id", $request['worker_id'])
         ->where("project_id", $request['project_id'])
-        ->where("service_type", "e-Contract")
+        ->where("service_type", self::SERVICE_TYPE_ECONTRACT)
         ->update([
             'status' => 0,
             'work_end_date' => $request['last_working_day'],
@@ -307,10 +398,8 @@ class EContractWorkerServices
 
         $this->workers->where('id', $request['worker_id'])
         ->update([
-            'econtract_status' => 'On-Bench',
+            'econtract_status' => self::STATUS_ONBENCH,
             'modified_by' => $request['modified_by']
         ]);
-
-        return true;
     }
 }

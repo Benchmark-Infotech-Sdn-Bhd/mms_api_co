@@ -21,6 +21,8 @@ use App\Services\AuthServices;
 
 class EContractPayrollServices
 {
+    public const SERVICE_TYPE_ECONTRACT = 'e-Contract';
+
     /**
      * @var Workers
      */
@@ -60,18 +62,29 @@ class EContractPayrollServices
      * @var AuthServices
      */
     private AuthServices $authServices;
+
     /**
-     * EContractPayrollServices constructor.
-     * @param EContractProject $eContractProject
-     * @param EContractPayroll $eContractPayroll
-     * @param EContractPayrollAttachments $eContractPayrollAttachments
-     * @param EContractPayrollBulkUpload $eContractPayrollBulkUpload
-     * @param EContractCostManagement $eContractCostManagement
-     * @param Storage $storage
-     * @param EContractProject $eContractProject
-     * @param AuthServices $authServices;
+     * Constructs a new instance of the class.
+     * 
+     * @param EContractProject $eContractProject The e-contract project object.
+     * @param EContractPayroll $eContractPayroll The e-contract payroll object.
+     * @param EContractPayrollAttachments $eContractPayrollAttachments The e-contract payroll attachments object.
+     * @param EContractPayrollBulkUpload $eContractPayrollBulkUpload The e-contract payroll bulk upload object.
+     * @param EContractCostManagement $eContractCostManagement The e-contractcost management object.
+     * @param Storage $storage The storage object.
+     * @param EContractProject $eContractProject The e-contract project object.
+     * @param AuthServices $authServices The auth services object.
      */
-    public function __construct(Workers $workers, EContractPayroll $eContractPayroll, EContractPayrollAttachments $eContractPayrollAttachments, Storage $storage, EContractPayrollBulkUpload $eContractPayrollBulkUpload, EContractCostManagement $eContractCostManagement, EContractProject $eContractProject, AuthServices $authServices)
+    public function __construct(
+        Workers $workers, 
+        EContractPayroll $eContractPayroll, 
+        EContractPayrollAttachments $eContractPayrollAttachments, 
+        Storage $storage, 
+        EContractPayrollBulkUpload $eContractPayrollBulkUpload, 
+        EContractCostManagement $eContractCostManagement, 
+        EContractProject $eContractProject, 
+        AuthServices $authServices
+    )
     {
         $this->workers = $workers;
         $this->eContractPayroll = $eContractPayroll;
@@ -139,7 +152,7 @@ class EContractPayrollServices
             ->leftJoin('worker_employment', 'worker_employment.worker_id','=','workers.id')
             ->leftJoin('e-contract_project', 'e-contract_project.id', '=', 'worker_employment.project_id')
             ->where('worker_employment.project_id', $request['project_id']) 
-            ->where('worker_employment.service_type', 'e-Contract')
+            ->where('worker_employment.service_type', self::SERVICE_TYPE_ECONTRACT)
             ->where('worker_employment.transfer_flag', 0)
             ->whereNull('worker_employment.remove_date')
             ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
@@ -174,7 +187,7 @@ class EContractPayrollServices
             })
             ->leftJoin('e-contract_project', 'e-contract_project.id', 'worker_employment.project_id')
             ->where('worker_employment.project_id', $request['project_id'])   
-            ->where('worker_employment.service_type', 'e-Contract')  
+            ->where('worker_employment.service_type', self::SERVICE_TYPE_ECONTRACT)  
             ->where('workers.company_id', $user['company_id'])  
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
@@ -224,7 +237,7 @@ class EContractPayrollServices
             })
             ->leftJoin('e-contract_project', 'e-contract_project.id', 'worker_employment.project_id')
             ->where('worker_employment.project_id', $request['project_id']) 
-            ->where('worker_employment.service_type', 'e-Contract')       
+            ->where('worker_employment.service_type', self::SERVICE_TYPE_ECONTRACT)       
             ->where('workers.company_id', $user['company_id'])  
             ->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
@@ -279,11 +292,10 @@ class EContractPayrollServices
      */   
     public function import($request, $file): mixed
     {
-        $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
-        $params['modified_by'] = $user['id'];
-        $params['company_id'] = $user['company_id'];
+        $request['created_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
+        $request['company_id'] = $user['company_id'];
 
         $checkProject = $this->eContractProject
         ->join('e-contract_applications', function($query) use($user) {
@@ -309,18 +321,19 @@ class EContractPayrollServices
                 'project_id' => $request['project_id'] ?? '',
                 'name' => 'Payroll Bulk Upload',
                 'type' => 'Payroll bulk upload',
-                'company_id' => $params['company_id'],
-                'created_by' => $params['created_by'],
-                'modified_by' => $params['created_by']
+                'company_id' => $request['company_id'],
+                'created_by' => $request['created_by'],
+                'modified_by' => $request['created_by']
             ]
         );
 
-        $rows = Excel::toArray(new EContractPayrollImport($params, $eContractPayrollBulkUpload), $file);
+        $rows = Excel::toArray(new EContractPayrollImport($request, $eContractPayrollBulkUpload), $file);
         
         $this->eContractPayrollBulkUpload->where('id', $eContractPayrollBulkUpload->id)
         ->update(['actual_row_count' => count($rows[0])]);
 
-        Excel::import(new EContractPayrollImport($params, $eContractPayrollBulkUpload), $file);
+        Excel::import(new EContractPayrollImport($request, $eContractPayrollBulkUpload), $file);
+
         return true;
     }
 
@@ -375,8 +388,9 @@ class EContractPayrollServices
                 'created_by' => $request['created_by'] ?? 0,
                 'modified_by' => $request['created_by'] ?? 0
             ]);
+
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -484,9 +498,8 @@ class EContractPayrollServices
      */
     public function uploadTimesheet($request): bool|array
     {
-        $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
+        $request['created_by'] = $user['id'];
 
         $checkProject = $this->eContractProject
         ->join('e-contract_applications', function($query) use($user) {
@@ -538,8 +551,8 @@ class EContractPayrollServices
                         "file_name" => $fileName,
                         "file_type" => 'Timesheet',
                         "file_url" =>  $fileUrl,
-                        "created_by" =>  $params['created_by'] ?? 0,
-                        "modified_by" =>  $params['created_by'] ?? 0
+                        "created_by" =>  $request['created_by'] ?? 0,
+                        "modified_by" =>  $request['created_by'] ?? 0
                     ]);
 
                     return true;
@@ -563,7 +576,6 @@ class EContractPayrollServices
     {
         $user = JWTAuth::parseToken()->authenticate();
         $checkEContractCostManagement = $this->eContractCostManagement->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
-
         if ($checkEContractCostManagement > 0) {
             return [
                 'existsError' => true
@@ -620,6 +632,7 @@ class EContractPayrollServices
                     'created_by'    => $user['worker_id'] ?? 0,
                     'modified_by'   => $user['worker_id'] ?? 0,
                 ]);
+
                 $this->eContractCostManagement->create([
                     'project_id' => $request['project_id'] ?? 0,
                     'title' => "SOCSO Contribution (" . $result['name'] . " )",
@@ -645,6 +658,7 @@ class EContractPayrollServices
         }
         return true;
     }
+
     /**
      * e-Contract payroll import history
      * 
@@ -691,6 +705,7 @@ class EContractPayrollServices
             'file_url' => $payrollBulkUpload->failure_case_url
         ];
     }
+
     /**
      * e-Contract payroll import failure case excel file creation
      * 
@@ -755,6 +770,5 @@ class EContractPayrollServices
             $this->eContractPayrollBulkUpload->where('id', $id)->update(['failure_case_url' => $fileUrl]);
         }
     }
-
 
 }

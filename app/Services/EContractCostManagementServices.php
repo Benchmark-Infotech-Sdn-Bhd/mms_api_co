@@ -14,29 +14,62 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 
 class EContractCostManagementServices
-{
-    private EContractCostManagement $eContractCostManagement;
-    private EContractCostManagementAttachments $eContractCostManagementAttachments;
-    private ValidationServices $validationServices;
-    private AuthServices $authServices;
-    private Storage $storage;
-    private EContractProject $eContractProject;
+{   
+    public const ITEM_SERVICES_ID = 2;
+    public const ATTACHMENT_ACTION_CREATE = 'CREATE';
+    public const ATTACHMENT_ACTION_UPDATE = 'UPDATE';
+    public const MESSAGE_DELETED_NOT_FOUND = "Data not found";
+    public const MESSAGE_DELETED_SUCCESSFULLY = "Deleted Successfully";
+    public const UNAUTHORIZED_ERROR = 'Unauthorized';
+    public const FILE_TYPE_COST_MANAGEMENT = 'COST MANAGEMENT';
+
     /**
-     * EContractCostManagementServices constructor.
-     * @param EContractCostManagement $eContractCostManagement
-     * @param EContractCostManagementAttachments $eContractCostManagementsAttachments
-     * @param ValidationServices $validationServices
-     * @param AuthServices $authServices
-     * @param Storage $storage
-     * @param EContractProject $eContractProject
+     * @var EContractCostManagement
+     */
+    private EContractCostManagement $eContractCostManagement;
+
+    /**
+     * @var EContractCostManagementAttachments
+     */
+    private EContractCostManagementAttachments $eContractCostManagementAttachments;
+
+    /**
+     * @var ValidationServices
+     */
+    private ValidationServices $validationServices;
+
+    /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+
+    /**
+     * @var Storage
+     */
+    private Storage $storage;
+
+    /**
+     * @var EContractProject
+     */
+    private EContractProject $eContractProject;
+
+    /**
+     * Constructs a new instance of the class.
+     * 
+     * @param EContractCostManagement $eContractCostManagement The e-contract cost management object.
+     * @param EContractCostManagementAttachments $eContractCostManagementAttachments The e-contract cost management attachments object.
+     * @param ValidationServices $validationServices The validation services object.
+     * @param AuthServices $authServices The auth services object.
+     * @param Storage $storage The storage object.
+     * @param EContractProject $eContractProject The e-contract project object.
      */
     public function __construct(
-            EContractCostManagement                 $eContractCostManagement,
-            EContractCostManagementAttachments     $eContractCostManagementAttachments,
-            ValidationServices                      $validationServices,
-            AuthServices                            $authServices,
-            Storage                                 $storage,
-            EContractProject $eContractProject
+        EContractCostManagement $eContractCostManagement,
+        EContractCostManagementAttachments $eContractCostManagementAttachments,
+        ValidationServices $validationServices,
+        AuthServices $authServices,
+        Storage $storage,
+        EContractProject $eContractProject
     )
     {
         $this->eContractCostManagement = $eContractCostManagement;
@@ -46,8 +79,11 @@ class EContractCostManagementServices
         $this->storage = $storage;
         $this->eContractProject = $eContractProject;
     }
+
     /**
-     * @return array
+     * Creates the validation rules for creating a new e-contract cost management.
+     *
+     * @return array The array containing the validation rules.
      */
     public function CreateValidation(): array
     {
@@ -59,8 +95,11 @@ class EContractCostManagementServices
             'amount' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/'
         ];
     }
+
     /**
-     * @return array
+     * Creates the validation rules for updating the e-contract cost management.
+     *
+     * @return array The array containing the validation rules.
      */
     public function updateValidation(): array
     {
@@ -74,14 +113,18 @@ class EContractCostManagementServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Creates a new cost from the given request data.
+     * 
+     * @param $request The request data containing cost details.
+     * @return bool|array Returns an array with the following keys:
+     * - "unauthorizedError": A array returns unauthorized if e-contract project is null.
+     * - "validate": An array of validation errors, if any.
+     * - "isSubmit": A boolean indicating if the e-contract cost was successfully created.
      */
-    public function create($request) : mixed
+    public function create($request): bool|array
     {
-        $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
+        $request['created_by'] = $user['id'];
 
         $projectData = $this->eContractProject
         ->join('e-contract_applications', function($query) use($user) {
@@ -90,62 +133,40 @@ class EContractCostManagementServices
         })
         ->select('e-contract_project.application_id')
         ->find($request['project_id']);
-        
-        if(is_null($projectData)){
+        if (is_null($projectData)) {
             return [
-                'unauthorizedError' => 'Unauthorized'
+                'unauthorizedError' => self::UNAUTHORIZED_ERROR
             ];
         }
 
-        if(!($this->validationServices->validate($request->toArray(),$this->CreateValidation()))){
+        if (!($this->validationServices->validate($request->toArray(),$this->CreateValidation()))) {
             return [
               'validate' => $this->validationServices->errors()
             ];
         }
 
-        $eContractCostManagement = $this->eContractCostManagement->create([
-            'project_id' => $request['project_id'],
-            'title' => $request['title'] ?? '',
-            'payment_reference_number' => $request['payment_reference_number'] ?? '',
-            'payment_date' => ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : null),
-            'quantity' => $request['quantity'] ?? '',
-            'amount' => $request['amount'] ?? '',
-            'remarks' => $request['remarks'] ?? '',
-            'created_by'    => $params['created_by'] ?? 0,
-            'modified_by'   => $params['created_by'] ?? 0
-        ]);
+        $eContractCostManagement = $this->createEContractCostManagement($request);
 
-        if (request()->hasFile('attachment')){
-            foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/eContract/costManagement/'.$eContractCostManagement['id']. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->eContractCostManagementAttachments::create([
-                        "file_id" => $eContractCostManagement['id'],
-                        "file_name" => $fileName,
-                        "file_type" => 'COST MANAGEMENT',
-                        "file_url" =>  $fileUrl
-                    ]);  
-            }
-        }
+        $this->uploadEContractCostManagementAttachments(self::ATTACHMENT_ACTION_CREATE, $request, $eContractCostManagement['id']);
 
         return true;
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * Updates the cost data with the given request.
+     * 
+     * @param $request The request data containing cost details.
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "unauthorizedError": A array returns unauthorized if e-contract cost management is null.
+     * - "isSubmit": A boolean indicating if the e-contract cost was successfully updated.
      */
     public function update($request): bool|array
     {
-
-        $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
-        $params['modified_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
 
-        if(!($this->validationServices->validate($request->toArray(),$this->updateValidation()))){
+        if (!($this->validationServices->validate($request->toArray(),$this->updateValidation()))) {
             return [
                 'validate' => $this->validationServices->errors()
             ];
@@ -159,58 +180,35 @@ class EContractCostManagementServices
         })
         ->select('e-contract_cost_management.id', 'e-contract_cost_management.project_id', 'e-contract_cost_management.title', 'e-contract_cost_management.payment_reference_number', 'e-contract_cost_management.quantity', 'e-contract_cost_management.amount', 'e-contract_cost_management.payment_date', 'e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_id', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management.invoice_number', 'e-contract_cost_management.is_payroll', 'e-contract_cost_management.payroll_id', 'e-contract_cost_management.month', 'e-contract_cost_management.year', 'e-contract_cost_management.created_by', 'e-contract_cost_management.modified_by', 'e-contract_cost_management.created_at', 'e-contract_cost_management.updated_at', 'e-contract_cost_management.deleted_at')
         ->find($request['id']);
-        if(is_null($eContractCostManagement)){
+        if (is_null($eContractCostManagement)) {
             return [
-                'unauthorizedError' => 'Unauthorized'
+                'unauthorizedError' => self::UNAUTHORIZED_ERROR
             ];
         }
 
-        $eContractCostManagement->title = $request['title'] ?? $eContractCostManagement->title;
-        $eContractCostManagement->payment_reference_number = $request['payment_reference_number'] ?? $eContractCostManagement->payment_reference_number;
-        $eContractCostManagement->payment_date = ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : $eContractCostManagement->payment_date);
-        $eContractCostManagement->amount = $request['amount'] ?? $eContractCostManagement->amount;
-        $eContractCostManagement->quantity = $request['quantity'] ?? $eContractCostManagement->quantity;
-        $eContractCostManagement->remarks = $request['remarks'] ?? $eContractCostManagement->remarks;
-        $eContractCostManagement->created_by = $request['created_by'] ?? $eContractCostManagement->created_by;
-        $eContractCostManagement->modified_by = $params['modified_by'];
-        $eContractCostManagement->save();
+        $this->updateEContractCostManagement($eContractCostManagement, $request);
 
-        if (request()->hasFile('attachment')){
-
-            $this->eContractCostManagementAttachments->where('file_id', $request['id'])->where('file_type', 'COST MANAGEMENT')->delete();
-
-            foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/eContract/costManagement/'.$request['id']. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->eContractCostManagementAttachments::create([
-                    "file_id" => $request['id'],
-                    "file_name" => $fileName,
-                    "file_type" => 'COST MANAGEMENT',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
+        $this->uploadEContractCostManagementAttachments(self::ATTACHMENT_ACTION_UPDATE, $request, $request['id']);
 
         return true;
     }
     
-    
     /**
-     * @param $request
-     * @return mixed
+     * Show the e-contract cost management with related e-contract project and application.
+     * 
+     * @param array $request The request data containing e-contract cost management id,  company id
+     * @return mixed Returns the e-contract cost management details with related e-contract project application.
      */
-    public function show($request) : mixed
+    public function show($request): mixed
     {
         $user = JWTAuth::parseToken()->authenticate();
         $params['company_id'] = $this->authServices->getCompanyIds($user);
-        if(!($this->validationServices->validate($request,['id' => 'required']))){
+        if (!($this->validationServices->validate($request,['id' => 'required']))) {
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
+
         return $this->eContractCostManagement->with('eContractCostManagementAttachments')
         ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
         ->join('e-contract_applications', function($query) use($params) {
@@ -222,20 +220,23 @@ class EContractCostManagementServices
     }
     
     /**
-     * @param $request
-     * @return mixed
+     * Returns a paginated list of e-contract cost management based on the given search request.
+     * 
+     * @param array $request The search request parameters.
+     * @return mixed Returns a paginated list of e-contract cost management.
      */
-    public function list($request) : mixed
+    public function list($request): mixed
     {
         $user = JWTAuth::parseToken()->authenticate();
         $params['company_id'] = $this->authServices->getCompanyIds($user);
-        if(isset($request['search_param']) && !empty($request['search_param'])){
-            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+        if (isset($request['search_param']) && !empty($request['search_param'])) {
+            if (!($this->validationServices->validate($request,['search_param' => 'required|min:3']))) {
                 return [
                     'validate' => $this->validationServices->errors()
                 ];
             }
         }
+
         return $this->eContractCostManagement
         ->leftJoin('e-contract_cost_management_attachments', function($join) use ($request){
             $join->on('e-contract_cost_management.id', '=', 'e-contract_cost_management_attachments.file_id')
@@ -243,7 +244,7 @@ class EContractCostManagementServices
           })
         ->LeftJoin('invoice_items_temp', function($join) use ($request){
             $join->on('invoice_items_temp.expense_id', '=', 'e-contract_cost_management.id')
-            ->where('invoice_items_temp.service_id', '=', 2)
+            ->where('invoice_items_temp.service_id', '=', self::ITEM_SERVICES_ID)
             ->WhereNull('invoice_items_temp.deleted_at');
           })
         ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
@@ -264,15 +265,16 @@ class EContractCostManagementServices
     }
 
     /**
-     * delete the data.
-     *
-     * @param $request
-     * @return mixed
-     */    
+     * Delete the e-contract cost management
+     * 
+     * @param array $request The request data containing the e-contract cost management.
+     * @return array The result of the delete operation containing the deletion status and message.
+     */  
     public function delete($request): mixed
     {   
         $user = JWTAuth::parseToken()->authenticate();
         $params['company_id'] = $this->authServices->getCompanyIds($user);
+
         $eContractCostManagement = $this->eContractCostManagement
         ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
         ->join('e-contract_applications', function($query) use($params) {
@@ -281,30 +283,32 @@ class EContractCostManagementServices
         })
         ->select('e-contract_cost_management.id', 'e-contract_cost_management.project_id', 'e-contract_cost_management.title', 'e-contract_cost_management.payment_reference_number', 'e-contract_cost_management.quantity', 'e-contract_cost_management.amount', 'e-contract_cost_management.payment_date', 'e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_id', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management.invoice_number', 'e-contract_cost_management.is_payroll', 'e-contract_cost_management.payroll_id', 'e-contract_cost_management.month', 'e-contract_cost_management.year', 'e-contract_cost_management.created_by', 'e-contract_cost_management.modified_by', 'e-contract_cost_management.created_at', 'e-contract_cost_management.updated_at', 'e-contract_cost_management.deleted_at')
         ->find($request['id']);
-
-        if(is_null($eContractCostManagement)){
+        if (is_null($eContractCostManagement)) {
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_DELETED_NOT_FOUND
             ];
         }
+
         $eContractCostManagement->eContractCostManagementAttachments()->delete();
         $eContractCostManagement->delete();
         return [
             "isDeleted" => true,
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
     }
 
     /**
-     *
-     * @param $request
-     * @return mixed
-     */    
+     * Delete the e-contract cost management attachment
+     * 
+     * @param array $request The request data containing the attachment ID.
+     * @return array The result of the delete operation containing the deletion status and message.
+     */
     public function deleteAttachment($request): mixed
     {   
         $user = JWTAuth::parseToken()->authenticate();
         $params['company_id'] = $this->authServices->getCompanyIds($user);
+
         $data = $this->eContractCostManagementAttachments
         ->join('e-contract_cost_management', 'e-contract_cost_management.id', 'e-contract_cost_management_attachments.file_id')
         ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
@@ -314,17 +318,108 @@ class EContractCostManagementServices
         })
         ->select('e-contract_cost_management_attachments.id', 'e-contract_cost_management_attachments.file_id', 'e-contract_cost_management_attachments.file_name', 'e-contract_cost_management_attachments.file_type', 'e-contract_cost_management_attachments.file_url', 'e-contract_cost_management_attachments.created_by', 'e-contract_cost_management_attachments.modified_by', 'e-contract_cost_management_attachments.created_at', 'e-contract_cost_management_attachments.updated_at', 'e-contract_cost_management_attachments.deleted_at')
         ->find($request['id']);
-
-        if(is_null($data)){
+        if (is_null($data)) {
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_DELETED_NOT_FOUND
             ];
         }
+
         return [
             "isDeleted" => $data->delete(),
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
+    }
+    
+    /**
+     * Creates a new e-contract cost management from the given request data.
+     *
+     * @param array $request The array containing cost data.
+     *                      The array should have the following keys:
+     *                      - project_id: The project id of the cost.
+     *                      - title: The title of the cost.
+     *                      - payment_reference_number: The payment reference number of the cost.
+     *                      - payment_date: The payment date of the cost.
+     *                      - quantity: The quantity of the cost.
+     *                      - amount: The amount of the cost.
+     *                      - remarks: The remarks of the cost.
+     *                      - created_by: The ID of the user who created the cost.
+     *                      - modified_by: The updated cost modified by.
+     * @return cost The newly created project object.
+     */
+    public function createEContractCostManagement($request)
+    {
+        $eContractCostManagement = $this->eContractCostManagement->create([
+            'project_id' => $request['project_id'],
+            'title' => $request['title'] ?? '',
+            'payment_reference_number' => $request['payment_reference_number'] ?? '',
+            'payment_date' => ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : null),
+            'quantity' => $request['quantity'] ?? '',
+            'amount' => $request['amount'] ?? '',
+            'remarks' => $request['remarks'] ?? '',
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0
+        ]);
+
+        return $eContractCostManagement;
+    }
+    
+    /**
+     * Updates the e-contract cost management from the given request data.
+     * 
+     * @param array $request The array containing cost data.
+     *                      The array should have the following keys:
+     *                      - title: The updated title.
+     *                      - payment_reference_number: The updated payment reference number.
+     *                      - payment_date: The updated payment date.
+     *                      - amount: The updated amount.
+     *                      - quantity: The updated quantity.
+     *                      - remarks: The updated remarks.
+     *                      - created_by: The ID of the user who created the cost.
+     *                      - modified_by: The updated cost modified by.
+     */
+    public function updateEContractCostManagement($eContractCostManagement, $request)
+    {
+        $eContractCostManagement->title = $request['title'] ?? $eContractCostManagement->title;
+        $eContractCostManagement->payment_reference_number = $request['payment_reference_number'] ?? $eContractCostManagement->payment_reference_number;
+        $eContractCostManagement->payment_date = ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : $eContractCostManagement->payment_date);
+        $eContractCostManagement->amount = $request['amount'] ?? $eContractCostManagement->amount;
+        $eContractCostManagement->quantity = $request['quantity'] ?? $eContractCostManagement->quantity;
+        $eContractCostManagement->remarks = $request['remarks'] ?? $eContractCostManagement->remarks;
+        $eContractCostManagement->created_by = $request['created_by'] ?? $eContractCostManagement->created_by;
+        $eContractCostManagement->modified_by = $request['modified_by'];
+        $eContractCostManagement->save();
+    }
+
+    /**
+     * Upload attachment of e-contract cost management.
+     *
+     * @param string $action The action value find the [create or update] functionality
+     * @param array $request The request data containing e-contract cost management
+     * @param int $costManagementId The attachments was upload against the cost management Id
+     */
+    public function uploadEContractCostManagementAttachments($action, $request, $costManagementId)
+    {
+        if (request()->hasFile('attachment')) {
+
+            if ($action = self::ATTACHMENT_ACTION_UPDATE) {
+                $this->eContractCostManagementAttachments->where('file_id', $costManagementId)->where('file_type', 'COST MANAGEMENT')->delete();
+            }
+
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/eContract/costManagement/'.$costManagementId. $fileName; 
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $this->eContractCostManagementAttachments::create([
+                        "file_id" => $costManagementId,
+                        "file_name" => $fileName,
+                        "file_type" => self::FILE_TYPE_COST_MANAGEMENT,
+                        "file_url" =>  $fileUrl
+                    ]);  
+            }
+        }
     }
 
 }
