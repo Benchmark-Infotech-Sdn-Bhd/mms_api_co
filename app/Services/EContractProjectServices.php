@@ -20,6 +20,7 @@ class EContractProjectServices
     public const EMPLOYMENT_TRANSFER_FLAG = 0;
     public const ATTACHMENT_ACTION_CREATE = 'CREATE';
     public const ATTACHMENT_ACTION_UPDATE = 'UPDATE';
+    public const DEFAULT_INTEGER_VALUE_ZERO = 0;
     public const UNAUTHORIZED_ERROR = 'Unauthorized';
 
     /**
@@ -158,13 +159,7 @@ class EContractProjectServices
      */
     public function show($request): mixed
     {
-        return $this->eContractProject->with('projectAttachments')
-        ->join('e-contract_applications', function($query) use($request) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->whereIn('e-contract_applications.company_id', $request['company_id']);
-        })
-        ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
-        ->find($request['id']);
+        return $this->showEContractProject($request);
     }
 
     /**
@@ -224,13 +219,7 @@ class EContractProjectServices
             ];
         }
 
-        $eContractProject = $this->eContractProject
-        ->join('e-contract_applications', function($query) use($request) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->whereIn('e-contract_applications.company_id', $request['company_id']);
-        })
-        ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
-        ->find($request['id']);
+        $eContractProject = $this->showEContractProject($request);
         if (is_null($eContractProject)) {
             return [
                 'unauthorizedError' => self::UNAUTHORIZED_ERROR
@@ -293,20 +282,20 @@ class EContractProjectServices
      *
      * @return Project The newly created project object.
      */
-    public function createEContractProject($request)
+    public function createEContractProject($request): mixed
     {
         $eContractProject = $this->eContractProject->create([
-            'application_id' => $request['application_id'] ?? 0,
+            'application_id' => $request['application_id'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
             'name' => $request['name'] ?? '',
             'state' => $request['state'] ?? '',
             'city' => $request['city'] ?? '',
             'address' => $request['address'] ?? '',
-            'annual_leave' => $request['annual_leave'] ?? 0,
-            'medical_leave' => $request['medical_leave'] ?? 0,
-            'hospitalization_leave' => $request['hospitalization_leave'] ?? 0,
+            'annual_leave' => $request['annual_leave'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'medical_leave' => $request['medical_leave'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'hospitalization_leave' => $request['hospitalization_leave'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
             "valid_until" =>  $request['valid_until'] ?? null,
-            'created_by' => $request['created_by'] ?? 0,
-            'modified_by' => $request['created_by'] ?? 0
+            'created_by' => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'modified_by' => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO
         ]);
 
         return $eContractProject;
@@ -327,7 +316,7 @@ class EContractProjectServices
      *               - valid_until: (int) The updated project valid until.
      *               - modified_by: (int) The updated project modified by.
      */
-    public function updateEContractProject($eContractProject, $request)
+    public function updateEContractProject($eContractProject, $request): void
     {
         $eContractProject->name =  $request['name'] ?? $eContractProject->name;
         $eContractProject->state =  $request['state'] ?? $eContractProject->state;
@@ -348,7 +337,7 @@ class EContractProjectServices
      * @param array $request The request data containing e-contract project attachments
      * @param int $eContractProjectId The attachments was upload against the application Id
      */
-    public function updateEContractProjectAttachments($action, $request, $eContractProjectId)
+    public function updateEContractProjectAttachments($action, $request, $eContractProjectId): void
     {
         if (request()->hasFile('attachment') && isset($eContractProjectId) && !empty($request['valid_until'])) {
             foreach($request->file('attachment') as $file) {                
@@ -365,12 +354,12 @@ class EContractProjectServices
                 ];
 
                 if ($action == self::ATTACHMENT_ACTION_CREATE) {
-                    $processData['created_by'] = $request['created_by'] ?? 0;
-                    $processData['modified_by'] = $request['created_by'] ?? 0;
+                    $processData['created_by'] = $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
+                    $processData['modified_by'] = $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
                 }
                 else
                 {
-                    $processData['modified_by'] = $request['modified_by'] ?? 0;
+                    $processData['modified_by'] = $request['modified_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
                 }
 
                 $this->eContractProjectAttachments->updateOrCreate(
@@ -379,5 +368,22 @@ class EContractProjectServices
                 );
             }
         }
+    }
+
+    /**
+     * Show the e-contract project with related attachment and application.
+     * 
+     * @param array $request The request data containing e-contract project id, company id
+     * @return mixed Returns the e-contract project with related attachment and application.
+     */
+    public function showEContractProject($request): mixed
+    {
+        return $this->eContractProject->with('projectAttachments')
+        ->join('e-contract_applications', function($query) use($request) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->whereIn('e-contract_applications.company_id', $request['company_id']);
+        })
+        ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
+        ->find($request['id']);
     }
 }

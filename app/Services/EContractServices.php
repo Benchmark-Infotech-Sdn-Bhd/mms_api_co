@@ -27,6 +27,7 @@ class EContractServices
     public const EMPLOYMENT_TRANSFER_FLAG = 0;
     public const PROSPECT_SERVICES_ID = 2;
     public const APPLICATION_COST_QUOTED = 0;
+    public const DEFAULT_INTEGER_VALUE_ZERO = 0;
     public const UNAUTHORIZED_ERROR = 'Unauthorized';
 
     /**
@@ -251,11 +252,11 @@ class EContractServices
             'crm_prospect_id'    => $request['prospect_id'],
             'service_id'         => $service->id,
             'service_name'       => $service->service_name,
-            'sector_id'          => $request['sector_id'] ?? 0,
+            'sector_id'          => $request['sector_id'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
             'sector_name'        => $request['sector_name'] ?? '',
-            'status'             => $request['status'] ?? 0,
-            'fomnext_quota'      => $request['fomnext_quota'] ?? 0,
-            'air_ticket_deposit' => $request['air_ticket_deposit'] ?? 0,
+            'status'             => $request['status'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'fomnext_quota'      => $request['fomnext_quota'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'air_ticket_deposit' => $request['air_ticket_deposit'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
         ]);
 
         $this->updateCrmProspectServiceAttachments($request, $prospectService->id);
@@ -353,13 +354,8 @@ class EContractServices
             ];
         }
 
-        $serviceDetails = $this->crmProspectService
-        ->join('crm_prospects', function($query) use($request) {
-            $query->on('crm_prospects.id','=','crm_prospect_services.crm_prospect_id')
-            ->whereIn('crm_prospects.company_id', $request['company_id']);
-        })
-        ->select('crm_prospect_services.id', 'crm_prospect_services.crm_prospect_id', 'crm_prospect_services.service_id', 'crm_prospect_services.service_name', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.contract_type', 'crm_prospect_services.status', 'crm_prospect_services.from_existing', 'crm_prospect_services.client_quota', 'crm_prospect_services.fomnext_quota', 'crm_prospect_services.initial_quota', 'crm_prospect_services.service_quota', 'crm_prospect_services.air_ticket_deposit', 'crm_prospect_services.created_at', 'crm_prospect_services.updated_at', 'crm_prospect_services.deleted_at')
-        ->find($request['prospect_service_id']);
+        $serviceDetails = $this->showCrmProspect($request);
+        
         if (is_null($serviceDetails)) {
             return [
                 'unauthorizedError' => self::UNAUTHORIZED_ERROR
@@ -383,13 +379,7 @@ class EContractServices
      */
     public function showService($request): mixed
     {
-        return $this->crmProspectService
-        ->join('crm_prospects', function($query) use($request) {
-            $query->on('crm_prospects.id','=','crm_prospect_services.crm_prospect_id')
-            ->whereIn('crm_prospects.company_id', $request['company_id']);
-        })
-        ->select('crm_prospect_services.id', 'crm_prospect_services.crm_prospect_id', 'crm_prospect_services.service_id', 'crm_prospect_services.service_name', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.contract_type', 'crm_prospect_services.status', 'crm_prospect_services.from_existing', 'crm_prospect_services.client_quota', 'crm_prospect_services.fomnext_quota', 'crm_prospect_services.initial_quota', 'crm_prospect_services.service_quota', 'crm_prospect_services.air_ticket_deposit', 'crm_prospect_services.created_at', 'crm_prospect_services.updated_at', 'crm_prospect_services.deleted_at')
-        ->find($request['prospect_service_id']);
+        return $this->showCrmProspect($request);
     }
     
     /**
@@ -398,7 +388,7 @@ class EContractServices
      * @param array $request The request data containing prospect service attachments
      * @param int $prospectServiceId The attachments was upload against the prospect service Id
      */
-    public function updateCrmProspectServiceAttachments($request, $prospectServiceId)
+    public function updateCrmProspectServiceAttachments($request, $prospectServiceId): void
     {
         if (request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file) {                
@@ -430,18 +420,18 @@ class EContractServices
      *
      * @param int $prospectServiceId The application was created against the prospect service Id
      */
-    public function createEContractApplications($request, $prospectServiceId)
+    public function createEContractApplications($request, $prospectServiceId): void
     {
         $this->eContractApplications::create([
             'crm_prospect_id' => $request['prospect_id'],
             'service_id' => $prospectServiceId,
-            'quota_requested' => $request['fomnext_quota'] ?? 0,
+            'quota_requested' => $request['fomnext_quota'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
             'person_incharge' => '',
             'cost_quoted' => self::APPLICATION_COST_QUOTED,
             'status' => self::PENDING_PROPOSAL,
             'remarks' => '',
-            'created_by' => $request["created_by"] ?? 0,
-            'modified_by' => $request["created_by"] ?? 0,
+            'created_by' => $request["created_by"] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'modified_by' => $request["created_by"] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
             'company_id' => $request['company_id']
         ]);
     }
@@ -452,7 +442,7 @@ class EContractServices
      * @param array $request The request data containing proposal attachments
      * @param int $applicationId The attachments was upload against the application Id
      */
-    public function updateSubmitProposalAttachments($request, $applicationId)
+    public function updateSubmitProposalAttachments($request, $applicationId): void
     {
         if (request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file){
@@ -478,11 +468,28 @@ class EContractServices
      * 
      * @param array $request Array with 'id' and 'fomnext quota' keys
      */
-    public function updateEContractApplicationsFomnextQuota($request)
+    public function updateEContractApplicationsFomnextQuota($request): void
     {
         $applicationDetails = $this->eContractApplications->findOrFail($request['id']);
         $applicationDetails->quota_requested = $request['fomnext_quota'] ?? $serviceDetails->fomnext_quota;
         $applicationDetails->save();
+    }
+    
+    /**
+     * Show the crm prospect service with related prospect.
+     * 
+     * @param array $request The request data containing crm prospect service id, company id
+     * @return mixed Returns the crm prospect service with related prospect.
+     */
+    public function showCrmProspect($request):mixed
+    {
+        return $this->crmProspectService
+        ->join('crm_prospects', function($query) use($request) {
+            $query->on('crm_prospects.id','=','crm_prospect_services.crm_prospect_id')
+            ->whereIn('crm_prospects.company_id', $request['company_id']);
+        })
+        ->select('crm_prospect_services.id', 'crm_prospect_services.crm_prospect_id', 'crm_prospect_services.service_id', 'crm_prospect_services.service_name', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.contract_type', 'crm_prospect_services.status', 'crm_prospect_services.from_existing', 'crm_prospect_services.client_quota', 'crm_prospect_services.fomnext_quota', 'crm_prospect_services.initial_quota', 'crm_prospect_services.service_quota', 'crm_prospect_services.air_ticket_deposit', 'crm_prospect_services.created_at', 'crm_prospect_services.updated_at', 'crm_prospect_services.deleted_at')
+        ->find($request['prospect_service_id']);
     }
 
 }

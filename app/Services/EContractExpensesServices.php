@@ -17,6 +17,7 @@ class EContractExpensesServices
     public const ECONTRACT_EXPENSES = 'EContract Expenses';
     public const ATTACHMENT_ACTION_CREATE = 'CREATE';
     public const ATTACHMENT_ACTION_UPDATE = 'UPDATE';
+    public const DEFAULT_INTEGER_VALUE_ZERO = 0;
     public const UNAUTHORIZED_ERROR = 'Unauthorized';
 
     /**
@@ -194,33 +195,12 @@ class EContractExpensesServices
         $user = JWTAuth::parseToken()->authenticate();
         $params['company_id'] = $this->authServices->getCompanyIds($user);
 
-        return $this->eContractExpenses::with(['eContractExpensesAttachments' => function ($query) {
-            $query->orderBy('created_at', 'desc');
-        }])
-        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
-        ->join('e-contract_applications', function($query) use($params) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->where('e-contract_applications.company_id', $params['company_id']);
-        })
-        ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.application_id', 'e-contract_expenses.project_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount', 'e-contract_expenses.amount_paid', 'e-contract_expenses.deduction', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses.created_by', 'e-contract_expenses.modified_by', 'e-contract_expenses.is_payroll', 'e-contract_expenses.payroll_id', 'e-contract_expenses.month', 'e-contract_expenses.year', 'e-contract_expenses.invoice_number', 'e-contract_expenses.created_at', 'e-contract_expenses.updated_at', 'e-contract_expenses.deleted_at')
-        ->find($request['id']);
+        return $this->showEContractExpenses(['id' => $request['id'], 'company_id' => $params['company_id']]);
     }
 
     /**
      * Creates a new e-contract expenses from the given request data.
      * 
-     * @param array $request The array containing expenses data.
-     *                      The array should have the following keys:
-     *                      - worker_id: The worker id of the expenses.
-     *                      - application_id: The application id of the expenses.
-     *                      - project_id: The project id id of the expenses.
-     *                      - title: The title of the expenses.
-     *                      - type: The type of the expenses.
-     *                      - payment_reference_number: The payment reference number of the expenses.
-     *                      - payment_date: The payment date of the expenses.
-     *                      - amount: The amount of the expenses.
-     *                      - remarks: The remarks of the expenses.
-     *                      - created_by: The ID of the user who created the expenses.
      * @return bool|array Returns an array with the following keys:
      * - "unauthorizedError": A array returns unauthorized if e-contract [applications or project] is null.
      * - "validate": An array of validation errors, if any.
@@ -260,19 +240,7 @@ class EContractExpensesServices
 
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
-        $expenses = $this->eContractExpenses->create([
-            'worker_id' => $request['worker_id'] ?? 0,
-            'application_id' => $request['application_id'] ?? 0,
-            'project_id' => $request['project_id'] ?? 0,
-            'title' => $request['title'] ?? '',
-            'type' => $request['type'] ?? '',
-            'payment_reference_number' => $request['payment_reference_number'] ?? '',
-            'payment_date' => ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : null),
-            'amount' => $request['amount'] ?? 0,
-            'remarks' => $request['remarks'] ?? '',
-            'created_by'    => $request['created_by'] ?? 0,
-            'modified_by'   => $request['created_by'] ?? 0,
-        ]);
+        $expenses = $this->createEContractExpenses($request);
 
         $this->updateEContractExpensesAttachments(self::ATTACHMENT_ACTION_CREATE, $request, $expenses['id']);
 
@@ -282,18 +250,6 @@ class EContractExpensesServices
     /**
      * Updates the e-contract expenses from the given request data.
      * 
-     * @param array $request The array containing expenses data.
-     *                      The array should have the following keys:
-     *                      - worker_id: The updated worker id.
-     *                      - application_id: The updated application id.
-     *                      - project_id: The updated project id.
-     *                      - title: The updated title.
-     *                      - type: The updated type.
-     *                      - payment_reference_number: The updated payment reference number.
-     *                      - payment_date: The updated payment date.
-     *                      - amount: The updated amount.
-     *                      - remarks: The updated remarks.
-     *                      - modified_by: The updated expenses modified by.
      * @return bool|array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
      * - "unauthorizedError": A array returns unauthorized if e-contract expenses is null.
@@ -310,30 +266,14 @@ class EContractExpensesServices
 
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
-        $expense = $this->eContractExpenses::join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
-        ->join('e-contract_applications', function($query) use($user) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->where('e-contract_applications.company_id', $user['company_id']);
-        })
-        ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.application_id', 'e-contract_expenses.project_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount', 'e-contract_expenses.amount_paid', 'e-contract_expenses.deduction', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses.created_by', 'e-contract_expenses.modified_by', 'e-contract_expenses.is_payroll', 'e-contract_expenses.payroll_id', 'e-contract_expenses.month', 'e-contract_expenses.year', 'e-contract_expenses.invoice_number', 'e-contract_expenses.created_at', 'e-contract_expenses.updated_at', 'e-contract_expenses.deleted_at')
-        ->find($request['id']);
+        $expense = $this->showEContractExpenses(['id' => $request['id'], 'company_id' => $user['company_id']]);
         if (is_null($expense)) {
             return [
                 'unauthorizedError' => self::UNAUTHORIZED_ERROR
             ];
         }
 
-        $expense->worker_id = $request['worker_id'] ?? $expense->worker_id;
-        $expense->application_id = $request['application_id'] ?? $expense->application_id;
-        $expense->project_id = $request['project_id'] ?? $expense->project_id;
-        $expense->title = $request['title'] ?? $expense->title;
-        $expense->type = $request['type'] ?? $expense->type;
-        $expense->payment_reference_number = $request['payment_reference_number'] ?? $expense->payment_reference_number;
-        $expense->payment_date = $request['payment_date'] ?? $expense->payment_date;
-        $expense->amount = $request['amount'] ?? $expense->amount;
-        $expense->remarks = $request['remarks'] ?? $expense->remarks;
-        $expense->modified_by = $request['modified_by'] ?? $expense->modified_by;
-        $expense->save();
+        $this->updateEContractExpenses($expense, $request);
 
         $this->updateEContractExpensesAttachments(self::ATTACHMENT_ACTION_UPDATE, $request, $expense['id']);
 
@@ -351,13 +291,7 @@ class EContractExpensesServices
         $user = JWTAuth::parseToken()->authenticate();
         $params['company_id'] = $this->authServices->getCompanyIds($user);
     
-        $expense = $this->eContractExpenses::join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
-        ->join('e-contract_applications', function($query) use($user) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->where('e-contract_applications.company_id', $user['company_id']);
-        })
-        ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.application_id', 'e-contract_expenses.project_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount', 'e-contract_expenses.amount_paid', 'e-contract_expenses.deduction', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses.created_by', 'e-contract_expenses.modified_by', 'e-contract_expenses.is_payroll', 'e-contract_expenses.payroll_id', 'e-contract_expenses.month', 'e-contract_expenses.year', 'e-contract_expenses.invoice_number', 'e-contract_expenses.created_at', 'e-contract_expenses.updated_at', 'e-contract_expenses.deleted_at')
-        ->find($request['id']);
+        $expense = $this->showEContractExpenses(['id' => $request['id'], 'company_id' => $user['company_id']]);
         if (is_null($expense)) {
             return false;
         }
@@ -418,13 +352,7 @@ class EContractExpensesServices
 
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
-        $expense = $this->eContractExpenses::join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
-        ->join('e-contract_applications', function($query) use($user) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->where('e-contract_applications.company_id', $user['company_id']);
-        })
-        ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.application_id', 'e-contract_expenses.project_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount', 'e-contract_expenses.amount_paid', 'e-contract_expenses.deduction', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses.created_by', 'e-contract_expenses.modified_by', 'e-contract_expenses.is_payroll', 'e-contract_expenses.payroll_id', 'e-contract_expenses.month', 'e-contract_expenses.year', 'e-contract_expenses.invoice_number', 'e-contract_expenses.created_at', 'e-contract_expenses.updated_at', 'e-contract_expenses.deleted_at')
-        ->find($request['id']);
+        $expense = $this->showEContractExpenses(['id' => $request['id'], 'company_id' => $user['company_id']]);
         if (is_null($expense)) {
             return [
                 'unauthorizedError' => true
@@ -456,7 +384,7 @@ class EContractExpensesServices
      * @param array $request The request data containing e-contract expenses attachments
      * @param int $expensesId The attachments was upload against the expenses Id
      */
-    public function updateEContractExpensesAttachments($action, $request, $expensesId)
+    public function updateEContractExpensesAttachments($action, $request, $expensesId): void
     {
         if (request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file){
@@ -474,17 +402,104 @@ class EContractExpensesServices
                 ];
 
                 if ($action == self::ATTACHMENT_ACTION_CREATE) {
-                    $processData['created_by'] = $request['created_by'] ?? 0;
-                    $processData['modified_by'] = $request['created_by'] ?? 0;
+                    $processData['created_by'] = $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
+                    $processData['modified_by'] = $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
                 }
                 else
                 {
-                    $processData['created_by'] = $request['modified_by'] ?? 0;
-                    $processData['modified_by'] = $request['modified_by'] ?? 0;
+                    $processData['created_by'] = $request['modified_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
+                    $processData['modified_by'] = $request['modified_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
                 }
 
                 $this->eContractExpensesAttachments::create($processData);  
             }
         }
+    }
+
+    /**
+     * Show the e-contract expenses with related attachment and project.
+     * 
+     * @param array $request The request data containing e-contract expenses id, company id
+     * @return mixed Returns the e-contract expenses with related attachment and project.
+     */
+    public function showEContractExpenses($request): mixed
+    {
+        return $this->eContractExpenses::with(['eContractExpensesAttachments' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+        }])
+        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
+        ->join('e-contract_applications', function($query) use($request) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $request['company_id']);
+        })
+        ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.application_id', 'e-contract_expenses.project_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount', 'e-contract_expenses.amount_paid', 'e-contract_expenses.deduction', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses.created_by', 'e-contract_expenses.modified_by', 'e-contract_expenses.is_payroll', 'e-contract_expenses.payroll_id', 'e-contract_expenses.month', 'e-contract_expenses.year', 'e-contract_expenses.invoice_number', 'e-contract_expenses.created_at', 'e-contract_expenses.updated_at', 'e-contract_expenses.deleted_at')
+        ->find($request['id']);
+    }
+    
+    /**
+     * Creates a new e-contract expenses from the given request data.
+     * 
+     * @param array $request The array containing expenses data.
+     *                      The array should have the following keys:
+     *                      - worker_id: The worker id of the expenses.
+     *                      - application_id: The application id of the expenses.
+     *                      - project_id: The project id id of the expenses.
+     *                      - title: The title of the expenses.
+     *                      - type: The type of the expenses.
+     *                      - payment_reference_number: The payment reference number of the expenses.
+     *                      - payment_date: The payment date of the expenses.
+     *                      - amount: The amount of the expenses.
+     *                      - remarks: The remarks of the expenses.
+     *                      - created_by: The ID of the user who created the expenses.
+     * @return expenses The newly created expenses object.
+     */
+    public function createEContractExpenses($request): mixed
+    {
+        $expenses = $this->eContractExpenses->create([
+            'worker_id' => $request['worker_id'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'application_id' => $request['application_id'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'project_id' => $request['project_id'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'title' => $request['title'] ?? '',
+            'type' => $request['type'] ?? '',
+            'payment_reference_number' => $request['payment_reference_number'] ?? '',
+            'payment_date' => ((isset($request['payment_date']) && !empty($request['payment_date'])) ? $request['payment_date'] : null),
+            'amount' => $request['amount'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'remarks' => $request['remarks'] ?? '',
+            'created_by'    => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'modified_by'   => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+        ]);
+
+        return $expenses;
+    }
+
+    /**
+     * Updates the e-contract expenses from the given request data.
+     * 
+     * @param array $request The array containing expenses data.
+     *                      The array should have the following keys:
+     *                      - worker_id: The updated worker id.
+     *                      - application_id: The updated application id.
+     *                      - project_id: The updated project id.
+     *                      - title: The updated title.
+     *                      - type: The updated type.
+     *                      - payment_reference_number: The updated payment reference number.
+     *                      - payment_date: The updated payment date.
+     *                      - amount: The updated amount.
+     *                      - remarks: The updated remarks.
+     *                      - modified_by: The updated expenses modified by.
+     */
+    public function updateEContractExpenses($expense, $request): void
+    {
+        $expense->worker_id = $request['worker_id'] ?? $expense->worker_id;
+        $expense->application_id = $request['application_id'] ?? $expense->application_id;
+        $expense->project_id = $request['project_id'] ?? $expense->project_id;
+        $expense->title = $request['title'] ?? $expense->title;
+        $expense->type = $request['type'] ?? $expense->type;
+        $expense->payment_reference_number = $request['payment_reference_number'] ?? $expense->payment_reference_number;
+        $expense->payment_date = $request['payment_date'] ?? $expense->payment_date;
+        $expense->amount = $request['amount'] ?? $expense->amount;
+        $expense->remarks = $request['remarks'] ?? $expense->remarks;
+        $expense->modified_by = $request['modified_by'] ?? $expense->modified_by;
+        $expense->save();
     }
 }
