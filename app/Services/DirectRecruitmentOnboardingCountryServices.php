@@ -18,61 +18,84 @@ use App\Models\DirectRecruitmentOnboardingAgent;
 
 class DirectRecruitmentOnboardingCountryServices
 {
+
+    public const REQUEST_COMPANY_ID = 'company_id';
+    public const REQUEST_APPLICATION_ID = 'application_id';
+    public const REQUEST_ONBOARDING_COUNTRY_ID = 'onboarding_country_id';
+    public const REQUEST_ONBOARDING_AGENT_ID = 'onboarding_agent_id';
+    public const REQUEST_KSM_REFERENCE_NUMBER = 'ksm_reference_number';
+    public const REQUEST_ONBOARDING_ATTESTATION_ID = 'onboarding_attestation_id';
+
+    public const DEFAULT_INT_VALUE = 0;
+    public const STATUS_ACTIVE = 1;
+    public const STATUS_IN_ACTIVE = 0;
+
     /**
-     * @var ValidationServices
+     * @var ValidationServices $validationServices
      */
     private ValidationServices $validationServices;
     /**
-     * @var DirectRecruitmentOnboardingCountry
+     * @var DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
      */
     private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
     /**
-     * @var DirectRecruitmentApplicationApproval
+     * @var DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval
      */
     private DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval;
     /**
-     * @var ApplicationInterviews
+     * @var ApplicationInterviews $applicationInterviews
      */
     private ApplicationInterviews $applicationInterviews;
      /**
-     * @var OnboardingAttestation
+     * @var OnboardingAttestation $onboardingAttestation
      */
     private OnboardingAttestation $onboardingAttestation;
     /**
-     * @var Workers
+     * @var Workers $workers
      */
     private Workers $workers;
     /**
-     * @var Levy
+     * @var Levy $levy
      */
     private Levy $levy;
     /**
-     * @var OnboardingCountriesKSMReferenceNumber
+     * @var OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber
      */
     private OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber;
     /**
-     * @var DirectRecruitmentOnboardingAgent
+     * @var DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent
      */
     private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
     /**
-     * @var DirectrecruitmentApplications
+     * @var DirectrecruitmentApplications $directrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
 
     /**
-     * DirectRecruitmentOnboardingCountryServices constructor.
-     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
-     * @param DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval;
-     * @param ApplicationInterviews $applicationInterviews
-     * @param ValidationServices $validationServices;
-     * @param OnboardingAttestation $onboardingAttestation;
-     * @param Workers $workers
-     * @param Levy $levy
-     * @param OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber
-     * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent
-     * @param DirectrecruitmentApplications $directrecruitmentApplications
+     * DirectRecruitmentOnboardingCountryServices constructor method.
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry The Direct Recruitment OnBoarding Country instance
+     * @param DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval The Direct Recruitment application approval instance
+     * @param ApplicationInterviews $applicationInterviews The application interviews instance
+     * @param ValidationServices $validationServices The validation services
+     * @param OnboardingAttestation $onboardingAttestation The onboarding attestation instance
+     * @param Workers $workers The workers instance
+     * @param Levy $levy The Levy instance
+     * @param OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber The onboarding Countries KSM Reference Number instance
+     * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent The Direct Recruitment onboarding agent instance 
+     * @param DirectrecruitmentApplications $directrecruitmentApplications The Direct Recruitment applications instance
      */
-    public function __construct(DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval, ApplicationInterviews $applicationInterviews, ValidationServices $validationServices, OnboardingAttestation $onboardingAttestation, Workers $workers, Levy $levy, OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber, DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent, DirectrecruitmentApplications $directrecruitmentApplications)
+    public function __construct(
+        DirectRecruitmentOnboardingCountry      $directRecruitmentOnboardingCountry,
+        DirectRecruitmentApplicationApproval    $directRecruitmentApplicationApproval,
+        ApplicationInterviews                   $applicationInterviews,
+        ValidationServices                      $validationServices,
+        OnboardingAttestation                   $onboardingAttestation,
+        Workers                                 $workers,
+        Levy                                    $levy,
+        OnboardingCountriesKSMReferenceNumber   $onboardingCountriesKSMReferenceNumber,
+        DirectRecruitmentOnboardingAgent        $directRecruitmentOnboardingAgent,
+        DirectrecruitmentApplications           $directrecruitmentApplications
+    )
     {
         $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->directRecruitmentApplicationApproval = $directRecruitmentApplicationApproval;
@@ -86,7 +109,9 @@ class DirectRecruitmentOnboardingCountryServices
         $this->directrecruitmentApplications = $directrecruitmentApplications;
     }
     /**
-     * @return array
+     * Creates the validation rules for creating a new entity.
+     *
+     * @return array The array containing the validation rules.
      */
     public function createValidation(): array
     {
@@ -98,7 +123,18 @@ class DirectRecruitmentOnboardingCountryServices
         ];
     }
     /**
-     * @return array
+     * Returns the validation rules for the update action.
+     *
+     * @return array The validation rules for the update action.
+     *
+     * The returned array has the following structure:
+     * [
+     *     'id' => 'required',
+     *     'country_id' => 'required'
+     * ]
+     *
+     * The 'id' field is required, meaning it must be present in the request data.
+     * The 'country_id' field is also required, meaning it must be present in the request data.
      */
     public function updateValidation(): array
     {
@@ -108,7 +144,20 @@ class DirectRecruitmentOnboardingCountryServices
         ];
     }
     /**
-     * @return array
+     * Returns the validation rules for the update action.
+     *
+     * @return array The validation rules for the update action.
+     *
+     * The returned array has the following structure:
+     * [
+     *     'id' => 'required',
+     *     'ksm_reference_number' => 'required',
+     *     'quota' => 'required',
+     * ]
+     *
+     * The 'id' field is required, meaning it must be present in the request data.
+     * The 'ksm_reference_number' field is required, meaning it must be present in the request data.
+     * The 'quota' fields is required, meaning it must be present in the request data. max limit 3 and should be integer values
      */
     public function ksmUpdateValidation(): array
     {
@@ -119,7 +168,20 @@ class DirectRecruitmentOnboardingCountryServices
         ];
     }
     /**
-     * @return array
+     * Returns the validation rules for the add action.
+     *
+     * @return array The validation rules for the add action.
+     *
+     * The returned array has the following structure:
+     * [
+     *     'onboarding_country_id' => 'required',
+     *     'ksm_reference_number' => 'required',
+     *     'quota' => 'required',
+     * ]
+     *
+     * The 'onboarding_country_id' field is required, meaning it must be present in the request data.
+     * The 'ksm_reference_number' field is required, meaning it must be present in the request data.
+     * The 'quota' fields is required, meaning it must be present in the request data. max limit 3 and should be integer values
      */
     public function addKSMValidation(): array
     {
@@ -130,9 +192,11 @@ class DirectRecruitmentOnboardingCountryServices
         ];
     }
     /**
-     * @param $request
-     * @return mixed
-     */   
+     * Returns a paginated list of direct recruitment on boarding country with their direct recruitment application details.
+     *
+     * @param array $request The request data containing company id,  application_id, onboarding_country_id
+     * @return mixed \Illuminate\Pagination\LengthAwarePaginator The paginated list of direct recruitment onboarding agent with direct recruitment application details.
+     */    
     public function list($request): mixed
     {
 
@@ -144,15 +208,17 @@ class DirectRecruitmentOnboardingCountryServices
             }
         }
         
-        return $this->directRecruitmentOnboardingCountry->with(['onboardingKSMReferenceNumbers' => function ($query) {
+        return $this->directRecruitmentOnboardingCountry
+            ->with(['onboardingKSMReferenceNumbers' => function ($query) {
                 $query->select('id', 'onboarding_country_id', 'ksm_reference_number', 'quota', 'utilised_quota');
-            }])->leftJoin('countries', 'countries.id', 'directrecruitment_onboarding_countries.country_id')
+            }])
+            ->leftJoin('countries', 'countries.id', 'directrecruitment_onboarding_countries.country_id')
             ->leftJoin('directrecruitment_onboarding_status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_status.id')
             ->join('directrecruitment_applications', function ($join) use($request) {
                 $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
-                     ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+                     ->whereIn('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
             })
-            ->where('directrecruitment_onboarding_countries.application_id', $request['application_id'])
+            ->where('directrecruitment_onboarding_countries.application_id', $request[self::REQUEST_APPLICATION_ID])
             ->where(function ($query) use ($request) {
                 if (isset($request['search_param']) && !empty($request['search_param'])) {
                     $query->where('countries.country_name', 'like', "%{$request['search_param']}%");
@@ -163,21 +229,25 @@ class DirectRecruitmentOnboardingCountryServices
             ->paginate(Config::get('services.paginate_row'));
     }
     /**
-     * @param $request
-     * @return mixed
+     * Returns a direct recruitment on boarding country with their on baordig KSM reference number details.
+     *
+     * @param array $request The request data containing id, company id
+     * @return mixed direct recruitment on boarding country with their on baordig KSM reference number details.
      */   
     public function show($request): mixed
     {
-        return $this->directRecruitmentOnboardingCountry->with(['onboardingKSMReferenceNumbers' => function ($query) {
-            $query->leftJoin('directrecruitment_onboarding_agent', function($join) {
+        return $this->directRecruitmentOnboardingCountry
+            ->with(['onboardingKSMReferenceNumbers' => function ($query) {
+                $query->leftJoin('directrecruitment_onboarding_agent', function($join) {
                 $join->on('directrecruitment_onboarding_agent.ksm_reference_number', 'onboarding_countries_ksm_reference_number.ksm_reference_number')
                 ->on('directrecruitment_onboarding_agent.onboarding_country_id', 'onboarding_countries_ksm_reference_number.onboarding_country_id');
             })
             ->select('onboarding_countries_ksm_reference_number.id', 'onboarding_countries_ksm_reference_number.onboarding_country_id', 'onboarding_countries_ksm_reference_number.ksm_reference_number', 'onboarding_countries_ksm_reference_number.quota', 'onboarding_countries_ksm_reference_number.utilised_quota', 'directrecruitment_onboarding_agent.id as agent_id', \DB::raw("(CASE WHEN directrecruitment_onboarding_agent.id is not null THEN '0' ELSE '1' END) AS edit_flag"));
-            }])->leftJoin('directrecruitment_onboarding_status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_status.id')
+            }])
+            ->leftJoin('directrecruitment_onboarding_status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_status.id')
             ->join('directrecruitment_applications', function ($join) use($request) {
                 $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
-                    ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+                    ->whereIn('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
             })
             ->select('directrecruitment_onboarding_countries.*', 'directrecruitment_onboarding_status.name as onboarding_status_name')->find($request['id']);
     }

@@ -59,13 +59,13 @@ class DirectRecruitmentOnboardingAgentServices
     /**
      * DirectRecruitmentOnboardingAgentServices Constructor method.
      * 
-     * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent The Direct Recruitment onboarding agent object
-     * @param DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices The Direct Recruitment onboarding attestation object
-     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry The Direct Recruitment onboarding country object
-     * @param OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber The Direct Recruitment onboarding countries KSM Reference number object
-     * @param OnboardingAttestation $onboardingAttestation The Direct Recruitment onboarding attestation object
-     * @param DirectrecruitmentApplications $directrecruitmentApplications The Direct Recruitment application object
-     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices The Direct Recruitment onboarding country services object
+     * @param DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent The Direct Recruitment onboarding agent instance
+     * @param DirectRecruitmentOnboardingAttestationServices $directRecruitmentOnboardingAttestationServices The Direct Recruitment onboarding attestation instance
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry The Direct Recruitment onboarding country instance
+     * @param OnboardingCountriesKSMReferenceNumber $onboardingCountriesKSMReferenceNumber The Direct Recruitment onboarding countries KSM Reference number instance
+     * @param OnboardingAttestation $onboardingAttestation The Direct Recruitment onboarding attestation instance
+     * @param DirectrecruitmentApplications $directrecruitmentApplications The Direct Recruitment application instance
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices The Direct Recruitment onboarding country services
      */
     public function __construct(
         DirectRecruitmentOnboardingAgent                $directRecruitmentOnboardingAgent, 

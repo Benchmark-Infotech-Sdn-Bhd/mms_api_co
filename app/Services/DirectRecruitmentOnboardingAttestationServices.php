@@ -39,6 +39,7 @@ class DirectRecruitmentOnboardingAttestationServices
     public const DISPATCH_NOTIFICATION_MESSAGE = ' Dispatch is Assigned';
     public const MESSAGE_DELETED_NOT_FOUND = 'Data not found';
     public const MESSAGE_DELETED_SUCCESSFULLY = 'Deleted Successfully';
+    public const EMBASSY_ATTESTATION_COSTING = 'Embassy Attestation Costing';
 
     /**
      * @var OnboardingAttestation
@@ -86,13 +87,13 @@ class DirectRecruitmentOnboardingAttestationServices
     /**
      * DirectRecruitmentOnboardingAttestationServices constructor method.
      * 
-     * @param OnboardingAttestation $onboardingAttestation The onBoarding Attestation Object;
-     * @param OnboardingDispatch $onboardingDispatch The onBoarding Dispatch Object;
-     * @param OnboardingEmbassy $onboardingEmbassy The onBoarding Embassy Object;
-     * @param EmbassyAttestationFileCosting $embassyAttestationFileCosting The Embassy Attestation File Costing Object;
-     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices The Direct Recruitment OnBoarding Country Services;
-     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry The Direct Recruitment OnBoarding Country Object;
-     * @param Storage $storage The storage ;
+     * @param OnboardingAttestation $onboardingAttestation The onBoarding Attestation instance
+     * @param OnboardingDispatch $onboardingDispatch The onBoarding Dispatch instance
+     * @param OnboardingEmbassy $onboardingEmbassy The onBoarding Embassy instance
+     * @param EmbassyAttestationFileCosting $embassyAttestationFileCosting The Embassy Attestation File Costing instance
+     * @param DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices The Direct Recruitment OnBoarding Country Services
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry The Direct Recruitment OnBoarding Country instance
+     * @param Storage $storage The storage instance
      * @param DirectRecruitmentExpensesServices $directRecruitmentExpensesServices The Direct Recruitment Expenses services
      * @param NotificationServices $notificationServices The Notification services
      */
@@ -638,13 +639,14 @@ class DirectRecruitmentOnboardingAttestationServices
         ->where('onboarding_attestation.id', $request[self::REQUEST_ONBOARDING_ATTESTATION_ID])
         ->select('directrecruitment_onboarding_countries.country_id')
         ->distinct('directrecruitment_onboarding_countries.country_id')
-        ->get();
-        if(count($onboardingAttestation) == self::DEFAULT_INT_VALUE) {
+        ->first();
+        
+        if(is_null($onboardingAttestation)) {
             return [
                 'InvalidUser' => true
             ];
         }
-        $request['country_id'] = $onboardingAttestation[0]['country_id'] ?? self::DEFAULT_INT_VALUE;
+        $request['country_id'] = $onboardingAttestation['country_id'] ?? self::DEFAULT_INT_VALUE;
 
         return $this->embassyAttestationFileCosting
         ->leftJoin('onboarding_embassy', function ($join) use ($request) {
@@ -671,18 +673,13 @@ class DirectRecruitmentOnboardingAttestationServices
      */   
     public function showEmbassyFile($request): mixed
     {
-        $attestationCheck = $this->onboardingAttestation->join('directrecruitment_applications', function ($join) use($request) {
-            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
-                ->whereIn('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
-            })
-            ->where('onboarding_attestation.id', $request[self::REQUEST_ONBOARDING_ATTESTATION_ID])
-            ->first('onboarding_attestation.*');
-
+        $attestationCheck = $this->getOnboardingAttestationData($request);
         if(is_null($attestationCheck)) {
             return [
                 'InvalidUser' => true
             ];
         }
+
         return $this->embassyAttestationFileCosting
         ->leftJoin('onboarding_embassy', function ($join) use ($request) {
             $join->on('onboarding_embassy.embassy_attestation_id', '=', 'embassy_attestation_file_costing.id')
@@ -700,6 +697,147 @@ class DirectRecruitmentOnboardingAttestationServices
     }
 
     /**
+     * Get the direct recruitment on boarding attestation application.
+     *
+     * @param array $params The request data containing company_id, onboarding_attestation_id
+     * @return mixed Returns details of direct recruitment on-boarding attestation application.
+     */
+    public function onboardingAttestationApplication(array $params): mixed
+    {
+        return $this->onboardingAttestation
+        ->join('directrecruitment_applications', function ($join) use($params) {
+            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
+                ->where('directrecruitment_applications.company_id', $params[self::REQUEST_COMPANY_ID]);
+        })
+        ->where('onboarding_attestation.id', $params[self::REQUEST_ONBOARDING_ATTESTATION_ID])
+        ->first(['onboarding_attestation.application_id']);
+    }
+
+    /**
+     * Get the direct recruitment on-boarding embassy details.
+     *
+     * @param array $params The request data containing onboarding_attestation_id, embassy_attestation_id
+     * @return mixed Returns details of direct recruitment on-boarding embassy details.
+     */
+    public function onboardingEmbassyDetails(array $request): mixed
+    {
+        return $this->onboardingEmbassy->where([
+            ['onboarding_attestation_id', $request[self::REQUEST_ONBOARDING_ATTESTATION_ID]],
+            ['embassy_attestation_id', $request['embassy_attestation_id']],
+            ['deleted_at', null],
+        ])->first(['id', 'onboarding_attestation_id', 'embassy_attestation_id', 'file_name', 'file_type', 'file_url', 'amount']);
+    }
+
+    /**
+     * Upload multiple files for Embassy Attachment.
+     * Add | Update File_name, file_type, file_url, amount data in on Boarding Embassy from the given request
+     * Insert new record in expense table for Onboarding - Attestation Costing
+     *
+     * @param array $files A array of files to be uploaded.
+     * @param array $request A array consists of.
+     * - onboarding_attestation_id: The onboarding aestation id
+     * - embassy_attestation_id: The embassy attestation id
+     * - file_name: Uploaded file name
+     * - file_type: uploaded file type
+     * - file_url: uploaded file url
+     * - amount: The amount value
+     * - created_by: The user who created the onboarding Embassy with amount information
+     * - modified_by: The user who modified the onboarding Embassy with amount information
+     * @param object $onboardingEmbassy The object for onboarding Embassy to add | Update the details.
+     * 
+     * @return void
+     *
+     */
+    public function uploadFiles($files, array $request, $onboardingEmbassy): void
+    {
+        foreach ($files as $file) {
+            $fileName = $file->getClientOriginalName();
+            $filePath = '/directRecruitment/onboarding/embassyAttestationCosting/' . $fileName;
+
+            $linode = $this->storage::disk('linode');
+            $linode->put($filePath, file_get_contents($file));
+
+            $fileUrl = $linode->url($filePath);
+
+            if(is_null($onboardingEmbassy)){
+                $this->onboardingEmbassy::create([
+                    "onboarding_attestation_id" => $request['onboarding_attestation_id'] ?? self::DEFAULT_INT_VALUE,
+                    "embassy_attestation_id" => $request['embassy_attestation_id'] ?? self::DEFAULT_INT_VALUE,
+                    "file_name" => $fileName,
+                    "file_type" => SELF::EMBASSY_ATTESTATION_COSTING,
+                    "file_url" =>  $fileUrl,
+                    "amount" => $request['amount'] ?? self::DEFAULT_INT_VALUE,
+                    "created_by" =>  $request['created_by'] ?? self::DEFAULT_INT_VALUE,
+                    "modified_by" =>  $request['created_by'] ?? self::DEFAULT_INT_VALUE
+                ]); 
+            }else{
+                $onboardingEmbassy->update([
+                    "file_name" => $fileName,
+                    "file_url" =>  $fileUrl,
+                    "amount" => $request['amount'] ?? $onboardingEmbassy->amount,
+                    "modified_by" =>  $params['created_by'] ?? self::DEFAULT_INT_VALUE
+                ]); 
+            }
+
+            // ADD OTHER EXPENSES - Onboarding - Attestation Costing
+            $this->addExpenses($request);
+        }
+    }
+
+    /**
+     * Add | Update Amount data in on Boarding Embassy from the given request
+     * Insert new record in expense table for Onboarding - Attestation Costing
+     *
+     * @param array $request A array consists of.
+     * - onboarding_attestation_id: The onboarding attestation id
+     * - embassy_attestation_id: The embassy attestation id 
+     * - amount: The amount value
+     * - created_by: The user who created the onboarding Embassy with amount information
+     * - modified_by: The user who modified the onboarding Embassy with amount information
+     * @param object $onboardingEmbassy The object for onboarding Embassy to add | Update the details.
+     * 
+     * @return void
+     * 
+     */
+    public function updateAmountData(array $request, $onboardingEmbassy): void
+    {
+        if(is_null($onboardingEmbassy)){
+            $this->onboardingEmbassy::create([
+                "onboarding_attestation_id" => $request['onboarding_attestation_id'] ?? self::DEFAULT_INT_VALUE,
+                "embassy_attestation_id" => $request['embassy_attestation_id'] ?? self::DEFAULT_INT_VALUE,
+                "amount" => $request['amount'] ?? self::DEFAULT_INT_VALUE,
+                "created_by" =>  $request['created_by'] ?? self::DEFAULT_INT_VALUE,
+                "modified_by" =>  $request['created_by'] ?? self::DEFAULT_INT_VALUE
+            ]); 
+        }else{
+            $onboardingEmbassy->update([
+                "amount" => $request['amount'],
+                "modified_by" =>  $params['created_by'] ?? self::DEFAULT_INT_VALUE
+            ]); 
+        }
+        // ADD OTHER EXPENSES - Onboarding - Attestation Costing
+        $this->addExpenses($request);
+        
+    }
+
+    /**
+     * Add the Expenses details for OTHER EXPENSES - Onboarding - Attestation Costing.
+     *
+     * @param array $params The request data containing onboarding_attestation_id, embassy_attestation_id
+     * @return void Inserted the new expense for OTHER EXPENSES - Onboarding - Attestation Costing.
+     */
+    public function addExpenses(array $request): void
+    {
+        $request['expenses_application_id'] = $request[self::REQUEST_APPLICATION_ID] ?? self::DEFAULT_INT_VALUE;
+        $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[2];
+        $request['expenses_payment_reference_number'] = '';
+        $request['expenses_payment_date'] = Carbon::now();
+        $request['expenses_amount'] = $request['amount'] ?? self::DEFAULT_INT_VALUE;
+        $request['expenses_remarks'] = '';
+        $this->directRecruitmentExpensesServices->addOtherExpenses($request);
+    }
+
+    /**
      * Uploads a embassy file
      *
      * @param array $request has the following keys 
@@ -707,8 +845,9 @@ class DirectRecruitmentOnboardingAttestationServices
      * embassy_attestation_id
      * 
      * @return mixed show embassy attestation file costing with onboarding embassy details.
-     * - "InvalidUser": A boolean returns true if user is invalid.
      * - "validate": An array of validation errors, if any.
+     * - "InvalidUser": A boolean returns true if user is invalid.
+     * 
      */  
     public function uploadEmbassyFile($request): bool|array
     {
@@ -723,89 +862,24 @@ class DirectRecruitmentOnboardingAttestationServices
                 'error' => $validator->errors()
             ];
         }
-
-        $onboardingAttestation = $this->onboardingAttestation
-        ->join('directrecruitment_applications', function ($join) use($params) {
-            $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
-                ->where('directrecruitment_applications.company_id', $params[self::REQUEST_COMPANY_ID]);
-        })
-        ->where('onboarding_attestation.id', $params['onboarding_attestation_id'])
-        ->first(['onboarding_attestation.application_id']);
-
+        
+        $onboardingAttestation = $this->onboardingAttestationApplication($params);
         if(is_null($onboardingAttestation)) {
             return [
                 'InvalidUser' => true
             ];
         }
-        $request['application_id'] = isset($onboardingAttestation['application_id']) ? $onboardingAttestation['application_id'] : 0;
 
-        $onboardingEmbassy = $this->onboardingEmbassy->where([
-            ['onboarding_attestation_id', $request['onboarding_attestation_id']],
-            ['embassy_attestation_id', $request['embassy_attestation_id']],
-            ['deleted_at', null],
-        ])->first(['id', 'onboarding_attestation_id', 'embassy_attestation_id', 'file_name', 'file_type', 'file_url', 'amount']);
-        
-        if (request()->hasFile('attachment')){
-            foreach($request->file('attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/directRecruitment/onboarding/embassyAttestationCosting/' . $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
+        $params['application_id'] = $onboardingAttestation['application_id'] ?? 0;
 
-                if(is_null($onboardingEmbassy)){
-                    $this->onboardingEmbassy::create([
-                        "onboarding_attestation_id" => $request['onboarding_attestation_id'] ?? 0,
-                        "embassy_attestation_id" => $request['embassy_attestation_id'] ?? 0,
-                        "file_name" => $fileName,
-                        "file_type" => 'Embassy Attestation Costing',
-                        "file_url" =>  $fileUrl,
-                        "amount" => $request['amount'] ?? 0,
-                        "created_by" =>  $params['created_by'] ?? 0,
-                        "modified_by" =>  $params['created_by'] ?? 0
-                    ]); 
-                }else{
-                    $onboardingEmbassy->update([
-                        "file_name" => $fileName,
-                        "file_url" =>  $fileUrl,
-                        "amount" => $request['amount'] ?? $onboardingEmbassy->amount,
-                        "modified_by" =>  $params['created_by'] ?? 0
-                    ]); 
-                }
-                // ADD OTHER EXPENSES - Onboarding - Attestation Costing
-                $request['expenses_application_id'] = $request[self::REQUEST_APPLICATION_ID] ?? 0;
-                $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[2];
-                $request['expenses_payment_reference_number'] = '';
-                $request['expenses_payment_date'] = Carbon::now();
-                $request['expenses_amount'] = $request['amount'] ?? 0;
-                $request['expenses_remarks'] = '';
-                $this->directRecruitmentExpensesServices->addOtherExpenses($request);
+        $onboardingEmbassy = $this->onboardingEmbassyDetails($params);
 
-            }
+        if ($request->hasFile('attachment')) {
+            $this->uploadFiles($request->file('attachment'), $params, $onboardingEmbassy);
         }elseif( isset($request['amount'])){
-            if(is_null($onboardingEmbassy)){
-                $this->onboardingEmbassy::create([
-                    "onboarding_attestation_id" => $request['onboarding_attestation_id'] ?? 0,
-                    "embassy_attestation_id" => $request['embassy_attestation_id'] ?? 0,
-                    "amount" => $request['amount'] ?? 0,
-                    "created_by" =>  $params['created_by'] ?? 0,
-                    "modified_by" =>  $params['created_by'] ?? 0
-                ]); 
-            }else{
-                $onboardingEmbassy->update([
-                    "amount" => $request['amount'],
-                    "modified_by" =>  $params['created_by'] ?? 0
-                ]); 
-            }
-            // ADD OTHER EXPENSES - Onboarding - Attestation Costing
-            $request['expenses_application_id'] = $request[self::REQUEST_APPLICATION_ID] ?? 0;
-            $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[2];
-            $request['expenses_payment_reference_number'] = '';
-            $request['expenses_payment_date'] = Carbon::now();
-            $request['expenses_amount'] = $request['amount'] ?? 0;
-            $request['expenses_remarks'] = '';
-            $this->directRecruitmentExpensesServices->addOtherExpenses($request);
-        }else{
+            $this->updateAmountData($params, $onboardingEmbassy);
+        }
+        else{
             return false;
         }
         return true;
@@ -821,7 +895,7 @@ class DirectRecruitmentOnboardingAttestationServices
      * @return array information with below returns.
      * - "isDeleted": returns false, if the request data not found 
      * - "isDeleted": returns true on successful delete.
-     */   
+     */
     public function deleteEmbassyFile($request): array
     {   
         $data = $this->onboardingEmbassy
@@ -830,6 +904,7 @@ class DirectRecruitmentOnboardingAttestationServices
             $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
             ->where('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
         })->find($request['onboarding_embassy_id']); 
+
         if(is_null($data)){
             return [
                 "isDeleted" => false,
@@ -873,5 +948,4 @@ class DirectRecruitmentOnboardingAttestationServices
                 ->where('ksm_reference_number', $request['old_ksm_reference_number'])
                 ->update(['ksm_reference_number' => $request[self::REQUEST_KSM_REFERENCE_NUMBER]]); 
     }
-
 }
