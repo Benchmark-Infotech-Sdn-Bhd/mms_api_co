@@ -38,6 +38,7 @@ class TotalManagementTransferServices
     public const DEFAULT_TRANSFER_FLAG = 0;
     public const ACTIVE_TRANSFER_FLAG = 1;
     public const STATUS_ACTIVE = 1;
+    public const FOMNEXT_PROSPECT_ID = 0;
 
     /**
      * @var workers
@@ -136,7 +137,7 @@ class TotalManagementTransferServices
      * @param $request
      *        worker_id (int) worker ID
      * 
-     * @return mixed returns worker employment detail
+     * @return mixed Returns worker employment detail
      */
     public function workerEmploymentDetail($request): mixed
     {
@@ -363,6 +364,11 @@ class TotalManagementTransferServices
      *              company_id (array) company ID's of the user
      * 
      * @return array if false returns an array with error details, otherwise process is successfully submitted
+     *               Returns self::ERROR_FROM_EXISTING if the worker transfer to invalid project
+     *               Returns self::ERROR_OTHER_COMPANY if the worker transfer to invalid company
+     *               Returns self::ERROR_UNAUTHORIZED if the user access invalid application
+     *               Returns self::ERROR_QUOTA if the quota exceed the applied quota
+     * 
      */
     private function processEContractService($request)
     {
@@ -370,7 +376,7 @@ class TotalManagementTransferServices
             if($request['from_existing'] == self::FROM_EXISTING) {
                 return self::ERROR_FROM_EXISTING;
             } else if ($request['from_existing'] == self::NOT_FROM_EXISTING) {
-                if($workerDetail->crm_prospect_id != 0) {
+                if($workerDetail->crm_prospect_id != self::FOMNEXT_PROSPECT_ID) {
                     if($workerDetail->crm_prospect_id != $request['new_prospect_id']) {
                         return self::ERROR_OTHER_COMPANY;
                     }
@@ -415,6 +421,13 @@ class TotalManagementTransferServices
      *              current_project_id (int) current project ID of the worker
      * 
      * @return array if false returns an array with error details, otherwise process is successfully submitted
+     *               Returns self::ERROR_UNAUTHORIZED if the user access invalid application
+     *               Returns self::ERROR_OTHER_COMPANY if the worker transfer to invalid company
+     *               Returns self::ERROR_QUOTA_FROM_EXISTING if the worker transfer to a From Existing Project
+     *               Returns self::ERROR_QUOTA if the quota exceed the applied quota
+     *               Returns self::ERROR_CLIENT_QUOTA if the quota exceed the client quota
+     *               Returns self::ERROR_FOMNEXT_QUOTA if the quota exceed the fomnext quota
+     * 
      */
     private function processTotalManagementService($request)
     {
@@ -449,12 +462,12 @@ class TotalManagementTransferServices
                 if($request['from_existing'] == self::FROM_EXISTING) {
                         return self::ERROR_FROM_EXISTING_WORKER;
                 } else if($request['from_existing'] == self::NOT_FROM_EXISTING) {
-                    if($workerDetail->crm_prospect_id == 0) {
+                    if($workerDetail->crm_prospect_id == self::FOMNEXT_PROSPECT_ID) {
                         $workerCountArray['fomnextWorkersCount']++;
                         if($workerCountArray['fomnextWorkersCount'] > $serviceDetails->fomnext_quota) {
                             return self::ERROR_FOMNEXT_QUOTA;
                         }
-                    } else if($workerDetail->crm_prospect_id != 0) {
+                    } else if($workerDetail->crm_prospect_id != self::FOMNEXT_PROSPECT_ID) {
                         if($workerDetail->crm_prospect_id != $request['new_prospect_id']) {
                             return self::ERROR_OTHER_COMPANY;
                         } else if($workerDetail->crm_prospect_id == $request['new_prospect_id']) {
@@ -489,7 +502,7 @@ class TotalManagementTransferServices
         $worker = $this->workers->findOrFail($request['worker_id']);
         if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[2]){
             $worker->module_type = $request['service_type'];
-            $worker->crm_prospect_id = 0;
+            $worker->crm_prospect_id = self::FOMNEXT_PROSPECT_ID;
             $worker->econtract_status = self::WORKER_STATUS_ASSIGNED;
             if(in_array($worker->total_management_status, Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))) {
                 $worker->total_management_status = self::WORKER_STATUS_ONBENCH;
@@ -574,7 +587,7 @@ class TotalManagementTransferServices
         ];
     }
     /**
-     * Retrieve cleint worker count.
+     * Retrieve client worker count.
      *
      * @param $prospectId
      * @param $projectIds
@@ -585,7 +598,7 @@ class TotalManagementTransferServices
         return $this->workers
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.worker_id','=','workers.id')
-            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[2])
+            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
             ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date')
             ->whereNull('worker_employment.work_end_date')
@@ -608,13 +621,13 @@ class TotalManagementTransferServices
         return $this->workers
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.worker_id','=','workers.id')
-            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[2])
+            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
             ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date')
             ->whereNull('worker_employment.work_end_date')
             ->whereNull('worker_employment.event_type');
         })
-        ->where('workers.crm_prospect_id', 0)
+        ->where('workers.crm_prospect_id', self::FOMNEXT_PROSPECT_ID)
         ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
         ->where('worker_employment.project_id', $projectIds)
         ->distinct('workers.id')
