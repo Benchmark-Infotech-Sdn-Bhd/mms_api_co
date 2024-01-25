@@ -19,32 +19,75 @@ use App\Services\AuthServices;
 
 class TotalManagementServices
 {
+    public const ERROR_QUOTA = ['quotaError' => true];
+    public const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
+
+    public const DEFAULT_TRANSFER_FLAG = 0;
+    public const CUSTOMER = 'Customer';
+    public const TOTAL_MANAGEMENT_SERVICE_ID = 3;
+    public const FILE_TYPE = 'proposal';
+    public const PENDING_PROPOSAL = 'Pending Proposal';
+    public const PROPOSAL_SUBMITTED = 'Proposal Submitted';
+
+    /**
+     * @var crmProspect
+     */
     private CRMProspect $crmProspect;
+    /**
+     * @var crmProspectService
+     */
     private CRMProspectService $crmProspectService;
+    /**
+     * @var crmProspectAttachment
+     */
     private CRMProspectAttachment $crmProspectAttachment;
+    /**
+     * @var services
+     */
     private Services $services;
+    /**
+     * @var sectors
+     */
     private Sectors $sectors;
+    /**
+     * @var totalManagementApplications
+     */
     private TotalManagementApplications $totalManagementApplications;
+    /**
+     * @var totalManagementApplicationAttachments
+     */
     private TotalManagementApplicationAttachments $totalManagementApplicationAttachments;
+    /**
+     * @var directrecruitmentApplications
+     */
     private DirectrecruitmentApplications $directrecruitmentApplications;
+    /**
+     * @var directRecruitmentOnboardingCountry
+     */
     private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
+    /**
+     * @var storage
+     */
     private Storage $storage;
+    /**
+     * @var authServices
+     */
     private AuthServices $authServices;
     
     /**
      * TotalManagementServices Constructor method for the class.
      *
-     * @param CRMProspect $crmProspect
-     * @param CRMProspectService $crmProspectService
-     * @param CRMProspectAttachment $crmProspectAttachment
-     * @param Services $services
-     * @param Sectors $sectors
-     * @param TotalManagementApplications $totalManagementApplications
-     * @param TotalManagementApplicationAttachments $totalManagementApplicationAttachments
-     * @param DirectrecruitmentApplications $directrecruitmentApplications
-     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry
-     * @param Storage $storage
-     * @param AuthServices $authServices
+     * @param CRMProspect $crmProspect The crmProspect object.
+     * @param CRMProspectService $crmProspectService The crmProspectService object.
+     * @param CRMProspectAttachment $crmProspectAttachment The crmProspectAttachment object.
+     * @param Services $services The services object.
+     * @param Sectors $sectors The sectors object.
+     * @param TotalManagementApplications $totalManagementApplications The totalManagementApplications object.
+     * @param TotalManagementApplicationAttachments $totalManagementApplicationAttachments The totalManagementApplicationAttachments object.
+     * @param DirectrecruitmentApplications $directrecruitmentApplications The directrecruitmentApplications object.
+     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry The DirectRecruitmentOnboardingCountry object.
+     * @param Storage $storage The storage object.
+     * @param AuthServices $authServices The authServices object.
      */
     public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, 
     CRMProspectAttachment $crmProspectAttachment, Services $services, Sectors $sectors, TotalManagementApplications $totalManagementApplications, TotalManagementApplicationAttachments $totalManagementApplicationAttachments, DirectrecruitmentApplications $directrecruitmentApplications, DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry, Storage $storage, AuthServices $authServices)
@@ -64,7 +107,7 @@ class TotalManagementServices
     /**
      * Validates the search request.
      *
-     * @return array
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function searchValidation(): array
     {
@@ -75,7 +118,7 @@ class TotalManagementServices
     /**
      * Validates the service request.
      *
-     * @return array
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function addServiceValidation(): array
     {
@@ -96,7 +139,10 @@ class TotalManagementServices
      * Returns a paginated list of list based on the given search request.
      *
      * @param $request
-     * @return mixed
+     *        company_id (array) ID of the user company
+     *        search (string) search parameter
+     * 
+     * @return mixed Returns The paginated list of application listing
      */
     public function applicationListing($request): mixed
     {
@@ -114,8 +160,8 @@ class TotalManagementServices
         ->leftJoin('total_management_project', 'total_management_project.application_id', 'total_management_applications.id')
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.project_id','=','total_management_project.id')
-            ->where('worker_employment.service_type', 'Total Management')
-            ->where('worker_employment.transfer_flag', 0)
+            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
+            ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date');
         })
         ->leftJoin('workers', function($query) {
@@ -124,12 +170,12 @@ class TotalManagementServices
         })
         ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
-            if ($request['user']['user_type'] == 'Customer') {
+            if ($request['user']['user_type'] == self::CUSTOMER) {
                 $query->where(`e-contract_applications`.`crm_prospect_id`, '=', $request['user']['reference_id']);
             }
         })
-        ->where('crm_prospect_services.service_id', 3)
-        ->where('crm_prospect_services.deleted_at', NULL)
+        ->where('crm_prospect_services.service_id', self::TOTAL_MANAGEMENT_SERVICE_ID)
+        ->whereNull('crm_prospect_services.deleted_at')
         ->where(function ($query) use ($request) {
             if(isset($request['search']) && !empty($request['search'])) {
                 $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
@@ -139,26 +185,6 @@ class TotalManagementServices
         ->groupBy('total_management_applications.id', 'crm_prospects.id', 'crm_prospect_services.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.contact_number', 'crm_prospects.email', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.from_existing', 'total_management_applications.status', 'total_management_applications.quota_applied')
         ->orderBy('total_management_applications.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
-    } 
-    /**
-     * Checks if the given quota is valid for the provided request.
-     *
-     * @param mixed $request The request that contains the 'initial_quota' and 'service_quota' fields.
-     * @return bool Returns true if the quota is valid for the request, false otherwise.
-     */
-    private function isValidQuota($request): bool
-    {
-        return $request['initial_quota'] < $request['service_quota'];
-    }
-
-    /**
-     * Returns an array indicating that the quota is error.
-     *
-     * @return array An array containing the key 'quotaError' set to true.
-     */
-    private function quotaErrorResponse(): array
-    {
-        return ['quotaError' => true];
     }
     /**
      * Creates a new Prospect Service from the given request data.
@@ -211,7 +237,7 @@ class TotalManagementServices
             'quota_applied' => ($request['from_existing'] == 0) ? ($prospectService->client_quota + $prospectService->fomnext_quota) : $prospectService->service_quota,
             'person_incharge' => '',
             'cost_quoted' => 0,
-            'status' => 'Pending Proposal',
+            'status' => self::PENDING_PROPOSAL,
             'remarks' => '',
             'created_by' => $request["created_by"] ?? 0,
             'company_id' => $request['company_id']
@@ -226,6 +252,7 @@ class TotalManagementServices
      * @param array $request The request data containing the service and application detail.
      *
      * @return bool Returns true if the service was successfully created.
+     *              Returns self::ERROR_QUOTA if service quota exceed the initial quota
      */
     public function addService($request): bool|array
     {
@@ -236,8 +263,10 @@ class TotalManagementServices
             ];
         }
 
-        if (!$this->isValidQuota($request)) {
-            return $this->quotaErrorResponse();
+        if(isset($request['initial_quota']) && !empty($request['initial_quota'])) {
+            if($request['initial_quota'] < $request['service_quota']) {
+                return self::ERROR_QUOTA;
+            }
         }
 
         $user = JWTAuth::parseToken()->authenticate();
@@ -263,7 +292,10 @@ class TotalManagementServices
      * Returns a quota for given request.
      *
      * @param $request
-     * @return int
+     *        company_id (array) ID of the user company
+     *        prospect_id (int) ID of the prospect 
+     * 
+     * @return int Returns the quota count
      */
     public function getQuota($request): int
     {
@@ -279,7 +311,10 @@ class TotalManagementServices
      * Retrieves a proposal based on the provided request.
      * 
      * @param $request
-     * @return mixed
+     *        id (int) ID of the application
+     *        comapny_id (array) ID of the user company
+     * 
+     * @return mixed Returns the Application record with attachments
      */
     public function showProposal($request) : mixed
     {
@@ -294,8 +329,11 @@ class TotalManagementServices
     /**
      * Submit the Proposal.
      * 
-     * @param $request
-     * @return bool|array
+     * @param $request The request object containing the proposal data
+     * 
+     * @return bool|array Returns true if the Proposal submit is successful. Returns an error array if validation fails or any error occurs during the Proposal Submit process.
+     *                    Returns self::ERROR_QUOTA if requested quota exceed the total quota
+     *                    Returns self::ERROR_UNAUTHORIZED if user access invalid application
      */
     public function submitProposal($request): bool|array
     {
@@ -311,18 +349,14 @@ class TotalManagementServices
         $applicationDetails = $this->getApplicationDetails($request->toArray());
 
         if(is_null($applicationDetails)){
-            return [
-                'unauthorizedError' => true
-            ];
+            return self::ERROR_UNAUTHORIZED;
         }
 
         $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
         if($serviceDetails->from_existing == 0) {
             $totalQuota = $serviceDetails->client_quota + $serviceDetails->fomnext_quota;
             if($totalQuota < $request['quota_requested']) {
-                return [
-                    'quotaError' => true
-                ];
+                return self::ERROR_QUOTA;
             }
         }
         
@@ -338,15 +372,20 @@ class TotalManagementServices
     /**
      * Update application based on the provided request.
      *
-     * @param mixed $costManaapplicationDetailsgement
+     * @param mixed $applicationDetails
      * @param $params
+     *        quota_requested (int) requested quota
+     *        person_incharge (string) person incharge
+     *        cost_quoted (float) cost quoted
+     *        remarks (string) remarks of application
+     *        modified_by (int) ID of the user who modified the application
      */
     private function updateApplicationDetail($applicationDetails, $params)
     {
         $applicationDetails->quota_applied = $params['quota_requested'] ?? $applicationDetails->quota_applied;
         $applicationDetails->person_incharge = $params['person_incharge'] ?? $applicationDetails->person_incharge;
         $applicationDetails->cost_quoted = $params['cost_quoted'] ?? $applicationDetails->cost_quoted;
-        $applicationDetails->status = 'Proposal Submitted';
+        $applicationDetails->status = self::PROPOSAL_SUBMITTED;
         $applicationDetails->remarks = $params['remarks'] ?? $applicationDetails->remarks;
         $applicationDetails->modified_by = $params['modified_by'];
         $applicationDetails->save();
@@ -354,7 +393,7 @@ class TotalManagementServices
     /**
      * Upload attachments for the proposal.
      *
-     * @param $request
+     * @param $request The request object containing the upload attachment data
      */
     private function uploadProposalAttachments($request)
     {
@@ -371,7 +410,7 @@ class TotalManagementServices
                 $this->totalManagementApplicationAttachments::create([
                     'file_id' => $request->id,
                     'file_name' => $fileName,
-                    'file_type' => 'proposal',
+                    'file_type' => self::FILE_TYPE,
                     'file_url' => $fileUrl,
                 ]);
             }
@@ -380,28 +419,32 @@ class TotalManagementServices
     /**
      * allocateQuota for application.
      * 
-     * @param $request
-     * @return array|bool
+     * @param $request The request object containing the allocate Quota data
+     * 
+     * @return array|bool Returns true if the allocateQuota is successful. Returns an error array if validation fails or any error occurs during the allocateQuota process.
+     *                    Returns self::ERROR_QUOTA if service quota exceed the initial quota
+     *                    Returns self::ERROR_UNAUTHORIZED if user access invalid application
+     * 
      */
     public function allocateQuota($request): array|bool
     {
         if (isset($request['initial_quota']) && $request['initial_quota'] < $request['service_quota']) {
-            return ['quotaError' => true];
+            return self::ERROR_QUOTA;
         }
     
         $prospectService = $this->getCrmProspectService($request);
         if (is_null($prospectService)) {
-            return ['unauthorizedError' => true];
+            return self::ERROR_UNAUTHORIZED;
         }
     
         $this->updateProspectService($prospectService, $request);
     
         $applicationDetails = $this->getApplicationDetails($request);
         if (is_null($applicationDetails)) {
-            return ['unauthorizedError' => true];
+            return self::ERROR_UNAUTHORIZED;
         }
     
-        $this->updateApplicationDetails($applicationDetails, $prospectService, $request);
+        $this->updateApplicationQuota($applicationDetails, $prospectService, $request);
     
         return true;
     }
@@ -409,7 +452,10 @@ class TotalManagementServices
      * Get CRM Prospect Service based on the provided request.
      *
      * @param array $request
-     * @return mixed
+     *              prospect_service_id (int) prospect service ID
+     *              company_id (array) ID of the user company
+     * 
+     * @return mixed Returns prospect service record
      */
     private function getCrmProspectService(array $request)
     {
@@ -424,6 +470,11 @@ class TotalManagementServices
      *
      * @param mixed $prospectService
      * @param array $request
+     *              from_existing (int) from existing
+     *              client_quota (int) client quota
+     *              fomnext_quota (int) fomnext quota
+     *              initial_quota (int) initial quota
+     *              service_quota (int) service quota
      */
     private function updateProspectService($prospectService, array $request)
     {
@@ -439,7 +490,10 @@ class TotalManagementServices
      * Get Application Details based on the provided request.
      *
      * @param array $request
-     * @return mixed
+     *              id (int) ID of the application
+     *              company_id (array) ID of the user company
+     * 
+     * @return mixed Returns an application record
      */
     private function getApplicationDetails(array $request)
     {
@@ -447,13 +501,13 @@ class TotalManagementServices
     }
 
     /**
-     * Update Application Details based on the provided Prospect Service and request.
+     * Update Application Quota based on the provided Prospect Service and request.
      *
      * @param mixed $applicationDetails
      * @param mixed $prospectService
      * @param array $request
      */
-    private function updateApplicationDetails($applicationDetails, $prospectService, array $request)
+    private function updateApplicationQuota($applicationDetails, $prospectService, array $request)
     {
         $applicationDetails->quota_applied = ($request['from_existing'] == 0) ?
             ($prospectService->client_quota + $prospectService->fomnext_quota) :
@@ -465,7 +519,10 @@ class TotalManagementServices
      * Retrieves a service details based on the provided request.
      *
      * @param $request
-     * @return mixed
+     *        prospect_service_id (int) prospect service ID
+     *        company_id (array) ID of the user company
+     * 
+     * @return mixed Returns the prospect service record
      */
     public function showService($request) : mixed
     {
