@@ -17,10 +17,13 @@ use App\Models\EContractApplications;
 
 class EContractWorkerServices
 {
-    public const USER_TYPE_CUSTOMER = 'Customer'; // self::USER_TYPE_CUSTOMER
-    public const SERVICE_TYPE_ECONTRACT = 'e-Contract'; // self::SERVICE_TYPE_ECONTRACT
-    public const STATUS_ASSIGNED = 'Assigned'; // self::STATUS_ASSIGNED
-    public const STATUS_ONBENCH = 'On-Bench'; // self::STATUS_ONBENCH
+    public const USER_TYPE_CUSTOMER = 'Customer';
+    public const SERVICE_TYPE_ECONTRACT = 'e-Contract';
+    public const STATUS_ASSIGNED = 'Assigned';
+    public const STATUS_ONBENCH = 'On-Bench';
+    public const EMPLOYMENT_TRANSFER_FLAG = 0;
+    public const CRM_PROSPECT_ID = 0;
+    public const EMPLOYMENT_STATUS = 0;
 
     /**
      * @var Workers
@@ -167,7 +170,7 @@ class EContractWorkerServices
             ->where('e-contract_project.id', $request['project_id'])
             ->where('worker_employment.service_type', self::SERVICE_TYPE_ECONTRACT)
             ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
-            ->where('worker_employment.transfer_flag', 0)
+            ->where('worker_employment.transfer_flag', self::EMPLOYMENT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date')
             ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
@@ -209,7 +212,7 @@ class EContractWorkerServices
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->where('workers.total_management_status', self::STATUS_ONBENCH)
             ->where('workers.econtract_status', self::STATUS_ONBENCH)
-            ->where('workers.crm_prospect_id', 0)
+            ->where('workers.crm_prospect_id', self::CRM_PROSPECT_ID)
             ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
                 if ($request['user']['user_type'] == self::USER_TYPE_CUSTOMER) {
@@ -252,12 +255,7 @@ class EContractWorkerServices
 
         if (isset($request['workers']) && !empty($request['workers'])) {
 
-            $projectDetails = $this->eContractProject->join('e-contract_applications', function($query) use($user) {
-                $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-                    ->where('e-contract_applications.company_id', $user['company_id']);
-                })
-                ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
-            ->find($request['project_id']);
+            $projectDetails = $this->showEContractProject(['id' => $request['project_id'], 'company_id' => $user['company_id']]);
             if (is_null($projectDetails)) {
                 return [
                     'unauthorizedError' => true
@@ -274,7 +272,7 @@ class EContractWorkerServices
             ->whereIn('worker_employment.project_id', $projectIds)
             ->where('worker_employment.service_type', self::SERVICE_TYPE_ECONTRACT)
             ->whereIn('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'))
-            ->where('worker_employment.transfer_flag', 0)
+            ->where('worker_employment.transfer_flag', self::EMPLOYMENT_TRANSFER_FLAG)
             ->whereNull('worker_employment.work_end_date')
             ->whereNull('worker_employment.event_type')
             ->distinct('workers.id')->count('workers.id');
@@ -313,12 +311,7 @@ class EContractWorkerServices
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
 
-        $projectDetails = $this->eContractProject->join('e-contract_applications', function($query) use($user) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-                ->where('e-contract_applications.company_id', $user['company_id']);
-            })
-            ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
-        ->find($request['project_id']);
+        $projectDetails = $this->showEContractProject(['id' => $request['project_id'], 'company_id' => $user['company_id']]);
         if (is_null($projectDetails)) {
             return [
                 'unauthorizedError' => true
@@ -390,7 +383,7 @@ class EContractWorkerServices
         ->where("project_id", $request['project_id'])
         ->where("service_type", self::SERVICE_TYPE_ECONTRACT)
         ->update([
-            'status' => 0,
+            'status' => self::EMPLOYMENT_STATUS,
             'work_end_date' => $request['last_working_day'],
             'remove_date' => $request['remove_date'],
             'remarks' => $request['remarks']
@@ -401,5 +394,22 @@ class EContractWorkerServices
             'econtract_status' => self::STATUS_ONBENCH,
             'modified_by' => $request['modified_by']
         ]);
+    }
+    
+    /**
+     * Show the e-contract project with related attachment and project, application.
+     * 
+     * @param array $request The request data containing e-contract project id, company id
+     * @return mixed Returns the e-contract project with related attachment and application.
+     */
+    public function showEContractProject($request): mixed
+    {
+        return $this->eContractProject->join('e-contract_applications', 
+            function($query) use($request) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+                ->where('e-contract_applications.company_id', $request['company_id']);
+            })
+            ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
+        ->find($request['id']);
     }
 }

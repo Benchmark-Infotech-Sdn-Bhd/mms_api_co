@@ -20,8 +20,9 @@ class EContractCostManagementServices
     public const ATTACHMENT_ACTION_UPDATE = 'UPDATE';
     public const MESSAGE_DELETED_NOT_FOUND = "Data not found";
     public const MESSAGE_DELETED_SUCCESSFULLY = "Deleted Successfully";
-    public const UNAUTHORIZED_ERROR = 'Unauthorized';
     public const FILE_TYPE_COST_MANAGEMENT = 'COST MANAGEMENT';
+    public const DEFAULT_INTEGER_VALUE_ZERO = 0;
+    public const UNAUTHORIZED_ERROR = 'Unauthorized';
 
     /**
      * @var EContractCostManagement
@@ -172,14 +173,7 @@ class EContractCostManagementServices
             ];
         }
 
-        $eContractCostManagement = $this->eContractCostManagement
-        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
-        ->join('e-contract_applications', function($query) use($user) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->where('e-contract_applications.company_id', $user['company_id']);
-        })
-        ->select('e-contract_cost_management.id', 'e-contract_cost_management.project_id', 'e-contract_cost_management.title', 'e-contract_cost_management.payment_reference_number', 'e-contract_cost_management.quantity', 'e-contract_cost_management.amount', 'e-contract_cost_management.payment_date', 'e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_id', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management.invoice_number', 'e-contract_cost_management.is_payroll', 'e-contract_cost_management.payroll_id', 'e-contract_cost_management.month', 'e-contract_cost_management.year', 'e-contract_cost_management.created_by', 'e-contract_cost_management.modified_by', 'e-contract_cost_management.created_at', 'e-contract_cost_management.updated_at', 'e-contract_cost_management.deleted_at')
-        ->find($request['id']);
+        $eContractCostManagement = $this->showEContractCostManagement(['id' => $request['id'], 'company_id' => $user['company_id']]);
         if (is_null($eContractCostManagement)) {
             return [
                 'unauthorizedError' => self::UNAUTHORIZED_ERROR
@@ -209,14 +203,7 @@ class EContractCostManagementServices
             ];
         }
 
-        return $this->eContractCostManagement->with('eContractCostManagementAttachments')
-        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
-        ->join('e-contract_applications', function($query) use($params) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->where('e-contract_applications.company_id', $params['company_id']);
-        })
-        ->select('e-contract_cost_management.id', 'e-contract_cost_management.project_id', 'e-contract_cost_management.title', 'e-contract_cost_management.payment_reference_number', 'e-contract_cost_management.quantity', 'e-contract_cost_management.amount', 'e-contract_cost_management.payment_date', 'e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_id', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management.invoice_number', 'e-contract_cost_management.is_payroll', 'e-contract_cost_management.payroll_id', 'e-contract_cost_management.month', 'e-contract_cost_management.year', 'e-contract_cost_management.created_by', 'e-contract_cost_management.modified_by', 'e-contract_cost_management.created_at', 'e-contract_cost_management.updated_at', 'e-contract_cost_management.deleted_at')
-        ->find($request['id']);
+        return $this->showEContractCostManagement(['id' => $request['id'], 'company_id' => $params['company_id']]);
     }
     
     /**
@@ -275,14 +262,7 @@ class EContractCostManagementServices
         $user = JWTAuth::parseToken()->authenticate();
         $params['company_id'] = $this->authServices->getCompanyIds($user);
 
-        $eContractCostManagement = $this->eContractCostManagement
-        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
-        ->join('e-contract_applications', function($query) use($params) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->where('e-contract_applications.company_id', $params['company_id']);
-        })
-        ->select('e-contract_cost_management.id', 'e-contract_cost_management.project_id', 'e-contract_cost_management.title', 'e-contract_cost_management.payment_reference_number', 'e-contract_cost_management.quantity', 'e-contract_cost_management.amount', 'e-contract_cost_management.payment_date', 'e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_id', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management.invoice_number', 'e-contract_cost_management.is_payroll', 'e-contract_cost_management.payroll_id', 'e-contract_cost_management.month', 'e-contract_cost_management.year', 'e-contract_cost_management.created_by', 'e-contract_cost_management.modified_by', 'e-contract_cost_management.created_at', 'e-contract_cost_management.updated_at', 'e-contract_cost_management.deleted_at')
-        ->find($request['id']);
+        $eContractCostManagement = $this->showEContractCostManagement(['id' => $request['id'], 'company_id' => $params['company_id']]);
         if (is_null($eContractCostManagement)) {
             return [
                 "isDeleted" => false,
@@ -357,8 +337,8 @@ class EContractCostManagementServices
             'quantity' => $request['quantity'] ?? '',
             'amount' => $request['amount'] ?? '',
             'remarks' => $request['remarks'] ?? '',
-            'created_by'    => $request['created_by'] ?? 0,
-            'modified_by'   => $request['created_by'] ?? 0
+            'created_by'    => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            'modified_by'   => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO
         ]);
 
         return $eContractCostManagement;
@@ -420,6 +400,24 @@ class EContractCostManagementServices
                     ]);  
             }
         }
+    }
+
+    /**
+     * Show the e-contract cost management with related attachment and project, application.
+     * 
+     * @param array $request The request data containing e-contract cost management id, company id
+     * @return mixed Returns the e-contract cost management with related attachment and application.
+     */
+    public function showEContractCostManagement($request): mixed
+    {
+        return $this->eContractCostManagement->with('eContractCostManagementAttachments')
+        ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
+        ->join('e-contract_applications', function($query) use($request) {
+            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $request['company_id']);
+        })
+        ->select('e-contract_cost_management.id', 'e-contract_cost_management.project_id', 'e-contract_cost_management.title', 'e-contract_cost_management.payment_reference_number', 'e-contract_cost_management.quantity', 'e-contract_cost_management.amount', 'e-contract_cost_management.payment_date', 'e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_id', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management.invoice_number', 'e-contract_cost_management.is_payroll', 'e-contract_cost_management.payroll_id', 'e-contract_cost_management.month', 'e-contract_cost_management.year', 'e-contract_cost_management.created_by', 'e-contract_cost_management.modified_by', 'e-contract_cost_management.created_at', 'e-contract_cost_management.updated_at', 'e-contract_cost_management.deleted_at')
+        ->find($request['id']);
     }
 
 }
