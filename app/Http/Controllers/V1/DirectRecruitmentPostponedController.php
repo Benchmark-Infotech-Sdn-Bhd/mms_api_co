@@ -14,29 +14,31 @@ use Exception;
 class DirectRecruitmentPostponedController extends Controller
 {
     /**
-     * @var DirectRecruitmentPostponedServices
+     * @var DirectRecruitmentPostponedServices $directRecruitmentPostponedServices
      */
-    private $directRecruitmentPostponedServices;
+    private DirectRecruitmentPostponedServices $directRecruitmentPostponedServices;
     /**
-     * @var AuthServices
+     * @var AuthServices $authServices
      */
     private AuthServices $authServices;
 
     /**
-     * DirectRecruitmentPostponedController constructor.
-     * @param DirectRecruitmentPostponedServices $directRecruitmentPostponedServices
-     * @param AuthServices $authServices
-     */
+     * DirectRecruitmentOnboardingCountryController constructor method.
+     * 
+     * @param DirectRecruitmentPostponedServices $directRecruitmentPostponedServices The instance of Direct Recruitment onBoarding country services class
+     * @param AuthServices $authServices The instance od Authservices class
+     */ 
     public function __construct(DirectRecruitmentPostponedServices $directRecruitmentPostponedServices, AuthServices $authServices) 
     {
         $this->directRecruitmentPostponedServices = $directRecruitmentPostponedServices;
         $this->authServices = $authServices;
     }
     /**
-     * Dispaly list of workers for Postponed.
+     * Retrieves and returns the list of direct recruitment workers list.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The HTTP request object.
+     *
+     * @return JsonResponse The JSON response containing the list of direct recruitment Workers list.
      */
     public function workersList(Request $request) : JsonResponse
     {
@@ -46,7 +48,7 @@ class DirectRecruitmentPostponedController extends Controller
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $params['user'] = $user;
             $response = $this->directRecruitmentPostponedServices->workersList($params);
-            if(isset($response['error']) && !empty($response['error'])) {
+            if (isset($response['error']) && !empty($response['error'])) {
                 return $this->validationError($response['error']);
             }
             return $this->sendSuccess($response);

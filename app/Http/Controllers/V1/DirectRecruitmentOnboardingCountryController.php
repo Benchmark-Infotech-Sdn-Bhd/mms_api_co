@@ -180,6 +180,8 @@ class DirectRecruitmentOnboardingCountryController extends Controller
             $response = $this->directRecruitmentOnboardingCountryServices->ksmQuotaUpdate($params);
             if (isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if (isset($response['dataError'])) {
+                return $this->sendError(['message' => 'Data Not Found'], 422);
             } else if (isset($response['editError'])) {
                 return $this->sendError(['message' => 'An Agent has been assigned to this record; users cannot edit the records'], 422);
             } else if (isset($response['ksmQuotaError'])) {
