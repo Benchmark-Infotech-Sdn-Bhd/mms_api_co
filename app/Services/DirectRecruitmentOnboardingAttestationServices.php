@@ -218,7 +218,8 @@ class DirectRecruitmentOnboardingAttestationServices
             ->join('directrecruitment_applications', function ($join) use($request) {
                 $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
                 ->where('directrecruitment_applications.company_id', $request['company_id']);
-            })->select('onboarding_attestation.*')->find($request['id']);
+            })->select('onboarding_attestation.id', 'onboarding_attestation.application_id', 'onboarding_attestation.onboarding_country_id', 'onboarding_attestation.onboarding_agent_id', 'onboarding_attestation.ksm_reference_number', 'onboarding_attestation.submission_date', 'onboarding_attestation.collection_date', 'onboarding_attestation.item_name', 'onboarding_attestation.status', 'onboarding_attestation.file_url', 'onboarding_attestation.remarks', 'onboarding_attestation.created_by', 'onboarding_attestation.modified_by', 'onboarding_attestation.created_at', 'onboarding_attestation.updated_at', 'onboarding_attestation.deleted_at')
+            ->find($request['id']);
         if(is_null($onboardingAttestation)) {
             return[
                 'InvalidUser' => true
@@ -346,7 +347,7 @@ class DirectRecruitmentOnboardingAttestationServices
             $NotificationParams['modified_by'] = $request['created_by'];
             $NotificationParams['company_id'] = $request['company_id'];
             $this->notificationServices->insertDispatchNotification($NotificationParams);
-            dispatch(new \App\Jobs\RunnerNotificationMail($getUser,$NotificationParams['message']));
+            dispatch(new \App\Jobs\RunnerNotificationMail(Config::get('database.connections.mysql.database'), $getUser,$NotificationParams['message']))->onQueue(Config::get('services.RUNNER_NOTIFICATION_MAIL'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
         }
         
         return true;
@@ -545,7 +546,7 @@ class DirectRecruitmentOnboardingAttestationServices
         ->join('directrecruitment_applications', function ($join) use($request) {
             $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
             ->where('directrecruitment_applications.company_id', $request['company_id']);
-        })->find($request['onboarding_embassy_id']); 
+        })->select('onboarding_embassy.id', 'onboarding_embassy.onboarding_attestation_id', 'onboarding_embassy.embassy_attestation_id', 'onboarding_embassy.file_name', 'onboarding_embassy.file_type', 'onboarding_embassy.file_url', 'onboarding_embassy.amount', 'onboarding_embassy.created_by', 'onboarding_embassy.modified_by', 'onboarding_embassy.created_at', 'onboarding_embassy.updated_at', 'onboarding_embassy.deleted_at')->find($request['onboarding_embassy_id']); 
         if(is_null($data)){
             return [
                 "isDeleted" => false,

@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-
-use App\Services\InvoiceServices;
 use Illuminate\Support\Facades\Log;
+use App\Services\InvoiceServices;
+use App\Services\DatabaseConnectionServices;
 
 class XeroRefreshToken extends Command
 {
@@ -14,7 +14,7 @@ class XeroRefreshToken extends Command
      *
      * @var string
      */
-    protected $signature = 'command:XeroRefreshToken';
+    protected $signature = 'command:XeroRefreshToken {database}';
 
     /**
      * The console command description.
@@ -24,9 +24,14 @@ class XeroRefreshToken extends Command
     protected $description = 'XeroRefreshToken Generation';
 
     /**
-     * @var InvoiceServices
+     * @var InvoiceServices $invoiceServices
      */
     private InvoiceServices $invoiceServices;
+
+    /**
+     * @var DatabaseConnectionServices $databaseConnectionServices
+     */
+    private $databaseConnectionServices;
 
     /**
      * Class constructor.
@@ -35,10 +40,11 @@ class XeroRefreshToken extends Command
      *
      * @return void
      */
-    public function __construct(InvoiceServices $invoiceServices)
+    public function __construct(InvoiceServices $invoiceServices, DatabaseConnectionServices $databaseConnectionServices)
     {
         parent::__construct();
         $this->invoiceServices = $invoiceServices;
+        $this->databaseConnectionServices = $databaseConnectionServices;
     }
 
     /**
@@ -48,8 +54,9 @@ class XeroRefreshToken extends Command
      */
     public function handle(): void
     {
-        Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Refresh Token Generation');
-        $this->invoiceServices->getAccessToken();
-        Log::channel('cron_activity_logs')->info('Cron Job Ended - InvoiceServices Refresh Token Generation');
+        $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
+        Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Refresh Token Generation for Tenant DB - '.$this->argument('database'));
+        $data = $this->invoiceServices->getAccessToken();
+        Log::channel('cron_activity_logs')->info('Cron Job Ended - InvoiceServices Refresh Token Generation for Tenant DB - '.$this->argument('database'));
     }
 }

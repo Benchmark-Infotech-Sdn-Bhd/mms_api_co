@@ -212,6 +212,11 @@ class TotalManagementProjectServices
             ];
         }
         $totalManagementProject = $this->getTotalManagementProject($request);
+        if(is_null($totalManagementProject)){
+            return [
+                'unauthorizedError' => true
+            ];
+        }
         $this->updateTotalManagementProject($totalManagementProject, $request);
         return true;
     }

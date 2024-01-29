@@ -12,6 +12,10 @@ class AccessManagementServices
 {
     const ERROR_ROLE_EXISTS = ['roleError' => true];
     const ERROR_MODULE_EXISTS = ['moduleError' => true];
+
+    /**
+     * @var RolePermission
+     */
     private RolePermission $rolePermission;
     /**
      * @var companyModulePermission
@@ -143,7 +147,6 @@ class AccessManagementServices
         return $result->select('modules.id', 'modules.module_name', 'role_permission.id as role_permission_id')
             ->get();
     }
-
 
     /**
      * Create a new role.

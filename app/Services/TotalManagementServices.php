@@ -462,7 +462,7 @@ class TotalManagementServices
         return $this->crmProspectService->join('crm_prospects', function ($join) use ($request) {
             $join->on('crm_prospects.id', '=', 'crm_prospect_services.crm_prospect_id')
                 ->whereIn('crm_prospects.company_id', $request['company_id']);
-        })->select('crm_prospect_services.*')->find($request['prospect_service_id']);
+        })->select('crm_prospect_services.id', 'crm_prospect_services.crm_prospect_id', 'crm_prospect_services.service_id', 'crm_prospect_services.service_name', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.contract_type', 'crm_prospect_services.status', 'crm_prospect_services.from_existing', 'crm_prospect_services.client_quota', 'crm_prospect_services.fomnext_quota', 'crm_prospect_services.initial_quota', 'crm_prospect_services.service_quota', 'crm_prospect_services.air_ticket_deposit', 'crm_prospect_services.created_at', 'crm_prospect_services.updated_at', 'crm_prospect_services.deleted_at')->find($request['prospect_service_id']);
     }
 
     /**
@@ -531,7 +531,7 @@ class TotalManagementServices
             $join->on('crm_prospects.id', '=', 'crm_prospect_services.crm_prospect_id')
                  ->whereIn('crm_prospects.company_id', $request['company_id']);
         })
-        ->select('crm_prospect_services.*')
+        ->select('crm_prospect_services.id', 'crm_prospect_services.crm_prospect_id', 'crm_prospect_services.service_id', 'crm_prospect_services.service_name', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.contract_type', 'crm_prospect_services.status', 'crm_prospect_services.from_existing', 'crm_prospect_services.client_quota', 'crm_prospect_services.fomnext_quota', 'crm_prospect_services.initial_quota', 'crm_prospect_services.service_quota', 'crm_prospect_services.air_ticket_deposit', 'crm_prospect_services.created_at', 'crm_prospect_services.updated_at', 'crm_prospect_services.deleted_at')
         ->find($request['prospect_service_id']);
     }
 }

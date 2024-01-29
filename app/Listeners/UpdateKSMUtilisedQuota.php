@@ -17,8 +17,8 @@ class UpdateKSMUtilisedQuota
     public function handle(KSMQuotaUpdated $event)
     {
         $ksmDetails = OnboardingCountriesKSMReferenceNumber::where('onboarding_country_id', $event->onBoardingCountryId)
-            ->where('ksm_reference_number', $event->ksmReferenceNumber)
-            ->first(['id', 'utilised_quota']);
+                    ->where('ksm_reference_number', $event->ksmReferenceNumber)
+                    ->first(['id', 'utilised_quota']);
 
         $utilisedQuota = $this->calculateUtilisedQuota($event, $ksmDetails);
         $this->updateUtilisedQuota($ksmDetails, $utilisedQuota);

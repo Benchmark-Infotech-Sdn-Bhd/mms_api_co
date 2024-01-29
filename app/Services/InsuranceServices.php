@@ -111,7 +111,7 @@ class InsuranceServices
             $query->on('vendors.id','=','insurance.vendor_id')
             ->whereIn('vendors.company_id', $request['company_id']);
         })
-        ->select('insurance.*')
+        ->select('insurance.id', 'insurance.no_of_worker_from', 'insurance.no_of_worker_to', 'insurance.fee_per_pax', 'insurance.vendor_id', 'insurance.created_by', 'insurance.modified_by', 'insurance.created_at', 'insurance.updated_at', 'insurance.deleted_at')
         ->find($request['id']);
     }
 	 /**
@@ -126,7 +126,7 @@ class InsuranceServices
             $query->on('vendors.id','=','insurance.vendor_id')
             ->where('vendors.company_id', $request['company_id']);
         })
-        ->select('insurance.*')
+        ->select('insurance.id', 'insurance.no_of_worker_from', 'insurance.no_of_worker_to', 'insurance.fee_per_pax', 'insurance.vendor_id', 'insurance.created_by', 'insurance.modified_by', 'insurance.created_at', 'insurance.updated_at', 'insurance.deleted_at')
         ->find($request['id']);
         if(is_null($data)){
             return [
@@ -154,7 +154,7 @@ class InsuranceServices
             $query->on('vendors.id','=','insurance.vendor_id')
             ->where('vendors.company_id', $request['company_id']);
         })
-        ->select('insurance.*')
+        ->select('insurance.id', 'insurance.no_of_worker_from', 'insurance.no_of_worker_to', 'insurance.fee_per_pax', 'insurance.vendor_id', 'insurance.created_by', 'insurance.modified_by', 'insurance.created_at', 'insurance.updated_at', 'insurance.deleted_at')
         ->find($request['id']);
         if(is_null($data)){
             return [

@@ -112,7 +112,7 @@ class LevyServices
             $join->on('directrecruitment_applications.id', '=', 'levy.application_id')
             ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
         })
-        ->select('levy.*', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
+        ->select('levy.id', 'levy.application_id', 'levy.item', 'levy.payment_date', 'levy.payment_amount', 'levy.approved_quota', 'levy.status', 'levy.ksm_reference_number', 'levy.payment_reference_number', 'levy.approval_number', 'levy.new_ksm_reference_number', 'levy.remarks', 'levy.created_by', 'levy.modified_by', 'levy.created_at', 'levy.updated_at', 'levy.deleted_at', \DB::raw('(CASE WHEN levy.status = "Paid" THEN "1" ELSE "0" END) AS edit_application'))
         ->find($request['id']);
     }
     /**

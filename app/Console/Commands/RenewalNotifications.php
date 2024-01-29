@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-
-use App\Services\NotificationServices;
 use Illuminate\Support\Facades\Log;
+use App\Services\NotificationServices;
+use App\Services\DatabaseConnectionServices;
 
 class RenewalNotifications extends Command
 {
@@ -14,7 +14,7 @@ class RenewalNotifications extends Command
      *
      * @var string
      */
-    protected $signature = 'command:RenewalNotifications';
+    protected $signature = 'command:RenewalNotifications {database}';
 
     /**
      * The console command description.
@@ -24,9 +24,14 @@ class RenewalNotifications extends Command
     protected $description = 'RenewalNotifications Generation';
 
     /**
-     * @var NotificationServices
+     * @var NotificationServices $notificationServices
      */
     private NotificationServices $notificationServices;
+
+    /**
+     * @var DatabaseConnectionServices $databaseConnectionServices
+     */
+    private $databaseConnectionServices;
 
     /**
      * Class constructor.
@@ -34,10 +39,11 @@ class RenewalNotifications extends Command
      * @param NotificationServices $notificationServices The notification services object.
      * @return void
      */
-    public function __construct(NotificationServices $notificationServices)
+    public function __construct(NotificationServices $notificationServices, DatabaseConnectionServices $databaseConnectionServices)
     {
         parent::__construct();
         $this->notificationServices = $notificationServices;
+        $this->databaseConnectionServices = $databaseConnectionServices;
     }
 
     /**
@@ -47,8 +53,9 @@ class RenewalNotifications extends Command
      */
     public function handle(): void
     {
-        Log::channel('cron_activity_logs')->info('Cron Job Started - RenewalNotifications');
-        $this->notificationServices->renewalNotifications();
-        Log::channel('cron_activity_logs')->info('Cron Job Ended - RenewalNotifications');
+        $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
+        Log::channel('cron_activity_logs')->info('Cron Job Started - Renewal Notifications for Tenant DB - '.$this->argument('database'));
+        $data = $this->notificationServices->renewalNotifications();
+        Log::channel('cron_activity_logs')->info('Cron Job Ended - Renewal Notifications for Tenant DB - '.$this->argument('database'));
     }
 }

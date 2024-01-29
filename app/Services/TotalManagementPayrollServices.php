@@ -16,6 +16,8 @@ use App\Models\TotalManagementProject;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\PayrollImport;
 use App\Models\TotalManagementCostManagement;
+use App\Exports\PayrollFailureExport;
+use App\Services\AuthServices;
 
 class TotalManagementPayrollServices
 {
@@ -57,6 +59,10 @@ class TotalManagementPayrollServices
     private TotalManagementProject $totalManagementProject;
 
     /**
+     * @var AuthServices
+     */
+    private AuthServices $authServices;
+    /**
      * TotalManagementPayrollServices constructor.
      * 
      * @param TotalManagementProject $totalManagementProject  The totalManagementProject object.
@@ -65,9 +71,10 @@ class TotalManagementPayrollServices
      * @param PayrollBulkUpload $payrollBulkUpload  The payrollBulkUpload object.
      * @param TotalManagementCostManagement $totalManagementCostManagement  The totalManagementCostManagement object.
      * @param Storage $storage;  The storage object.
+     * @param AuthServices $authServices; The authServices object
      */
 
-    public function __construct(Workers $workers, TotalManagementPayroll $totalManagementPayroll, TotalManagementPayrollAttachments $totalManagementPayrollAttachments, Storage $storage, PayrollBulkUpload $payrollBulkUpload, TotalManagementProject $totalManagementProject, TotalManagementCostManagement $totalManagementCostManagement)
+    public function __construct(Workers $workers, TotalManagementPayroll $totalManagementPayroll, TotalManagementPayrollAttachments $totalManagementPayrollAttachments, Storage $storage, PayrollBulkUpload $payrollBulkUpload, TotalManagementProject $totalManagementProject, TotalManagementCostManagement $totalManagementCostManagement, AuthServices $authServices)
     {
         $this->workers = $workers;
         $this->totalManagementPayroll = $totalManagementPayroll;
@@ -76,6 +83,7 @@ class TotalManagementPayrollServices
         $this->payrollBulkUpload = $payrollBulkUpload;
         $this->totalManagementProject = $totalManagementProject;
         $this->totalManagementCostManagement = $totalManagementCostManagement;
+        $this->authServices = $authServices;
     }
     /**
      * validate the add request data
@@ -308,6 +316,7 @@ class TotalManagementPayrollServices
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
         $params['modified_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
 
         $validator = Validator::make($request->toArray(), $this->importValidation());
         if($validator->fails()) {
@@ -316,9 +325,15 @@ class TotalManagementPayrollServices
             ];
         }
 
-        $payrollBulkUpload = $this->createPayrollBulkUpload($request);
+        $payrollBulkUpload = $this->createPayrollBulkUpload($params);
+        
+        $rows = Excel::toArray(new PayrollImport($params, $payrollBulkUpload), $file);
+        
+        $this->payrollBulkUpload->where('id', $payrollBulkUpload->id)
+        ->update(['actual_row_count' => count($rows[0])]);
 
         Excel::import(new PayrollImport($params, $payrollBulkUpload), $file);
+
         return true;
     } 
     /**
@@ -334,7 +349,10 @@ class TotalManagementPayrollServices
         return $payrollBulkUpload = $this->payrollBulkUpload->create([
             'project_id' => $request['project_id'] ?? '',
             'name' => self::PAYROLL_BULK_UPLOAD_TYPE,
-            'type' => self::PAYROLL_BULK_UPLOAD_TYPE
+            'type' => self::PAYROLL_BULK_UPLOAD_TYPE,
+            'company_id' => $request['company_id'],
+            'created_by' => $request['created_by'],
+            'modified_by' => $request['created_by']
         ]);
     }
     /**
@@ -490,7 +508,7 @@ class TotalManagementPayrollServices
         ->join('total_management_applications', function ($join) use ($request) {
             $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                  ->whereIn('total_management_applications.company_id', $request['company_id']);
-        })->select('total_management_payroll.*')->find($request['id']);
+        })->select('total_management_payroll.id', 'total_management_payroll.worker_id', 'total_management_payroll.project_id', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.created_by', 'total_management_payroll.modified_by', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution', 'total_management_payroll.created_at', 'total_management_payroll.updated_at', 'total_management_payroll.deleted_at')->find($request['id']);
     }
     /**
      * Update payroll based on the provided request.
@@ -828,6 +846,112 @@ class TotalManagementPayrollServices
             'modified_by'   => $user['id'] ?? 0,
         ]);
     }
+    /**
+     * total management payroll import history
+     * 
+     * @param $request
+     * @return mixed
+     */
+    public function importHistory($request): mixed
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
 
+        return $this->payrollBulkUpload
+        ->select('id', 'actual_row_count', 'total_success', 'total_failure', 'process_status', 'created_at')
+        ->where('process_status', 'Processed')
+        ->whereNotNull('failure_case_url')
+        ->whereIn('company_id', $request['company_id'])
+        ->orderBy('id', 'desc')
+        ->paginate(Config::get('services.paginate_row'));
+    }
+
+    /**
+     * total management payroll import failure excel download
+     * 
+     * @param $request
+     * @return array
+     */
+    public function failureExport($request): array
+    {        
+        $payrollBulkUpload = $this->payrollBulkUpload
+                        ->where('company_id', $request['company_id'])
+                        ->where('id', $request['bulk_upload_id'])
+                        ->first();
+        if(is_null($payrollBulkUpload)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        if($payrollBulkUpload->process_status != 'Processed' || is_null($payrollBulkUpload->failure_case_url)) {
+            return [
+                'queueError' => true
+            ];
+        }
+        return [
+            'file_url' => $payrollBulkUpload->failure_case_url
+        ];
+    }
+    /**
+     * total management payroll import failure case excel file creation
+     * 
+     * @return bool
+     */
+    public function prepareExcelForFailureCases(): bool
+    {
+        $ids = [];
+        $bulkUploads = $this->getPayrollBulkUploadRows();
+        foreach($bulkUploads as $bulkUpload) {
+            if($bulkUpload['actual_row_count'] == ($bulkUpload['total_success'] + $bulkUpload['total_failure'])) {
+                array_push($ids, $bulkUpload['id']);
+            }
+        }
+        $this->updatePayrollBulkUploadStatus($ids);
+        $this->createPayrollFailureCasesDocument($ids);
+        return true;
+    }
+    /**
+     * Get the payroll bulk upload rows.
+     *
+     * @return mixed
+     */
+    private function getPayrollBulkUploadRows(): mixed
+    {
+        return $this->payrollBulkUpload
+        ->where( function ($query) {
+            $query->whereNull('process_status')
+            ->orWhereNull('failure_case_url');
+        })
+        ->select('id', 'total_records', 'total_success', 'total_failure', 'actual_row_count')
+        ->get()->toArray();
+    }
+
+    /**
+     * Update the status of payroll bulk upload rows.
+     *
+     * @param $ids
+     * @return void
+     */
+    private function updatePayrollBulkUploadStatus($ids)
+    {
+        $this->payrollBulkUpload->whereIn('id', $ids)->update(['process_status' => 'Processed']);
+    }
+
+    /**
+     * create payroll failure cases document.
+     *
+     * @param $ids
+     * @return void
+     */
+    private function createPayrollFailureCasesDocument($ids)
+    {
+        foreach($ids as $id) {
+            $fileName = "FailureCases" . $id . ".xlsx";
+            $filePath = '/FailureCases/TotalManagement/' . $fileName; 
+            Excel::store(new PayrollFailureExport($id), $filePath, 'linode');
+            $fileUrl = $this->storage::disk('linode')->url($filePath);
+            $this->payrollBulkUpload->where('id', $id)->update(['failure_case_url' => $fileUrl]);
+        }
+    }
 
 }

@@ -205,11 +205,9 @@ class DirectRecruitmentOnboardingAgentServices
                 'error' => $validator->errors()
             ];
         }
-        $onboardingAgent = $this->directRecruitmentOnboardingAgent
-                        ->join('directrecruitment_applications', function ($join) use($request) {
-                            $join->on('directrecruitment_onboarding_agent.application_id', '=', 'directrecruitment_applications.id')
-                                ->where('directrecruitment_applications.company_id', $request['company_id']);
-                        })->find($request['id']);
+
+        $onboardingAgent = $this->checkForOnboardingAgent($request['company_id'], $request['id']);
+
         if(is_null($onboardingAgent)) {
             return [
                 'InvalidUser' => true
@@ -288,5 +286,21 @@ class DirectRecruitmentOnboardingAgentServices
         })->where('onboarding_countries_ksm_reference_number.onboarding_country_id', $request['onboarding_country_id'])
         ->select('onboarding_countries_ksm_reference_number.id', 'onboarding_countries_ksm_reference_number.ksm_reference_number')
         ->get(); 
+    }
+    /**
+     * checks the onbording agent exist for the particular company
+     * 
+     * @param int $companyId
+     * @param int $onboardingAgentId
+     * @return mixed The onboarding agent details
+     */
+    private function checkForOnboardingAgent(int $companyId, int $onboardingAgentId): mixed
+    {
+        return $this->directRecruitmentOnboardingAgent
+        ->join('directrecruitment_applications', function ($join) use($companyId) {
+            $join->on('directrecruitment_onboarding_agent.application_id', '=', 'directrecruitment_applications.id')
+                ->where('directrecruitment_applications.company_id', $companyId);
+        })->select('directrecruitment_onboarding_agent.id', 'directrecruitment_onboarding_agent.application_id', 'directrecruitment_onboarding_agent.onboarding_country_id', 'directrecruitment_onboarding_agent.agent_id', 'directrecruitment_onboarding_agent.ksm_reference_number', 'directrecruitment_onboarding_agent.quota', 'directrecruitment_onboarding_agent.status', 'directrecruitment_onboarding_agent.created_by', 'directrecruitment_onboarding_agent.modified_by', 'directrecruitment_onboarding_agent.created_at', 'directrecruitment_onboarding_agent.updated_at', 'directrecruitment_onboarding_agent.deleted_at')
+        ->find($onboardingAgentId);
     }
 }

@@ -45,4 +45,23 @@ class ModulesController extends Controller
             return $this->sendError(['message' => 'Failed to List Modules']);
         }
     }
+    /**
+     * Display a listing of the resource.
+     *
+     * @return JsonResponse
+     */
+    public function featureDropDown(Request $request): JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['user_type'] = $user['user_type'];
+            $params['company_id'] = $user['company_id'];
+            $response = $this->modulesServices->featureDropDown($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Features']);
+        }
+    }
 }

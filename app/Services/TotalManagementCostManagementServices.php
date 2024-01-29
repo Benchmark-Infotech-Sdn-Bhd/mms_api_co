@@ -179,9 +179,8 @@ class TotalManagementCostManagementServices
                 'validate' => $this->validationServices->errors()
             ];
         }
-
         $costManagement = $this->getCostManagement($request['id'], $params['company_id']);
-
+        
         if (is_null($costManagement)) {
             return self::ERROR_UNAUTHORIZED;
         }
@@ -212,7 +211,7 @@ class TotalManagementCostManagementServices
                 $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                     ->whereIn('total_management_applications.company_id', $companyIds);
             })
-            ->select('total_management_cost_management.*')
+            ->select('total_management_cost_management.id', 'total_management_cost_management.application_id', 'total_management_cost_management.project_id', 'total_management_cost_management.title', 'total_management_cost_management.payment_reference_number', 'total_management_cost_management.quantity', 'total_management_cost_management.amount', 'total_management_cost_management.payment_date', 'total_management_cost_management.remarks', 'total_management_cost_management.created_by', 'total_management_cost_management.modified_by', 'total_management_cost_management.invoice_number', 'total_management_cost_management.is_payroll', 'total_management_cost_management.payroll_id', 'total_management_cost_management.month', 'total_management_cost_management.year', 'total_management_cost_management.created_at', 'total_management_cost_management.updated_at', 'total_management_cost_management.deleted_at')
             ->find($costManagementId);
     }
     /**
@@ -268,7 +267,7 @@ class TotalManagementCostManagementServices
             $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                 ->whereIn('total_management_applications.company_id', $request['company_id']);
         })
-        ->select('total_management_cost_management.*')
+        ->select('total_management_cost_management.id', 'total_management_cost_management.application_id', 'total_management_cost_management.project_id', 'total_management_cost_management.title', 'total_management_cost_management.payment_reference_number', 'total_management_cost_management.quantity', 'total_management_cost_management.amount', 'total_management_cost_management.payment_date', 'total_management_cost_management.remarks', 'total_management_cost_management.created_by', 'total_management_cost_management.modified_by', 'total_management_cost_management.invoice_number', 'total_management_cost_management.is_payroll', 'total_management_cost_management.payroll_id', 'total_management_cost_management.month', 'total_management_cost_management.year', 'total_management_cost_management.created_at', 'total_management_cost_management.updated_at', 'total_management_cost_management.deleted_at')
         ->find($request['id']);
     }
     

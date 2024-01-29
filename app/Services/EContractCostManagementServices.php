@@ -157,7 +157,7 @@ class EContractCostManagementServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $user['company_id']);
         })
-        ->select('e-contract_cost_management.*')
+        ->select('e-contract_cost_management.id', 'e-contract_cost_management.project_id', 'e-contract_cost_management.title', 'e-contract_cost_management.payment_reference_number', 'e-contract_cost_management.quantity', 'e-contract_cost_management.amount', 'e-contract_cost_management.payment_date', 'e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_id', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management.invoice_number', 'e-contract_cost_management.is_payroll', 'e-contract_cost_management.payroll_id', 'e-contract_cost_management.month', 'e-contract_cost_management.year', 'e-contract_cost_management.created_by', 'e-contract_cost_management.modified_by', 'e-contract_cost_management.created_at', 'e-contract_cost_management.updated_at', 'e-contract_cost_management.deleted_at')
         ->find($request['id']);
         if(is_null($eContractCostManagement)){
             return [
@@ -217,7 +217,7 @@ class EContractCostManagementServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $params['company_id']);
         })
-        ->select('e-contract_cost_management.*')
+        ->select('e-contract_cost_management.id', 'e-contract_cost_management.project_id', 'e-contract_cost_management.title', 'e-contract_cost_management.payment_reference_number', 'e-contract_cost_management.quantity', 'e-contract_cost_management.amount', 'e-contract_cost_management.payment_date', 'e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_id', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management.invoice_number', 'e-contract_cost_management.is_payroll', 'e-contract_cost_management.payroll_id', 'e-contract_cost_management.month', 'e-contract_cost_management.year', 'e-contract_cost_management.created_by', 'e-contract_cost_management.modified_by', 'e-contract_cost_management.created_at', 'e-contract_cost_management.updated_at', 'e-contract_cost_management.deleted_at')
         ->find($request['id']);
     }
     
@@ -279,7 +279,7 @@ class EContractCostManagementServices
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $params['company_id']);
         })
-        ->select('e-contract_cost_management.*')
+        ->select('e-contract_cost_management.id', 'e-contract_cost_management.project_id', 'e-contract_cost_management.title', 'e-contract_cost_management.payment_reference_number', 'e-contract_cost_management.quantity', 'e-contract_cost_management.amount', 'e-contract_cost_management.payment_date', 'e-contract_cost_management.remarks', 'e-contract_cost_management.invoice_id', 'e-contract_cost_management.invoice_status', 'e-contract_cost_management.invoice_number', 'e-contract_cost_management.is_payroll', 'e-contract_cost_management.payroll_id', 'e-contract_cost_management.month', 'e-contract_cost_management.year', 'e-contract_cost_management.created_by', 'e-contract_cost_management.modified_by', 'e-contract_cost_management.created_at', 'e-contract_cost_management.updated_at', 'e-contract_cost_management.deleted_at')
         ->find($request['id']);
 
         if(is_null($eContractCostManagement)){
@@ -305,14 +305,14 @@ class EContractCostManagementServices
     {   
         $user = JWTAuth::parseToken()->authenticate();
         $params['company_id'] = $this->authServices->getCompanyIds($user);
-        $data = $this->eContractCostManagementAttachments::find($request['id'])
+        $data = $this->eContractCostManagementAttachments
         ->join('e-contract_cost_management', 'e-contract_cost_management.id', 'e-contract_cost_management_attachments.file_id')
         ->join('e-contract_project', 'e-contract_project.id', 'e-contract_cost_management.project_id')
         ->join('e-contract_applications', function($query) use($params) {
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $params['company_id']);
         })
-        ->select('e-contract_cost_management_attachments.*')
+        ->select('e-contract_cost_management_attachments.id', 'e-contract_cost_management_attachments.file_id', 'e-contract_cost_management_attachments.file_name', 'e-contract_cost_management_attachments.file_type', 'e-contract_cost_management_attachments.file_url', 'e-contract_cost_management_attachments.created_by', 'e-contract_cost_management_attachments.modified_by', 'e-contract_cost_management_attachments.created_at', 'e-contract_cost_management_attachments.updated_at', 'e-contract_cost_management_attachments.deleted_at')
         ->find($request['id']);
 
         if(is_null($data)){

@@ -5,9 +5,11 @@ namespace App\Jobs;
 use App\Models\PayrollUploadRecords;
 use App\Models\WorkerEmployment;
 use App\Models\TotalManagementPayroll;
+use App\Services\DatabaseConnectionServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Validator;
 
 class PayrollsImport extends Job
 {
@@ -18,10 +20,12 @@ class PayrollsImport extends Job
     const WORKER_DATA_ERROR = 'ERROR - WORKER DATA NOT FOUND';
     const WORKER_EMPLOYMENT_DATA_ERROR = 'ERROR - WORKER EMPLOYMENT DATA NOT FOUND';
     const INPUT_ERROR = 'ERROR - EMPTY INPUT';
+    const SUCCESS_MSG = 'SUCCESS - payroll imported';
     private mixed $passportNumber;
     private mixed $projectId;
     private mixed $month;
     private mixed $year;
+    private $dbName;
 
     /**
      * Constructor method for the class.
@@ -31,10 +35,25 @@ class PayrollsImport extends Job
      *
      * @return void
      */
-    public function __construct($payrollParameter, $bulkUpload)
+    public function __construct($dbName, $payrollParameter, $bulkUpload)
     {
+        $this->dbName = $dbName;
         $this->payrollParameter = $payrollParameter;
         $this->bulkUpload = $bulkUpload;
+    }
+    /**
+     * validate the payroll import request data
+     * 
+     * @return array
+     */
+    public function formatValidation(): array
+    {
+        return [
+            'passport_number' => 'required',
+            'project_id' => 'required',
+            'month' => 'required',
+            'year' => 'required'
+        ];
     }
 
     /**
@@ -45,13 +64,22 @@ class PayrollsImport extends Job
      * employment data, updating or inserting the payroll data, logging
      * errors and failures, and finally inserting the record.
      *
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * @return void
      */
-    public function handle(): void
+    public function handle(DatabaseConnectionServices $databaseConnectionServices): void
     {
+        $successFlag = 0;
         $this->extractPayrollParameters();
 
-        if ($this->validPayrollParameters()) {
+        $validationError = [];
+        $validator = Validator::make($this->payrollParameter, $this->formatValidation());
+        if($validator->fails()) {
+            $validationError = str_replace(".","", implode(",",$validator->messages()->all()));
+        }
+
+        if(empty($validationError)) {
+            
             $workerId = $this->getWorkerId();
             if ($workerId !== null) {
                 Log::info('worker data ID - ' . print_r($workerId, true));
@@ -59,16 +87,21 @@ class PayrollsImport extends Job
 
                 if ($workerEmployment > 0) {
                     $this->updateOrInsertPayroll($workerId);
+                    $successFlag = 1;
+                    $comments = self::SUCCESS_MSG;
                 } else {
                     $this->logErrorAndIncrementFailure(self::WORKER_EMPLOYMENT_DATA_ERROR);
+                    $comments = self::WORKER_EMPLOYMENT_DATA_ERROR;
                 }
             } else {
                 $this->logErrorAndIncrementFailure(self::WORKER_DATA_ERROR);
+                $comments = self::WORKER_DATA_ERROR;
             }
         } else {
             $this->logErrorAndIncrementFailure(self::INPUT_ERROR);
+            $comments = 'ERROR - ' . $validationError;
         }
-        $this->insertRecord();
+        $this->insertRecord($comments, 1, $successFlag, $this->payrollParameter['company_id']);
     }
 
     /**
@@ -213,17 +246,20 @@ class PayrollsImport extends Job
      *
      * @param string $comments (optional) Additional comments for the record. Defaults to an empty string.
      * @param int $status (optional) The status of the record. Defaults to 1.
-     *
+     * @param int $successFlag
+     * @param int $companyId
      * @return void
      */
-    public function insertRecord($comments = '', $status = 1): void
+    public function insertRecord($comments = '', $status = 1, $successFlag, $companyId): void
     {
         PayrollUploadRecords::create(
             [
                 'bulk_upload_id' => $this->bulkUpload->id,
                 'parameter' => json_encode($this->payrollParameter),
                 'comments' => $comments,
-                'status' => $status
+                'status' => $status,
+                'success_flag' => $successFlag,
+                'company_id' => $companyId
             ]
         );
     }

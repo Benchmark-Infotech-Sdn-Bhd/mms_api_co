@@ -24,6 +24,7 @@ use App\Exports\ServiceAgreementExport;
 class AdminNotificationMail implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
+
     public $timeout = 7200; // 2 hours
     public $maxExceptions = 2;
     private mixed $user;
@@ -36,8 +37,9 @@ class AdminNotificationMail implements ShouldQueue
      * @param string $message The message content.
      * @return void
      */
-    public function __construct($user, $message)
+    public function __construct($dbName, $user, $message)
     {
+        $this->dbName = $dbName;
         $this->user = $user;
         $this->message = $message;
     }
@@ -45,10 +47,13 @@ class AdminNotificationMail implements ShouldQueue
     /**
      * Handle the admin notification mail process.
      *
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * @return void
      */
-    public function handle()
-    {
+    public function handle(DatabaseConnectionServices $databaseConnectionServices)
+    {   
+        $databaseConnectionServices->dbConnectQueue($this->dbName);
+        
         Log::channel('cron_activity_logs')->info('Admin notification mail process started');
 
         $input = [];

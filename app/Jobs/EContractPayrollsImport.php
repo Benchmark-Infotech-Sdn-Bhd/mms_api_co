@@ -5,14 +5,17 @@ namespace App\Jobs;
 use App\Models\EContractPayrollUploadRecords;
 use App\Models\WorkerEmployment;
 use App\Models\EContractPayroll;
+use App\Services\DatabaseConnectionServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Validator;
 
 class EContractPayrollsImport extends Job
 {
     private mixed $payrollParameter;
     private mixed $bulkUpload;
+    private $dbName;
 
     /**
      * Constructor method.
@@ -21,13 +24,29 @@ class EContractPayrollsImport extends Job
      *
      * @param mixed $payrollParameter The payroll parameter.
      * @param bool $bulkUpload Flag indicating whether bulk upload is enabled or not.
-     *
+     * @param $dbName
+     * 
      * @return void
      */
-    public function __construct($payrollParameter, $bulkUpload)
+    public function __construct($dbName, $payrollParameter, $bulkUpload)
     {
+        $this->dbName = $dbName;
         $this->payrollParameter = $payrollParameter;
         $this->bulkUpload = $bulkUpload;
+    }
+    /**
+     * validate the payroll import request data
+     * 
+     * @return array
+     */
+    public function formatValidation(): array
+    {
+        return [
+            'passport_number' => 'required',
+            'project_id' => 'required',
+            'month' => 'required',
+            'year' => 'required'
+        ];
     }
 
 
@@ -36,9 +55,11 @@ class EContractPayrollsImport extends Job
      *
      * Handles the payroll parameter and performs necessary actions based on the validation result.
      *
+     * 
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * @return void
      */
-    public function handle(): void
+    public function handle(DatabaseConnectionServices $databaseConnectionServices): void
     {
         $parameters = $this->payrollParameter;
         if ($this->validatePayrollParameters($parameters)) {
@@ -53,7 +74,7 @@ class EContractPayrollsImport extends Job
         } else {
             $this->logAndIncrementFailure('ERROR - EMPTY INPUT');
         }
-        $this->insertRecord();
+        $this->insertRecord($comments, 1, $successFlag, $this->payrollParameter['company_id']);
     }
 
     /**
@@ -170,17 +191,21 @@ class EContractPayrollsImport extends Job
      *
      * @param string $comments [optional] Additional comments for the record, defaults to an empty string.
      * @param int $status [optional] The status of the record, defaults to 1.
+     * @param int $successFlag
+     * @param int $companyId
      *
      * @return void
      */
-    public function insertRecord($comments = '', $status = 1): void
+    public function insertRecord($comments = '', $status = 1, $successFlag, $companyId): void
     {
         EContractPayrollUploadRecords::create(
             [
                 'bulk_upload_id' => $this->bulkUpload->id,
                 'parameter' => json_encode($this->payrollParameter),
                 'comments' => $comments,
-                'status' => $status
+                'status' => $status,
+                'success_flag' => $successFlag,
+                'company_id' => $companyId
             ]
         );
     }
