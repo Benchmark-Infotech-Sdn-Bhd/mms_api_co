@@ -36,26 +36,89 @@ use App\Exports\WorkerBiodataFailureExport;
 
 class WorkersServices
 {
+    /**
+     * @var Workers
+     */
     private Workers $workers;
+    /**
+     * @var WorkerAttachments
+     */
     private WorkerAttachments $workerAttachments;
+    /**
+     * @var WorkerKin
+     */
     private WorkerKin $workerKin;
+    /**
+     * @var WorkerVisa
+     */
     private WorkerVisa $workerVisa;
+    /**
+     * @var WorkerVisaAttachments
+     */
     private WorkerVisaAttachments $workerVisaAttachments;
+    /**
+     * @var WorkerBioMedical
+     */
     private WorkerBioMedical $workerBioMedical;
+    /**
+     * @var WorkerBioMedicalAttachments
+     */
     private WorkerBioMedicalAttachments $workerBioMedicalAttachments;
+    /**
+     * @var WorkerFomema
+     */
     private WorkerFomema $workerFomema;
+    /**
+     * @var WorkerInsuranceDetails
+     */
     private WorkerInsuranceDetails $workerInsuranceDetails;
+    /**
+     * @var WorkerBankDetails
+     */
     private WorkerBankDetails $workerBankDetails;
+    /**
+     * @var KinRelationship
+     */
     private KinRelationship $kinRelationship;
+    /**
+     * @var DirectRecruitmentCallingVisaStatus
+     */
     private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
+    /**
+     * @var DirectRecruitmentOnboardingAgent
+     */
     private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
+    /**
+     * @var WorkerStatus
+     */
     private WorkerStatus $workerStatus;
+    /**
+     * @var DirectRecruitmentOnboardingCountryServices
+     */
     private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+    /**
+     * @var ValidationServices
+     */
     private ValidationServices $validationServices;
+    /**
+     * @var AuthServices
+     */
     private AuthServices $authServices;
+    /**
+     * @var Storage
+     */
     private Storage $storage;
+    /**
+     * @var DirectrecruitmentWorkers
+     */
     private DirectrecruitmentWorkers $directrecruitmentWorkers;
+    /**
+     * @var WorkerBulkUpload
+     */
     private WorkerBulkUpload $workerBulkUpload;
+    /**
+     * @var BulkUploadRecords
+     */
     private BulkUploadRecords $bulkUploadRecords;
 
     /**
@@ -129,7 +192,9 @@ class WorkersServices
         $this->bulkUploadRecords = $bulkUploadRecords;
     }
     /**
-     * @return array
+     * validate the assign worker request data
+     * 
+     * @return array  The validation error messages if validation fails, otherwise false.
      */
     public function assignWorkerValidation(): array
     {
@@ -141,7 +206,9 @@ class WorkersServices
             ];
     }
     /**
-     * @return array
+     * validate the add attachment request data
+     * 
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function addAttachmentValidation(): array
     {
@@ -151,8 +218,11 @@ class WorkersServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * create a worker
+     * 
+     * @param $request The request data containing create worker details
+     * 
+     * @return mixed Returns true if the worker is created successfully, otherwise returns an array with error details
      */
     public function create($request) : mixed
     {
@@ -331,8 +401,11 @@ class WorkersServices
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * Update the worker detail
+     * 
+     * @param $request  The request data containing update worker details
+     * 
+     * @return bool|array Returns true if the worker is updated successfully, otherwise returns an array with error details
      */
     public function update($request): bool|array
     {
@@ -597,8 +670,12 @@ class WorkersServices
     
     
     /**
+     * Show the work detail
+     * 
      * @param $request
-     * @return mixed
+     *        id (int) ID of the worker
+     * 
+     * @return mixed Returns the worker detail
      */
     public function show($request) : mixed
     {
@@ -653,8 +730,14 @@ class WorkersServices
     }
     
     /**
+     * List the workers
+     * 
      * @param $request
-     * @return mixed
+     *        crm_prospect_id (int) ID of the prospect
+     *        search_param (string) search parameter
+     *        status (string) worker status filter
+     * 
+     * @return mixed Returns The paginated list of workers
      */
     public function list($request) : mixed
     {
@@ -716,8 +799,14 @@ class WorkersServices
     }
 
     /**
+     * Export the workers
+     * 
      * @param $request
-     * @return mixed
+     *        crm_prospect_id (int) ID of the prospect
+     *        search_param (string) search parameter
+     *        status (string) worker status filter
+     * 
+     * @return mixed Returns the workers
      */
     public function export($request) : mixed
     {
@@ -767,7 +856,14 @@ class WorkersServices
     }
 
     /**
-     * @return mixed
+     * workers dropdown
+     * 
+     * @param $request
+     *        application_id (int) ID of the application
+     *        onboarding_country_id (int) ID of the onboarding country
+     *        agent_id (int) ID of the agent
+     * 
+     * @return mixed Returns the workers
      */
     public function dropdown($request) : mixed
     {
@@ -791,8 +887,13 @@ class WorkersServices
         ->orderBy('workers.created_at','DESC')->get();
     }
     /**
+     * Update the worker status
+     * 
      * @param $request
-     * @return array
+     *        id (int) ID of the worker
+     *        status (int) ID of the worker status
+     * 
+     * @return array Returns an array with two keys: 'isUpdated' and 'message'
      */
     public function updateStatus($request) : array
     {
@@ -809,6 +910,8 @@ class WorkersServices
     }
 
     /**
+     * List the kinRelationship 
+     * 
      * @return mixed
      */
     public function kinRelationship() : mixed
@@ -819,7 +922,13 @@ class WorkersServices
     }
 
     /**
-     * @return mixed
+     * List the onboarding agent
+     * 
+     * @param $request
+     *        application_id (int) ID of the application
+     *        onboarding_country_id (int) ID of the onboarding country
+     * 
+     * @return mixed Returns and onboarding agent
      */
     public function onboardingAgent($request) : mixed
     {
@@ -834,8 +943,11 @@ class WorkersServices
     }
 
     /**
-     * @param $request
-     * @return array
+     * Submit the Replace worker
+     * 
+     * @param $request The request data containing replace worker details
+     * 
+     * @return array Returns an array with two keys: 'isUpdated' and 'message'
      */
     public function replaceWorker($request) : array
     {
@@ -857,8 +969,13 @@ class WorkersServices
     }
 
     /**
+     * List the worker status
+     * 
      * @param $request
-     * @return mixed
+     *        application_id (int) ID of the application
+     *        onboarding_country_id (int) ID of the onboarding country
+     * 
+     * @return mixed Returns the worker status
      */
     public function workerStatusList($request): mixed
     {
@@ -872,8 +989,11 @@ class WorkersServices
             ->paginate(Config::get('services.paginate_row'));
     }
     /**
-     * @param $request
-     * @return array|bool
+     * Submit the Assign Workers
+     * 
+     * @param $request The request data containing assign worker details
+     * 
+     * @return array|bool Returns true if the assign worker is submitted successfully, otherwise returns an array with error details
      */
     public function assignWorker($request): array|bool
     {
@@ -952,8 +1072,11 @@ class WorkersServices
     }
 
     /**
+     * Create a Bank detail for worker
+     * 
      * @param $request
-     * @return mixed
+     * 
+     * @return mixed Returns the created bank detail record.
      */
     public function createBankDetails($request) : mixed
     {
@@ -990,8 +1113,11 @@ class WorkersServices
     }
 
     /**
+     * Update the bank detail for worker
+     * 
      * @param $request
-     * @return bool|array
+     * 
+     * @return bool|array Returns true if the bank detail is updated successfully, otherwise returns an array with error details
      */
     public function updateBankDetails($request): bool|array
     {
@@ -1027,8 +1153,12 @@ class WorkersServices
     }
 
     /**
+     * Shows the bank detail
+     * 
      * @param $request
-     * @return mixed
+     *        id (int) ID of the bank record
+     * 
+     * @return mixed Returns the Bank detail
      */
     public function showBankDetails($request) : mixed
     {
@@ -1047,8 +1177,13 @@ class WorkersServices
     }
 
     /**
+     * List the worker bank detail
+     * 
      * @param $request
-     * @return mixed
+     *        worker_id (int) ID of the worker
+     *        search_param (string) search parameter
+     * 
+     * @return mixed Returns The paginated list of bank detail
      */
     public function listBankDetails($request) : mixed
     {
@@ -1078,7 +1213,9 @@ class WorkersServices
      * delete the specified Bank Detail of the Worker.
      *
      * @param $request
-     * @return mixed
+     *        id (int) ID of the bank record
+     * 
+     * @return mixed Returns an array with two keys: 'isDeleted' and 'message'
      */    
     public function deleteBankDetails($request): mixed
     {   
@@ -1103,9 +1240,13 @@ class WorkersServices
         ];
     }
     /**
-     * add attachment
+     * add attachment for worker
+     * 
      * @param $request
-     * @return bool|array
+     *        worker_id (int) ID of the worker
+     *        attachment (file) uploading file
+     * 
+     * @return bool|array Returns true if the file is uploaded successfully, otherwise returns an array with error details
      */
     public function addAttachment($request): bool|array
     {
@@ -1144,8 +1285,12 @@ class WorkersServices
         }
     }
     /**
+     * List the worker attachment
+     * 
      * @param $request
-     * @return mixed
+     *        worker_id (int) ID of the worker
+     * 
+     * @return mixed Returns The paginated list of worker attachment
      */
     public function listAttachment($request) : mixed
     {
@@ -1159,9 +1304,12 @@ class WorkersServices
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
-     *
+     * Delete the worker attachment
+     * 
      * @param $request
-     * @return bool
+     *        attachment_id (int) ID of the attachment
+     * 
+     * @return bool Returns true if the file is deleted successfully, otherwise returns false
      */    
     public function deleteAttachment($request): bool
     {   
@@ -1179,8 +1327,11 @@ class WorkersServices
         return true;
     }
     /**
-     * @param $request
-     * @return mixed
+     * Import the workers
+     * 
+     * @param $request The request data containing import worker details
+     * 
+     * @return mixed Returns true if the file is imported successfully, otherwise returns an array with error details
      */
     public function import($request, $file): mixed
     {
@@ -1205,8 +1356,12 @@ class WorkersServices
         return true;
     }
     /**
+     * List the worker import history
+     * 
      * @param $request
-     * @return mixed
+     *        company_id (array) ID of the user company
+     * 
+     * @return mixed Returns The paginated list of worker import history
      */
     public function importHistory($request) : mixed
     {
@@ -1223,8 +1378,11 @@ class WorkersServices
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
+     * Shows import failure export file
+     * 
      * @param $request
-     * @return array
+     * 
+     * @return array Returns an array with key: file_url
      */
     public function failureExport($request): array
     {        
@@ -1239,6 +1397,8 @@ class WorkersServices
         ];
     }
     /**
+     * Process the worker import failure case 
+     * 
      * @return bool
      */
     public function prepareExcelForFailureCases(): bool

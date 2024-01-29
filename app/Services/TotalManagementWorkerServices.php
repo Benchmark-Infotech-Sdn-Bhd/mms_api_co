@@ -17,6 +17,18 @@ use App\Services\AuthServices;
 
 class TotalManagementWorkerServices
 {
+    public const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
+    public const ERROR_QUOTA = ['quotaError' => true];
+    public const ERROR_FOMNEXT_QUOTA = ['fomnextQuotaError' => true];
+    public const ERROR_CLIENT_QUOTA = ['clientQuotaError' => true];
+
+    public const DEFAULT_TRANSFER_FLAG = 0;
+    public const CUSTOMER = 'Customer';
+    public const WORKER_STATUS_ONBENCH = 'On-Bench';
+    public const WORKER_STATUS_ASSIGNED = 'Assigned';
+    public const PLKS_STATUS_APPROVED = 'Approved';
+    public const FOMNEXT_PROSPECT_ID = 0;
+
     /**
      * @var Workers
      */
@@ -56,15 +68,15 @@ class TotalManagementWorkerServices
 
     /**
      * TotalManagementWorkerServices constructor.
-     * @param Workers $workers
-     * @param Vendor $vendor
-     * @param Accommodation $accommodation
-     * @param WorkerEmployment $workerEmployment
-     * @param TotalManagementApplications $totalManagementApplications
-     * @param CRMProspectService $crmProspectService
-     * @param DirectrecruitmentApplications $directrecruitmentApplications
-     * @param TotalManagementProject $totalManagementProject
-     * @param AuthServices $authServices
+     * @param Workers $workers The workers object.
+     * @param Vendor $vendor The vendor object.
+     * @param Accommodation $accommodation The accommodation object.
+     * @param WorkerEmployment $workerEmployment The workerEmployment object.
+     * @param TotalManagementApplications $totalManagementApplications The totalManagementApplications object.
+     * @param CRMProspectService $crmProspectService The crmProspectService object.
+     * @param DirectrecruitmentApplications $directrecruitmentApplications The directrecruitmentApplications object.
+     * @param TotalManagementProject $totalManagementProject The TotalManagementProject object.
+     * @param AuthServices $authServices The authServices object.
      */
     public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, TotalManagementProject $totalManagementProject, AuthServices $authServices)
     {
@@ -79,7 +91,9 @@ class TotalManagementWorkerServices
         $this->authServices = $authServices;
     }
     /**
-     * @return array
+     * validate the search request data
+     * 
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function searchValidation(): array
     {
@@ -88,7 +102,9 @@ class TotalManagementWorkerServices
         ];
     }
     /**
-     * @return array
+     * validate the create request data
+     * 
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function createValidation(): array
     {
@@ -102,7 +118,9 @@ class TotalManagementWorkerServices
     }
 
     /**
-     * @return array
+     * validate the remove request data
+     * 
+     * @return array The validation error messages if validation fails, otherwise false.
      */
     public function removeValidation(): array
     {
@@ -115,8 +133,16 @@ class TotalManagementWorkerServices
     }
 
     /**
+     * list the total management workers
+     * 
      * @param $request
-     * @return mixed
+     *        project_id (int) ID of the project
+     *        search (string) search parameter
+     *        filter (int) status of worker
+     *        company_filter (int) ID of the company
+     * 
+     * 
+     * @return mixed Returns The paginated list of total management workers
      */
     public function list($request): mixed
     {
@@ -136,13 +162,13 @@ class TotalManagementWorkerServices
             ->leftJoin('vendors as vendor_transport', 'vendor_transport.id', 'total_management_project.transportation_provider_id')
             ->leftJoin('vendors', 'vendors.id', 'worker_employment.accommodation_provider_id')
             ->where('total_management_project.id', $request['project_id'])
-            ->where('worker_employment.service_type', 'Total Management')
+            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
             ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
-            ->where('worker_employment.transfer_flag', 0)
+            ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date')
             ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
-                if ($request['user']['user_type'] == 'Customer') {
+                if ($request['user']['user_type'] == self::CUSTOMER) {
                     $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
                 }
             })
@@ -170,8 +196,17 @@ class TotalManagementWorkerServices
             ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
+     * list the on-bench workers
+     * 
      * @param $request
-     * @return mixed
+     *        prospect_id (int) ID of the prospect
+     *        application_id (int) ID of the application
+     *        search (string) search parameter
+     *        company_filter (int) ID of the company
+     *        ksm_reference_number (string) KSM reference number of worker
+     * 
+     * 
+     * @return mixed Returns The paginated list of on-bench workers
      */
     public function workerListForAssignWorker($request): mixed
     {
@@ -193,12 +228,12 @@ class TotalManagementWorkerServices
             $request['from_existing'] = 0;
         }
         return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->where('workers.econtract_status', 'On-Bench')
-            ->where('workers.total_management_status', 'On-Bench')
+            ->where('workers.econtract_status', self::WORKER_STATUS_ONBENCH)
+            ->where('workers.total_management_status', self::WORKER_STATUS_ONBENCH)
             ->whereIn('workers.crm_prospect_id', $request['company_ids'])
             ->whereIn('workers.company_id', $request['company_id'])
             ->where(function ($query) use ($request) {
-                if ($request['user']['user_type'] == 'Customer') {
+                if ($request['user']['user_type'] == self::CUSTOMER) {
                     $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
                 }
             })
@@ -206,7 +241,7 @@ class TotalManagementWorkerServices
             if(isset($request['from_existing']) && $request['from_existing'] == 1){
                 $query->where([
                     ['workers.crm_prospect_id', $request['prospect_id']],
-                    ['workers.plks_status', 'Approved']
+                    ['workers.plks_status', self::PLKS_STATUS_APPROVED]
                 ]);
             }else{
                     $query->where('workers.module_type', '<>', Config::get('services.WORKER_MODULE_TYPE')[0])->orWhereNull('workers.module_type');
@@ -236,8 +271,13 @@ class TotalManagementWorkerServices
             ->paginate(Config::get('services.paginate_worker_row'));
     }
     /**
+     * list the accommodation Provider
+     * 
      * @param $request
-     * @return mixed
+     *        company_id (array) ID of the company
+     * 
+     * 
+     * @return mixed Returns an accommodation Provider
      */
     public function accommodationProviderDropDown($request): mixed
     {
@@ -247,8 +287,13 @@ class TotalManagementWorkerServices
                 ->get();
     }
     /**
+     * list the accommodation unit
+     * 
      * @param $request
-     * @return mixed
+     *        id (int) ID of the accommodation vendor
+     *        company_id (array) ID of the company
+     * 
+     * @return mixed Returns an accommodation unit
      */
     public function accommodationUnitDropDown($request): mixed
     {
@@ -260,8 +305,15 @@ class TotalManagementWorkerServices
         ->where('accommodation.vendor_id', $request['id'])->select('accommodation.id', 'accommodation.name')->get();
     }
     /**
-     * @param $request
-     * @return array|bool
+     * process the assign worker submit
+     * 
+     * @param $request  The request data containing assign worker details
+     * 
+     * @return array|bool Returns true if the assign worker is submitted successfully, otherwise returns an array with error details
+     *                    Returns self::ERROR_UNAUTHORIZED if the user access invalid application
+     *                    Returns self::ERROR_QUOTA if the quota exceed the applied quota
+     *                    Returns self::ERROR_CLIENT_QUOTA if the quota exceed the client quota
+     *                    Returns self::ERROR_FOMNEXT_QUOTA if the quota exceed the fomnext quota
      */
     public function assignWorker($request): array|bool
     {
@@ -281,9 +333,7 @@ class TotalManagementWorkerServices
             $projectDetails = $this->totalManagementProject->findOrFail($request['project_id']);
             $applicationDetails = $this->totalManagementApplications::whereIn('company_id', $request['company_id'])->find($projectDetails->application_id);
             if(is_null($applicationDetails)){
-                return [
-                    'unauthorizedError' => true
-                ];
+                return self::ERROR_UNAUTHORIZED;
             }
             $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
             $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
@@ -291,13 +341,11 @@ class TotalManagementWorkerServices
             if($serviceDetails->from_existing == 1) {
                 $workerCountArray['clientWorkersCount'] += count($request['workers']);
                 if($workerCountArray['clientWorkersCount'] > $applicationDetails->quota_applied) {
-                    return [
-                        'quotaError' => true
-                    ];
+                    return self::ERROR_QUOTA;
                 }
             } else if($serviceDetails->from_existing == 0) {
                 $fomnextWorkerCount = $this->workers->whereIn('id', $request['workers'])
-                                        ->where('crm_prospect_id', 0)
+                                        ->where('crm_prospect_id', self::FOMNEXT_PROSPECT_ID)
                                         ->count();
                 $clientWorkerCount = $this->workers->whereIn('id', $request['workers'])
                                         ->where('crm_prospect_id', $applicationDetails->crm_prospect_id)
@@ -305,53 +353,69 @@ class TotalManagementWorkerServices
 
                 $workerCountArray['fomnextWorkersCount'] += $fomnextWorkerCount;
                 if($workerCountArray['fomnextWorkersCount'] > $serviceDetails->fomnext_quota) {
-                    return [
-                        'fomnextQuotaError' => true
-                    ];
+                    return self::ERROR_FOMNEXT_QUOTA;
                 }
                 
                 $workerCountArray['clientWorkersCount'] += $clientWorkerCount;
                 if($workerCountArray['clientWorkersCount'] > $serviceDetails->client_quota) {
-                    return [
-                        'clientQuotaError' => true
-                    ];
+                    return self::ERROR_CLIENT_QUOTA;
                 }
             }
-
-            foreach ($request['workers'] as $workerId) {
-                $this->workerEmployment->create([
-                    'worker_id' => $workerId,
-                    'project_id' => $request['project_id'],
-                    'department' => $request['department'],
-                    'sub_department' => $request['sub_department'],
-                    'accommodation_provider_id' => $request['accommodation_provider_id'],
-                    'accommodation_unit_id' => $request['accommodation_unit_id'],
-                    'work_start_date' => $request['work_start_date'],
-                    'service_type' => 'Total Management',
-                    'created_by' => $request['created_by'],
-                    'modified_by' => $request['created_by']
-                ]);
-            }
-            $this->workers->whereIn('id', $request['workers'])
-                ->update([
-                    'module_type' => Config::get('services.WORKER_MODULE_TYPE')[1],
-                    'total_management_status' => 'Assigned',
-                    'modified_by' => $request['created_by']
-                ]);
+            $this->processAssignWorkers($request);
         }
         return true;
     }
     /**
+     * process the assign worker on provided request data
+     *
+     * @param array $request
+     *              worker_id (array) ID of the worker
+     *              project_id (int) ID of the project
+     *              department (string) department
+     *              sub_department (string) department
+     *              accommodation_provider_id (int) ID of the accommodation provider
+     *              accommodation_unit_id (int) ID of the accommodation unit
+     *              work_start_date (date) start date of the project
+     *              created_by (int) ID of the user who created the record
+     * 
+     * @return void
+     */
+    private function processAssignWorkers($request){
+        foreach ($request['workers'] as $workerId) {
+            $this->workerEmployment->create([
+                'worker_id' => $workerId,
+                'project_id' => $request['project_id'],
+                'department' => $request['department'],
+                'sub_department' => $request['sub_department'],
+                'accommodation_provider_id' => $request['accommodation_provider_id'],
+                'accommodation_unit_id' => $request['accommodation_unit_id'],
+                'work_start_date' => $request['work_start_date'],
+                'service_type' => Config::get('services.WORKER_MODULE_TYPE')[1],
+                'created_by' => $request['created_by'],
+                'modified_by' => $request['created_by']
+            ]);
+        }
+        $this->workers->whereIn('id', $request['workers'])
+            ->update([
+                'module_type' => Config::get('services.WORKER_MODULE_TYPE')[1],
+                'total_management_status' => self::WORKER_STATUS_ASSIGNED,
+                'modified_by' => $request['created_by']
+            ]);
+    }
+    /**
+     * get the Balanced Quota
+     * 
      * @param $request
-     * @return array
+     *        company_id (array) ID of the company
+     *        application_id (int) ID of the application
+     * 
+     * @return array Returns the Balanced Quota
      */
     public function getBalancedQuota($request): array
     {
         $applicationDetails = $this->totalManagementApplications::whereIn('company_id', $request['company_id'])->find($request['application_id']);
         if(is_null($applicationDetails)){
-            return [
-                'unauthorizedError' => true
-            ];
+            return sself::ERROR_UNAUTHORIZED;
         }
         $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
 
@@ -372,8 +436,13 @@ class TotalManagementWorkerServices
         }
     }
     /**
+     * get the company detail
+     * 
      * @param $request
-     * @return mixed
+     *        application_id (int) ID of the application
+     *        company_id (array) ID of the user company
+     * 
+     * @return mixed Returns the company detail
      */
     public function getCompany($request): mixed
     {
@@ -385,8 +454,13 @@ class TotalManagementWorkerServices
                     ->get();
     }
     /**
+     * list the KSM Reference number
+     * 
      * @param $request
-     * @return mixed
+     *        application_id (int) ID of the application
+     *        company_id (array) ID of the user company
+     * 
+     * @return mixed Returns the KSM Reference number
      */
     public function ksmRefereneceNUmberDropDown($request): mixed
     {
@@ -406,8 +480,13 @@ class TotalManagementWorkerServices
         return $ksmReferenceNumbers;
     }
     /**
+     * get the sector and valid until detail
+     * 
      * @param $request
-     * @return mixed
+     *        prospect_id (int) ID of the prospect
+     *        company_id (array) ID of the user company
+     * 
+     * @return mixed Returns the sector and valid until detail
      */
     public function getSectorAndValidUntil($request): mixed
     {
@@ -421,8 +500,13 @@ class TotalManagementWorkerServices
                     ->get();
     }
     /**
+     * list the assigned workers of project
+     * 
      * @param $request
-     * @return mixed
+     *        project_id (int) ID of the project
+     *        company_id (array) ID of the user company
+     * 
+     * @return mixed Returns the assigned workers of project
      */
     public function getAssignedWorker($request): mixed
     {
@@ -430,21 +514,24 @@ class TotalManagementWorkerServices
         ->leftjoin('workers', 'workers.id', 'worker_employment.worker_id')
         ->where('worker_employment.project_id', $request['project_id'])
         ->where('worker_employment.status', 1)
-        ->where('service_type', 'Total Management')
+        ->where('service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
         ->whereIn('workers.company_id', $request['company_id'])
         ->select('worker_employment.id','worker_employment.worker_id','workers.name','workers.passport_number')
         ->get();
     }   
 
     /**
-     * @param $request
-     * @return array|bool
+     * Process the remove worker from the project
+     * 
+     * @param $request The request data containing remove worker details
+     * 
+     * @return array|bool Returns true if the remove worker is submitted successfully, otherwise returns an array with error details
+     *                    Returns self::ERROR_UNAUTHORIZED if the user access invalid project
      */
     public function removeWorker($request): array|bool
     {
         $user = JWTAuth::parseToken()->authenticate();
         $request['company_id'] = $this->authServices->getCompanyIds($user);
-
         $request['modified_by'] = $user['id'];
 
         $validator = Validator::make($request, $this->removeValidation());
@@ -453,23 +540,52 @@ class TotalManagementWorkerServices
                 'error' => $validator->errors()
             ];
         }
+        
+        $workerDetails = $this->getProjectWorker($request);
+        if($workerDetails == 0){
+            return self::ERROR_UNAUTHORIZED;
+        }
+        $this->processRemoveWorker($request);
 
-        $workerDetails = $this->workerEmployment->join('workers', function ($join) use ($request) {
+        return true;
+    }
+    /**
+     * check the worker is exist or not in the provided project.
+     *
+     * @param $request
+     *        company_id (array) ID of the user company
+     *        worker_id ID of the worker
+     *        project_id ID of the project
+     * 
+     * @return mixed Returns the count
+     */
+    private function getProjectWorker($request)
+    {
+        return $this->workerEmployment->join('workers', function ($join) use ($request) {
             $join->on('workers.id', '=', 'worker_employment.worker_id')
                  ->whereIn('workers.company_id', $request['company_id']);
         })->where("worker_id", $request['worker_id'])
                         ->where("project_id", $request['project_id'])
-                        ->where("service_type", "Total Management")
+                        ->where("service_type", Config::get('services.WORKER_MODULE_TYPE')[1])
                         ->count();
-            if($workerDetails == 0){
-                return [
-                    'unauthorizedError' => true
-                ];
-            }
-
+    }
+    /**
+     * process the remove worker on provided request data
+     *
+     * @param array $request
+     *              worker_id (array) ID of the worker
+     *              project_id (int) ID of the project
+     *              last_working_day (date) last working date of the project
+     *              remove_date (date) removed date
+     *              remarks (string) remarks text
+     *              modified_by (int) ID of the user who modified the record
+     * 
+     * @return void
+     */
+    private function processRemoveWorker($request){
         $this->workerEmployment->where("worker_id", $request['worker_id'])
         ->where("project_id", $request['project_id'])
-        ->where("service_type", "Total Management")
+        ->where("service_type", Config::get('services.WORKER_MODULE_TYPE')[1])
         ->update([
             'status' => 0,
             'work_end_date' => $request['last_working_day'],
@@ -479,29 +595,57 @@ class TotalManagementWorkerServices
 
         $this->workers->where('id', $request['worker_id'])
         ->update([
-            'total_management_status' => 'On-Bench',
+            'total_management_status' => self::WORKER_STATUS_ONBENCH,
             'modified_by' => $request['modified_by']
         ]);
-
-        return true;
     }
     /**
+     * get the worker count
+     * 
      * @param $applicationId, $prospectId
-     * @return array
+     * 
+     * @return array Returns the worker count
      */
     public function getWorkerCount($applicationId, $prospectId): array
     {
-        $projectIds = $this->totalManagementProject->where('application_id', $applicationId)
+        $projectIds = $this->getTotalManagementProjectIds($applicationId);
+        $clientWorkersCount = $this->getClientWorkersCount($prospectId,$projectIds);
+        $fomnextWorkersCount = $this->getFomnextWorkersCount($projectIds);
+
+        return [
+            'clientWorkersCount' => $clientWorkersCount,
+            'fomnextWorkersCount' => $fomnextWorkersCount
+        ];
+    }
+    /**
+     * Retrieve total management project ID's.
+     *
+     * @param $applicationId
+     * 
+     * @return array Returns the total management project ID's
+     */
+    private function getTotalManagementProjectIds($applicationId)
+    {
+        $this->totalManagementProject->where('application_id', $applicationId)
                             ->select('id')
                             ->get()
                             ->toArray();
-        $projectIds = array_column($projectIds, 'id');
-
-        $clientWorkersCount = $this->workers
+        return array_column($projectIds, 'id');
+    }
+    /**
+     * Retrieve client worker count.
+     *
+     * @param $prospectId
+     * @param $projectIds
+     * @return mixed Returns the client worker count
+     */
+    private function getClientWorkersCount($prospectId,$projectIds)
+    {
+        return $this->workers
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.worker_id','=','workers.id')
-            ->where('worker_employment.service_type', 'Total Management')
-            ->where('worker_employment.transfer_flag', 0)
+            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
+            ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date')
             ->whereNull('worker_employment.work_end_date')
             ->whereNull('worker_employment.event_type');
@@ -511,25 +655,28 @@ class TotalManagementWorkerServices
         ->whereIn('worker_employment.project_id', $projectIds)
         ->distinct('workers.id')
         ->count('workers.id');
-
-        $fomnextWorkersCount = $this->workers
+    }
+    /**
+     * Retrieve formnext worker count.
+     *
+     * @param $projectIds
+     * @return mixed Returns formnext workers count
+     */
+    private function getFomnextWorkersCount($projectIds)
+    {
+        return $fomnextWorkersCount = $this->workers
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.worker_id','=','workers.id')
-            ->where('worker_employment.service_type', 'Total Management')
-            ->where('worker_employment.transfer_flag', 0)
+            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
+            ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date')
             ->whereNull('worker_employment.work_end_date')
             ->whereNull('worker_employment.event_type');
         })
-        ->where('workers.crm_prospect_id', 0)
+        ->where('workers.crm_prospect_id', self::FOMNEXT_PROSPECT_ID)
         ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
         ->whereIn('worker_employment.project_id', $projectIds)
         ->distinct('workers.id')
         ->count('workers.id');
-
-        return [
-            'clientWorkersCount' => $clientWorkersCount,
-            'fomnextWorkersCount' => $fomnextWorkersCount
-        ];
     }
 }
