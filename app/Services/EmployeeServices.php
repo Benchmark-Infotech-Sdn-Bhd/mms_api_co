@@ -15,33 +15,77 @@ use App\Models\Transportation;
 
 class EmployeeServices
 {
+    public const DEFAULT_INTEGER_VALUE_ZERO = 0;
+    public const DEFAULT_INTEGER_VALUE_ONE = 1;
+    public const USER_TYPE_EMPLOYEE = 'Employee';
+    public const MESSAGE_EMPLOYEE_NOT_CREATED = 'Employee not created';
+    public const MESSAGE_DATA_NOT_FOUND = 'Data not found';
+    public const MESSAGE_EMPLOYEE_NOT_UPDATED = 'Employee not updated';
+    public const MESSAGE_UPDATED_SUCCESSFULLY = 'Updated Successfully';
+    public const MESSAGE_DELETED_SUCCESSFULLY = 'Deleted Successfully';
+
+    /**
+     * @var Employee
+     */
     private Employee $employee;
+
+    /**
+     * @var ValidationServices
+     */
     private ValidationServices $validationServices;
+
+    /**
+     * @var AuthServices
+     */
     private AuthServices $authServices;
+
+    /**
+     * @var Role
+     */
     private Role $role;
+
+    /**
+     * @var User
+     */
     private User $user;
+
+    /**
+     * @var Transportation
+     */
     private Transportation $transportation;
+
     /**
      * @var Company
      */
     private Company $company;
+
     /**
      * @var Branch
      */
     private Branch $branch;
 
     /**
-     * EmployeeServices constructor.
-     * @param Employee $employee
-     * @param ValidationServices $validationServices
-     * @param AuthServices $authServices
-     * @param Role $role
-     * @param User $user
-     * @param Company $company
-     * @param Branch $branch
+     * Constructs a new instance of the class.
+     * 
+     * @param Employee $employee The employee object.
+     * @param ValidationServices $validationServices The validation services object.
+     * @param AuthServices $authServices The auth services object.
+     * @param Role $role The role object.
+     * @param User $user The user object.
+     * @param Transportation $transportation The transportation object.
+     * @param Company $company The company object.
+     * @param Branch $branch The branch object.
      */
-    public function __construct(Employee $employee,ValidationServices $validationServices,
-    AuthServices $authServices,Role $role, User $user, Transportation $transportation, Company $company, Branch $branch)
+    public function __construct(
+        Employee $employee,
+        ValidationServices $validationServices,
+        AuthServices $authServices,
+        Role $role, 
+        User $user, 
+        Transportation $transportation, 
+        Company $company, 
+        Branch $branch
+    )
     {
         $this->employee = $employee;
         $this->validationServices = $validationServices;
@@ -59,41 +103,46 @@ class EmployeeServices
      */
     public function create($request) : mixed
     {
-        if(!($this->validationServices->validate($request,$this->employee->rules))){
+        if (!($this->validationServices->validate($request,$this->employee->rules))) {
             return [
               'validate' => $this->validationServices->errors()
             ];
         }
+
         $roleDetails = $this->role->find($request['role_id']);
-        if(is_null($roleDetails)) {
+        if (is_null($roleDetails)) {
             return [
                 'InvalidUser' => true
             ];
         }
-        if($roleDetails->special_permission == 0 && count($request['subsidiary_companies']) > 0) {
+
+        if ($roleDetails->special_permission == 0 && count($request['subsidiary_companies']) > 0) {
             return [
                 'roleError' => true
             ];
         }
-        if($request['company_id'] != $roleDetails->company_id) {
+
+        if ($request['company_id'] != $roleDetails->company_id) {
             return [
                 'InvalidUser' => true
             ];
         }
-        if(count($request['subsidiary_companies']) > 0) {
+
+        if (count($request['subsidiary_companies']) > 0) {
             $subsidiaryCompanyIds = $this->company->where('parent_id', $request['company_id'])
                                     ->select('id')
                                     ->get()->toArray();
             $subsidiaryCompanyIds = array_column($subsidiaryCompanyIds, 'id');
             $diffCompanyIds = array_diff($request['subsidiary_companies'], $subsidiaryCompanyIds);
-            if(count($diffCompanyIds) > 0) {
+            if (count($diffCompanyIds) > 0) {
                 return [
                     'InvalidUser' => true
                 ];
             }
         }
+
         $barnchDetails = $this->branch->find($request['branch_id']);
-        if(is_null($barnchDetails)) {
+        if (is_null($barnchDetails)) {
             return [
                 'InvalidUser' => true
             ];
@@ -102,6 +151,7 @@ class EmployeeServices
                 'InvalidUser' => true
             ];
         }
+
         $employee = $this->employee->create([
             'employee_name' => $request['employee_name'] ?? '',
             'gender' => $request['gender'] ?? '',
@@ -121,6 +171,7 @@ class EmployeeServices
             'modified_by'   => $request['created_by'] ?? 0,
             'company_id' => $request['company_id'] ?? 0
         ]);
+
         $res = $this->authServices->create(
             ['name' => $request['employee_name'],
             'email' => $request['email'],
@@ -133,46 +184,51 @@ class EmployeeServices
             'subsidiary_companies' => $request['subsidiary_companies'],
             'company_id' => $request['company_id']
         ]);
-        if($res){
+        if ($res) {
             return $employee;
         }
         $employee->delete();
+
         return [
             "isCreated" => false,
             "message"=> "Employee not created"
         ];
     }
+
     /**
      * @param $request
      * @return array
      */
-    public function update($request) : array
+    public function update($request): array
     {
-        if(!($this->validationServices->validate($request,$this->employee->rulesForUpdation($request['id'])))){
+        if (!($this->validationServices->validate($request,$this->employee->rulesForUpdation($request['id'])))) {
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
+
         $employee = $this->employee->where('company_id', $request['company_id'])->find($request['id']);
-        if(is_null($employee)){
+        if (is_null($employee)) {
             return [
                 "isUpdated" => false,
                 "message"=> "Data not found"
             ];
         }
+
         $res = $this->authServices->update(
             ['name' => $request['employee_name'] ?? $employee['employee_name'],
             'email' => $request['email'],
             'role_id' => (int)$request['role_id'],
-            'user_id' => $request['modified_by'],
+            'user_id' => $request['mod ied_by'],
             'reference_id' => $request['id']
         ]);
-        if(!$res){
+        if (!$res) {
             return [
                 "isUpdated" => false,
                 "message"=> "Employee not updated"
             ];
         }
+
         return [
             "isUpdated" => $employee->update([
                 'id' => $request['id'],
@@ -195,6 +251,7 @@ class EmployeeServices
             "message" => "Updated Successfully"
         ];
     }
+
     /**
      * @param $request
      * @return array
@@ -202,14 +259,14 @@ class EmployeeServices
     public function delete($request) : array
     {
 
-        if(!($this->validationServices->validate($request,['id' => 'required']))){
+        if (!($this->validationServices->validate($request,['id' => 'required']))) {
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
         
         $employee = $this->employee->whereIn('company_id', $request['company_id'])->find($request['id']);
-        if(is_null($employee)){
+        if (is_null($employee)) {
             return [
                 "isDeleted" => false,
                 "message" => "Data not found"
@@ -217,7 +274,7 @@ class EmployeeServices
         }
 
         $res = $this->authServices->delete(['reference_id' => $request['id']]);
-        if(!$res){
+        if (!$res) {
             return [
                 "isDeleted" => false,
                 "message" => "Data not found"
@@ -229,75 +286,84 @@ class EmployeeServices
             "message" => "Deleted Successfully"
         ];
     }
+
     /**
      * @param $request
      * @return array
      */
-    public function show($request) : array
+    public function show($request): array
     {
-        if(!($this->validationServices->validate($request,['id' => 'required']))){
+        if (!($this->validationServices->validate($request,['id' => 'required']))) {
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
+
         $emp = $this->employee->with(['branches', 'user'])->find($request['id']);
         $companies = $this->user->with('companies')->findOrFail($emp->user->id);
-        if(isset($emp) && isset($emp['id'])){
+        if (isset($emp) && isset($emp['id'])) {
             $user = $this->authServices->userWithRolesBasedOnReferenceId(['id' => $emp['id']]);
             $emp['email'] = $user['email'];
             $emp['role_id'] = $user['role_id'];
         }
+
         return [
             'employeeDetails' => $emp,
             'User' => $companies
         ];
     }
+
     /**
      * @param $request
      * @return array
      */
-    public function updateStatus($request) : array
+    public function updateStatus($request): array
     {
 
-        if(!($this->validationServices->validate($request,['id' => 'required','status' => 'required|regex:/^[0-1]+$/|max:1']))){
+        if (!($this->validationServices->validate($request,['id' => 'required','status' => 'required|regex:/^[0-1]+$/|max:1']))) {
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
+
         $employee = $this->employee->with('branches')->whereIn('company_id', $request['company_id'])->find($request['id']);
-        if(is_null($employee)){
+        if (is_null($employee)) {
             return [
                 "isUpdated" => false,
                 "message"=> "Data not found"
             ];
         }
-        if($request['status'] == 1){
-            if(is_null($employee['branches']) || ($employee['branches']['status'] == 0)){
+
+        if ($request['status'] == 1) {
+            if (is_null($employee['branches']) || ($employee['branches']['status'] == 0)) {
                 return [
                     "isUpdated" => false,
                     "message"=> '“You are not allowed to update user status due to an inactive branch assigned, Kindly “Reactive the branch associated with this user” or ”assign to a new branch to the user”'
                 ];
             }
         }
+
         $employee->status = $request['status'];
         return  [
             "isUpdated" => $employee->save() == 1,
             "message" => "Updated Successfully"
         ];
     }
+
     /**
      * @param $request
      * @return mixed
      */
-    public function list($request) : mixed
+    public function list($request): mixed
     {
-        if(isset($request['search_param']) && !empty($request['search_param'])){
-            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+        if (isset($request['search_param']) && !empty($request['search_param'])) {
+            if (!($this->validationServices->validate($request,['search_param' => 'required|min:3']))) {
                 return [
                     'validate' => $this->validationServices->errors()
                 ];
             }
         }
+
         return $this->employee->join('branch', 'branch.id', '=', 'employee.branch_id')
         ->join('users', function ($join) {
             $join->on('employee.id', '=', 'users.reference_id')
@@ -329,11 +395,12 @@ class EmployeeServices
         ->orderBy('employee.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
+
     /**
      * @param $companyId
      * @return mixed
      */
-    public function dropdown($companyId) : mixed
+    public function dropdown($companyId): mixed
     {
         return $this->employee->where('status', 1)
                 ->whereIn('company_id', $companyId)
@@ -342,11 +409,12 @@ class EmployeeServices
                 ->orderBy('employee.created_at','DESC')
                 ->get();
     }
+
     /**
      * @param $request
      * @return array
      */
-    public function updateStatusBasedOnBranch($request) : array
+    public function updateStatusBasedOnBranch($request): array
     {
         $employee = $this->employee->where('branch_id', $request['branch_id'])
         ->update(['status' => $request['status']]);
@@ -355,11 +423,12 @@ class EmployeeServices
             "message" => "Updated Successfully"
         ];
     }
+
     /**
      * $param $request
      * @return mixed
      */
-    public function supervisorList($request) : mixed
+    public function supervisorList($request): mixed
     {
         $role = $this->role->where('role_name', Config::get('services.EMPLOYEE_ROLE_TYPE_SUPERVISOR'))
                 ->whereIn('company_id', $request['company_id'])
