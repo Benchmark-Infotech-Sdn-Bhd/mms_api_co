@@ -428,7 +428,7 @@ class EContractServices
                 $filePath = '/crm/prospect/' . $request['service_name'] . '/' . $request['sector_name']. '/'. $fileName; 
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $fileUrl = $linode->url($filePath);
                 $this->crmProspectAttachment->create([
                     "file_id" => $request['prospect_id'],
                     "prospect_service_id" => $prospectServiceId,
@@ -482,7 +482,7 @@ class EContractServices
                 $filePath = '/eContract/proposal/' . $applicationId . '/' . $fileName; 
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $fileUrl = $linode->url($filePath);
                 $this->eContractApplicationAttachments::create([
                     "file_id" => $applicationId,
                     "file_name" => $fileName,
