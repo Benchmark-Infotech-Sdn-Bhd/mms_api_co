@@ -643,7 +643,7 @@ class TotalManagementTransferServices
      *
      * @param array $request The request data for the total management service.
      *
-     * @return array Returns the appropriate error code if an error occurs during processing.
+     * @return mixed|void Returns the appropriate error code if an error occurs during processing.
      *
      * @see getTotalManagementProjectDetails()
      * @see getTotalManagementApplicationDetails()
@@ -664,8 +664,8 @@ class TotalManagementTransferServices
 
         if ($serviceDetails->from_existing == self::FROM_EXISTING) {
             return $this->processFromExisting($request, $projectDetails, $applicationDetails, $serviceDetails);
-        } 
-        if ($serviceDetails->from_existing == self::NOT_FROM_EXISTING) {
+        }
+        else {    
             return $this->processNotFromExisting($request, $projectDetails, $applicationDetails, $serviceDetails);
         }
     }
@@ -716,7 +716,7 @@ class TotalManagementTransferServices
      * @param object $applicationDetails The application details object.
      * @param object $serviceDetails The service details object.
      * 
-     * @return array Returns the appropriate error code if an error occurs during processing.
+     * @return mixed|void Returns the appropriate error code if an error occurs during processing. otherwise null
      * 
      * @see getWorkerDetails()
      * @see processFromExistingWorker()
@@ -742,7 +742,7 @@ class TotalManagementTransferServices
      * @param object $applicationDetails The application details object.
      * @param object $serviceDetails The service details object.
      * 
-     * @return array Returns the appropriate error code if an error occurs during processing.
+     * @return mixed|void Returns the appropriate error code if an error occurs during processing.otherwise null
      * 
      * @see getWorkerCount()
      * @see getWorkerDetails()
@@ -757,7 +757,7 @@ class TotalManagementTransferServices
         if ($request['from_existing'] == self::FROM_EXISTING) {
             return self::ERROR_FROM_EXISTING_WORKER;
         } 
-        if ($request['from_existing'] == self::NOT_FROM_EXISTING) {
+        else {  
             return $this->processNotFromExistingWorker($request, $workerDetail, $workerCountArray, $serviceDetails);
         }
     }
@@ -770,7 +770,7 @@ class TotalManagementTransferServices
      * @param object $applicationDetails The application details object.
      * @param object $workerDetail The worker details object.
      * 
-     * @return array Returns the appropriate error code if an error occurs during processing.
+     * @return mixed|void Returns the appropriate error code if an error occurs during processing.otherwise null.
      * 
      * @see getWorkerCount()
      * 
@@ -801,7 +801,7 @@ class TotalManagementTransferServices
      * @param array $workerCountArray The worker count array.
      * @param object $serviceDetails The service details object.
      * 
-     * @return array Returns the appropriate error code if an error occurs during processing.
+     * @return mixed|void Returns the appropriate error code if an error occurs during processing. otherwise null.
      * 
      * @see processClientWorker()
      * 
@@ -829,7 +829,7 @@ class TotalManagementTransferServices
      * @param array $workerCountArray The worker count array.
      * @param object $serviceDetails The service details object.
      * 
-     * @return array Returns the appropriate error code if an error occurs during processing.
+     * @return mixed|void Returns the appropriate error code if an error occurs during processing. otherwise returns null.
      * 
      */
     private function processClientWorker($request, $workerDetail, $workerCountArray, $serviceDetails)
@@ -888,6 +888,8 @@ class TotalManagementTransferServices
      *
      * @param array $request The request data containing the 'worker_id', 'new_prospect_id' and modified_by.
      *
+     * @return void
+     * 
      */
     private function updateWorker($request)
     {
@@ -926,6 +928,8 @@ class TotalManagementTransferServices
      * Update the worker e-contract detail.
      *
      * @param object $worker The worker object.
+     * 
+     * return modifed worker object
      *
      */
     private function updateEcontractServiceType($worker)
@@ -943,6 +947,8 @@ class TotalManagementTransferServices
      *
      * @param object $worker The worker object.
      *
+     * return modifed worker object
+     * 
      */
     private function updateTotalManagementServiceType($worker)
     {
@@ -1049,8 +1055,8 @@ class TotalManagementTransferServices
     public function getWorkerCount($applicationId, $prospectId): array
     {
         $projectIds = $this->getTotalManagementProjectIds($applicationId);
-        $clientWorkersCount = $this->getClientWorkersCount($prospectId, $projectIds);
-        $fomnextWorkersCount = $this->getFomnextWorkersCount($projectIds);
+        $clientWorkersCount = $this->getProjectWorkersCount($prospectId, $projectIds);
+        $fomnextWorkersCount = $this->getProjectWorkersCount(self::FOMNEXT_PROSPECT_ID, $projectIds);
 
         return [
             'clientWorkersCount' => $clientWorkersCount,
@@ -1075,13 +1081,13 @@ class TotalManagementTransferServices
     }
 
     /**
-     * Retrieve client worker count.
+     * Retrieve project worker count based on request data
      *
      * @param $prospectId
      * @param $projectIds
-     * @return mixed Returns the client worker count
+     * @return mixed Returns the project worker count
      */
-    private function getClientWorkersCount($prospectId, $projectIds)
+    private function getProjectWorkersCount($prospectId, $projectIds)
     {
         return $this->workers
             ->leftJoin('worker_employment', function ($query) {
@@ -1095,30 +1101,6 @@ class TotalManagementTransferServices
             ->where('workers.crm_prospect_id', $prospectId)
             ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
             ->whereIn('worker_employment.project_id', $projectIds)
-            ->distinct('workers.id')
-            ->count('workers.id');
-    }
-
-    /**
-     * Retrieve formnext worker count.
-     *
-     * @param $projectIds
-     * @return mixed Returns formnext workers count
-     */
-    private function getFomnextWorkersCount($projectIds)
-    {
-        return $this->workers
-            ->leftJoin('worker_employment', function ($query) {
-                $query->on('worker_employment.worker_id', '=', 'workers.id')
-                    ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
-                    ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
-                    ->whereNull('worker_employment.remove_date')
-                    ->whereNull('worker_employment.work_end_date')
-                    ->whereNull('worker_employment.event_type');
-            })
-            ->where('workers.crm_prospect_id', self::FOMNEXT_PROSPECT_ID)
-            ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
-            ->where('worker_employment.project_id', $projectIds)
             ->distinct('workers.id')
             ->count('workers.id');
     }
