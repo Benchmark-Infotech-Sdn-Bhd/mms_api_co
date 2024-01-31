@@ -179,7 +179,7 @@ class TotalManagementTransferServices
             ->applySelectionFilter($userData)
             ->selectProspectData()
             ->orderBy('crm_prospects.id', 'desc')
-            ->paginate(Config::get('services.paginate_row'));
+            ->paginate(Config::get('services.paginate_row'));    
     }
 
     /**
@@ -726,11 +726,10 @@ class TotalManagementTransferServices
     {
         $workerDetail = $this->getWorkerDetails($request);
 
-        if ($request['from_existing'] == self::NOT_FROM_EXISTING) {
-            return self::ERROR_QUOTA_FROM_EXISTING;
-        } 
         if ($request['from_existing'] == self::FROM_EXISTING) {
             return $this->processFromExistingWorker($request, $workerDetail, $projectDetails, $applicationDetails);
+        }else{
+            return self::ERROR_QUOTA_FROM_EXISTING;
         }
     }
 

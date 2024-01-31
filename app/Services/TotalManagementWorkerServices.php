@@ -321,11 +321,9 @@ class TotalManagementWorkerServices
         $request['created_by'] = $user['id'];
         $request['company_id'] = $this->authServices->getCompanyIds($user);
 
-        $validator = Validator::make($request, $this->createValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->validateAssignWorkerRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
 
         if(isset($request['workers']) && !empty($request['workers'])) 
@@ -339,32 +337,84 @@ class TotalManagementWorkerServices
             $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
             
             if($serviceDetails->from_existing == 1) {
-                $workerCountArray['clientWorkersCount'] += count($request['workers']);
-                if($workerCountArray['clientWorkersCount'] > $applicationDetails->quota_applied) {
-                    return self::ERROR_QUOTA;
-                }
+                $this->processAssignWorkerFromExisting($request, $workerCountArray, $applicationDetails);
             } else if($serviceDetails->from_existing == 0) {
-                $fomnextWorkerCount = $this->workers->whereIn('id', $request['workers'])
-                                        ->where('crm_prospect_id', self::FOMNEXT_PROSPECT_ID)
-                                        ->count();
-                $clientWorkerCount = $this->workers->whereIn('id', $request['workers'])
-                                        ->where('crm_prospect_id', $applicationDetails->crm_prospect_id)
-                                        ->count();
-
-                $workerCountArray['fomnextWorkersCount'] += $fomnextWorkerCount;
-                if($workerCountArray['fomnextWorkersCount'] > $serviceDetails->fomnext_quota) {
-                    return self::ERROR_FOMNEXT_QUOTA;
-                }
-                
-                $workerCountArray['clientWorkersCount'] += $clientWorkerCount;
-                if($workerCountArray['clientWorkersCount'] > $serviceDetails->client_quota) {
-                    return self::ERROR_CLIENT_QUOTA;
-                }
+                $this->processAssignWorkerNotFromExisting($request, $workerCountArray, $applicationDetails, $serviceDetails);
             }
             $this->processAssignWorkers($request);
         }
         return true;
     }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateAssignWorkerRequest($request): array|bool
+    {
+        $validator = Validator::make($request, $this->createValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Process the assign worker from existing
+     *
+     * @param array $request The request data containing the 'worker_id'.
+     * @param array $workerCountArray The worker count array.
+     * @param object $applicationDetails The application details object.
+     * 
+     * @return mixed|void Returns the appropriate error code if an error occurs during processing. otherwise null
+     * 
+     */
+    private function processAssignWorkerFromExisting($request, $workerCountArray, $applicationDetails)
+    {
+        $workerCountArray['clientWorkersCount'] += count($request['workers']);
+        if($workerCountArray['clientWorkersCount'] > $applicationDetails->quota_applied) {
+            return self::ERROR_QUOTA;
+        }
+    }
+
+    /**
+     * Process the assign worker not from existing
+     *
+     * @param array $request The request data containing the 'worker_id'.
+     * @param array $workerCountArray The worker count array.
+     * @param object $applicationDetails The application details object.
+     * @param object $serviceDetails The service details object.
+     * 
+     * @return mixed|void Returns the appropriate error code if an error occurs during processing. otherwise null
+     * 
+     */
+    private function processAssignWorkerNotFromExisting($request, $workerCountArray, $applicationDetails, $serviceDetails)
+    {
+        $fomnextWorkerCount = $this->workers->whereIn('id', $request['workers'])
+                                        ->where('crm_prospect_id', self::FOMNEXT_PROSPECT_ID)
+                                        ->count();
+
+        $clientWorkerCount = $this->workers->whereIn('id', $request['workers'])
+                                        ->where('crm_prospect_id', $applicationDetails->crm_prospect_id)
+                                        ->count();
+
+        $workerCountArray['fomnextWorkersCount'] += $fomnextWorkerCount;
+        if($workerCountArray['fomnextWorkersCount'] > $serviceDetails->fomnext_quota) {
+            return self::ERROR_FOMNEXT_QUOTA;
+        }
+                
+        $workerCountArray['clientWorkersCount'] += $clientWorkerCount;
+        if($workerCountArray['clientWorkersCount'] > $serviceDetails->client_quota) {
+            return self::ERROR_CLIENT_QUOTA;
+        }
+    }
+
     /**
      * process the assign worker on provided request data
      *
@@ -413,12 +463,11 @@ class TotalManagementWorkerServices
      */
     public function getBalancedQuota($request): array
     {
-        $applicationDetails = $this->totalManagementApplications::whereIn('company_id', $request['company_id'])->find($request['application_id']);
+        $applicationDetails = $this->getTotalManagementApplicationDetails($request);
         if(is_null($applicationDetails)){
             return sself::ERROR_UNAUTHORIZED;
         }
-        $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
-
+        $serviceDetails = $this->getApplicationServiceDetails($applicationDetails->service_id);
         $workerCount = $this->getWorkerCount($request['application_id'], $applicationDetails->crm_prospect_id);
 
         if($serviceDetails->from_existing == 0) {
@@ -435,6 +484,31 @@ class TotalManagementWorkerServices
             ];
         }
     }
+
+    /**
+     * Get the details of a total management application detail.
+     *
+     * @param array $request The request data containing the company_id to fetch the details of the application.
+     * @return mixed Returns the application matching the given company ID and application ID,
+     *               or null if no matching application is found.
+     */
+    private function getTotalManagementApplicationDetails($request)
+    {
+        return $this->totalManagementApplications::whereIn('company_id', $request['company_id'])->find($request['application_id']);
+    }
+
+    /**
+     * Get the details of a application service detail.
+     *
+     * @param int $id The Id of the service.
+     * @return mixed Returns the service matching the given service ID,
+     *               or null if no matching service is found.
+     */
+    private function getApplicationServiceDetails($id)
+    {
+        return $this->crmProspectService->findOrFail($id);
+    }
+
     /**
      * get the company detail
      * 
@@ -464,13 +538,7 @@ class TotalManagementWorkerServices
      */
     public function ksmRefereneceNUmberDropDown($request): mixed
     {
-        $companyId = $this->totalManagementApplications
-                    ->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
-                    ->where('total_management_applications.id', $request['application_id'])
-                    ->whereIn('total_management_applications.company_id', $request['company_id'])
-                    ->select('crm_prospects.id')
-                    ->get()->toArray();
-        $companyId = array_column($companyId, 'id');
+        $companyId = $this->getCompanyIds($request);
         $ksmReferenceNumbers = $this->directrecruitmentApplications
         ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.application_id', 'directrecruitment_applications.id')
         ->whereIn('directrecruitment_applications.crm_prospect_id', $companyId)
@@ -479,6 +547,24 @@ class TotalManagementWorkerServices
         ->get();
         return $ksmReferenceNumbers;
     }
+
+    /**
+     * Get the company IDs for the given request.
+     *
+     * @param array $request The request data containing the 'application_id' and 'company_id'.
+     * @return array Returns an array of company IDs associated with the given 'application_id'.
+     */
+    private function getCompanyIds($request)
+    {
+        $companyId = $this->totalManagementApplications
+                    ->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
+                    ->where('total_management_applications.id', $request['application_id'])
+                    ->whereIn('total_management_applications.company_id', $request['company_id'])
+                    ->select('crm_prospects.id')
+                    ->get()->toArray();
+        return array_column($companyId, 'id');
+    }
+
     /**
      * get the sector and valid until detail
      * 
@@ -511,13 +597,13 @@ class TotalManagementWorkerServices
     public function getAssignedWorker($request): mixed
     {
         return $this->workerEmployment
-        ->leftjoin('workers', 'workers.id', 'worker_employment.worker_id')
-        ->where('worker_employment.project_id', $request['project_id'])
-        ->where('worker_employment.status', 1)
-        ->where('service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
-        ->whereIn('workers.company_id', $request['company_id'])
-        ->select('worker_employment.id','worker_employment.worker_id','workers.name','workers.passport_number')
-        ->get();
+            ->leftjoin('workers', 'workers.id', 'worker_employment.worker_id')
+            ->where('worker_employment.project_id', $request['project_id'])
+            ->where('worker_employment.status', 1)
+            ->where('service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
+            ->whereIn('workers.company_id', $request['company_id'])
+            ->select('worker_employment.id','worker_employment.worker_id','workers.name','workers.passport_number')
+            ->get();
     }   
 
     /**
@@ -534,21 +620,40 @@ class TotalManagementWorkerServices
         $request['company_id'] = $this->authServices->getCompanyIds($user);
         $request['modified_by'] = $user['id'];
 
+        $validationResult = $this->validateRemoveRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
+        $workerDetails = $this->getProjectWorker($request);
+        if($workerDetails == 0){
+            return self::ERROR_UNAUTHORIZED;
+        }
+
+        $this->processRemoveWorker($request);
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateRemoveRequest($request): array|bool
+    {
         $validator = Validator::make($request, $this->removeValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
-        
-        $workerDetails = $this->getProjectWorker($request);
-        if($workerDetails == 0){
-            return self::ERROR_UNAUTHORIZED;
-        }
-        $this->processRemoveWorker($request);
 
         return true;
     }
+
     /**
      * check the worker is exist or not in the provided project.
      *
@@ -561,13 +666,15 @@ class TotalManagementWorkerServices
      */
     private function getProjectWorker($request)
     {
-        return $this->workerEmployment->join('workers', function ($join) use ($request) {
-            $join->on('workers.id', '=', 'worker_employment.worker_id')
+        return $this->workerEmployment
+            ->join('workers', function ($join) use ($request) {
+                $join->on('workers.id', '=', 'worker_employment.worker_id')
                  ->whereIn('workers.company_id', $request['company_id']);
-        })->where("worker_id", $request['worker_id'])
-                        ->where("project_id", $request['project_id'])
-                        ->where("service_type", Config::get('services.WORKER_MODULE_TYPE')[1])
-                        ->count();
+            })
+            ->where("worker_id", $request['worker_id'])
+            ->where("project_id", $request['project_id'])
+            ->where("service_type", Config::get('services.WORKER_MODULE_TYPE')[1])
+            ->count();
     }
     /**
      * process the remove worker on provided request data
@@ -581,36 +688,78 @@ class TotalManagementWorkerServices
      *              modified_by (int) ID of the user who modified the record
      * 
      * @return void
+     * 
+     * @see updateCurrentWorkerEmployment()
+     * @see updateWorkerStatus()
+     * 
      */
     private function processRemoveWorker($request){
-        $this->workerEmployment->where("worker_id", $request['worker_id'])
-        ->where("project_id", $request['project_id'])
-        ->where("service_type", Config::get('services.WORKER_MODULE_TYPE')[1])
-        ->update([
-            'status' => 0,
-            'work_end_date' => $request['last_working_day'],
-            'remove_date' => $request['remove_date'],
-            'remarks' => $request['remarks']
-        ]);
-
-        $this->workers->where('id', $request['worker_id'])
-        ->update([
-            'total_management_status' => self::WORKER_STATUS_ONBENCH,
-            'modified_by' => $request['modified_by']
-        ]);
+        $this->updateCurrentWorkerEmployment($request);
+        $this->updateWorkerStatus($request);
     }
+
+    /**
+     * Update the worker current employment record based on provided request data
+     *
+     * @param array $request
+     *              worker_id (int) ID of the worker
+     *              current_project_id (int) current project ID
+     *              last_working_day (date) last working day
+     *              modified_by (int) modified user ID
+     *
+     * @return void
+     * 
+     */
+    private function updateCurrentWorkerEmployment($request)
+    {
+        $this->workerEmployment
+            ->where("worker_id", $request['worker_id'])
+            ->where("project_id", $request['project_id'])
+            ->where("service_type", Config::get('services.WORKER_MODULE_TYPE')[1])
+            ->update([
+                'status' => 0,
+                'work_end_date' => $request['last_working_day'],
+                'remove_date' => $request['remove_date'],
+                'remarks' => $request['remarks']
+            ]);
+    }
+
+    /**
+     * Update the worker status based on provided request data
+     *
+     * @param array $request
+     *              worker_id (int) ID of the worker
+     *              modified_by (int) modified user ID
+     *
+     * @return void
+     * 
+     */
+    private function updateWorkerStatus($request)
+    {
+        $this->workers
+            ->where('id', $request['worker_id'])
+            ->update([
+                'total_management_status' => self::WORKER_STATUS_ONBENCH,
+                'modified_by' => $request['modified_by']
+            ]);
+    }
+
     /**
      * get the worker count
      * 
      * @param $applicationId, $prospectId
      * 
      * @return array Returns the worker count
+     * 
+     * @see getTotalManagementProjectIds()
+     * @see getProjectWorkersCount()
+     * 
      */
     public function getWorkerCount($applicationId, $prospectId): array
     {
         $projectIds = $this->getTotalManagementProjectIds($applicationId);
-        $clientWorkersCount = $this->getClientWorkersCount($prospectId,$projectIds);
-        $fomnextWorkersCount = $this->getFomnextWorkersCount($projectIds);
+        $clientWorkersCount = $this->getProjectWorkersCount($prospectId, $projectIds);
+        $fomnextWorkersCount = $this->getProjectWorkersCount(self::FOMNEXT_PROSPECT_ID, $projectIds);
 
         return [
             'clientWorkersCount' => $clientWorkersCount,
@@ -626,57 +775,35 @@ class TotalManagementWorkerServices
      */
     private function getTotalManagementProjectIds($applicationId)
     {
-        $this->totalManagementProject->where('application_id', $applicationId)
+        $projectIds = $this->totalManagementProject->where('application_id', $applicationId)
                             ->select('id')
                             ->get()
                             ->toArray();
         return array_column($projectIds, 'id');
     }
+    
     /**
-     * Retrieve client worker count.
+     * Retrieve project worker count based on request data
      *
      * @param $prospectId
      * @param $projectIds
-     * @return mixed Returns the client worker count
+     * @return mixed Returns the project worker count
      */
-    private function getClientWorkersCount($prospectId,$projectIds)
+    private function getProjectWorkersCount($prospectId, $projectIds)
     {
         return $this->workers
-        ->leftJoin('worker_employment', function($query) {
-            $query->on('worker_employment.worker_id','=','workers.id')
-            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
-            ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
-            ->whereNull('worker_employment.remove_date')
-            ->whereNull('worker_employment.work_end_date')
-            ->whereNull('worker_employment.event_type');
-        })
-        ->where('workers.crm_prospect_id', $prospectId)
-        ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
-        ->whereIn('worker_employment.project_id', $projectIds)
-        ->distinct('workers.id')
-        ->count('workers.id');
-    }
-    /**
-     * Retrieve formnext worker count.
-     *
-     * @param $projectIds
-     * @return mixed Returns formnext workers count
-     */
-    private function getFomnextWorkersCount($projectIds)
-    {
-        return $fomnextWorkersCount = $this->workers
-        ->leftJoin('worker_employment', function($query) {
-            $query->on('worker_employment.worker_id','=','workers.id')
-            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
-            ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
-            ->whereNull('worker_employment.remove_date')
-            ->whereNull('worker_employment.work_end_date')
-            ->whereNull('worker_employment.event_type');
-        })
-        ->where('workers.crm_prospect_id', self::FOMNEXT_PROSPECT_ID)
-        ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
-        ->whereIn('worker_employment.project_id', $projectIds)
-        ->distinct('workers.id')
-        ->count('workers.id');
+            ->leftJoin('worker_employment', function($query) {
+                $query->on('worker_employment.worker_id','=','workers.id')
+                    ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
+                    ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
+                    ->whereNull('worker_employment.remove_date')
+                    ->whereNull('worker_employment.work_end_date')
+                    ->whereNull('worker_employment.event_type');
+                })
+            ->where('workers.crm_prospect_id', $prospectId)
+            ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
+            ->whereIn('worker_employment.project_id', $projectIds)
+            ->distinct('workers.id')
+            ->count('workers.id');
     }
 }
