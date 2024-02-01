@@ -83,7 +83,7 @@ class EContractServices
     private Storage $storage;
 
     /**
-     * Constructor method
+     * Constructor method.
      * 
      * @param CRMProspect $crmProspect Instance of the CRMProspect class.
      * @param CRMProspectService $crmProspectService Instance of the CRMProspectService class.
