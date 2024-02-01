@@ -28,6 +28,8 @@ class TotalManagementWorkerServices
     public const WORKER_STATUS_ASSIGNED = 'Assigned';
     public const PLKS_STATUS_APPROVED = 'Approved';
     public const FOMNEXT_PROSPECT_ID = 0;
+    public const FROM_EXISTING = 1;
+    public const NOT_FROM_EXISTING = 0;
 
     /**
      * @var Workers
@@ -78,7 +80,17 @@ class TotalManagementWorkerServices
      * @param TotalManagementProject $totalManagementProject The TotalManagementProject object.
      * @param AuthServices $authServices The authServices object.
      */
-    public function __construct(Workers $workers, Vendor $vendor, Accommodation $accommodation, WorkerEmployment $workerEmployment, TotalManagementApplications $totalManagementApplications, CRMProspectService $crmProspectService, DirectrecruitmentApplications $directrecruitmentApplications, TotalManagementProject $totalManagementProject, AuthServices $authServices)
+    public function __construct(
+        Workers                       $workers, 
+        Vendor                        $vendor, 
+        Accommodation                 $accommodation, 
+        WorkerEmployment              $workerEmployment, 
+        TotalManagementApplications   $totalManagementApplications, 
+        CRMProspectService            $crmProspectService, 
+        DirectrecruitmentApplications $directrecruitmentApplications, 
+        TotalManagementProject        $totalManagementProject, 
+        AuthServices                  $authServices
+    )
     {
         $this->workers = $workers;
         $this->vendor = $vendor;
@@ -146,6 +158,39 @@ class TotalManagementWorkerServices
      */
     public function list($request): mixed
     {
+        $validationResult = $this->validateSearchRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
+        $data = $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
+            ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
+            ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+            ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'total_management_applications.service_id')
+            ->leftJoin('vendors as vendor_transport', 'vendor_transport.id', 'total_management_project.transportation_provider_id')
+            ->leftJoin('vendors', 'vendors.id', 'worker_employment.accommodation_provider_id');
+        $data = $this->applyCondition($request,$data);
+        $data = $this->applyReferenceFilter($request,$data);
+        $data = $this->applySearchFilter($request,$data);
+        $data = $this->applyStatusFilter($request,$data);
+        $data = $this->applyCompanyFilter($request,$data);
+        $data = $this->listSelectColumns($data)
+                        ->distinct('workers.id')
+                        ->orderBy('workers.id','DESC')
+                        ->paginate(Config::get('services.paginate_worker_row'));
+        return $data;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateSearchRequest($request): array|bool
+    {
         if(isset($request['search']) && !empty($request['search'])){
             $validator = Validator::make($request, $this->searchValidation());
             if($validator->fails()) {
@@ -154,47 +199,110 @@ class TotalManagementWorkerServices
                 ];
             }
         }
-        return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
-            ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
-            ->leftJoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-            ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', '=', 'total_management_applications.service_id')
-            ->leftJoin('vendors as vendor_transport', 'vendor_transport.id', 'total_management_project.transportation_provider_id')
-            ->leftJoin('vendors', 'vendors.id', 'worker_employment.accommodation_provider_id')
-            ->where('total_management_project.id', $request['project_id'])
+
+        return true;
+    }
+
+    /**
+     * Apply condition to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        project_id (int) ID of the project
+     *        company_id (array) ID of the user company
+     *
+     * @return $data Returns the query builder object with the applied condition
+     */
+    private function applyCondition($request,$data)
+    {
+        return $data->where('total_management_project.id', $request['project_id'])
             ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
             ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
             ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date')
-            ->whereIn('workers.company_id', $request['company_id'])
-            ->where(function ($query) use ($request) {
-                if ($request['user']['user_type'] == self::CUSTOMER) {
-                    $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
-                }
-            })
-            ->where(function ($query) use ($request) {
-                if (isset($request['search']) && $request['search']) {
-                    $query->where('workers.name', 'like', '%' . $request['search'] . '%');
-                    $query->orWhere('worker_visa.calling_visa_reference_number', 'like', '%' . $request['search'] . '%');
-                    $query->orWhere('worker_visa.ksm_reference_number', 'like', '%' . $request['search'] . '%');
-                    $query->orWhere('worker_employment.department', 'like', '%' . $request['search'] . '%');
-                }
-            })
-            ->where(function ($query) use ($request) {
-                if((isset($request['filter']) && !empty($request['filter'])) || $request['filter'] == 0) {
-                    $query->where('workers.status', $request['filter']);
-                }
-            })
-            ->where(function ($query) use ($request) {
-                if ((isset($request['company_filter']) && !empty($request['company_filter'])) || $request['company_filter'] == 0) {
-                    $query->where('workers.crm_prospect_id', $request['company_filter']);
-                }
-            })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'vendors.name as accommodation_provider', 'vendor_transport.name as transportation_provider', 'worker_employment.department', 'workers.status', 'workers.total_management_status', 'worker_employment.status as worker_assign_status', 'worker_employment.remove_date', 'worker_employment.remarks', 'crm_prospect_services.from_existing', 'total_management_project.application_id')
-            ->distinct('workers.id')
-            ->orderBy('workers.id','DESC')
-            ->paginate(Config::get('services.paginate_worker_row'));
+            ->whereIn('workers.company_id', $request['company_id']);
     }
+
+    /**
+     * Apply search filter to the query builder based on user data
+     *
+     * @param array $request The user data for filtering the company
+     *        search (string) search parameter
+     *
+     * @return $data Returns the query builder object with the applied search filter
+     */
+    private function applySearchFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
+            if (isset($request['search']) && $request['search']) {
+                $query->where('workers.name', 'like', '%' . $request['search'] . '%');
+                $query->orWhere('worker_visa.calling_visa_reference_number', 'like', '%' . $request['search'] . '%');
+                $query->orWhere('worker_visa.ksm_reference_number', 'like', '%' . $request['search'] . '%');
+                $query->orWhere('worker_employment.department', 'like', '%' . $request['search'] . '%');
+            }
+        });
+    }
+
+    /**
+     * Apply reference filter to the query builder based on user data
+     *
+     * @param array $request The user data for filtering the company
+     *        reference_id (int) Id of the company
+     *
+     * @return $data Returns the query builder object with the applied reference filter
+     */
+    private function applyReferenceFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
+            if ($request['user']['user_type'] == self::CUSTOMER) {
+                $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
+            }
+        });
+    }
+
+    /**
+     * Apply status filter to the query builder based on user data
+     *
+     * @param array $request The user data for filtering the worker
+     *        filter (string) status of the filter
+     *
+     * @return $data Returns the query builder object with the applied status filter
+     */
+    private function applyStatusFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
+            if((isset($request['filter']) && !empty($request['filter'])) || $request['filter'] == 0) {
+                $query->where('workers.status', $request['filter']);
+            }
+        });
+    }
+
+    /**
+     * Apply company filter to the query builder based on user data
+     *
+     * @param array $request The user data for filtering the worker
+     *        company_filter (int) ID of the company
+     *
+     * @return $data Returns the query builder object with the applied company filter
+     */
+    private function applyCompanyFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
+            if ((isset($request['company_filter']) && !empty($request['company_filter'])) || $request['company_filter'] == 0) {
+                $query->where('workers.crm_prospect_id', $request['company_filter']);
+            }
+        });
+    }
+
+    /**
+     * Select worker data from the query.
+     *
+     * @return $data The modified instance of the class.
+     */
+    private function listSelectColumns($data)
+    {
+        return $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'vendors.name as accommodation_provider', 'vendor_transport.name as transportation_provider', 'worker_employment.department', 'workers.status', 'workers.total_management_status', 'worker_employment.status as worker_assign_status', 'worker_employment.remove_date', 'worker_employment.remarks', 'crm_prospect_services.from_existing', 'total_management_project.application_id');
+    }
+
     /**
      * list the on-bench workers
      * 
@@ -210,35 +318,83 @@ class TotalManagementWorkerServices
      */
     public function workerListForAssignWorker($request): mixed
     {
-        if(isset($request['search']) && !empty($request['search'])){
-            $validator = Validator::make($request, $this->searchValidation());
-            if($validator->fails()) {
-                return [
-                    'error' => $validator->errors()
-                ];
-            }
+        $validationResult = $this->validateSearchRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
+
         $request['company_ids'] = array($request['prospect_id'], 0);
-        $applicationDetails = $this->totalManagementApplications->findOrFail($request['application_id']);
-        $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
+        $applicationDetails = $this->getTotalManagementApplicationById($request['application_id']);
+        $serviceDetails = $this->getApplicationServiceDetails($applicationDetails->service_id);
         
-        if(isset($serviceDetails->from_existing) && $serviceDetails->from_existing == 1) {
+        if(isset($serviceDetails->from_existing) && $serviceDetails->from_existing == self::FROM_EXISTING) {
             $request['from_existing'] = $serviceDetails->from_existing;
         }else{
-            $request['from_existing'] = 0;
+            $request['from_existing'] = self::NOT_FROM_EXISTING;
         }
-        return $this->workers->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-            ->where('workers.econtract_status', self::WORKER_STATUS_ONBENCH)
-            ->where('workers.total_management_status', self::WORKER_STATUS_ONBENCH)
-            ->whereIn('workers.crm_prospect_id', $request['company_ids'])
-            ->whereIn('workers.company_id', $request['company_id'])
-            ->where(function ($query) use ($request) {
-                if ($request['user']['user_type'] == self::CUSTOMER) {
-                    $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
-                }
-            })
-        ->where(function ($query) use ($request) {
-            if(isset($request['from_existing']) && $request['from_existing'] == 1){
+
+        $data = $this->workers
+                    ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id');
+        $data = $this->workerListApplyCondition($request,$data);
+        $data = $this->workerListApplyReferenceFilter($request,$data);  
+        $data = $this->workerListApplyFromExistingFilter($request,$data);
+        $data = $this->workerListApplySearchFilter($request,$data);
+        $data = $this->workerListApplyCompanyFilter($request,$data);
+        $data = $this->workerListApplyKsmReferenceNumberFilter($request,$data);
+        $data = $this->workerListSelectColumns($data)
+                     ->distinct()
+                     ->orderBy('workers.created_at','DESC')
+                     ->paginate(Config::get('services.paginate_worker_row'));
+        return $data;
+    }
+
+    /**
+     * Apply condition to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        company_ids (int) ID of the prospect
+     *        company_id (array) ID of the user company
+     *
+     * @return $data Returns the query builder object with the applied condition
+     */
+    private function workerListApplyCondition($request,$data)
+    {
+        return $data->where('workers.econtract_status', self::WORKER_STATUS_ONBENCH)
+                    ->where('workers.total_management_status', self::WORKER_STATUS_ONBENCH)
+                    ->whereIn('workers.crm_prospect_id', $request['company_ids'])
+                    ->whereIn('workers.company_id', $request['company_id']);
+    }
+
+    /**
+     * Apply reference filter to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        reference_id (int) ID of the user reference
+     *
+     * @return $data Returns the query builder object with the applied reference filter
+     */
+    private function workerListApplyReferenceFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
+            if ($request['user']['user_type'] == self::CUSTOMER) {
+                $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
+            }
+        });
+    }
+
+    /**
+     * Apply from existing filter to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        from_existing (int) from existing flag
+     *        prospect_id (int) ID of the prospect
+     *
+     * @return $data Returns the query builder object with the applied from existing filter
+     */
+    private function workerListApplyFromExistingFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
+            if(isset($request['from_existing']) && $request['from_existing'] == self::FROM_EXISTING){
                 $query->where([
                     ['workers.crm_prospect_id', $request['prospect_id']],
                     ['workers.plks_status', self::PLKS_STATUS_APPROVED]
@@ -246,30 +402,85 @@ class TotalManagementWorkerServices
             }else{
                     $query->where('workers.module_type', '<>', Config::get('services.WORKER_MODULE_TYPE')[0])->orWhereNull('workers.module_type');
             }
-        })
-        ->where(function ($query) use ($request) {
+        });
+    }
+
+    /**
+     * Apply search filter to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        search (string) search parameter
+     *
+     * @return $data Returns the query builder object with the applied search filter
+     */
+    private function workerListApplySearchFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
                 if (isset($request['search']) && !empty($request['search'])) {
                     $query->where('workers.name', 'like', '%'.$request['search'].'%')
                     ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
                     ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%')
                     ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
                 }
-            })
-            ->where(function ($query) use ($request) {
-                if ((isset($request['company_filter']) && !empty($request['company_filter'])) || $request['company_filter'] == 0) {
-                    $query->where('workers.crm_prospect_id', $request['company_filter']);
-                }
-            })
-            ->where(function ($query) use ($request) {
-                if(isset($request['ksm_reference_number']) && !empty($request['ksm_reference_number'])) {
-                    $query->where('worker_visa.ksm_reference_number', $request['ksm_reference_number']);
-                }
-            })
-            ->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', 'workers.econtract_status', 'workers.total_management_status', 'workers.plks_status', 'workers.module_type')
-            ->distinct()
-            ->orderBy('workers.created_at','DESC')
-            ->paginate(Config::get('services.paginate_worker_row'));
+            });
     }
+    
+    /**
+     * Apply company filter to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        company_filter (int) ID of the prospect
+     *
+     * @return $data Returns the query builder object with the applied company filter
+     */
+    private function workerListApplyCompanyFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
+            if ((isset($request['company_filter']) && !empty($request['company_filter'])) || $request['company_filter'] == 0) {
+                $query->where('workers.crm_prospect_id', $request['company_filter']);
+            }
+        });
+    }
+    
+    /**
+     * Apply ksm reference number filter to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        ksm_reference_number (int) ksm reference number
+     *
+     * @return $data Returns the query builder object with the applied ksm reference number filter
+     */
+    private function workerListApplyKsmReferenceNumberFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
+            if(isset($request['ksm_reference_number']) && !empty($request['ksm_reference_number'])) {
+                $query->where('worker_visa.ksm_reference_number', $request['ksm_reference_number']);
+            }
+        });
+    }
+    
+    /**
+     * Select worker data from the query.
+     *
+     * @return $this The modified instance of the class.
+     */
+    private function workerListSelectColumns($data)
+    {
+        return $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_visa.calling_visa_reference_number', 'workers.crm_prospect_id as company_id', 'workers.econtract_status', 'workers.total_management_status', 'workers.plks_status', 'workers.module_type');
+    } 
+
+    /**
+     * Get the details of a total management application detail.
+     *
+     * @param array $request The request data containing the application id to fetch the details of the application.
+     * @return mixed Returns the application matching the given application ID,
+     *               or null if no matching application is found.
+     */
+    private function getTotalManagementApplicationById($id)
+    {
+        return $this->totalManagementApplications->findOrFail($id);
+    }
+
     /**
      * list the accommodation Provider
      * 
@@ -328,22 +539,35 @@ class TotalManagementWorkerServices
 
         if(isset($request['workers']) && !empty($request['workers'])) 
         {
-            $projectDetails = $this->totalManagementProject->findOrFail($request['project_id']);
-            $applicationDetails = $this->totalManagementApplications::whereIn('company_id', $request['company_id'])->find($projectDetails->application_id);
+            $projectDetails = $this->getTotalManagementProjectDetails($request);
+            $request['application_id'] = $projectDetails->application_id ?? 0;
+            $applicationDetails = $this->getTotalManagementApplicationDetails($request);
             if(is_null($applicationDetails)){
                 return self::ERROR_UNAUTHORIZED;
             }
-            $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
+            $serviceDetails = $this->getApplicationServiceDetails($applicationDetails->service_id);
             $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
             
-            if($serviceDetails->from_existing == 1) {
+            if($serviceDetails->from_existing == self::FROM_EXISTING) {
                 $this->processAssignWorkerFromExisting($request, $workerCountArray, $applicationDetails);
-            } else if($serviceDetails->from_existing == 0) {
+            } else {
                 $this->processAssignWorkerNotFromExisting($request, $workerCountArray, $applicationDetails, $serviceDetails);
             }
             $this->processAssignWorkers($request);
         }
         return true;
+    }
+
+    /**
+     * Get the details of a total management project.
+     *
+     * @param array $request The request data containing the project_id to fetch the details of the project.
+     * @return mixed Returns the project matching the given project ID,
+     *               or null if no matching project is found.
+     */
+    private function getTotalManagementProjectDetails($request)
+    {
+        return $this->totalManagementProject->findOrFail($request['project_id']);
     }
 
     /**
@@ -396,13 +620,9 @@ class TotalManagementWorkerServices
      */
     private function processAssignWorkerNotFromExisting($request, $workerCountArray, $applicationDetails, $serviceDetails)
     {
-        $fomnextWorkerCount = $this->workers->whereIn('id', $request['workers'])
-                                        ->where('crm_prospect_id', self::FOMNEXT_PROSPECT_ID)
-                                        ->count();
+        $fomnextWorkerCount = $this->getCompanyWorker($request,self::FOMNEXT_PROSPECT_ID);
 
-        $clientWorkerCount = $this->workers->whereIn('id', $request['workers'])
-                                        ->where('crm_prospect_id', $applicationDetails->crm_prospect_id)
-                                        ->count();
+        $clientWorkerCount = $this->getCompanyWorker($request,$applicationDetails->crm_prospect_id);
 
         $workerCountArray['fomnextWorkersCount'] += $fomnextWorkerCount;
         if($workerCountArray['fomnextWorkersCount'] > $serviceDetails->fomnext_quota) {
@@ -413,6 +633,22 @@ class TotalManagementWorkerServices
         if($workerCountArray['clientWorkersCount'] > $serviceDetails->client_quota) {
             return self::ERROR_CLIENT_QUOTA;
         }
+    }
+
+    /**
+     * Retrive the company worker counnt.
+     *
+     * @param $request
+     *        workers (array) ID of the worker
+     * @param int $prospectId ID of the prospect
+     * 
+     * @return mixed Returns the count
+     */
+    private function getCompanyWorker($request,$prospectId)
+    {
+        return $this->workers->whereIn('id', $request['workers'])
+            ->where('crm_prospect_id', $prospectId)
+            ->count();
     }
 
     /**
@@ -470,14 +706,14 @@ class TotalManagementWorkerServices
         $serviceDetails = $this->getApplicationServiceDetails($applicationDetails->service_id);
         $workerCount = $this->getWorkerCount($request['application_id'], $applicationDetails->crm_prospect_id);
 
-        if($serviceDetails->from_existing == 0) {
+        if($serviceDetails->from_existing == self::NOT_FROM_EXISTING) {
             return [
                 'clientQuota' => $serviceDetails->client_quota,
                 'clientBalancedQuota' => $serviceDetails->client_quota - $workerCount['clientWorkersCount'],
                 'fomnextQuota' => $serviceDetails->fomnext_quota,
                 'fomnextBalancedQuota' => $serviceDetails->fomnext_quota - $workerCount['fomnextWorkersCount']
             ];
-        } else if($serviceDetails->from_existing == 1) {
+        } else {
             return [
                 'serviceQuota' => $serviceDetails->service_quota,
                 'balancedServiceQuota' => $serviceDetails->service_quota - $workerCount['clientWorkersCount']
