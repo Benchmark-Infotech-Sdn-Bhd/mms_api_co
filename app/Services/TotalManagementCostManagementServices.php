@@ -65,6 +65,80 @@ class TotalManagementCostManagementServices
     }
 
     /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateCreateRequest($request): array|bool
+    {
+        if(!($this->validationServices->validate($request->toArray(),$this->totalManagementCostManagement->rules))){
+            return [
+              'validate' => $this->validationServices->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateUpdateRequest($request): array|bool
+    {
+        if(!($this->validationServices->validate($request->toArray(),$this->totalManagementCostManagement->rulesForUpdation($request['id'])))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateShowRequest($request): array|bool
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateListRequest($request): array|bool
+    {
+        if(isset($request['search_param']) && !empty($request['search_param'])){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+                return [
+                    'validate' => $this->validationServices->errors()
+                ];
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Create a cost management.
      *
      * @param mixed $request The request data.
@@ -76,10 +150,10 @@ class TotalManagementCostManagementServices
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
-        if(!($this->validationServices->validate($request->toArray(),$this->totalManagementCostManagement->rules))){
-            return [
-              'validate' => $this->validationServices->errors()
-            ];
+
+        $validationResult = $this->validateCreateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
         
         $costManagement = $this->createTotalManagementCostManagement($request);
@@ -174,10 +248,9 @@ class TotalManagementCostManagementServices
         $request['modified_by'] = $user['id'];
         $params['company_id'] = $this->authServices->getCompanyIds($user);
 
-        if(!($this->validationServices->validate($request->toArray(),$this->totalManagementCostManagement->rulesForUpdation($request['id'])))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
+        $validationResult = $this->validateUpdateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
         $costManagement = $this->getCostManagement($request['id'], $params['company_id']);
         
@@ -256,11 +329,11 @@ class TotalManagementCostManagementServices
      */
     public function show($request) : mixed
     {
-        if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
+        $validationResult = $this->validateShowRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
+        
         return $this->totalManagementCostManagement->with('totalManagementCostManagementAttachments')
         ->join('total_management_project', 'total_management_project.id', 'total_management_cost_management.project_id')
         ->join('total_management_applications', function ($join) use ($request) {
@@ -282,34 +355,70 @@ class TotalManagementCostManagementServices
      */
     public function list($request) : mixed
     {
-        if(isset($request['search_param']) && !empty($request['search_param'])){
-            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
-                return [
-                    'validate' => $this->validationServices->errors()
-                ];
-            }
+        $validationResult = $this->validateListRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
-        return $this->totalManagementCostManagement
-        ->leftJoin('total_management_cost_management_attachments', function($join) use ($request){
-            $join->on('total_management_cost_management.id', '=', 'total_management_cost_management_attachments.file_id')
-            ->whereNull('total_management_cost_management_attachments.deleted_at');
-          })
-        ->LeftJoin('invoice_items_temp', function($join) use ($request){
-            $join->on('invoice_items_temp.expense_id', '=', 'total_management_cost_management.id')
-            ->where('invoice_items_temp.service_id', '=', self::TOTALMANAGEMENT_SERVICE_ID)
-            ->WhereNull('invoice_items_temp.deleted_at');
-          })
-        ->where('total_management_cost_management.project_id', $request['project_id'])
-        ->where(function ($query) use ($request) {
+        
+        $data = $this->totalManagementCostManagement
+            ->leftJoin('total_management_cost_management_attachments', function($join) use ($request){
+                $join->on('total_management_cost_management.id', '=', 'total_management_cost_management_attachments.file_id')
+                ->whereNull('total_management_cost_management_attachments.deleted_at');
+            })
+            ->LeftJoin('invoice_items_temp', function($join) use ($request){
+                $join->on('invoice_items_temp.expense_id', '=', 'total_management_cost_management.id')
+                ->where('invoice_items_temp.service_id', '=', self::TOTALMANAGEMENT_SERVICE_ID)
+                ->WhereNull('invoice_items_temp.deleted_at');
+            });
+        $data = $this->applyCondition($request,$data);
+        $data = $this->applySearchFilter($request,$data);
+        $data = $this->ListSelectColumns($data)
+                    ->orderBy('total_management_cost_management.created_at','DESC')
+                    ->paginate(Config::get('services.paginate_worker_row'));
+        return $data;
+    }
+
+    /**
+     * Apply condition to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        project_id (int) ID of the project
+     *
+     * @return $data Returns the query builder object with the applied condition
+     */
+    private function applyCondition($request,$data)
+    {
+        return $data->where('total_management_cost_management.project_id', $request['project_id']);
+    }
+
+    /**
+     * Apply search filter to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        search_param (string) search parameter
+     *
+     * @return $data Returns the query builder object with the applied search filter
+     */
+    private function applySearchFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
             $search = $request['search_param'] ?? '';
             if(!empty($search)) {
                 $query->where('total_management_cost_management.title', 'like', "%{$search}%")
                 ->orWhere('total_management_cost_management.payment_reference_number', 'like', '%'.$search.'%');
             }            
-        })->select('total_management_cost_management.id','total_management_cost_management.application_id','total_management_cost_management.project_id','total_management_cost_management.title','total_management_cost_management.payment_reference_number','total_management_cost_management.payment_date','total_management_cost_management.quantity','total_management_cost_management.amount','total_management_cost_management.remarks','total_management_cost_management_attachments.file_name','total_management_cost_management_attachments.file_url','total_management_cost_management.created_at','total_management_cost_management.invoice_number',\DB::raw('IF(invoice_items_temp.id is NULL, NULL, 1) as expense_flag'))
-        ->distinct()
-        ->orderBy('total_management_cost_management.created_at','DESC')
-        ->paginate(Config::get('services.paginate_worker_row'));
+        });
+    }
+
+    /**
+     * Select data from the query.
+     *
+     * @return $data The modified instance of the class.
+     */
+    private function listSelectColumns($data)
+    {
+        return $data->select('total_management_cost_management.id','total_management_cost_management.application_id','total_management_cost_management.project_id','total_management_cost_management.title','total_management_cost_management.payment_reference_number','total_management_cost_management.payment_date','total_management_cost_management.quantity','total_management_cost_management.amount','total_management_cost_management.remarks','total_management_cost_management_attachments.file_name','total_management_cost_management_attachments.file_url','total_management_cost_management.created_at','total_management_cost_management.invoice_number',\DB::raw('IF(invoice_items_temp.id is NULL, NULL, 1) as expense_flag'))
+            ->distinct();
     }
 
     /**

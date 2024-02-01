@@ -636,7 +636,7 @@ class TotalManagementWorkerServices
     }
 
     /**
-     * Retrive the company worker counnt.
+     * Retrive the company worker count.
      *
      * @param $request
      *        workers (array) ID of the worker
@@ -701,7 +701,7 @@ class TotalManagementWorkerServices
     {
         $applicationDetails = $this->getTotalManagementApplicationDetails($request);
         if(is_null($applicationDetails)){
-            return sself::ERROR_UNAUTHORIZED;
+            return self::ERROR_UNAUTHORIZED;
         }
         $serviceDetails = $this->getApplicationServiceDetails($applicationDetails->service_id);
         $workerCount = $this->getWorkerCount($request['application_id'], $applicationDetails->crm_prospect_id);
