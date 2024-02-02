@@ -188,7 +188,7 @@ class EContractTransferServices
 
         if ($request['service_type'] == self::SERVICE_TYPE_ECONTRACT) {
             return $this->eContractProjectList($request);
-        } else if ($request['service_type'] == self::TOTAL_MANAGEMENT) {
+        } else {
             return $this->totalManagementProjectList($request);
         }
     }
@@ -245,7 +245,7 @@ class EContractTransferServices
 
         if ($request['service_type'] == self::SERVICE_TYPE_ECONTRACT) {
             $this->submitEContractProcess($request);
-        } else if ($request['service_type'] == self::TOTAL_MANAGEMENT) {
+        } else {
             $this->submitTotalManagementProcess($request);
         }
 
@@ -384,7 +384,7 @@ class EContractTransferServices
             if (in_array($worker->total_management_status, [self::STATUS_ASSIGNED, self::STATUS_COUNSELLING])) {
                 $worker->total_management_status = self::STATUS_ONBENCH;
             }
-        } else if (isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]) {
+        } else {
             $worker->total_management_status = self::STATUS_ASSIGNED;
             if (in_array($worker->econtract_status, [self::STATUS_ASSIGNED, self::STATUS_COUNSELLING])) {
                 $worker->econtract_status = self::STATUS_ONBENCH;
