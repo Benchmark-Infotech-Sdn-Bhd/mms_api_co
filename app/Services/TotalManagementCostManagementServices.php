@@ -19,6 +19,7 @@ class TotalManagementCostManagementServices
     public const MESSAGE_NOT_FOUND = "Data not found";
     public const MESSAGE_DELETED_SUCCESSFULLY = "Deleted Successfully";
     public const TOTALMANAGEMENT_SERVICE_ID = 3;
+    public const DEFAULT_VALUE = 0;
 
     /**
      * @var totalManagementCostManagement
@@ -62,6 +63,22 @@ class TotalManagementCostManagementServices
         $this->validationServices = $validationServices;
         $this->authServices = $authServices;
         $this->storage = $storage;
+    }
+
+    /**
+     * Enriches the given request data with user details.
+     *
+     * @param array $request The request data to be enriched.
+     * @return mixed Returns the enriched request data.
+     */
+    private function enrichRequestWithUserDetails($request): mixed
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $request;
     }
 
     /**
@@ -144,12 +161,17 @@ class TotalManagementCostManagementServices
      * @param mixed $request The request data.
      *
      * @return mixed Returns the created cost management record.
+     * 
+     * @see enrichRequestWithUserDetails()
+     * @see validateCreateRequest()
+     * @see createTotalManagementCostManagement()
+     * @see uploadCostManagementFiles()
+     * 
+     * 
      */
     public function create($request) : mixed
     {
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['created_by'] = $user['id'];
+        $request = $this->enrichRequestWithUserDetails($request);
 
         $validationResult = $this->validateCreateRequest($request);
         if (is_array($validationResult)) {
@@ -189,8 +211,8 @@ class TotalManagementCostManagementServices
             'quantity' => $request['quantity'] ?? '',
             'amount' => $request['amount'] ?? '',
             'remarks' => $request['remarks'] ?? '',
-            'created_by'    => $request['created_by'] ?? 0,
-            'modified_by'   => $request['created_by'] ?? 0
+            'created_by'    => $request['created_by'] ?? self::DEFAULT_VALUE,
+            'modified_by'   => $request['created_by'] ?? self::DEFAULT_VALUE
         ]);
     }
     /**
@@ -239,20 +261,26 @@ class TotalManagementCostManagementServices
      * 
      * @return bool|array Returns true if the update is successful. Returns an error array if validation fails or any error occurs during the update process.
      *                    Returns self::ERROR_UNAUTHORIZED if the user access invalid cost management
+     * 
+     * 
+     * @see enrichRequestWithUserDetails()
+     * @see validateUpdateRequest()
+     * @see getCostManagement()
+     * @see updateTotalManagementCostManagement()
+     * @see deleteCostManagementFiles()
+     * @see uploadCostManagementFiles()
+     * 
      */
     public function update($request): bool|array
     {
-
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['modified_by'] = $user['id'];
-        $params['company_id'] = $this->authServices->getCompanyIds($user);
-
         $validationResult = $this->validateUpdateRequest($request);
         if (is_array($validationResult)) {
             return $validationResult;
         }
-        $costManagement = $this->getCostManagement($request['id'], $params['company_id']);
+
+        $request = $this->enrichRequestWithUserDetails($request);
+
+        $costManagement = $this->getCostManagement($request['id'], $request['company_id']);
         
         if (is_null($costManagement)) {
             return self::ERROR_UNAUTHORIZED;
@@ -326,6 +354,9 @@ class TotalManagementCostManagementServices
      *        company_id (array) ID of the user company
      * 
      * @return mixed Returns the cost management detail with related attachments
+     * 
+     * @see validateShowRequest()
+     * 
      */
     public function show($request) : mixed
     {
@@ -352,6 +383,11 @@ class TotalManagementCostManagementServices
      *        project_id (int) ID of the project
      * 
      * @return mixed Returns The paginated list of cost management
+     * 
+     * @see applyCondition()
+     * @see applySearchFilter()
+     * @see ListSelectColumns()
+     * 
      */
     public function list($request) : mixed
     {
@@ -428,6 +464,9 @@ class TotalManagementCostManagementServices
      *        id (int) ID of the cost management
      * 
      * @return mixed The result of the delete operation containing the deletion status and message.
+     * 
+     * @see getCostManagementToDelete()
+     * 
      */    
     public function delete($request): mixed
     {
@@ -475,6 +514,9 @@ class TotalManagementCostManagementServices
      *        id (int) ID of the attachment
      * 
      * @return mixed Returns an array with two keys: 'isDeleted' and 'message'
+     * 
+     * @see getAttachmentToDelete()
+     * 
      */    
     public function deleteAttachment($request): mixed
     {

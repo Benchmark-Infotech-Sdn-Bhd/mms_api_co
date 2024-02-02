@@ -664,8 +664,7 @@ class TotalManagementTransferServices
 
         if ($serviceDetails->from_existing == self::FROM_EXISTING) {
             return $this->processFromExisting($request, $projectDetails, $applicationDetails, $serviceDetails);
-        }
-        else {    
+        } else {    
             return $this->processNotFromExisting($request, $projectDetails, $applicationDetails, $serviceDetails);
         }
     }
@@ -728,7 +727,7 @@ class TotalManagementTransferServices
 
         if ($request['from_existing'] == self::FROM_EXISTING) {
             return $this->processFromExistingWorker($request, $workerDetail, $projectDetails, $applicationDetails);
-        }else{
+        } else {
             return self::ERROR_QUOTA_FROM_EXISTING;
         }
     }
@@ -755,8 +754,7 @@ class TotalManagementTransferServices
 
         if ($request['from_existing'] == self::FROM_EXISTING) {
             return self::ERROR_FROM_EXISTING_WORKER;
-        } 
-        else {  
+        } else {  
             return $this->processNotFromExistingWorker($request, $workerDetail, $workerCountArray, $serviceDetails);
         }
     }
@@ -813,9 +811,7 @@ class TotalManagementTransferServices
             if ($workerCountArray['fomnextWorkersCount'] > $serviceDetails->fomnext_quota) {
                 return self::ERROR_FOMNEXT_QUOTA;
             }
-        } 
-        
-        if ($workerDetail->crm_prospect_id != self::FOMNEXT_PROSPECT_ID) {
+        } else {
             return $this->processClientWorker($request, $workerDetail, $workerCountArray, $serviceDetails);
         }
     }

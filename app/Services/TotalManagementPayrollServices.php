@@ -74,7 +74,16 @@ class TotalManagementPayrollServices
      * @param AuthServices $authServices; The authServices object
      */
 
-    public function __construct(Workers $workers, TotalManagementPayroll $totalManagementPayroll, TotalManagementPayrollAttachments $totalManagementPayrollAttachments, Storage $storage, PayrollBulkUpload $payrollBulkUpload, TotalManagementProject $totalManagementProject, TotalManagementCostManagement $totalManagementCostManagement, AuthServices $authServices)
+    public function __construct(
+        Workers                             $workers, 
+        TotalManagementPayroll              $totalManagementPayroll, 
+        TotalManagementPayrollAttachments   $totalManagementPayrollAttachments, 
+        Storage                             $storage, 
+        PayrollBulkUpload                   $payrollBulkUpload, 
+        TotalManagementProject              $totalManagementProject, 
+        TotalManagementCostManagement       $totalManagementCostManagement, 
+        AuthServices                        $authServices
+    )
     {
         $this->workers = $workers;
         $this->totalManagementPayroll = $totalManagementPayroll;

@@ -15,6 +15,7 @@ class TotalManagementExpensesServices
     public const ATTACHMENT_FILE_TYPE = 'Total Management Expenses';
     public const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
     public const ERROR_PAYBACK = ['payBackError' => true];
+    public const DEFAULT_VALUE = 0;
 
     /**
      * @var totalManagementExpenses
@@ -116,16 +117,31 @@ class TotalManagementExpensesServices
             'payment_date' => 'required|date_format:Y-m-d|before:tomorrow'
         ];
     }
+
     /**
-     * Get a paginated list of total management expenses.
-     * 
-     * @param $request
-     *        worker_id (int) ID of the worker
-     *        search (text) search parameter
-     * 
-     * @return mixed Returns The paginated list of expense
+     * Enriches the given request data with user details.
+     *
+     * @param array $request The request data to be enriched.
+     * @return mixed Returns the enriched request data.
      */
-    public function list($request) : mixed
+    private function enrichRequestWithUserDetails($request): mixed
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $request;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateListRequest($request): array|bool
     {
         if(isset($request['search']) && !empty($request['search'])){
             $validator = Validator::make($request, $this->searchValidation());
@@ -135,23 +151,144 @@ class TotalManagementExpensesServices
                 ];
             }
         }
-        return $this->totalManagementExpenses
-        ->leftJoin('total_management_expenses_attachments', function($join) use ($request){
-            $join->on('total_management_expenses.id', '=', 'total_management_expenses_attachments.file_id')
-            ->whereNull('total_management_expenses_attachments.deleted_at');
-          })
-        ->where('total_management_expenses.worker_id', $request['worker_id'])
-        ->where(function ($query) use ($request) {
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateCreateRequest($request): array|bool
+    {
+        $validator = Validator::make($request->toArray(), $this->createValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateUpdateRequest($request): array|bool
+    {
+        $validator = Validator::make($request->toArray(), $this->updateValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validatePayBackRequest($request): array|bool
+    {
+        $validator = Validator::make($request, $this->payBackValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Get a paginated list of total management expenses.
+     * 
+     * @param $request
+     *        worker_id (int) ID of the worker
+     *        search (text) search parameter
+     * 
+     * @return mixed Returns The paginated list of expense
+     * 
+     * @see validateListRequest()
+     * @see validateListRequest()
+     * @see applySearchFilter()
+     * @see ListSelectColumns()
+     * 
+     */
+    public function list($request) : mixed
+    {
+        $validationResult = $this->validateListRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+        
+        $data = $this->totalManagementExpenses
+            ->leftJoin('total_management_expenses_attachments', function($join) use ($request){
+                $join->on('total_management_expenses.id', '=', 'total_management_expenses_attachments.file_id')
+                ->whereNull('total_management_expenses_attachments.deleted_at');
+            });
+        $data = $this->applyCondition($request,$data);
+        $data = $this->applySearchFilter($request,$data);
+        $data = $this->ListSelectColumns($data)
+                    ->orderBy('total_management_expenses.created_at','DESC')
+                    ->paginate(Config::get('services.paginate_worker_row'));
+        return $data;
+    }
+
+    /**
+     * Apply condition to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        worker_id (int) ID of the worker
+     *
+     * @return $data Returns the query builder object with the applied condition
+     */
+    private function applyCondition($request,$data)
+    {
+        return $data->where('total_management_expenses.worker_id', $request['worker_id']);
+    }
+
+    /**
+     * Apply search filter to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        search_param (string) search parameter
+     *
+     * @return $data Returns the query builder object with the applied search filter
+     */
+    private function applySearchFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
             $search = $request['search'] ?? '';
             if (!empty($search)) {
                 $query->where('total_management_expenses.title', 'like', '%'. $search. '%');
             }
-        })
-        ->select('total_management_expenses.id', 'total_management_expenses.worker_id', 'total_management_expenses.title','total_management_expenses.type', 'total_management_expenses.amount', 'total_management_expenses.deduction','total_management_expenses.payment_reference_number', 'total_management_expenses.payment_date', 'total_management_expenses.amount_paid', 'total_management_expenses.remaining_amount', 'total_management_expenses.remarks', 'total_management_expenses_attachments.file_name','total_management_expenses_attachments.file_url', 'total_management_expenses.invoice_number')
-        ->distinct()
-        ->orderBy('total_management_expenses.created_at','DESC')
-        ->paginate(Config::get('services.paginate_row'));
+        });
     }
+
+    /**
+     * Select data from the query.
+     *
+     * @return $data The modified instance of the class.
+     */
+    private function listSelectColumns($data)
+    {
+        return $data->select('total_management_expenses.id', 'total_management_expenses.worker_id', 'total_management_expenses.title','total_management_expenses.type', 'total_management_expenses.amount', 'total_management_expenses.deduction','total_management_expenses.payment_reference_number', 'total_management_expenses.payment_date', 'total_management_expenses.amount_paid', 'total_management_expenses.remaining_amount', 'total_management_expenses.remarks', 'total_management_expenses_attachments.file_name','total_management_expenses_attachments.file_url', 'total_management_expenses.invoice_number')
+                    ->distinct();
+    }
+
     /**
      * Show details of a total management expense
      * 
@@ -164,14 +301,14 @@ class TotalManagementExpensesServices
     public function show($request) : mixed
     {
         return $this->totalManagementExpenses::with(['totalManagementExpensesAttachments' => function ($query) {
-            $query->orderBy('created_at', 'desc');
-        }])
-        ->join('workers', function ($join) use ($request) {
-            $join->on('workers.id', '=', 'total_management_expenses.worker_id')
-                ->whereIn('workers.company_id', $request['company_id']);
-        })
-        ->select('total_management_expenses.id', 'total_management_expenses.worker_id', 'total_management_expenses.application_id', 'total_management_expenses.project_id', 'total_management_expenses.title', 'total_management_expenses.type', 'total_management_expenses.payment_reference_number', 'total_management_expenses.payment_date', 'total_management_expenses.amount', 'total_management_expenses.amount_paid', 'total_management_expenses.deduction', 'total_management_expenses.remaining_amount', 'total_management_expenses.remarks', 'total_management_expenses.created_by', 'total_management_expenses.modified_by', 'total_management_expenses.is_payroll', 'total_management_expenses.payroll_id', 'total_management_expenses.month', 'total_management_expenses.year', 'total_management_expenses.invoice_number', 'total_management_expenses.created_at', 'total_management_expenses.updated_at', 'total_management_expenses.deleted_at')
-        ->find($request['id']);
+                $query->orderBy('created_at', 'desc');
+            }])
+            ->join('workers', function ($join) use ($request) {
+                $join->on('workers.id', '=', 'total_management_expenses.worker_id')
+                    ->whereIn('workers.company_id', $request['company_id']);
+            })
+            ->select('total_management_expenses.id', 'total_management_expenses.worker_id', 'total_management_expenses.application_id', 'total_management_expenses.project_id', 'total_management_expenses.title', 'total_management_expenses.type', 'total_management_expenses.payment_reference_number', 'total_management_expenses.payment_date', 'total_management_expenses.amount', 'total_management_expenses.amount_paid', 'total_management_expenses.deduction', 'total_management_expenses.remaining_amount', 'total_management_expenses.remarks', 'total_management_expenses.created_by', 'total_management_expenses.modified_by', 'total_management_expenses.is_payroll', 'total_management_expenses.payroll_id', 'total_management_expenses.month', 'total_management_expenses.year', 'total_management_expenses.invoice_number', 'total_management_expenses.created_at', 'total_management_expenses.updated_at', 'total_management_expenses.deleted_at')
+            ->find($request['id']);
     }
     /**
      * Create a new total management expense.
@@ -179,21 +316,23 @@ class TotalManagementExpensesServices
      * @param $request
      * 
      * @return bool|array Returns true if the create is successful. Returns an error array if validation fails or any error occurs during the create process.
+     * 
+     * @see validateCreateRequest()
+     * @see enrichRequestWithUserDetails()
+     * @see createTotalManagementExpense()
+     * @see uploadExpenseFiles()
+     * 
      */
     public function create($request): bool|array
     {
-        $validator = Validator::make($request->toArray(), $this->createValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->validateCreateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
-        $request['created_by'] = $user['id'];
 
-        $expense = $this->createTotalManagementExpense($params);
+        $request = $this->enrichRequestWithUserDetails($request);
+
+        $expense = $this->createTotalManagementExpense($request);
 
         $this->uploadExpenseFiles($request, $expense->id);
 
@@ -219,17 +358,17 @@ class TotalManagementExpensesServices
     private function createTotalManagementExpense($params): mixed
     {
         return $this->totalManagementExpenses->create([
-            'worker_id' => $params['worker_id'] ?? 0,
-            'application_id' => $params['application_id'] ?? 0,
-            'project_id' => $params['project_id'] ?? 0,
+            'worker_id' => $params['worker_id'] ?? self::DEFAULT_VALUE,
+            'application_id' => $params['application_id'] ?? self::DEFAULT_VALUE,
+            'project_id' => $params['project_id'] ?? self::DEFAULT_VALUE,
             'title' => $params['title'] ?? '',
             'type' => $params['type'] ?? '',
             'payment_reference_number' => $params['payment_reference_number'] ?? '',
             'payment_date' => $params['payment_date'] ?? null,
-            'amount' => $params['amount'] ?? 0,
+            'amount' => $params['amount'] ?? self::DEFAULT_VALUE,
             'remarks' => $params['remarks'] ?? '',
-            'created_by'    => $params['created_by'] ?? 0,
-            'modified_by'   => $params['created_by'] ?? 0,
+            'created_by'    => $params['created_by'] ?? self::DEFAULT_VALUE,
+            'modified_by'   => $params['created_by'] ?? self::DEFAULT_VALUE,
         ]);
     }
     /**
@@ -257,8 +396,8 @@ class TotalManagementExpensesServices
                         'file_name' => $fileName,
                         'file_type' => self::ATTACHMENT_FILE_TYPE,
                         'file_url' =>  $fileUrl,
-                        'created_by' => $request['created_by'] ?? 0,
-                        'modified_by' => $request['modified_by'] ?? 0,
+                        'created_by' => $request['created_by'] ?? self::DEFAULT_VALUE,
+                        'modified_by' => $request['modified_by'] ?? self::DEFAULT_VALUE,
                     ]);  
             }
         }
@@ -270,28 +409,30 @@ class TotalManagementExpensesServices
      * 
      * @return bool|array Returns true if the update is successful. Returns an error array if validation fails or any error occurs during the update process.
      *                    Returns self::ERROR_UNAUTHORIZED if the user access invalid expense
+     * 
+     * @see validateUpdateRequest()
+     * @see enrichRequestWithUserDetails()
+     * @see getExpense()
+     * @see updateExpense()
+     * @see uploadExpenseFiles()
+     * 
      */
     public function update($request) : bool|array
     {
-        $validator = Validator::make($request->toArray(), $this->updateValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->validateUpdateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['modified_by'] = $user['id'];
-        $request['modified_by'] = $user['id'];
-        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        
+        $request = $this->enrichRequestWithUserDetails($request);
 
-        $expense = $this->getExpense($request['id'], $params['company_id']);
+        $expense = $this->getExpense($request['id'], $request['company_id']);
         
         if (is_null($expense)) {
             return self::ERROR_UNAUTHORIZED;
         }
 
-        $this->updateExpense($expense, $params);
+        $this->updateExpense($expense, $request);
 
         $this->uploadExpenseFiles($request, $expense->id);
 
@@ -308,12 +449,12 @@ class TotalManagementExpensesServices
     private function getExpense(int $expenseId, array $companyIds)
     {
         return $this->totalManagementExpenses
-        ->join('workers', function ($join) use ($params) {
-            $join->on('workers.id', '=', 'total_management_expenses.worker_id')
-                ->whereIn('workers.company_id', $companyIds);
-        })
-        ->select('total_management_expenses.id', 'total_management_expenses.worker_id', 'total_management_expenses.application_id', 'total_management_expenses.project_id', 'total_management_expenses.title', 'total_management_expenses.type', 'total_management_expenses.payment_reference_number', 'total_management_expenses.payment_date', 'total_management_expenses.amount', 'total_management_expenses.amount_paid', 'total_management_expenses.deduction', 'total_management_expenses.remaining_amount', 'total_management_expenses.remarks', 'total_management_expenses.created_by', 'total_management_expenses.modified_by', 'total_management_expenses.is_payroll', 'total_management_expenses.payroll_id', 'total_management_expenses.month', 'total_management_expenses.year', 'total_management_expenses.invoice_number', 'total_management_expenses.created_at', 'total_management_expenses.updated_at', 'total_management_expenses.deleted_at')
-        ->find($expenseId);
+            ->join('workers', function ($join) use ($companyIds) {
+                $join->on('workers.id', '=', 'total_management_expenses.worker_id')
+                    ->whereIn('workers.company_id', $companyIds);
+            })
+            ->select('total_management_expenses.id', 'total_management_expenses.worker_id', 'total_management_expenses.application_id', 'total_management_expenses.project_id', 'total_management_expenses.title', 'total_management_expenses.type', 'total_management_expenses.payment_reference_number', 'total_management_expenses.payment_date', 'total_management_expenses.amount', 'total_management_expenses.amount_paid', 'total_management_expenses.deduction', 'total_management_expenses.remaining_amount', 'total_management_expenses.remarks', 'total_management_expenses.created_by', 'total_management_expenses.modified_by', 'total_management_expenses.is_payroll', 'total_management_expenses.payroll_id', 'total_management_expenses.month', 'total_management_expenses.year', 'total_management_expenses.invoice_number', 'total_management_expenses.created_at', 'total_management_expenses.updated_at', 'total_management_expenses.deleted_at')
+            ->find($expenseId);
     }
     /**
      * Update expense based on the provided request.
@@ -354,6 +495,9 @@ class TotalManagementExpensesServices
      * 
      * 
      * @return bool Returns true if the deletion is successful  otherwise false
+     * 
+     * @see getExpenseToDelete()
+     * 
      */
     public function delete($request) : bool
     {
@@ -391,6 +535,8 @@ class TotalManagementExpensesServices
      * @param $request
      * 
      * @return bool Returns true if the deletion is successful  otherwise false
+     * 
+     * @see getAttachmentToDelete()
      */    
     public function deleteAttachment($request): bool
     {
@@ -414,12 +560,12 @@ class TotalManagementExpensesServices
     private function getAttachmentToDelete(array $request): mixed
     {
         return $this->totalManagementExpensesAttachments::join('total_management_expenses', 'total_management_expenses.id', 'total_management_expenses_attachments.file_id')
-        ->join('workers', function ($join) use ($request) {
-            $join->on('workers.id', '=', 'total_management_expenses.worker_id')
-                ->whereIn('workers.company_id', $request['company_id']);
-        })
-        ->select('total_management_expenses.id')
-        ->find($request['id']);
+            ->join('workers', function ($join) use ($request) {
+                $join->on('workers.id', '=', 'total_management_expenses.worker_id')
+                    ->whereIn('workers.company_id', $request['company_id']);
+            })
+            ->select('total_management_expenses.id')
+            ->find($request['id']);
     }
     /**
      * payback submit for a total management expense.
@@ -432,20 +578,24 @@ class TotalManagementExpensesServices
      * 
      * @return bool|array Returns true if the payback is successful. Returns an error array if validation fails or any error occurs during the payback process.
      *                    Returns self::ERROR_PAYBACK if payback amount exceed actual amount
+     * 
+     * 
+     * @see validatePayBackRequest()
+     * @see enrichRequestWithUserDetails()
+     * @see getExpense()
+     * @see updateExpenseAfterPayBack()
+     * 
      */
     public function payBack($request) : bool|array
     {
-        $validator = Validator::make($request, $this->payBackValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->validatePayBackRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['modified_by'] = $user['id'];
-        $params['company_id'] = $this->authServices->getCompanyIds($user);
 
-        $expense = $this->getExpense($request['id'], $params['company_id']);
+        $request = $this->enrichRequestWithUserDetails($request);
+
+        $expense = $this->getExpense($request['id'], $$request['company_id']);
 
         $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;

@@ -30,6 +30,9 @@ class TotalManagementWorkerServices
     public const FOMNEXT_PROSPECT_ID = 0;
     public const FROM_EXISTING = 1;
     public const NOT_FROM_EXISTING = 0;
+    public const DEFAULT_VALUE = 0;
+    public const STATUS_ACTIVE = 1;
+
 
     /**
      * @var Workers
@@ -155,6 +158,14 @@ class TotalManagementWorkerServices
      * 
      * 
      * @return mixed Returns The paginated list of total management workers
+     * 
+     * @see applyCondition()
+     * @see applyReferenceFilter()
+     * @see applySearchFilter()
+     * @see applyStatusFilter()
+     * @see applyCompanyFilter()
+     * @see listSelectColumns()
+     * 
      */
     public function list($request): mixed
     {
@@ -270,7 +281,7 @@ class TotalManagementWorkerServices
     private function applyStatusFilter($request,$data)
     {
         return $data->where(function ($query) use ($request) {
-            if((isset($request['filter']) && !empty($request['filter'])) || $request['filter'] == 0) {
+            if((isset($request['filter']) && !empty($request['filter'])) || $request['filter'] == self::DEFAULT_VALUE) {
                 $query->where('workers.status', $request['filter']);
             }
         });
@@ -287,7 +298,7 @@ class TotalManagementWorkerServices
     private function applyCompanyFilter($request,$data)
     {
         return $data->where(function ($query) use ($request) {
-            if ((isset($request['company_filter']) && !empty($request['company_filter'])) || $request['company_filter'] == 0) {
+            if ((isset($request['company_filter']) && !empty($request['company_filter'])) || $request['company_filter'] == self::DEFAULT_VALUE) {
                 $query->where('workers.crm_prospect_id', $request['company_filter']);
             }
         });
@@ -315,6 +326,15 @@ class TotalManagementWorkerServices
      * 
      * 
      * @return mixed Returns The paginated list of on-bench workers
+     * 
+     * @see workerListApplyCondition()
+     * @see workerListApplyReferenceFilter()
+     * @see workerListApplyFromExistingFilter()
+     * @see workerListApplySearchFilter()
+     * @see workerListApplyCompanyFilter()
+     * @see workerListApplyKsmReferenceNumberFilter()
+     * @see workerListSelectColumns()
+     * 
      */
     public function workerListForAssignWorker($request): mixed
     {
@@ -323,13 +343,13 @@ class TotalManagementWorkerServices
             return $validationResult;
         }
 
-        $request['company_ids'] = array($request['prospect_id'], 0);
+        $request['company_ids'] = array($request['prospect_id'], self::FOMNEXT_PROSPECT_ID);
         $applicationDetails = $this->getTotalManagementApplicationById($request['application_id']);
         $serviceDetails = $this->getApplicationServiceDetails($applicationDetails->service_id);
         
-        if(isset($serviceDetails->from_existing) && $serviceDetails->from_existing == self::FROM_EXISTING) {
+        if (isset($serviceDetails->from_existing) && $serviceDetails->from_existing == self::FROM_EXISTING) {
             $request['from_existing'] = $serviceDetails->from_existing;
-        }else{
+        } else {
             $request['from_existing'] = self::NOT_FROM_EXISTING;
         }
 
@@ -436,7 +456,7 @@ class TotalManagementWorkerServices
     private function workerListApplyCompanyFilter($request,$data)
     {
         return $data->where(function ($query) use ($request) {
-            if ((isset($request['company_filter']) && !empty($request['company_filter'])) || $request['company_filter'] == 0) {
+            if ((isset($request['company_filter']) && !empty($request['company_filter'])) || $request['company_filter'] == self::DEFAULT_VALUE) {
                 $query->where('workers.crm_prospect_id', $request['company_filter']);
             }
         });
@@ -472,7 +492,7 @@ class TotalManagementWorkerServices
     /**
      * Get the details of a total management application detail.
      *
-     * @param array $request The request data containing the application id to fetch the details of the application.
+     * @param $id The application id
      * @return mixed Returns the application matching the given application ID,
      *               or null if no matching application is found.
      */
@@ -515,6 +535,23 @@ class TotalManagementWorkerServices
         })
         ->where('accommodation.vendor_id', $request['id'])->select('accommodation.id', 'accommodation.name')->get();
     }
+
+    /**
+     * Enriches the given request data with user details.
+     *
+     * @param array $request The request data to be enriched.
+     * @return array Returns the enriched request data.
+     */
+    private function enrichRequestWithUserDetails($request): array
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $request;
+    }
+
     /**
      * process the assign worker submit
      * 
@@ -525,12 +562,20 @@ class TotalManagementWorkerServices
      *                    Returns self::ERROR_QUOTA if the quota exceed the applied quota
      *                    Returns self::ERROR_CLIENT_QUOTA if the quota exceed the client quota
      *                    Returns self::ERROR_FOMNEXT_QUOTA if the quota exceed the fomnext quota
+     * 
+     * @see validateAssignWorkerRequest()
+     * @see getTotalManagementProjectDetails()
+     * @see getTotalManagementApplicationDetails()
+     * @see getApplicationServiceDetails()
+     * @see getWorkerCount()
+     * @see processAssignWorkerFromExisting()
+     * @see processAssignWorkerNotFromExisting()
+     * @see processAssignWorkers()
+     * 
      */
     public function assignWorker($request): array|bool
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['created_by'] = $user['id'];
-        $request['company_id'] = $this->authServices->getCompanyIds($user);
+        $request = $this->enrichRequestWithUserDetails($request);
 
         $validationResult = $this->validateAssignWorkerRequest($request);
         if (is_array($validationResult)) {
@@ -540,7 +585,7 @@ class TotalManagementWorkerServices
         if(isset($request['workers']) && !empty($request['workers'])) 
         {
             $projectDetails = $this->getTotalManagementProjectDetails($request);
-            $request['application_id'] = $projectDetails->application_id ?? 0;
+            $request['application_id'] = $projectDetails->application_id ?? self::DEFAULT_VALUE;
             $applicationDetails = $this->getTotalManagementApplicationDetails($request);
             if(is_null($applicationDetails)){
                 return self::ERROR_UNAUTHORIZED;
@@ -616,6 +661,9 @@ class TotalManagementWorkerServices
      * @param object $serviceDetails The service details object.
      * 
      * @return mixed|void Returns the appropriate error code if an error occurs during processing. otherwise null
+     * 
+     * @see getCompanyWorker()
+     * @see getCompanyWorker()
      * 
      */
     private function processAssignWorkerNotFromExisting($request, $workerCountArray, $applicationDetails, $serviceDetails)
@@ -696,6 +744,12 @@ class TotalManagementWorkerServices
      *        application_id (int) ID of the application
      * 
      * @return array Returns the Balanced Quota
+     * 
+     * 
+     * @see getTotalManagementApplicationDetails()
+     * @see getApplicationServiceDetails()
+     * @see getWorkerCount()
+     * 
      */
     public function getBalancedQuota($request): array
     {
@@ -835,7 +889,7 @@ class TotalManagementWorkerServices
         return $this->workerEmployment
             ->leftjoin('workers', 'workers.id', 'worker_employment.worker_id')
             ->where('worker_employment.project_id', $request['project_id'])
-            ->where('worker_employment.status', 1)
+            ->where('worker_employment.status', self::STATUS_ACTIVE)
             ->where('service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
             ->whereIn('workers.company_id', $request['company_id'])
             ->select('worker_employment.id','worker_employment.worker_id','workers.name','workers.passport_number')
@@ -849,12 +903,16 @@ class TotalManagementWorkerServices
      * 
      * @return array|bool Returns true if the remove worker is submitted successfully, otherwise returns an array with error details
      *                    Returns self::ERROR_UNAUTHORIZED if the user access invalid project
+     * 
+     * 
+     * @see validateRemoveRequest()
+     * @see getProjectWorker()
+     * @see processRemoveWorker()
+     * 
      */
     public function removeWorker($request): array|bool
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['company_id'] = $this->authServices->getCompanyIds($user);
-        $request['modified_by'] = $user['id'];
+        $request = $this->enrichRequestWithUserDetails($request);
 
         $validationResult = $this->validateRemoveRequest($request);
         if (is_array($validationResult)) {
@@ -862,7 +920,7 @@ class TotalManagementWorkerServices
         }
 
         $workerDetails = $this->getProjectWorker($request);
-        if($workerDetails == 0){
+        if($workerDetails == self::DEFAULT_VALUE){
             return self::ERROR_UNAUTHORIZED;
         }
 
@@ -953,7 +1011,7 @@ class TotalManagementWorkerServices
             ->where("project_id", $request['project_id'])
             ->where("service_type", Config::get('services.WORKER_MODULE_TYPE')[1])
             ->update([
-                'status' => 0,
+                'status' => self::DEFAULT_VALUE,
                 'work_end_date' => $request['last_working_day'],
                 'remove_date' => $request['remove_date'],
                 'remarks' => $request['remarks']
