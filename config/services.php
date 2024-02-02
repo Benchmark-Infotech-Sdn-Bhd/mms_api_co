@@ -181,5 +181,6 @@ return [
 
     'SUB_DOMAIN_DB_NAME_ONE' => env('DB_DATABASE'),
     'SUB_DOMAIN_DB_NAME_TWO' => env('SUB_DOMAIN_DB_NAME_TWO'),
-    
+
+    'INVOICE_MODULE_ID' => 12,    
 ];

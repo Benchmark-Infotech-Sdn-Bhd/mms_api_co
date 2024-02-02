@@ -312,6 +312,8 @@ class CompanyController extends Controller
             $response = $this->companyServices->assignModule($params);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
+            } else if(isset($response['invoiceError'])) {
+                return $this->sendError(['message' => 'Please select invoice module, since you have selected the services.']);
             }
             return $this->sendSuccess(['message' => 'Module Assigned Successfully']);
         } catch (Exception $e) {

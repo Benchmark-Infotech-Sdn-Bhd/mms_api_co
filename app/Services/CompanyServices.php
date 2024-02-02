@@ -404,6 +404,13 @@ class CompanyServices
                 'error' => $validator->errors()
             ];
         }
+        $serviceCheck = $this->checkForServiceModules($request['modules']);
+        $invoiceCheck = $this->checkForInvoiceModule($request['modules']);
+        if($serviceCheck != $invoiceCheck) {
+            return [
+                'invoiceError' => true
+            ];
+        }
         $existingModules = $this->companyModulePermission->where('company_id', $request['company_id'])
                             ->select('module_id')
                             ->get()
@@ -554,5 +561,27 @@ class CompanyServices
             ];
         }
         return $this->xeroSettings->where('company_id', $request['company_id'])->where('title', $request['title'])->delete();
+    }
+    /**
+     * Checks if the modules array contains any of the service modules
+     *
+     * @param array $modules array of modules which are assigned to the Company
+     *
+     * @return boolean Returns true if the modules array contains service modules, otherwise false
+     */
+    private function checkForServiceModules($modules)
+    {
+        return !empty(array_intersect($modules, Config::get('services.SERVICES_MODULES')));
+    }
+    /**
+     * Checks if the modules array contains invoice module
+     *
+     * @param array $modules array of modules which are assigned to the Company
+     *
+     * @return boolean Returns true if the modules array contains invoice module, otherwise false
+     */
+    private function checkForInvoiceModule($modules)
+    {
+        return in_array(Config::get('services.INVOICE_MODULE_ID'), $modules);
     }
 }
