@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Config;
 
 class ServiceServices
 {
+    public const ACTIVE_STATUS = 1;
+
     /**
      * @var Services
      */
@@ -38,12 +40,24 @@ class ServiceServices
     }
 
     /**
-     * @return mixed
+     * Lists services based on the company's subscription.
+     *
+     * @param array $request The request data.
+     *   - company_id (int) The ID of the company.
+     *
+     * @return mixed The final result containing the services.
      */
-    public function dropDown(): mixed
+    public function dropDown($request): mixed
     {
-        return $this->services->where('status', 1)
-                ->select('id', 'service_name')
+        return $this->services->join('modules', 'modules.id', 'services.module_id')
+                ->join('company_module_permission', function ($join) use ($request) {
+                    $join->on('company_module_permission.module_id', '=', 'modules.id')
+                         ->where('company_module_permission.company_id', $request['company_id'])
+                         ->whereNull('company_module_permission.deleted_at');
+                })
+                ->where('modules.status', self::ACTIVE_STATUS)
+                ->where('services.status', self::ACTIVE_STATUS)
+                ->select('services.id', 'services.service_name')
                 ->get();
     }
 }

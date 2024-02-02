@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\ServiceServices;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Exception;
 
 class ServicesController extends Controller
@@ -51,7 +52,9 @@ class ServicesController extends Controller
     public function dropDown(): JsonResponse
     {
         try {
-            $response = $this->serviceServices->dropDown();
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['company_id'] = $user['company_id'];
+            $response = $this->serviceServices->dropDown($params);
             return $this->sendSuccess($response);
         } catch(Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
