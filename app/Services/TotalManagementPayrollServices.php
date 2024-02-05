@@ -24,10 +24,15 @@ class TotalManagementPayrollServices
     public const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
     public const ERROR_EXISTS = ['existsError' => true];
     public const ERROR_NO_RECORDS = ['noRecords' => true];
+    public const ERROR_INVALID_USER = ['InvalidUser' => true];
+    public const ERROR_QUEUE = ['queueError' => true];
 
     public const PAYROLL_BULK_UPLOAD_TYPE = 'Payroll Bulk Upload';
     public const DEFAULT_TRANSFER_FLAG = 0;
     public const FILE_TYPE = 'Timesheet';
+    public const DEFAULT_VALUE = 0;
+    public const DEFAULT_ACTIVE_VALUE = 1;
+    public const COSTMANAGEMENT_TYPE = 'Payroll';
     
     /**
      * @var workers
@@ -143,8 +148,101 @@ class TotalManagementPayrollServices
             'project_id' => 'required'
         ];
     }
+
     /**
-     * show the project detail
+     * Enriches the given request data with user details.
+     *
+     * @param array $request The request data to be enriched.
+     * @return mixed Returns the enriched request data.
+     */
+    private function enrichRequestWithUserDetails($request): mixed
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $request;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateAddRequest($request): array|bool
+    {
+        $validator = Validator::make($request, $this->addValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateImportRequest($request): array|bool
+    {
+        $validator = Validator::make($request->toArray(), $this->importValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateUpdateRequest($request): array|bool
+    {
+        $validator = Validator::make($request, $this->updateValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateUploadTimesheetRequest($request): array|bool
+    {
+        $validator = Validator::make($request->toArray(), $this->uploadTimesheetValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Show the project detail
      * 
      * @param $request
      *        project_id (int) ID of the project
@@ -153,21 +251,21 @@ class TotalManagementPayrollServices
      */   
     public function projectDetails($request): mixed
     {
-            return $this->totalManagementProject
-        ->leftJoin('worker_employment', function($query) {
-            $query->on('worker_employment.project_id','=','total_management_project.id')
-            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
-            ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
-            ->whereNull('worker_employment.remove_date');
-        })
-        ->leftJoin('workers', function($query) {
-            $query->on('workers.id','=','worker_employment.worker_id')
-            ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'));
-        })
-        ->where('total_management_project.id',$request['project_id'])
-        ->select(DB::raw('COUNT(DISTINCT workers.id) as workers'), 'worker_employment.project_id', 'total_management_project.name')
-            ->groupBy('worker_employment.project_id', 'total_management_project.name')
-            ->get();
+        return $this->totalManagementProject
+            ->leftJoin('worker_employment', function($query) {
+                $query->on('worker_employment.project_id','=','total_management_project.id')
+                ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])
+                ->where('worker_employment.transfer_flag', self::DEFAULT_TRANSFER_FLAG)
+                ->whereNull('worker_employment.remove_date');
+            })
+            ->leftJoin('workers', function($query) {
+                $query->on('workers.id','=','worker_employment.worker_id')
+                ->whereIN('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'));
+            })
+            ->where('total_management_project.id',$request['project_id'])
+            ->select(DB::raw('COUNT(DISTINCT workers.id) as workers'), 'worker_employment.project_id', 'total_management_project.name')
+                ->groupBy('worker_employment.project_id', 'total_management_project.name')
+                ->get();
     }
     /**
      * Get a list of workers for the specified project
@@ -179,10 +277,15 @@ class TotalManagementPayrollServices
      *        year (int) year of the payroll
      * 
      * @return mixed Returns The paginated list of payroll
+     * 
+     * @see applyCondition()
+     * @see applySearchFilter()
+     * @see ListSelectColumns()
+     * 
      */   
     public function list($request): mixed
     {
-        return $this->workers
+        $data = $this->workers
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_employment', function($query) {
                 $query->on('worker_employment.worker_id','=','workers.id');
@@ -192,37 +295,84 @@ class TotalManagementPayrollServices
                     ->whereRaw('worker_bank_details.id IN (select MIN(WORKER_BANK.id) from worker_bank_details as WORKER_BANK JOIN workers as WORKER ON WORKER.id = WORKER_BANK.worker_id group by WORKER.id)');
             })
             ->leftJoin('total_management_payroll', function($query) use ($request) {
+                $projectId = $request['project_id'] ?? '';
                 $query->on('total_management_payroll.worker_id','=','worker_employment.worker_id');
-                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                if(!empty($projectId) && empty($request['month']) && empty($request['year'])){
                 $query->whereRaw('total_management_payroll.id IN (select MAX(TMPAY.id) from total_management_payroll as TMPAY JOIN workers as WORKER ON WORKER.id = TMPAY.worker_id group by WORKER.id)');
                 }
             })
-            ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id')
-            ->where('worker_employment.project_id', $request['project_id']) 
-            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])      
-            ->where(function ($query) use ($request) {
-                if (isset($request['search']) && !empty($request['search'])) {
-                    $query->where('workers.name', 'like', "%{$request['search']}%")
-                    ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%')
-                    ->orWhere('worker_employment.department', 'like', '%'.$request['search'].'%');
-                }
-                if (isset($request['month']) && !empty($request['month'])) {
-                    $query->where('total_management_payroll.month', $request['month']);
-                }
-                if (isset($request['year']) && !empty($request['year'])) {
-                    $query->where('total_management_payroll.year', $request['year']);
-                }
-                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
-                    $query->whereNull('worker_employment.work_end_date');
-                    $query->whereNull('worker_employment.remove_date');
-                    $query->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'));
-                }
-            })
-            ->select('workers.id', 'workers.name', 'workers.passport_number', 'worker_bank_details.bank_name', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'worker_employment.department', 'total_management_payroll.id as payroll_id', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
-            ->distinct('workers.id')
-            ->orderBy('workers.created_at','DESC')
-            ->paginate(Config::get('services.paginate_row'));
+            ->leftJoin('total_management_project', 'total_management_project.id', 'worker_employment.project_id');
+        $data = $this->applyCondition($request,$data);
+        $data = $this->applySearchFilter($request,$data);
+        $data = $this->ListSelectColumns($data)
+                    ->orderBy('workers.created_at','DESC')
+                    ->paginate(Config::get('services.paginate_row'));
+        return $data;
     }
+
+    /**
+     * Apply condition to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        project_id (int) ID of the project
+     *
+     * @return $data Returns the query builder object with the applied condition
+     */
+    private function applyCondition($request,$data)
+    {
+        return $data->where('worker_employment.project_id', $request['project_id']) 
+                    ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1]);
+    }
+
+    /**
+     * Apply search filter to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        search (string) search parameter
+     *        month (int) Payroll month
+     *        year (int) Payroll year
+     *        project_id (int) ID of the project
+     *
+     * @return $data Returns the query builder object with the applied search filter
+     */
+    private function applySearchFilter($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
+            $search = $request['search'] ?? '';
+            $month = $request['month'] ?? '';
+            $year = $request['year'] ?? '';
+            $projectId = $request['project_id'] ?? '';
+
+            if (!empty($search)) {
+                $query->where('workers.name', 'like', "%{$search}%")
+                ->orWhere('workers.passport_number', 'like', '%'.$search.'%')
+                ->orWhere('worker_employment.department', 'like', '%'.$search.'%');
+            }
+            if (!empty($month)) {
+                $query->where('total_management_payroll.month', $month);
+            }
+            if (!empty($year)) {
+                $query->where('total_management_payroll.year', $year);
+            }
+            if (!empty($projectId) && empty($month) && empty($year)){
+                $query->whereNull('worker_employment.work_end_date');
+                $query->whereNull('worker_employment.remove_date');
+                $query->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'));
+            }
+        });
+    }
+
+    /**
+     * Select data from the query.
+     *
+     * @return $data The modified instance of the class.
+     */
+    private function listSelectColumns($data)
+    {
+        return $data->select('workers.id', 'workers.name', 'workers.passport_number', 'worker_bank_details.bank_name', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'worker_employment.department', 'total_management_payroll.id as payroll_id', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
+                    ->distinct('workers.id');
+    }
+
     /**
      * Export worker payroll data based on specified project.
      * 
@@ -233,10 +383,15 @@ class TotalManagementPayrollServices
      *        year (int) year of the payroll
      * 
      * @return mixed Returns The list of payroll
+     * 
+     * @see applyCondition()
+     * @see applySearchFilter()
+     * @see exportSelectColumns()
+     * 
      */   
     public function export($request): mixed
     {
-        return $this->workers
+        $data = $this->workers
             ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
             ->leftJoin('worker_employment', function($query) {
                 $query->on('worker_employment.worker_id','=','workers.id');
@@ -246,8 +401,9 @@ class TotalManagementPayrollServices
                     ->whereRaw('worker_bank_details.id IN (select MIN(WORKER_BANK.id) from worker_bank_details as WORKER_BANK JOIN workers as WORKER ON WORKER.id = WORKER_BANK.worker_id group by WORKER.id)');
             })
             ->leftJoin('total_management_payroll', function($query) use ($request) {
+                $projectId = $request['project_id'] ?? '';
                 $query->on('total_management_payroll.worker_id','=','worker_employment.worker_id');
-                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+                if(!empty($projectId) && empty($request['month']) && empty($request['year'])){
                 $query->whereRaw('total_management_payroll.id IN (select MAX(TMPAY.id) from total_management_payroll as TMPAY JOIN workers as WORKER ON WORKER.id = TMPAY.worker_id group by WORKER.id)');
                 }
             })
@@ -255,33 +411,27 @@ class TotalManagementPayrollServices
             ->join('total_management_applications', function ($join) use ($request) {
                 $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                     ->whereIn('total_management_applications.company_id', $request['company_id']);
-            })
-            ->where('worker_employment.project_id', $request['project_id']) 
-            ->where('worker_employment.service_type', Config::get('services.WORKER_MODULE_TYPE')[1])       
-            ->where(function ($query) use ($request) {
-                if (isset($request['search']) && !empty($request['search'])) {
-                    $query->where('workers.name', 'like', "%{$request['search']}%")
-                    ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%')
-                    ->orWhere('worker_employment.department', 'like', '%'.$request['search'].'%');
-                }
-                if (isset($request['month']) && !empty($request['month'])) {
-                    $query->where('total_management_payroll.month', $request['month']);
-                }
-                if (isset($request['year']) && !empty($request['year'])) {
-                    $query->where('total_management_payroll.year', $request['year']);
-                }
-                if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
-                    $query->whereNull('worker_employment.work_end_date');
-                    $query->whereNull('worker_employment.remove_date');
-                    $query->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'));
-                }
-            })
-            ->select('workers.id', 'workers.name', 'worker_bank_details.account_number', 'workers.passport_number', 'worker_employment.department', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
-            ->distinct('workers.id')
-            ->orderBy('workers.created_at','DESC')->get();
+            });
+        $data = $this->applyCondition($request,$data);
+        $data = $this->applySearchFilter($request,$data);
+        $data = $this->exportSelectColumns($data)
+                     ->orderBy('workers.created_at','DESC')->get();
+        return $data;             
     }
+
     /**
-     * show the details of a total management payroll record
+     * Select data from the query.
+     *
+     * @return $data The modified instance of the class.
+     */
+    private function exportSelectColumns($data)
+    {
+        return $data->select('workers.id', 'workers.name', 'worker_bank_details.account_number', 'workers.passport_number', 'worker_employment.department', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
+        ->distinct('workers.id');
+    }
+
+    /**
+     * Show the details of a total management payroll record
      * 
      * @param $request
      *        id (int) ID of the payroll
@@ -290,7 +440,7 @@ class TotalManagementPayrollServices
      */   
     public function show($request): mixed
     {
-        return $this->totalManagementPayroll
+        $data = $this->totalManagementPayroll
             ->leftJoin('total_management_project', 'total_management_project.id', 'total_management_payroll.project_id')
             ->leftJoin('worker_employment', function($query) {
                 $query->on('worker_employment.worker_id','=','total_management_payroll.worker_id')
@@ -306,11 +456,36 @@ class TotalManagementPayrollServices
             ->join('total_management_applications', function ($join) use ($request) {
                 $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                      ->whereIn('total_management_applications.company_id', $request['company_id']);
-            })
-            ->where('total_management_payroll.id', $request['id'])       
-            ->select('workers.id', 'workers.name', 'worker_bank_details.account_number', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'workers.passport_number', 'worker_employment.department', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
-            ->distinct('workers.id','total_management_payroll.id')->get();
+            });
+        $data = $this->showApplyCondition($request,$data);
+        $data = $this->showSelectColumns($data)->get();
+        return $data;
     }
+
+    /**
+     * Apply condition to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        id (int) ID of the payroll
+     *
+     * @return $data Returns the query builder object with the applied condition
+     */
+    private function showApplyCondition($request,$data)
+    {
+        return $data->where('total_management_payroll.id', $request['id']);
+    }
+	
+	/**
+     * Select data from the query.
+     *
+     * @return $data The modified instance of the class.
+     */
+    private function showSelectColumns($data)
+    {
+        return $data->select('workers.id', 'workers.name', 'worker_bank_details.account_number', 'worker_bank_details.account_number', 'worker_bank_details.socso_number', 'workers.passport_number', 'worker_employment.department', 'total_management_payroll.month', 'total_management_payroll.year', 'total_management_payroll.basic_salary', 'total_management_payroll.ot_1_5', 'total_management_payroll.ot_2_0', 'total_management_payroll.ot_3_0', 'total_management_payroll.ph', 'total_management_payroll.rest_day', 'total_management_payroll.deduction_advance', 'total_management_payroll.deduction_accommodation', 'total_management_payroll.annual_leave', 'total_management_payroll.medical_leave', 'total_management_payroll.hospitalisation_leave', 'total_management_payroll.amount', 'total_management_payroll.no_of_workingdays', 'total_management_payroll.normalday_ot_1_5', 'total_management_payroll.ot_1_5_hrs_amount', 'total_management_payroll.restday_daily_salary_rate', 'total_management_payroll.hrs_ot_2_0', 'total_management_payroll.ot_2_0_hrs_amount', 'total_management_payroll.public_holiday_ot_3_0', 'total_management_payroll.deduction_hostel', 'total_management_payroll.sosco_deduction', 'total_management_payroll.sosco_contribution')
+        ->distinct('workers.id','total_management_payroll.id');
+    }
+
     /**
      * Import payroll data from a file
      * 
@@ -318,21 +493,20 @@ class TotalManagementPayrollServices
      *        project_id (int) ID of the project
      * 
      * @return bool|array Returns true if the import is successful. Returns an error array if validation fails or any error occurs during the import process.
+     * 
+     * @see validateImportRequest()
+     * @see createPayrollBulkUpload()
+     * 
      */   
     public function import($request, $file): mixed
     {
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
-        $params['modified_by'] = $user['id'];
-        $params['company_id'] = $user['company_id'];
-
-        $validator = Validator::make($request->toArray(), $this->importValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->validateImportRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
+
+        $params = $request->all();
+        $params = $this->enrichRequestWithUserDetails($params);
 
         $payrollBulkUpload = $this->createPayrollBulkUpload($params);
         
@@ -370,14 +544,17 @@ class TotalManagementPayrollServices
      * @param $request
      * 
      * @return bool|array Returns true if the create is successful. Returns an error array if validation fails or any error occurs during the create process.
+     * 
+     * @see validateAddRequest()
+     * @see getPayrollRecord()
+     * @see createTotalManagementPayroll()
+     * 
      */   
     public function add($request): bool|array
     {
-        $validator = Validator::make($request, $this->addValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->validateAddRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
 
         $totalManagementPayroll = $this->getPayrollRecord($request);
@@ -445,34 +622,34 @@ class TotalManagementPayrollServices
     private function createTotalManagementPayroll($request): mixed
     {
         return $this->totalManagementPayroll->create([
-            'worker_id' => $request['worker_id'] ?? 0,
-            'project_id' => $request['project_id'] ?? 0,
-            'month' => $request['month'] ?? 0,
-            'year' => $request['year'] ?? 0,
-            'basic_salary' => $request['basic_salary'] ?? 0,
-            'ot_1_5' => $request['ot_1_5'] ?? 0,
-            'ot_2_0' => $request['ot_2_0'] ?? 0,
-            'ot_3_0' => $request['ot_3_0'] ?? 0,
-            'ph' => $request['ph'] ?? 0,
-            'rest_day' => $request['rest_day'] ?? 0,
-            'deduction_advance' => $request['deduction_advance'] ?? 0,
-            'deduction_accommodation' => $request['deduction_accommodation'] ?? 0,
-            'annual_leave' => $request['annual_leave'] ?? 0,
-            'medical_leave' => $request['medical_leave'] ?? 0,
-            'hospitalisation_leave' => $request['hospitalisation_leave'] ?? 0,
-            'amount' => $request['amount'] ?? 0,
-            'no_of_workingdays' => $request['no_of_workingdays'] ?? 0,
-            'normalday_ot_1_5' => $request['normalday_ot_1_5'] ?? 0,
-            'ot_1_5_hrs_amount' => $request['ot_1_5_hrs_amount'] ?? 0,
-            'restday_daily_salary_rate' => $request['restday_daily_salary_rate'] ?? 0,
-            'hrs_ot_2_0' => $request['hrs_ot_2_0'] ?? 0,
-            'ot_2_0_hrs_amount' => $request['ot_2_0_hrs_amount'] ?? 0,
-            'public_holiday_ot_3_0' => $request['public_holiday_ot_3_0'] ?? 0,
-            'deduction_hostel' => $request['deduction_hostel'] ?? 0,
-            'sosco_deduction' => $request['sosco_deduction'] ?? 0,
-            'sosco_contribution' => $request['sosco_contribution'] ?? 0,
-            'created_by' => $request['created_by'] ?? 0,
-            'modified_by' => $request['created_by'] ?? 0
+            'worker_id' => $request['worker_id'] ?? self::DEFAULT_VALUE,
+            'project_id' => $request['project_id'] ?? self::DEFAULT_VALUE,
+            'month' => $request['month'] ?? self::DEFAULT_VALUE,
+            'year' => $request['year'] ?? self::DEFAULT_VALUE,
+            'basic_salary' => $request['basic_salary'] ?? self::DEFAULT_VALUE,
+            'ot_1_5' => $request['ot_1_5'] ?? self::DEFAULT_VALUE,
+            'ot_2_0' => $request['ot_2_0'] ?? self::DEFAULT_VALUE,
+            'ot_3_0' => $request['ot_3_0'] ?? self::DEFAULT_VALUE,
+            'ph' => $request['ph'] ?? self::DEFAULT_VALUE,
+            'rest_day' => $request['rest_day'] ?? self::DEFAULT_VALUE,
+            'deduction_advance' => $request['deduction_advance'] ?? self::DEFAULT_VALUE,
+            'deduction_accommodation' => $request['deduction_accommodation'] ?? self::DEFAULT_VALUE,
+            'annual_leave' => $request['annual_leave'] ?? self::DEFAULT_VALUE,
+            'medical_leave' => $request['medical_leave'] ?? self::DEFAULT_VALUE,
+            'hospitalisation_leave' => $request['hospitalisation_leave'] ?? self::DEFAULT_VALUE,
+            'amount' => $request['amount'] ?? self::DEFAULT_VALUE,
+            'no_of_workingdays' => $request['no_of_workingdays'] ?? self::DEFAULT_VALUE,
+            'normalday_ot_1_5' => $request['normalday_ot_1_5'] ?? self::DEFAULT_VALUE,
+            'ot_1_5_hrs_amount' => $request['ot_1_5_hrs_amount'] ?? self::DEFAULT_VALUE,
+            'restday_daily_salary_rate' => $request['restday_daily_salary_rate'] ?? self::DEFAULT_VALUE,
+            'hrs_ot_2_0' => $request['hrs_ot_2_0'] ?? self::DEFAULT_VALUE,
+            'ot_2_0_hrs_amount' => $request['ot_2_0_hrs_amount'] ?? self::DEFAULT_VALUE,
+            'public_holiday_ot_3_0' => $request['public_holiday_ot_3_0'] ?? self::DEFAULT_VALUE,
+            'deduction_hostel' => $request['deduction_hostel'] ?? self::DEFAULT_VALUE,
+            'sosco_deduction' => $request['sosco_deduction'] ?? self::DEFAULT_VALUE,
+            'sosco_contribution' => $request['sosco_contribution'] ?? self::DEFAULT_VALUE,
+            'created_by' => $request['created_by'] ?? self::DEFAULT_VALUE,
+            'modified_by' => $request['created_by'] ?? self::DEFAULT_VALUE
         ]);
     }
     /**
@@ -482,14 +659,17 @@ class TotalManagementPayrollServices
      * 
      * @return bool|array Returns true if the update is successful. Returns an error array if validation fails or any error occurs during the update process.
      *                    Returns self::ERROR_UNAUTHORIZED if the user access invalid payroll
+     * 
+     * @see validateUpdateRequest()
+     * @see getPayrollRecordToUpdate()
+     * @see updatePayroll()
+     * 
      */
     public function update($request): bool|array
     {
-        $validator = Validator::make($request, $this->updateValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->validateUpdateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
         
         $totalManagementPayroll = $this->getPayrollRecordToUpdate($request);
@@ -624,19 +804,20 @@ class TotalManagementPayrollServices
      * 
      * @return bool|array Returns true if the upload is successful. Returns an error array if validation fails or any error occurs during the upload process.
      *                    Returns self::ERROR_EXISTS if attachment already exists
+     * 
+     * @see validateUploadTimesheetRequest()
+     * @see getPayrollAttachments()
+     * @see uploadPayrollTimesheet()
+     * 
      */
     public function uploadTimesheet($request): bool|array
     {
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['created_by'] = $user['id'];
+        $validationResult = $this->validateUploadTimesheetRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
 
-        /*$validator = Validator::make($request->toArray(), $this->uploadTimesheetValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
-        }*/
+        $request = $this->enrichRequestWithUserDetails($request);
 
         $totalManagementPayrollAttachments = $this->getPayrollAttachments($request);
 
@@ -690,13 +871,13 @@ class TotalManagementPayrollServices
 
                 $this->totalManagementPayrollAttachments::create([
                     'file_id' => $request['project_id'],
-                    "month" => $request['month'] ?? 0,
-                    "year" => $request['year'] ?? 0,
+                    "month" => $request['month'] ?? self::DEFAULT_VALUE,
+                    "year" => $request['year'] ?? self::DEFAULT_VALUE,
                     "file_name" => $fileName,
                     "file_type" => self::FILE_TYPE,
                     "file_url" =>  $fileUrl,
-                    "created_by" =>  $request['created_by'] ?? 0,
-                    "modified_by" =>  $request['created_by'] ?? 0
+                    "created_by" =>  $request['created_by'] ?? self::DEFAULT_VALUE,
+                    "modified_by" =>  $request['created_by'] ?? self::DEFAULT_VALUE
                 ]);
             }
         }
@@ -710,17 +891,23 @@ class TotalManagementPayrollServices
      * @return bool|array Returns true if the authorizePayroll is successful. Returns an error array if validation fails or any error occurs during the authorizePayroll process.
      *                    Returns self::ERROR_EXISTS if cost management already exists
      *                    Returns self::ERROR_NORECORDS if no workers found
+     * 
+     * @see countTotalManagementCostManagement()
+     * @see getPayrollWorkers()
+     * @see createCostmanagementEntry()
+     * @see createCostmanagementSocsoEntry()
+     * 
      */
     public function authorizePayroll($request): bool|array
     {
         $checkTotalManagementCostManagement = $this->countTotalManagementCostManagement($request);
-        if($checkTotalManagementCostManagement > 0) {
+        if($checkTotalManagementCostManagement > self::DEFAULT_VALUE) {
             return self::ERROR_EXISTS;
         }
 
         $payrollWorkers = $this->getPayrollWorkers($request);
 
-        if(isset($payrollWorkers) && count($payrollWorkers) > 0 ){
+        if(isset($payrollWorkers) && count($payrollWorkers) > self::DEFAULT_VALUE ){
             $user = JWTAuth::parseToken()->authenticate();
             foreach($payrollWorkers as $result){
                 $this->createCostmanagementEntry($result,$request,$user);
@@ -761,10 +948,14 @@ class TotalManagementPayrollServices
      *              year (int) year of the project
      * 
      * @return mixed Returns the worker payroll data
+     * 
+     * @see getPayrollWorkersApplyCondition()
+     * @see getPayrollWorkersSelectColumns()
+     * 
      */
     private function getPayrollWorkers($request)
     {
-        return $this->workers
+        $data = $this->workers
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.worker_id','=','workers.id');
         })
@@ -780,23 +971,53 @@ class TotalManagementPayrollServices
         ->join('total_management_applications', function ($join) use ($request) {
             $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                 ->whereIn('total_management_applications.company_id', $request['company_id']);
-        })
-        ->where(function ($query) use ($request) {
-            if (isset($request['month']) && !empty($request['month'])) {
-                $query->where('total_management_payroll.month', $request['month']);
+        });
+        $data = $this->getPayrollWorkersApplyCondition($request,$data);
+        $data = $this->getPayrollWorkersSelectColumns($data)
+                        ->orderBy('workers.created_at','DESC')->get();
+        return $data;
+    }
+
+    /**
+     * Apply condition to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        project_id (int) ID of the project
+     *        month (int) payroll month
+     *        year (int) payroll year
+     *
+     * @return $data Returns the query builder object with the applied condition
+     */
+    private function getPayrollWorkersApplyCondition($request,$data)
+    {
+        return $data->where(function ($query) use ($request) {
+            $month = $request['month'] ?? '';
+            $year = $request['year'] ?? '';
+            $projectId = $request['project_id'] ?? '';
+            if (!empty($month)) {
+                $query->where('total_management_payroll.month', $month);
             }
-            if (isset($request['year']) && !empty($request['year'])) {
-                $query->where('total_management_payroll.year', $request['year']);
+            if (!empty($year)) {
+                $query->where('total_management_payroll.year', $year);
             }
-            if(isset($request['project_id']) && !empty($request['project_id']) && empty($request['month']) && empty($request['year'])){
+            if (!empty($projectId) && empty($month) && empty($year)){
                 $query->whereNull('worker_employment.work_end_date');
                 $query->whereNull('worker_employment.remove_date');
             }
-        })
-        ->select('workers.id as worker_id', 'workers.name', 'total_management_payroll.id as payroll_id', 'total_management_payroll.amount', 'total_management_payroll.sosco_contribution', 'total_management_project.application_id')
-        ->distinct('workers.id')
-        ->orderBy('workers.created_at','DESC')->get();
+        });
     }
+
+    /**
+     * Select data from the query.
+     *
+     * @return $data The modified instance of the class.
+     */
+    private function getPayrollWorkersSelectColumns($data)
+    {
+        return $data->select('workers.id as worker_id', 'workers.name', 'total_management_payroll.id as payroll_id', 'total_management_payroll.amount', 'total_management_payroll.sosco_contribution', 'total_management_project.application_id')
+        ->distinct('workers.id');
+    }
+
     /**
      * create Costmanagement Entry .
      *
@@ -811,19 +1032,19 @@ class TotalManagementPayrollServices
             'application_id' => $result['application_id'],
             'project_id' => $request['project_id'],
             'title' => $result['name'],
-            'type' => 'Payroll',
-            'payment_reference_number' => 1,
+            'type' => self::COSTMANAGEMENT_TYPE,
+            'payment_reference_number' => self::DEFAULT_ACTIVE_VALUE,
             'payment_date' => Carbon::now(),
-            'is_payroll' => 1,
-            'quantity' => 1,
+            'is_payroll' => self::DEFAULT_ACTIVE_VALUE,
+            'quantity' => self::DEFAULT_ACTIVE_VALUE,
             'amount' => $result['amount'],
             'remarks' => $result['name'],
-            'is_payroll' => 1,
+            'is_payroll' => self::DEFAULT_ACTIVE_VALUE,
             'payroll_id' => $result['payroll_id'],
             'month' => $request['month'],
             'year' => $request['year'],
-            'created_by'    => $user['id'] ?? 0,
-            'modified_by'   => $user['id'] ?? 0,
+            'created_by'    => $user['id'] ?? self::DEFAULT_VALUE,
+            'modified_by'   => $user['id'] ?? self::DEFAULT_VALUE,
         ]);
     }
     /**
@@ -840,19 +1061,19 @@ class TotalManagementPayrollServices
             'application_id' => $result['application_id'],
             'project_id' => $request['project_id'],
             'title' => "SOCSO Contribution (" . $result['name'] . " )",
-            'type' => 'Payroll',
-            'payment_reference_number' => 1,
+            'type' => self::COSTMANAGEMENT_TYPE,
+            'payment_reference_number' => self::DEFAULT_ACTIVE_VALUE,
             'payment_date' => Carbon::now(),
-            'is_payroll' => 1,
-            'quantity' => 1,
+            'is_payroll' => self::DEFAULT_ACTIVE_VALUE,
+            'quantity' => self::DEFAULT_ACTIVE_VALUE,
             'amount' => $result['amount'],
             'remarks' => "SOCSO Contribution (" . $result['name'] . " )",
-            'is_payroll' => 1,
+            'is_payroll' => self::DEFAULT_ACTIVE_VALUE,
             'payroll_id' => $result['payroll_id'],
             'month' => $request['month'],
             'year' => $request['year'],
-            'created_by'    => $user['id'] ?? 0,
-            'modified_by'   => $user['id'] ?? 0,
+            'created_by'    => $user['id'] ?? self::DEFAULT_VALUE,
+            'modified_by'   => $user['id'] ?? self::DEFAULT_VALUE,
         ]);
     }
     /**
@@ -860,11 +1081,13 @@ class TotalManagementPayrollServices
      * 
      * @param $request
      * @return mixed
+     * 
+     * @see enrichRequestWithUserDetails()
+     * 
      */
     public function importHistory($request): mixed
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['company_id'] = $this->authServices->getCompanyIds($user);
+        $request = $this->enrichRequestWithUserDetails($request);
 
         return $this->payrollBulkUpload
         ->select('id', 'actual_row_count', 'total_success', 'total_failure', 'process_status', 'created_at')
@@ -888,14 +1111,10 @@ class TotalManagementPayrollServices
                         ->where('id', $request['bulk_upload_id'])
                         ->first();
         if(is_null($payrollBulkUpload)) {
-            return [
-                'InvalidUser' => true
-            ];
+            return sself::ERROR_INVALID_USER;
         }
         if($payrollBulkUpload->process_status != 'Processed' || is_null($payrollBulkUpload->failure_case_url)) {
-            return [
-                'queueError' => true
-            ];
+            return self::ERROR_QUEUE;
         }
         return [
             'file_url' => $payrollBulkUpload->failure_case_url
@@ -905,6 +1124,10 @@ class TotalManagementPayrollServices
      * total management payroll import failure case excel file creation
      * 
      * @return bool
+     * 
+     * @see updatePayrollBulkUploadStatus()
+     * @see createPayrollFailureCasesDocument()
+     * 
      */
     public function prepareExcelForFailureCases(): bool
     {
