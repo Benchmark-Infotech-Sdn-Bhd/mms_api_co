@@ -10,11 +10,8 @@ use App\Models\CRMProspect;
 use App\Models\CRMProspectService;
 use App\Models\CRMProspectAttachment;
 use App\Models\Services;
-use App\Models\Sectors;
 use App\Models\EContractApplications;
 use App\Models\EContractApplicationAttachments;
-use App\Models\DirectrecruitmentApplications;
-use App\Models\DirectRecruitmentOnboardingCountry;
 
 class EContractServices
 {
@@ -53,11 +50,6 @@ class EContractServices
     private Services $services;
 
     /**
-     * @var Sectors
-     */
-    private Sectors $sectors;
-
-    /**
      * @var EContractApplications
      */
     private EContractApplications $eContractApplications;
@@ -66,16 +58,6 @@ class EContractServices
      * @var EContractApplicationAttachments
      */
     private EContractApplicationAttachments $eContractApplicationAttachments;
-
-    /**
-     * @var DirectrecruitmentApplications
-     */
-    private DirectrecruitmentApplications $directrecruitmentApplications;
-
-    /**
-     * @var DirectRecruitmentOnboardingCountry
-     */
-    private DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry;
 
     /**
      * @var Storage
@@ -89,23 +71,17 @@ class EContractServices
      * @param CRMProspectService $crmProspectService Instance of the CRMProspectService class.
      * @param CRMProspectAttachment $crmProspectAttachment Instance of the CRMProspectAttachment class.
      * @param Services $services Instance of the Services class.
-     * @param Sectors $sectors Instance of the Sectors class.
      * @param EContractApplications $eContractApplications Instance of the EContractApplications class.
      * @param EContractApplicationAttachments $eContractApplicationAttachments Instance of the EContractApplicationAttachments class.
-     * @param DirectrecruitmentApplications $directrecruitmentApplications Instance of the DirectrecruitmentApplications class.
-     * @param DirectRecruitmentOnboardingCountry $directRecruitmentOnboardingCountry Instance of the DirectRecruitmentOnboardingCountry class.
      * @param Storage $storage Instance of the Storage class.
      */
     public function __construct(
-        CRMProspect                            $crmProspect, 
-        CRMProspectService                     $crmProspectService, 
-        CRMProspectAttachment                  $crmProspectAttachment, 
-        Services                               $services, 
-        Sectors                                $sectors, 
-        EContractApplications                  $eContractApplications, 
-        EContractApplicationAttachments        $eContractApplicationAttachments, 
-        DirectrecruitmentApplications          $directrecruitmentApplications, 
-        DirectRecruitmentOnboardingCountry     $directRecruitmentOnboardingCountry, 
+        CRMProspect                            $crmProspect,
+        CRMProspectService                     $crmProspectService,
+        CRMProspectAttachment                  $crmProspectAttachment,
+        Services                               $services,
+        EContractApplications                  $eContractApplications,
+        EContractApplicationAttachments        $eContractApplicationAttachments,
         Storage                                $storage
     )
     {
@@ -113,11 +89,8 @@ class EContractServices
         $this->crmProspectService = $crmProspectService;
         $this->crmProspectAttachment = $crmProspectAttachment;
         $this->services = $services;
-        $this->sectors = $sectors;
         $this->eContractApplications = $eContractApplications;
         $this->eContractApplicationAttachments = $eContractApplicationAttachments;
-        $this->directrecruitmentApplications = $directrecruitmentApplications;
-        $this->directRecruitmentOnboardingCountry = $directRecruitmentOnboardingCountry;
         $this->storage = $storage;
     }
 
@@ -172,7 +145,7 @@ class EContractServices
      */
     public function applicationListing($request): mixed
     {
-        if (isset($request['search']) && !empty($request['search'])) {
+        if (!empty($request['search'])) {
             $validationResult = $this->applicationListValidateRequest($request);
             if (is_array($validationResult)) {
                 return $validationResult;
@@ -269,7 +242,7 @@ class EContractServices
      */
     private function applySearchFilter($query, $request)
     {
-        if (isset($request['search']) && !empty($request['search'])) {
+        if (!empty($request['search'])) {
             $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
         }
     }
@@ -397,8 +370,8 @@ class EContractServices
         } 
         
         $this->updateCrmProspectServiceDetails($serviceDetails, $request);
-        
-        $this->updateEContractApplicationsFomnextQuota($request);
+
+        $this->updateEContractApplicationsFomnextQuota($serviceDetails, $request);
 
         return true;
     }
@@ -498,9 +471,10 @@ class EContractServices
     /**
      * Updates the application quota details with the given request.
      * 
+     * @param object $serviceDetails The service object to be updated.
      * @param array $request Array with 'id' and 'fomnext quota' keys
      */
-    public function updateEContractApplicationsFomnextQuota($request): void
+    public function updateEContractApplicationsFomnextQuota($serviceDetails, $request): void
     {
         $applicationDetails = $this->eContractApplications->findOrFail($request['id']);
         $applicationDetails->quota_requested = $request['fomnext_quota'] ?? $serviceDetails->fomnext_quota;
@@ -589,11 +563,11 @@ class EContractServices
      * 
      * @param object $service The service was created against the prospect service Id
      * 
-     * @return Project The newly created project service.
+     * @return Service The newly created service.
      */
     private function createCrmProspect($service, $request): mixed
     {
-        $prospectService = $this->crmProspectService->create([
+        return $this->crmProspectService->create([
             'crm_prospect_id'    => $request['prospect_id'],
             'service_id'         => $service->id,
             'service_name'       => $service->service_name,
@@ -603,8 +577,6 @@ class EContractServices
             'fomnext_quota'      => $request['fomnext_quota'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
             'air_ticket_deposit' => $request['air_ticket_deposit'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
         ]);
-
-        return $prospectService;
     }
     
     /**

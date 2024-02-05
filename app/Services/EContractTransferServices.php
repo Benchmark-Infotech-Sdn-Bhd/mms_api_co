@@ -39,7 +39,7 @@ class EContractTransferServices
     public const ERROR_FOMNEXT_QUOTA = ['fomnextQuotaError' => true];
     public const ERROR_OTHER_COMPANY = ['otherCompanyError' => true];
     public const ERROR_PROJECT_EXIST = ['projectExist' => true];
-    public const ERROR_QUOTA = ['quotaError' => true];    
+    public const ERROR_QUOTA = ['quotaError' => true];  
 
     /**
      * @var Workers

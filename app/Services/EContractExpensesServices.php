@@ -51,21 +51,21 @@ class EContractExpensesServices
     private EContractProject $eContractProject;
 
     /**
-     * Constructs a new instance of the class.
+     * Constructor method.
      * 
-     * @param EContractExpenses $eContractExpenses The e-contract expenses object.
-     * @param EContractExpensesAttachments $eContractExpensesAttachments The e-contract expenses attachments object.
-     * @param Storage $storage The storage object.
-     * @param AuthServices $authServices The auth services object.
-     * @param EContractApplications $eContractApplications The e-contract applications object.
+     * @param EContractExpenses $eContractExpenses Instance of the EContractExpenses class.
+     * @param EContractExpensesAttachments $eContractExpensesAttachments Instance of the EContractExpensesAttachments class.
+     * @param Storage $storage Instance of the Storage class.
+     * @param AuthServices $authServices Instance of the AuthServices class.
+     * @param EContractApplications $eContractApplications Instance of the EContractApplications class.
      */
     public function __construct(
-        EContractExpenses $eContractExpenses, 
-        EContractExpensesAttachments $eContractExpensesAttachments, 
-        Storage $storage, 
-        AuthServices $authServices, 
-        EContractApplications $eContractApplications, 
-        EContractProject $eContractProject
+        EContractExpenses                $eContractExpenses, 
+        EContractExpensesAttachments     $eContractExpensesAttachments, 
+        Storage                          $storage, 
+        AuthServices                     $authServices, 
+        EContractApplications            $eContractApplications, 
+        EContractProject                 $eContractProject
     )
     {
         $this->eContractExpenses = $eContractExpenses;
@@ -153,13 +153,9 @@ class EContractExpensesServices
     {
         $user = JWTAuth::parseToken()->authenticate();
         $params['company_id'] = $this->authServices->getCompanyIds($user);
-        if (isset($request['search']) && !empty($request['search'])) {
-            $validator = Validator::make($request, $this->searchValidation());
-            if ($validator->fails()) {
-                return [
-                    'error' => $validator->errors()
-                ];
-            }
+        $validationResult = $this->listValidateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
 
         return $this->eContractExpenses
@@ -169,14 +165,13 @@ class EContractExpensesServices
             })
             ->join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
             ->join('e-contract_applications', function($query) use($params) {
-                $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-                ->where('e-contract_applications.company_id', $params['company_id']);
+                $this->applyEcontractApplicationFilter($query, $params);
             })
-            ->where('e-contract_expenses.worker_id', $request['worker_id'])
             ->where(function ($query) use ($request) {
-                if (isset($request['search']) && !empty($request['search'])) {
-                    $query->where('e-contract_expenses.title', 'like', '%'. $request['search']. '%');
-                }
+                $this->applyWorkerFilter($query, $request);
+            })
+            ->where(function ($query) use ($request) {
+                $this->applySearchFilter($query, $request);
             })
             ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.amount', 'e-contract_expenses.deduction', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount_paid', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses_attachments.file_name','e-contract_expenses_attachments.file_url', 'e-contract_expenses.invoice_number','e-contract_expenses.created_at')
             ->distinct()
@@ -209,37 +204,28 @@ class EContractExpensesServices
     public function create($request): bool|array
     {
         $user = JWTAuth::parseToken()->authenticate();
-        $applicationData = $this->eContractApplications->where('e-contract_applications.company_id', $user['company_id'])
-        ->select('e-contract_applications.id')
-        ->find($request['application_id']);
+        $request['company_id'] = $user['company_id'];
+        $request['created_by'] = $user['id'];
+
+        $applicationData = $this->showEContractApplications($request);
         if (is_null($applicationData)) {
             return [
                 'unauthorizedError' => self::UNAUTHORIZED_ERROR
             ];
         }
-
-        $projectData = $this->eContractProject
-        ->join('e-contract_applications', function($query) use($user) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->where('e-contract_applications.company_id', $user['company_id']);
-        })
-        ->select('e-contract_project.application_id')
-        ->find($request['project_id']);
+        
+        $projectData = $this->showEContractProject($request);
         if (is_null($projectData)) {
             return [
                 'unauthorizedError' => self::UNAUTHORIZED_ERROR
             ];
         }
 
-        $validator = Validator::make($request->toArray(), $this->createValidation());
-        if ($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->createValidateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
 
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['created_by'] = $user['id'];
         $expenses = $this->createEContractExpenses($request);
 
         $this->updateEContractExpensesAttachments(self::ATTACHMENT_ACTION_CREATE, $request, $expenses['id']);
@@ -257,11 +243,9 @@ class EContractExpensesServices
      */
     public function update($request): bool|array
     {
-        $validator = Validator::make($request->toArray(), $this->updateValidation());
-        if ($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->updateValidateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
 
         $user = JWTAuth::parseToken()->authenticate();
@@ -295,8 +279,8 @@ class EContractExpensesServices
         if (is_null($expense)) {
             return false;
         }
-
         $expense->delete();
+
         return true;
     }
 
@@ -310,12 +294,11 @@ class EContractExpensesServices
     {
         $user = JWTAuth::parseToken()->authenticate();
         $params['company_id'] = $this->authServices->getCompanyIds($user);
-    
+
         $data = $this->eContractExpensesAttachments::join('e-contract_expenses', 'e-contract_expenses.id', 'e-contract_expenses_attachments.file_id')
         ->join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
         ->join('e-contract_applications', function($query) use($user) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->where('e-contract_applications.company_id', $user['company_id']);
+            $this->applyDeleteEContractApplicationTableFilter($query, $user);
         })
         ->select('e-contract_expenses_attachments.id', 'e-contract_expenses_attachments.file_id', 'e-contract_expenses_attachments.file_name', 'e-contract_expenses_attachments.file_type', 'e-contract_expenses_attachments.file_url', 'e-contract_expenses_attachments.created_by', 'e-contract_expenses_attachments.modified_by', 'e-contract_expenses_attachments.created_at', 'e-contract_expenses_attachments.updated_at', 'e-contract_expenses_attachments.deleted_at')
         ->find($request['id']);
@@ -343,11 +326,9 @@ class EContractExpensesServices
      */
     public function payBack($request): bool|array
     {
-        $validator = Validator::make($request, $this->payBackValidation());
-        if ($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->payBackValidateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
 
         $user = JWTAuth::parseToken()->authenticate();
@@ -359,20 +340,7 @@ class EContractExpensesServices
             ];
         }
 
-        $totalPayBack = $expense->deduction + $request['amount_paid'];
-        $remainingAmount = $expense->amount - $totalPayBack;
-        if ($totalPayBack > $expense->amount) {
-            return [
-                'payBackError' => true
-            ];
-        }
-
-        $expense->amount_paid = $request['amount_paid'];
-        $expense->deduction = $totalPayBack;
-        $expense->payment_date = $request['payment_date'] ?? $expense->payment_date;
-        $expense->remaining_amount = $remainingAmount;
-        $expense->modified_by = $request['modified_by'] ?? $expense->modified_by;
-        $expense->save();
+        $this->updatepayBackExpense($expense, $request);
 
         return true;
     }
@@ -429,8 +397,7 @@ class EContractExpensesServices
         }])
         ->join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
         ->join('e-contract_applications', function($query) use($request) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->where('e-contract_applications.company_id', $request['company_id']);
+            $this->applyShowEContractApplicationTableFilter($query, $request);
         })
         ->select('e-contract_expenses.id', 'e-contract_expenses.worker_id', 'e-contract_expenses.application_id', 'e-contract_expenses.project_id', 'e-contract_expenses.title', 'e-contract_expenses.type', 'e-contract_expenses.payment_reference_number', 'e-contract_expenses.payment_date', 'e-contract_expenses.amount', 'e-contract_expenses.amount_paid', 'e-contract_expenses.deduction', 'e-contract_expenses.remaining_amount', 'e-contract_expenses.remarks', 'e-contract_expenses.created_by', 'e-contract_expenses.modified_by', 'e-contract_expenses.is_payroll', 'e-contract_expenses.payroll_id', 'e-contract_expenses.month', 'e-contract_expenses.year', 'e-contract_expenses.invoice_number', 'e-contract_expenses.created_at', 'e-contract_expenses.updated_at', 'e-contract_expenses.deleted_at')
         ->find($request['id']);
@@ -501,5 +468,120 @@ class EContractExpensesServices
         $expense->remarks = $request['remarks'] ?? $expense->remarks;
         $expense->modified_by = $request['modified_by'] ?? $expense->modified_by;
         $expense->save();
+    }
+
+    private function listValidateRequest($request): array|bool
+    {
+        if (isset($request['search']) && !empty($request['search'])) {
+            $validator = Validator::make($request, $this->searchValidation());
+            if ($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
+
+        return true;
+    }
+
+    private function applyEcontractApplicationFilter($query, $params)
+    {
+        $query->on('e-contract_applications.id','=','e-contract_project.application_id')->where('e-contract_applications.company_id', $params['company_id']);
+    }
+
+    private function applyWorkerFilter($query, $request)
+    {
+        $query->where('e-contract_expenses.worker_id', $request['worker_id']);
+    }
+
+    private function applySearchFilter($query, $request)
+    {
+        if (isset($request['search']) && !empty($request['search'])) {
+            $query->where('e-contract_expenses.title', 'like', '%'. $request['search']. '%');
+        }
+    }
+
+    private function showEContractApplications($request)
+    {
+        return $this->eContractApplications->where('e-contract_applications.company_id', $request['company_id'])
+            ->select('e-contract_applications.id')
+            ->find($request['application_id']);
+    }
+
+    private function showEContractProject($request)
+    {
+        return $this->eContractProject
+            ->join('e-contract_applications', function($query) use($request) {
+                $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+                ->where('e-contract_applications.company_id', $request['company_id']);
+            })
+            ->select('e-contract_project.application_id')
+            ->find($request['project_id']);
+    }
+
+    private function createValidateRequest($request): array|bool
+    {
+        $validator = Validator::make($request->toArray(), $this->createValidation());
+        if ($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    private function updateValidateRequest($request): array|bool
+    {
+        $validator = Validator::make($request->toArray(), $this->updateValidation());
+        if ($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    private function applyDeleteEContractApplicationTableFilter($query, $user)
+    {
+        $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $user['company_id']);
+    }
+
+    private function payBackValidateRequest($request): array|bool
+    {
+        $validator = Validator::make($request, $this->payBackValidation());
+        if ($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    private function updatepayBackExpense($expense, $request)
+    {
+        $totalPayBack = $expense->deduction + $request['amount_paid'];
+        $remainingAmount = $expense->amount - $totalPayBack;
+        if ($totalPayBack > $expense->amount) {
+            return [
+                'payBackError' => true
+            ];
+        }
+
+        $expense->amount_paid = $request['amount_paid'];
+        $expense->deduction = $totalPayBack;
+        $expense->payment_date = $request['payment_date'] ?? $expense->payment_date;
+        $expense->remaining_amount = $remainingAmount;
+        $expense->modified_by = $request['modified_by'] ?? $expense->modified_by;
+        $expense->save();
+    }
+
+    private function applyShowEContractApplicationTableFilter($query, $request)
+    {
+        $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->where('e-contract_applications.company_id', $request['company_id']);
     }
 }
