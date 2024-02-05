@@ -74,6 +74,8 @@ class EContractServices
      * @param EContractApplications $eContractApplications Instance of the EContractApplications class.
      * @param EContractApplicationAttachments $eContractApplicationAttachments Instance of the EContractApplicationAttachments class.
      * @param Storage $storage Instance of the Storage class.
+     * 
+     * @return void
      */
     public function __construct(
         CRMProspect                            $crmProspect,
@@ -656,6 +658,8 @@ class EContractServices
      *                       The array should have the following keys:
      *                      - fomnext_quota: (string) The updated fomnext quota.
      *                      - air_ticket_deposit: (string) The updated air ticket deposit.
+     * 
+     * @return void
      */
     private function updateCrmProspectServiceDetails($serviceDetails, $request): void
     {
