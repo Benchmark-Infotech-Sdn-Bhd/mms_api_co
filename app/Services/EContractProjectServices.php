@@ -23,6 +23,8 @@ class EContractProjectServices
     public const DEFAULT_INTEGER_VALUE_ZERO = 0;
     public const UNAUTHORIZED_ERROR = 'Unauthorized';
 
+    public const ERROR_UNAUTHORIZED = ['unauthorizedError' => self::UNAUTHORIZED_ERROR];
+
     /**
      * @var EContractProject
      */
@@ -49,20 +51,22 @@ class EContractProjectServices
     private AuthServices $authServices;
 
     /**
-     * Constructs a new instance of the class.
+     * Constructor method.
      * 
-     * @param EContractProject $eContractProject The e-contract project object.
-     * @param EContractProjectAttachments $eContractProjectAttachments The e-contract project attachments object.
-     * @param Storage $storage The storage object.
-     * @param EContractApplications $eContractApplications The e-contract applications object.
-     * @param AuthServices $authServices The auth services object.
+     * @param EContractProject $eContractProject Instance of the EContractProject class.
+     * @param EContractProjectAttachments $eContractProjectAttachments Instance of the EContractProjectAttachments class.
+     * @param Storage $storage Instance of the Storage class.
+     * @param EContractApplications $eContractApplications Instance of the EContractApplications class.
+     * @param AuthServices $authServices Instance of the AuthServices class.
+     * 
+     * @return void
      */
     public function __construct(
-        EContractProject $eContractProject, 
-        EContractProjectAttachments $eContractProjectAttachments, 
-        Storage $storage, 
-        EContractApplications $eContractApplications, 
-        AuthServices $authServices
+        EContractProject                $eContractProject,
+        EContractProjectAttachments     $eContractProjectAttachments,
+        Storage                         $storage,
+        EContractApplications           $eContractApplications,
+        AuthServices                    $authServices
     )
     {
         $this->eContractProject = $eContractProject;
@@ -121,34 +125,27 @@ class EContractProjectServices
     public function list($request): mixed
     {
         return $this->eContractProject
-        ->leftJoin('worker_employment', function($query) {
-            $query->on('worker_employment.project_id','=','e-contract_project.id')
-            ->where('worker_employment.service_type', self::SERVICE_TYPE)
-            ->where('worker_employment.transfer_flag', self::EMPLOYMENT_TRANSFER_FLAG)
-            ->whereNull('worker_employment.remove_date');
-        })
-        ->leftJoin('workers', function($query) {
-            $query->on('workers.id','=','worker_employment.worker_id')
-            ->whereIN('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
-        })
-        ->join('e-contract_applications', function($query) use($request) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->whereIn('e-contract_applications.company_id', $request['company_id']);
-        })
-        ->where('e-contract_project.application_id',$request['application_id'])
-        ->where(function ($query) use ($request) {
-            if (isset($request['search']) && !empty($request['search'])) {
-                $query->where('e-contract_project.name', 'like', '%'.$request['search'].'%')
-                ->orWhere('e-contract_project.state', 'like', '%'.$request['search'].'%')
-                ->orWhere('e-contract_project.city', 'like', '%'.$request['search'].'%');
-            }
-        })
-        ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at')
-        ->selectRaw('count(distinct workers.id) as workers, count(distinct worker_employment.id) as worker_employments')
-        ->groupBy('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at')
-        ->distinct('e-contract_project.id')
-        ->orderBy('e-contract_project.id', 'desc')
-        ->paginate(Config::get('services.paginate_row'));
+            ->leftJoin('worker_employment', function($query) {
+                $this->applyWorkerEmploymentTableFilter($query);
+            })
+            ->leftJoin('workers', function($query) {
+                $this->applyWorkerTableFilter($query);
+            })
+            ->join('e-contract_applications', function($query) use($request) {
+                $this->applyEcontractApplicationFilter($query, $request);
+            })
+            ->where(function ($query) use ($request) {
+                $this->applyEcontractProjectFilter($query, $request);
+            })
+            ->where(function ($query) use ($request) {
+                $this->applySearchFilter($query, $request);
+            })
+            ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at')
+            ->selectRaw('count(distinct workers.id) as workers, count(distinct worker_employment.id) as worker_employments')
+            ->groupBy('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at')
+            ->distinct('e-contract_project.id')
+            ->orderBy('e-contract_project.id', 'desc')
+            ->paginate(Config::get('services.paginate_row'));
     }
 
     /**
@@ -173,21 +170,17 @@ class EContractProjectServices
      */
     public function add($request): bool|array
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['created_by'] = $user['id'];
-
-        $validator = Validator::make($request->toArray(), $this->addValidation());
-        if ($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->addValidateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
 
-        $applicationDetails = $this->eContractApplications->whereIn('company_id', $request['company_id'])->find($request['application_id']);
+        $user = $this->getJwtUserAuthenticate();
+        $request['created_by'] = $user['id'];
+        
+        $applicationDetails = $this->showEContractApplications($request);
         if (is_null($applicationDetails)) {
-            return [
-                'unauthorizedError' => self::UNAUTHORIZED_ERROR
-            ];
+            return self::ERROR_UNAUTHORIZED;
         }
 
         $eContractProject = $this->createEContractProject($request);
@@ -208,22 +201,18 @@ class EContractProjectServices
      */
     public function update($request): bool|array
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['modified_by'] = $user['id'];
-        $request['company_id'] = $this->authServices->getCompanyIds($user);
-
-        $validator = Validator::make($request->toArray(), $this->updateValidation());
-        if ($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->updateValidateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
+
+        $user = $this->getJwtUserAuthenticate();
+        $request['modified_by'] = $user['id'];
+        $request['company_id'] = $this->getAuthUserCompanyIds($user);
 
         $eContractProject = $this->showEContractProject($request);
         if (is_null($eContractProject)) {
-            return [
-                'unauthorizedError' => self::UNAUTHORIZED_ERROR
-            ];
+            return self::ERROR_UNAUTHORIZED;
         }
 
         $this->updateEContractProject($eContractProject, $request);
@@ -236,18 +225,17 @@ class EContractProjectServices
     /**
      * Delete the e-contract project attachment
      * 
-     * @param array $request The request data containing the attachment ID and company ID.
+     * @param array $request The request data containing the attachment id and company id.
      * @return array The result of the delete operation containing the deletion status and message.
      */    
     public function deleteAttachment($request): array
-    {   
+    {
         $data = $this->eContractProjectAttachments
         ->join('e-contract_project', function($query) use($request) {
             $query->on('e-contract_project.id','=','e-contract_project_attachments.file_id');
         })
         ->join('e-contract_applications', function($query) use($request) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->whereIn('e-contract_applications.company_id', $request['company_id']);
+            $this->applyEcontractApplicationFilter($query, $request);
         })
         ->select('e-contract_project_attachments.id', 'e-contract_project_attachments.file_id', 'e-contract_project_attachments.file_name', 'e-contract_project_attachments.file_type', 'e-contract_project_attachments.file_url', 'e-contract_project_attachments.created_by', 'e-contract_project_attachments.modified_by', 'e-contract_project_attachments.created_at', 'e-contract_project_attachments.updated_at', 'e-contract_project_attachments.deleted_at')
         ->find($request['attachment_id']);
@@ -284,7 +272,7 @@ class EContractProjectServices
      */
     public function createEContractProject($request): mixed
     {
-        $eContractProject = $this->eContractProject->create([
+        return $this->eContractProject->create([
             'application_id' => $request['application_id'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
             'name' => $request['name'] ?? '',
             'state' => $request['state'] ?? '',
@@ -297,8 +285,6 @@ class EContractProjectServices
             'created_by' => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
             'modified_by' => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO
         ]);
-
-        return $eContractProject;
     }
 
     /**
@@ -315,6 +301,8 @@ class EContractProjectServices
      *               - hospitalization_leave: (int) The updated project hospitalization leave.
      *               - valid_until: (int) The updated project valid until.
      *               - modified_by: (int) The updated project modified by.
+     * 
+     * @return void
      */
     public function updateEContractProject($eContractProject, $request): void
     {
@@ -336,6 +324,8 @@ class EContractProjectServices
      * @param string $action The action value find the [create or update] functionality
      * @param array $request The request data containing e-contract project attachments
      * @param int $eContractProjectId The attachments was upload against the application Id
+     * 
+     * @return void
      */
     public function updateEContractProjectAttachments($action, $request, $eContractProjectId): void
     {
@@ -348,23 +338,18 @@ class EContractProjectServices
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
 
                 $processData = [
-                    "file_name" => $fileName,
-                    "file_type" => self::SERVICE_AGREEMENT,
-                    "file_url" =>  $fileUrl
+                    "file_name" => $fileName, "file_type" => self::SERVICE_AGREEMENT, "file_url" =>  $fileUrl
                 ];
 
                 if ($action == self::ATTACHMENT_ACTION_CREATE) {
                     $processData['created_by'] = $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
                     $processData['modified_by'] = $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
-                }
-                else
-                {
+                } else {
                     $processData['modified_by'] = $request['modified_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
                 }
 
                 $this->eContractProjectAttachments->updateOrCreate(
-                    ["file_id" => $eContractProjectId],
-                    $processData
+                    ["file_id" => $eContractProjectId], $processData
                 );
             }
         }
@@ -380,10 +365,149 @@ class EContractProjectServices
     {
         return $this->eContractProject->with('projectAttachments')
         ->join('e-contract_applications', function($query) use($request) {
-            $query->on('e-contract_applications.id','=','e-contract_project.application_id')
-            ->whereIn('e-contract_applications.company_id', $request['company_id']);
+            $this->applyEcontractApplicationFilter($query, $request);
         })
         ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
         ->find($request['id']);
+    }
+    
+    /**
+     * Apply the "worker employment" filter to the query
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     *
+     * @return void
+     */
+    private function applyWorkerEmploymentTableFilter($query)
+    {
+        $query->on('worker_employment.project_id','=','e-contract_project.id')
+            ->where('worker_employment.service_type', self::SERVICE_TYPE)
+            ->where('worker_employment.transfer_flag', self::EMPLOYMENT_TRANSFER_FLAG)
+            ->whereNull('worker_employment.remove_date');
+    }
+    
+    /**
+     * Apply the "worker" filter to the query
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     *
+     * @return void
+     */
+    private function applyWorkerTableFilter($query)
+    {
+        $query->on('workers.id','=','worker_employment.worker_id')
+            ->whereIN('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
+    }
+    
+    /**
+     * Apply the "e-contract applications" filter to the query
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the company id
+     *
+     * @return void
+     */
+    private function applyEcontractApplicationFilter($query, $request)
+    {
+        $query->on('e-contract_applications.id','=','e-contract_project.application_id')
+            ->whereIn('e-contract_applications.company_id', $request['company_id']);
+    }
+    
+    /**
+     * Apply the "e-contract project" filter to the query
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the application id
+     *
+     * @return void
+     */
+    private function applyEcontractProjectFilter($query, $request)
+    {
+        $query->where('e-contract_project.application_id', $request['application_id']);
+    }
+    
+    /**
+     * Apply search filter to the query.
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the search keyword.
+     * 
+     * @return void
+     */
+    private function applySearchFilter($query, $request)
+    {
+        if (!empty($request['search'])) {
+            $query->where('e-contract_project.name', 'like', '%'.$request['search'].'%')
+            ->orWhere('e-contract_project.state', 'like', '%'.$request['search'].'%')
+            ->orWhere('e-contract_project.city', 'like', '%'.$request['search'].'%');
+        }
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
+    private function addValidateRequest($request): array|bool
+    {
+        $validator = Validator::make($request->toArray(), $this->addValidation());
+        if ($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
+    private function updateValidateRequest($request): array|bool
+    {
+        $validator = Validator::make($request->toArray(), $this->updateValidation());
+        if ($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+    
+    /**
+     * Show the e-contract application.
+     * 
+     * @param array $request The request data containing application id, company id
+     * @return mixed Returns the e-contract application.
+     */
+    private function showEContractApplications($request)
+    {
+        return $this->eContractApplications->whereIn('company_id', $request['company_id'])->find($request['application_id']);
+    }
+
+    /**
+     * get the user of jwt authenticate.
+     *
+     * @return mixed Returns the user data.
+     */
+    private function getJwtUserAuthenticate(): mixed
+    {
+        return JWTAuth::parseToken()->authenticate();
+    }
+
+    /**
+     * get the auth user of company ids.
+     * @param array $user The user data containing the user details
+     * 
+     * @return mixed Returns the user company ids.
+     */
+    private function getAuthUserCompanyIds($user): mixed
+    {
+        return $this->authServices->getCompanyIds($user);
     }
 }

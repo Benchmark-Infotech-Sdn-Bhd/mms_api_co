@@ -306,7 +306,7 @@ class EContractWorkerServices
      */
     private function listValidateRequest($request): array|bool
     {
-        if (isset($request['search']) && !empty($request['search'])) {
+        if (!empty($request['search'])) {
             $validator = Validator::make($request, $this->searchValidation());
             if ($validator->fails()) {
                 return [
@@ -361,7 +361,7 @@ class EContractWorkerServices
      */
     private function applySearchFilter($query, $request)
     {
-        if (isset($request['search']) && $request['search']) {
+        if (!empty($request['search'])) {
             $query->where('workers.name', 'like', '%' . $request['search'] . '%');
             $query->orWhere('worker_visa.calling_visa_reference_number', 'like', '%' . $request['search'] . '%');
             $query->orWhere('worker_visa.ksm_reference_number', 'like', '%' . $request['search'] . '%');
@@ -377,7 +377,7 @@ class EContractWorkerServices
      */
     private function workerListForAssignWorkerValidateRequest($request): array|bool
     {
-        if (isset($request['search']) && !empty($request['search'])) {
+        if (!empty($request['search'])) {
             $validator = Validator::make($request, $this->searchValidation());
             if ($validator->fails()) {
                 return [
@@ -430,7 +430,7 @@ class EContractWorkerServices
      */
     private function applyAssignSearchFilter($query, $request)
     {
-        if (isset($request['search']) && !empty($request['search'])) {
+        if (!empty($request['search'])) {
             $query->where('workers.name', 'like', '%'.$request['search'].'%')
             ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
             ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%')

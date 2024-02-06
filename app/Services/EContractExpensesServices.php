@@ -479,7 +479,7 @@ class EContractExpensesServices
      */
     private function listValidateRequest($request): array|bool
     {
-        if (isset($request['search']) && !empty($request['search'])) {
+        if (!empty($request['search'])) {
             $validator = Validator::make($request, $this->searchValidation());
             if ($validator->fails()) {
                 return [
@@ -527,7 +527,7 @@ class EContractExpensesServices
      */
     private function applySearchFilter($query, $request)
     {
-        if (isset($request['search']) && !empty($request['search'])) {
+        if (!empty($request['search'])) {
             $query->where('e-contract_expenses.title', 'like', '%'. $request['search']. '%');
         }
     }

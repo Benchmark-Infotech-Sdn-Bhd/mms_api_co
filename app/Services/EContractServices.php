@@ -312,7 +312,7 @@ class EContractServices
             return $validationResult;
         }
 
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getJwtUserAuthenticate();
         $request['modified_by'] = $user['id'];
         
         $applicationDetails = $this->showEContractApplications($request);
@@ -666,6 +666,16 @@ class EContractServices
         $serviceDetails->fomnext_quota = $request['fomnext_quota'] ?? $serviceDetails->fomnext_quota;
         $serviceDetails->air_ticket_deposit = $request['air_ticket_deposit'] ?? $serviceDetails->air_ticket_deposit;
         $serviceDetails->save();
+    }
+
+    /**
+     * get the user of jwt authenticate.
+     *
+     * @return mixed Returns the user data.
+     */
+    private function getJwtUserAuthenticate(): mixed
+    {
+        return JWTAuth::parseToken()->authenticate();
     }
 
 }
