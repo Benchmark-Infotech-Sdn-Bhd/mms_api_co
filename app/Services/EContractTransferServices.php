@@ -98,6 +98,8 @@ class EContractTransferServices
      * @param EContractApplications $eContractApplications Instance of the EContractApplications class.
      * @param TotalManagementApplications $totalManagementApplications Instance of the TotalManagementApplications class.
      * @param CRMProspectService $crmProspectService Instance of the CRMProspectService class.
+     * 
+     * @return void
      */
     public function __construct(
         Workers                        $workers, 
@@ -150,8 +152,8 @@ class EContractTransferServices
      */
     public function companyList($request): mixed
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['company_id'] = $this->authServices->getCompanyIds($user);
+        $user = $this->getJwtUserAuthenticate();
+        $request['company_id'] = $this->getAuthUserCompanyIds($user);
 
         return $this->crmProspect
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
@@ -183,7 +185,7 @@ class EContractTransferServices
      */
     public function projectList($request): mixed 
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getJwtUserAuthenticate();
         $request['company_id'] = $user['company_id'];
 
         if ($request['service_type'] == self::SERVICE_TYPE_ECONTRACT) {
@@ -196,12 +198,12 @@ class EContractTransferServices
     /**
      * Show the worker with related prospect and employment.
      * 
-     * @param array $request The request data containing worker id, company id
+     * @param array $request The request data containing worker id
      * @return mixed Returns the worker with related prospect and employment.
      */
     public function workerEmploymentDetail($request): mixed
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getJwtUserAuthenticate();
         return $this->workers
             ->leftJoin('crm_prospects', 'crm_prospects.id', 'workers.crm_prospect_id')
             ->leftJoin('worker_employment', 'worker_employment.worker_id', 'workers.id')
@@ -229,7 +231,7 @@ class EContractTransferServices
             return $validationResult;
         }
 
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getJwtUserAuthenticate();
         $request['company_id'] = $user['company_id'];
         $request['modified_by'] = $user['id'];
 
@@ -349,7 +351,9 @@ class EContractTransferServices
 
         if ($serviceDetails->from_existing == self::SERVICE_FROM_EXISTING_1) {
             return self::ERROR_QUOTA_FROM_EXISTING;
-        } else if ($serviceDetails->from_existing == self::SERVICE_FROM_EXISTING_0) {
+        }
+
+        if ($serviceDetails->from_existing == self::SERVICE_FROM_EXISTING_0) {
             $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
             $workerDetail = $this->showWorkers($request['worker_id']);
             if ($workerDetail->crm_prospect_id == self::CRM_PROSPECT_ID_0) {
@@ -373,6 +377,8 @@ class EContractTransferServices
      *                      - econtract_status: The updated econtract status.
      *                      - total_management_status: The updated total management status.
      *                      - modified_by: The updated worker modified by.
+     * 
+     * @return void
      */
     public function updateWorkers($request): void
     {   
@@ -407,6 +413,8 @@ class EContractTransferServices
      *                      - work_end_date: The updated employment work end date.
      *                      - transfer_flag: The updated employment transfer flag.
      *                      - modified_by: The updated employment modified by.
+     * 
+     * @return void
      */
     public function updateWorkerEmployment($request): void
     {
@@ -442,7 +450,7 @@ class EContractTransferServices
     /**
      * Show the worker company.
      * 
-     * @param int $company_id The request data containing company id
+     * @param int $company_id to fetch the details of the worker company
      * @return mixed Returns the worker company.
      */
     private function showWorkerCompany($company_id)
@@ -468,7 +476,7 @@ class EContractTransferServices
     /**
      * Show the e-contract application.
      * 
-     * @param int $application_id The request data containing the application id to fetch the details of the application.
+     * @param int $application_id to fetch the details of the application.
      * @return Model Returns the application details as an instance of the application model.
      * @throws ModelNotFoundException Throws an exception if the application with the specified application_id is not found.
      */
@@ -480,7 +488,7 @@ class EContractTransferServices
     /**
      * Show the e-contract project.
      * 
-     * @param int $application_id The request data containing application id
+     * @param int $application_id to fetch the details of the e-contract project.
      * @return mixed Returns the e-contract project.
      */
     private function showEContractProjectApplication($application_id)
@@ -493,7 +501,7 @@ class EContractTransferServices
     /**
      * Get the count of assigned worker.
      *
-     * @param int $projectIds The request data containing the project ID's
+     * @param int $projectIds to fetch the count of the assigned worker.
      * @return int Returns the count of assigned worker based on the specified criteria.
      */
     private function getAssignedWorkerCount($projectIds)
@@ -513,7 +521,7 @@ class EContractTransferServices
     /**
      * Show the total management project.
      * 
-     * @param int $new_project_id The request data containing the new project id to fetch the details of the project.
+     * @param int $new_project_id to fetch the details of the total management project.
      * @return Model Returns the project details as an instance of the project model.
      * @throws ModelNotFoundException Throws an exception if the project with the specified new_project_id is not found.
      */
@@ -525,7 +533,7 @@ class EContractTransferServices
     /**
      * Show the total management application.
      * 
-     * @param int $application_id The request data containing the application_id to fetch the details of the application.
+     * @param int $application_id to fetch the details of the total management application.
      * @return Model Returns the application details as an instance of the application model.
      * @throws ModelNotFoundException Throws an exception if the application with the specified application_id is not found.
      */
@@ -537,7 +545,7 @@ class EContractTransferServices
     /**
      * Show the crm prospect service.
      * 
-     * @param int $service_id The request data containing the service_id to fetch the details of the service.
+     * @param int $service_id to fetch the details of the crm prospect service.
      * @return Model Returns the service details as an instance of the service model.
      * @throws ModelNotFoundException Throws an exception if the service with the specified service_id is not found.
      */
@@ -549,7 +557,7 @@ class EContractTransferServices
     /**
      * Show the worker.
      * 
-     * @param int $worker_id The request data containing the worker_id to fetch the details of the worker.
+     * @param int $worker_id to fetch the details of the worker.
      * @return Model Returns the worker details as an instance of the worker model.
      * @throws ModelNotFoundException Throws an exception if the worker with the specified worker_id is not found.
      */
@@ -615,6 +623,8 @@ class EContractTransferServices
      *                      - transfer_flag: The transfer flag of the employment.
      *                      - created_by: The ID of the user who created the employment.
      *                      - modified_by: The updated employment modified by.
+     * 
+     * @return void
      */
     private function createWorkerEmployment($request)
     {
@@ -636,14 +646,15 @@ class EContractTransferServices
     /**
      * Show the total management project.
      * 
-     * @param int $application_id The request data containing application id
+     * @param int $application_id to fetch the details of the total management project.
      * @return mixed Returns the total management project.
      */
     private function totalManagementProjectApplication($applicationId)
     {
         return $this->totalManagementProject->where('application_id', $applicationId)
             ->select('id')
-            ->get()->toArray();
+            ->get()
+            ->toArray();
     }
     
     /**
@@ -667,7 +678,7 @@ class EContractTransferServices
      * Apply the "worker" filter to the query
      *
      * @param Illuminate\Database\Query\Builder $query The query builder instance
-     * @param array|int $projectIds The worker employment to filter by.
+     * @param array|int $query|$projectIds The worker employment to filter by.
      *
      * @return void
      */
@@ -713,10 +724,12 @@ class EContractTransferServices
      *
      * @param Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the search keyword.
+     * 
+     * @return void
      */
     private function applySearchFilter($query, $request)
     {
-        if (isset($request['search']) && !empty($request['search'])) {
+        if (!empty($request['search'])) {
             $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
         }
     }
@@ -726,13 +739,36 @@ class EContractTransferServices
      *
      * @param Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the search service keyword.
+     * 
+     * @return void
      */
     private function applyServiceSearchFilter($query, $request)
     {
-        if (isset($request['filter']) && !empty($request['filter'])) {
+        if (!empty($request['filter'])) {
             $query->where('crm_prospect_services.service_id', $request['filter'])
             ->where('crm_prospect_services.deleted_at', NULL);
         }
+    }
+
+    /**
+     * get the user of jwt authenticate.
+     *
+     * @return mixed Returns the user data.
+     */
+    private function getJwtUserAuthenticate(): mixed
+    {
+        return JWTAuth::parseToken()->authenticate();
+    }
+
+    /**
+     * get the auth user of company ids.
+     * @param array $user The user data containing the user details
+     * 
+     * @return mixed Returns the user company ids.
+     */
+    private function getAuthUserCompanyIds($user): mixed
+    {
+        return $this->authServices->getCompanyIds($user);
     }
 
 }

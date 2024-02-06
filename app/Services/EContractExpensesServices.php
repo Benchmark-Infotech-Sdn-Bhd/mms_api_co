@@ -20,6 +20,9 @@ class EContractExpensesServices
     public const DEFAULT_INTEGER_VALUE_ZERO = 0;
     public const UNAUTHORIZED_ERROR = 'Unauthorized';
 
+    public const ERROR_UNAUTHORIZED = ['unauthorizedError' => self::UNAUTHORIZED_ERROR];
+    public const ERROR_PAYBACK = ['payBackError' => true];
+
     /**
      * @var EContractExpenses
      */
@@ -58,13 +61,16 @@ class EContractExpensesServices
      * @param Storage $storage Instance of the Storage class.
      * @param AuthServices $authServices Instance of the AuthServices class.
      * @param EContractApplications $eContractApplications Instance of the EContractApplications class.
+     * @param EContractProject $eContractProject Instance of the EContractProject class.
+     * 
+     * @return void
      */
     public function __construct(
-        EContractExpenses                $eContractExpenses, 
-        EContractExpensesAttachments     $eContractExpensesAttachments, 
-        Storage                          $storage, 
-        AuthServices                     $authServices, 
-        EContractApplications            $eContractApplications, 
+        EContractExpenses                $eContractExpenses,
+        EContractExpensesAttachments     $eContractExpensesAttachments,
+        Storage                          $storage,
+        AuthServices                     $authServices,
+        EContractApplications            $eContractApplications,
         EContractProject                 $eContractProject
     )
     {
@@ -151,8 +157,9 @@ class EContractExpensesServices
      */
     public function list($request): mixed
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        $user = $this->getJwtUserAuthenticate();
+        $params['company_id'] = $this->getAuthUserCompanyIds($user);
+
         $validationResult = $this->listValidateRequest($request);
         if (is_array($validationResult)) {
             return $validationResult;
@@ -187,8 +194,8 @@ class EContractExpensesServices
      */
     public function show($request): mixed
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        $user = $this->getJwtUserAuthenticate();
+        $params['company_id'] = $this->getAuthUserCompanyIds($user);
 
         return $this->showEContractExpenses(['id' => $request['id'], 'company_id' => $params['company_id']]);
     }
@@ -203,22 +210,18 @@ class EContractExpensesServices
      */
     public function create($request): bool|array
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getJwtUserAuthenticate();
         $request['company_id'] = $user['company_id'];
         $request['created_by'] = $user['id'];
 
         $applicationData = $this->showEContractApplications($request);
         if (is_null($applicationData)) {
-            return [
-                'unauthorizedError' => self::UNAUTHORIZED_ERROR
-            ];
+            return self::ERROR_UNAUTHORIZED;
         }
         
         $projectData = $this->showEContractProject($request);
         if (is_null($projectData)) {
-            return [
-                'unauthorizedError' => self::UNAUTHORIZED_ERROR
-            ];
+            return self::ERROR_UNAUTHORIZED;
         }
 
         $validationResult = $this->createValidateRequest($request);
@@ -248,13 +251,11 @@ class EContractExpensesServices
             return $validationResult;
         }
 
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getJwtUserAuthenticate();
         $request['modified_by'] = $user['id'];
         $expense = $this->showEContractExpenses(['id' => $request['id'], 'company_id' => $user['company_id']]);
         if (is_null($expense)) {
-            return [
-                'unauthorizedError' => self::UNAUTHORIZED_ERROR
-            ];
+            return self::ERROR_UNAUTHORIZED;
         }
 
         $this->updateEContractExpenses($expense, $request);
@@ -272,8 +273,8 @@ class EContractExpensesServices
      */
     public function delete($request): bool
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        $user = $this->getJwtUserAuthenticate();
+        $params['company_id'] = $this->getAuthUserCompanyIds($user);
     
         $expense = $this->showEContractExpenses(['id' => $request['id'], 'company_id' => $user['company_id']]);
         if (is_null($expense)) {
@@ -292,8 +293,8 @@ class EContractExpensesServices
      */ 
     public function deleteAttachment($request): bool
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['company_id'] = $this->authServices->getCompanyIds($user);
+        $user = $this->getJwtUserAuthenticate();
+        $params['company_id'] = $this->getAuthUserCompanyIds($user);
 
         $data = $this->eContractExpensesAttachments::join('e-contract_expenses', 'e-contract_expenses.id', 'e-contract_expenses_attachments.file_id')
         ->join('e-contract_project', 'e-contract_project.id', 'e-contract_expenses.project_id')
@@ -331,13 +332,11 @@ class EContractExpensesServices
             return $validationResult;
         }
 
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getJwtUserAuthenticate();
         $request['modified_by'] = $user['id'];
         $expense = $this->showEContractExpenses(['id' => $request['id'], 'company_id' => $user['company_id']]);
         if (is_null($expense)) {
-            return [
-                'unauthorizedError' => true
-            ];
+            return self::ERROR_UNAUTHORIZED;
         }
 
         $this->updatepayBackExpense($expense, $request);
@@ -351,6 +350,8 @@ class EContractExpensesServices
      * @param string $action The action value find the [create or update] functionality
      * @param array $request The request data containing e-contract expenses attachments
      * @param int $expensesId The attachments was upload against the expenses Id
+     * 
+     * @return void
      */
     public function updateEContractExpensesAttachments($action, $request, $expensesId): void
     {
@@ -422,7 +423,7 @@ class EContractExpensesServices
      */
     public function createEContractExpenses($request): mixed
     {
-        $expenses = $this->eContractExpenses->create([
+        return $this->eContractExpenses->create([
             'worker_id' => $request['worker_id'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
             'application_id' => $request['application_id'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
             'project_id' => $request['project_id'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
@@ -435,8 +436,6 @@ class EContractExpensesServices
             'created_by'    => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
             'modified_by'   => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
         ]);
-
-        return $expenses;
     }
 
     /**
@@ -454,6 +453,8 @@ class EContractExpensesServices
      *                      - amount: The updated amount.
      *                      - remarks: The updated remarks.
      *                      - modified_by: The updated expenses modified by.
+     * 
+     * @return void
      */
     public function updateEContractExpenses($expense, $request): void
     {
@@ -469,7 +470,13 @@ class EContractExpensesServices
         $expense->modified_by = $request['modified_by'] ?? $expense->modified_by;
         $expense->save();
     }
-
+    
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
     private function listValidateRequest($request): array|bool
     {
         if (isset($request['search']) && !empty($request['search'])) {
@@ -483,31 +490,67 @@ class EContractExpensesServices
 
         return true;
     }
-
+    
+    /**
+     * Apply the "e-contract applications" filter to the query
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the project id, company id
+     *
+     * @return void
+     */
     private function applyEcontractApplicationFilter($query, $params)
     {
         $query->on('e-contract_applications.id','=','e-contract_project.application_id')->where('e-contract_applications.company_id', $params['company_id']);
     }
-
+    
+    /**
+     * Apply the "worker" filter to the query
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the worker id
+     *
+     * @return void
+     */
     private function applyWorkerFilter($query, $request)
     {
         $query->where('e-contract_expenses.worker_id', $request['worker_id']);
     }
-
+    
+    /**
+     * Apply search filter to the query.
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the search keyword.
+     * 
+     * @return void
+     */
     private function applySearchFilter($query, $request)
     {
         if (isset($request['search']) && !empty($request['search'])) {
             $query->where('e-contract_expenses.title', 'like', '%'. $request['search']. '%');
         }
     }
-
+    
+    /**
+     * Show the e-contract application.
+     * 
+     * @param array $request The request data containing application id, company id
+     * @return mixed Returns the e-contract application.
+     */
     private function showEContractApplications($request)
     {
         return $this->eContractApplications->where('e-contract_applications.company_id', $request['company_id'])
             ->select('e-contract_applications.id')
             ->find($request['application_id']);
     }
-
+    
+    /**
+     * Show the e-contract project.
+     * 
+     * @param array $request The request data containing project id, company id
+     * @return mixed Returns the e-contract project.
+     */
     private function showEContractProject($request)
     {
         return $this->eContractProject
@@ -518,7 +561,13 @@ class EContractExpensesServices
             ->select('e-contract_project.application_id')
             ->find($request['project_id']);
     }
-
+    
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
     private function createValidateRequest($request): array|bool
     {
         $validator = Validator::make($request->toArray(), $this->createValidation());
@@ -530,7 +579,13 @@ class EContractExpensesServices
 
         return true;
     }
-
+    
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
     private function updateValidateRequest($request): array|bool
     {
         $validator = Validator::make($request->toArray(), $this->updateValidation());
@@ -542,13 +597,27 @@ class EContractExpensesServices
 
         return true;
     }
-
+    
+    /**
+     * Apply the "e-contract applications" filter to the query
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $user The user data containing the company id
+     *
+     * @return void
+     */
     private function applyDeleteEContractApplicationTableFilter($query, $user)
     {
         $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $user['company_id']);
     }
-
+    
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
     private function payBackValidateRequest($request): array|bool
     {
         $validator = Validator::make($request, $this->payBackValidation());
@@ -560,15 +629,24 @@ class EContractExpensesServices
 
         return true;
     }
-
+    
+    /**
+     * Updates the pay back expense data with the given request.
+     * 
+     * @param array $request The array containing expense data.
+     *                      The array should have the following keys:
+     *                      - amount_paid: The updated amount paid.
+     *                      - payment_date: The updated payment date.
+     *                      - modified_by: (int) The updated expense modified by.
+     * 
+     * @return void
+     */
     private function updatepayBackExpense($expense, $request)
     {
         $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;
         if ($totalPayBack > $expense->amount) {
-            return [
-                'payBackError' => true
-            ];
+            return self::ERROR_PAYBACK;
         }
 
         $expense->amount_paid = $request['amount_paid'];
@@ -578,10 +656,39 @@ class EContractExpensesServices
         $expense->modified_by = $request['modified_by'] ?? $expense->modified_by;
         $expense->save();
     }
-
+    
+    /**
+     * Apply the "EContract Application" filter to the query
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the company id
+     *
+     * @return void
+     */
     private function applyShowEContractApplicationTableFilter($query, $request)
     {
         $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->where('e-contract_applications.company_id', $request['company_id']);
+    }
+
+    /**
+     * get the user of jwt authenticate.
+     *
+     * @return mixed Returns the user data.
+     */
+    private function getJwtUserAuthenticate(): mixed
+    {
+        return JWTAuth::parseToken()->authenticate();
+    }
+
+    /**
+     * get the auth user of company ids.
+     * @param array $user The user data containing the user details
+     * 
+     * @return mixed Returns the user company ids.
+     */
+    private function getAuthUserCompanyIds($user): mixed
+    {
+        return $this->authServices->getCompanyIds($user);
     }
 }
