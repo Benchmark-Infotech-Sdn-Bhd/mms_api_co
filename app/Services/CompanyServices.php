@@ -499,7 +499,6 @@ class CompanyServices
     {
         return $this->xeroSettings
             ->where('company_id', $request['company_id'])
-            ->where('title', $request['title'])
             ->select('id', 'title', 'url', 'client_id', 'client_secret', 'tenant_id', 'access_token', 'refresh_token', 'redirect_url', 'remarks')
             ->get();
     }
