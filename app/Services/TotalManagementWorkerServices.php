@@ -14,6 +14,8 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\TotalManagementProject;
 use App\Services\AuthServices;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class TotalManagementWorkerServices
 {
@@ -72,16 +74,21 @@ class TotalManagementWorkerServices
     private AuthServices $authServices;
 
     /**
-     * TotalManagementWorkerServices constructor.
-     * @param Workers $workers The workers object.
-     * @param Vendor $vendor The vendor object.
-     * @param Accommodation $accommodation The accommodation object.
-     * @param WorkerEmployment $workerEmployment The workerEmployment object.
-     * @param TotalManagementApplications $totalManagementApplications The totalManagementApplications object.
-     * @param CRMProspectService $crmProspectService The crmProspectService object.
-     * @param DirectrecruitmentApplications $directrecruitmentApplications The directrecruitmentApplications object.
-     * @param TotalManagementProject $totalManagementProject The TotalManagementProject object.
-     * @param AuthServices $authServices The authServices object.
+     * 
+     * TotalManagementWorkerServices constructor method
+     * 
+     * @param Workers $workers Instance of the Workers class
+     * @param Vendor $vendor Instance of the Vendor class
+     * @param Accommodation $accommodation Instance of the Accommodation class
+     * @param WorkerEmployment $workerEmployment Instance of the WorkerEmployment class
+     * @param TotalManagementApplications $totalManagementApplications Instance of the TotalManagementApplications class
+     * @param CRMProspectService $crmProspectService Instance of the CRMProspectService class
+     * @param DirectrecruitmentApplications $directrecruitmentApplications Instance of the DirectrecruitmentApplications class
+     * @param TotalManagementProject $totalManagementProject Instance of the TotalManagementProject class
+     * @param AuthServices $authServices Instance of the AuthServices class
+     * 
+     * @return void
+     * 
      */
     public function __construct(
         Workers                       $workers, 
@@ -202,7 +209,7 @@ class TotalManagementWorkerServices
      */
     private function validateSearchRequest($request): array|bool
     {
-        if(isset($request['search']) && !empty($request['search'])){
+        if(!empty($request['search'])){
             $validator = Validator::make($request, $this->searchValidation());
             if($validator->fails()) {
                 return [
@@ -244,11 +251,12 @@ class TotalManagementWorkerServices
     private function applySearchFilter($request,$data)
     {
         return $data->where(function ($query) use ($request) {
-            if (isset($request['search']) && $request['search']) {
-                $query->where('workers.name', 'like', '%' . $request['search'] . '%');
-                $query->orWhere('worker_visa.calling_visa_reference_number', 'like', '%' . $request['search'] . '%');
-                $query->orWhere('worker_visa.ksm_reference_number', 'like', '%' . $request['search'] . '%');
-                $query->orWhere('worker_employment.department', 'like', '%' . $request['search'] . '%');
+            $search = $request['search'] ?? '';
+            if (!empty($search)) {
+                $query->where('workers.name', 'like', '%' . $search . '%');
+                $query->orWhere('worker_visa.calling_visa_reference_number', 'like', '%' . $search . '%');
+                $query->orWhere('worker_visa.ksm_reference_number', 'like', '%' . $search . '%');
+                $query->orWhere('worker_employment.department', 'like', '%' . $search . '%');
             }
         });
     }
@@ -281,8 +289,9 @@ class TotalManagementWorkerServices
     private function applyStatusFilter($request,$data)
     {
         return $data->where(function ($query) use ($request) {
-            if((isset($request['filter']) && !empty($request['filter'])) || $request['filter'] == self::DEFAULT_VALUE) {
-                $query->where('workers.status', $request['filter']);
+            $filter = $request['filter'] ?? '';
+            if((!empty($filter)) || $filter == self::DEFAULT_VALUE) {
+                $query->where('workers.status', $filter);
             }
         });
     }
@@ -298,8 +307,9 @@ class TotalManagementWorkerServices
     private function applyCompanyFilter($request,$data)
     {
         return $data->where(function ($query) use ($request) {
-            if ((isset($request['company_filter']) && !empty($request['company_filter'])) || $request['company_filter'] == self::DEFAULT_VALUE) {
-                $query->where('workers.crm_prospect_id', $request['company_filter']);
+            $companyFilter = $request['company_filter'] ?? '';
+            if ((!empty($companyFilter)) || $companyFilter == self::DEFAULT_VALUE) {
+                $query->where('workers.crm_prospect_id', $companyFilter);
             }
         });
     }
@@ -328,10 +338,10 @@ class TotalManagementWorkerServices
      * @return mixed Returns The paginated list of on-bench workers
      * 
      * @see workerListApplyCondition()
-     * @see workerListApplyReferenceFilter()
+     * @see applyReferenceFilter()
      * @see workerListApplyFromExistingFilter()
      * @see workerListApplySearchFilter()
-     * @see workerListApplyCompanyFilter()
+     * @see applyCompanyFilter()
      * @see workerListApplyKsmReferenceNumberFilter()
      * @see workerListSelectColumns()
      * 
@@ -356,10 +366,10 @@ class TotalManagementWorkerServices
         $data = $this->workers
                     ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id');
         $data = $this->workerListApplyCondition($request,$data);
-        $data = $this->workerListApplyReferenceFilter($request,$data);  
+        $data = $this->applyReferenceFilter($request,$data);  
         $data = $this->workerListApplyFromExistingFilter($request,$data);
         $data = $this->workerListApplySearchFilter($request,$data);
-        $data = $this->workerListApplyCompanyFilter($request,$data);
+        $data = $this->applyCompanyFilter($request,$data);
         $data = $this->workerListApplyKsmReferenceNumberFilter($request,$data);
         $data = $this->workerListSelectColumns($data)
                      ->distinct()
@@ -386,23 +396,6 @@ class TotalManagementWorkerServices
     }
 
     /**
-     * Apply reference filter to the query builder based on user data
-     *
-     * @param array $request The user data
-     *        reference_id (int) ID of the user reference
-     *
-     * @return $data Returns the query builder object with the applied reference filter
-     */
-    private function workerListApplyReferenceFilter($request,$data)
-    {
-        return $data->where(function ($query) use ($request) {
-            if ($request['user']['user_type'] == self::CUSTOMER) {
-                $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
-            }
-        });
-    }
-
-    /**
      * Apply from existing filter to the query builder based on user data
      *
      * @param array $request The user data
@@ -419,7 +412,7 @@ class TotalManagementWorkerServices
                     ['workers.crm_prospect_id', $request['prospect_id']],
                     ['workers.plks_status', self::PLKS_STATUS_APPROVED]
                 ]);
-            }else{
+            }else {
                     $query->where('workers.module_type', '<>', Config::get('services.WORKER_MODULE_TYPE')[0])->orWhereNull('workers.module_type');
             }
         });
@@ -436,28 +429,12 @@ class TotalManagementWorkerServices
     private function workerListApplySearchFilter($request,$data)
     {
         return $data->where(function ($query) use ($request) {
-                if (isset($request['search']) && !empty($request['search'])) {
-                    $query->where('workers.name', 'like', '%'.$request['search'].'%')
-                    ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
-                    ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%')
-                    ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$request['search'].'%');
-                }
-            });
-    }
-    
-    /**
-     * Apply company filter to the query builder based on user data
-     *
-     * @param array $request The user data
-     *        company_filter (int) ID of the prospect
-     *
-     * @return $data Returns the query builder object with the applied company filter
-     */
-    private function workerListApplyCompanyFilter($request,$data)
-    {
-        return $data->where(function ($query) use ($request) {
-            if ((isset($request['company_filter']) && !empty($request['company_filter'])) || $request['company_filter'] == self::DEFAULT_VALUE) {
-                $query->where('workers.crm_prospect_id', $request['company_filter']);
+            $search = $request['search'] ?? '';
+            if (!empty($search)) {
+                $query->where('workers.name', 'like', '%'.$search.'%')
+                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$search.'%')
+                ->orWhere('workers.passport_number', 'like', '%'.$search.'%')
+                ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%'.$search.'%');
             }
         });
     }
@@ -473,8 +450,9 @@ class TotalManagementWorkerServices
     private function workerListApplyKsmReferenceNumberFilter($request,$data)
     {
         return $data->where(function ($query) use ($request) {
-            if(isset($request['ksm_reference_number']) && !empty($request['ksm_reference_number'])) {
-                $query->where('worker_visa.ksm_reference_number', $request['ksm_reference_number']);
+            $ksmReferenceNumber = $request['ksm_reference_number'] ?? '';
+            if(!empty($ksmReferenceNumber)) {
+                $query->where('worker_visa.ksm_reference_number', $ksmReferenceNumber);
             }
         });
     }
@@ -493,8 +471,9 @@ class TotalManagementWorkerServices
      * Get the details of a total management application detail.
      *
      * @param $id The application id
-     * @return mixed Returns the application matching the given application ID,
-     *               or null if no matching application is found.
+     * 
+     * @return Model Returns the total management application details as an instance of the totalManagementApplications model.
+     * @throws ModelNotFoundException Throws an exception if the total management application with the specified id is not found.
      */
     private function getTotalManagementApplicationById($id)
     {
@@ -607,8 +586,9 @@ class TotalManagementWorkerServices
      * Get the details of a total management project.
      *
      * @param array $request The request data containing the project_id to fetch the details of the project.
-     * @return mixed Returns the project matching the given project ID,
-     *               or null if no matching project is found.
+     * 
+     * @return Model Returns the total management project details as an instance of the totalManagementProject model.
+     * @throws ModelNotFoundException Throws an exception if the total management project with the specified project_id is not found.
      */
     private function getTotalManagementProjectDetails($request)
     {
@@ -663,7 +643,6 @@ class TotalManagementWorkerServices
      * @return mixed|void Returns the appropriate error code if an error occurs during processing. otherwise null
      * 
      * @see getCompanyWorker()
-     * @see getCompanyWorker()
      * 
      */
     private function processAssignWorkerNotFromExisting($request, $workerCountArray, $applicationDetails, $serviceDetails)
@@ -690,7 +669,7 @@ class TotalManagementWorkerServices
      *        workers (array) ID of the worker
      * @param int $prospectId ID of the prospect
      * 
-     * @return mixed Returns the count
+     * @return int Returns the count
      */
     private function getCompanyWorker($request,$prospectId)
     {
@@ -713,6 +692,9 @@ class TotalManagementWorkerServices
      *              created_by (int) ID of the user who created the record
      * 
      * @return void
+     * 
+     * @see processAssignWorkersUpdate()
+     * 
      */
     private function processAssignWorkers($request){
         foreach ($request['workers'] as $workerId) {
@@ -729,6 +711,21 @@ class TotalManagementWorkerServices
                 'modified_by' => $request['created_by']
             ]);
         }
+        $this->processAssignWorkersUpdate($request);    
+    }
+
+    /**
+     * Update the worker status based on provided request data
+     *
+     * @param array $request
+     *              workers (int) ID of the worker
+     *              created_by (int) modified user ID
+     *
+     * @return void
+     * 
+     */
+    private function processAssignWorkersUpdate($request)
+    {
         $this->workers->whereIn('id', $request['workers'])
             ->update([
                 'module_type' => Config::get('services.WORKER_MODULE_TYPE')[1],
@@ -736,6 +733,7 @@ class TotalManagementWorkerServices
                 'modified_by' => $request['created_by']
             ]);
     }
+
     /**
      * get the Balanced Quota
      * 
@@ -779,8 +777,8 @@ class TotalManagementWorkerServices
      * Get the details of a total management application detail.
      *
      * @param array $request The request data containing the company_id to fetch the details of the application.
-     * @return mixed Returns the application matching the given company ID and application ID,
-     *               or null if no matching application is found.
+     * @return Model Returns the total management application details as an instance of the totalManagementApplications model.
+     * @throws ModelNotFoundException Throws an exception if the total management application with the specified application_id is not found.
      */
     private function getTotalManagementApplicationDetails($request)
     {
@@ -791,8 +789,8 @@ class TotalManagementWorkerServices
      * Get the details of a application service detail.
      *
      * @param int $id The Id of the service.
-     * @return mixed Returns the service matching the given service ID,
-     *               or null if no matching service is found.
+     * @return Model Returns the crm prospect service as an instance of the crmProspectService model.
+     * @throws ModelNotFoundException Throws an exception if the crm prospect service with the specified id is not found.
      */
     private function getApplicationServiceDetails($id)
     {
@@ -832,7 +830,7 @@ class TotalManagementWorkerServices
         $ksmReferenceNumbers = $this->directrecruitmentApplications
         ->leftJoin('directrecruitment_application_approval', 'directrecruitment_application_approval.application_id', 'directrecruitment_applications.id')
         ->whereIn('directrecruitment_applications.crm_prospect_id', $companyId)
-        ->where('directrecruitment_application_approval.ksm_reference_number', '!=', NULL)
+        ->whereNotNull('directrecruitment_application_approval.ksm_reference_number')
         ->select('directrecruitment_applications.id as directrecruitment_application_id', 'directrecruitment_application_approval.ksm_reference_number')
         ->get();
         return $ksmReferenceNumbers;
@@ -956,7 +954,7 @@ class TotalManagementWorkerServices
      *        worker_id ID of the worker
      *        project_id ID of the project
      * 
-     * @return mixed Returns the count
+     * @return int Returns the count
      */
     private function getProjectWorker($request)
     {
@@ -1081,7 +1079,7 @@ class TotalManagementWorkerServices
      *
      * @param $prospectId
      * @param $projectIds
-     * @return mixed Returns the project worker count
+     * @return int Returns the project worker count
      */
     private function getProjectWorkersCount($prospectId, $projectIds)
     {
