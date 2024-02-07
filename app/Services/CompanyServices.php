@@ -115,6 +115,44 @@ class CompanyServices
         ];
     }
     /**
+     * Creates the validation rules for updating the ZOHO Account of a company.
+     *
+     * @return array The array containing the validation rules.
+     */
+    public function zohoAccountUpdateValidation(): array
+    {
+        return [
+            'company_id' => 'required',
+            'title' => 'required',
+            'url' => 'required',
+            'client_id' => 'required',
+            'client_secret' => 'required',
+            'tenant_id' => 'required',
+            'access_token' => 'required',
+            'refresh_token' => 'required',
+            'redirect_url' => 'required'
+        ];
+    }
+    /**
+     * Creates the validation rules for updating the XERO Account of a company.
+     *
+     * @return array The array containing the validation rules.
+     */
+    public function xeroAccountUpdateValidation(): array
+    {
+        return [
+            'company_id' => 'required',
+            'title' => 'required',
+            'url' => 'required',
+            'client_id' => 'required',
+            'client_secret' => 'required',
+            'tenant_id' => 'required',
+            'access_token' => 'required',
+            'refresh_token' => 'required',
+            'redirect_url' => 'required'
+        ];
+    }
+    /**
      * @param $request
      * @return mixed
      */
@@ -524,7 +562,14 @@ class CompanyServices
                 'InvalidTitle' => true
             ];
         }
-
+        if($request['title'] == Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE')[0]) {
+            $validationResult = $this->validateXEROAccountRequest($request);
+        } else if($request['title'] == Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE')[1]) {
+            $validationResult = $this->validateZOHOAccountRequest($request);
+        }
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
         $this->xeroSettings->updateOrCreate(
             [
                 'company_id' => $request['company_id'],
@@ -582,5 +627,37 @@ class CompanyServices
     private function checkForInvoiceModule($modules)
     {
         return in_array(Config::get('services.INVOICE_MODULE_ID'), $modules);
+    }
+    /**
+     * Validate the given request data for updating ZOHO Account.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
+    private function validateZOHOAccountRequest($request): array|bool
+    {
+        $validator = Validator::make($request, $this->zohoAccountUpdateValidation());
+        if ($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        return true;
+    }
+    /**
+     * Validate the given request data for updating ZOHO Account.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
+    private function validateXEROAccountRequest($request): array|bool
+    {
+        $validator = Validator::make($request, $this->xeroAccountUpdateValidation());
+        if ($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        return true;
     }
 }
