@@ -304,14 +304,14 @@ class EContractTransferServices
             return self::ERROR_UNAUTHORIZED;
         }
         
-        $applicationDeatils = $this->showEContractApplications($projectDetails->application_id);
+        $applicationDetails = $this->showEContractApplications($projectDetails->application_id);
         $projectIds = $this->showEContractProjectApplication($projectDetails->application_id);
 
         $projectIds = array_column($projectIds, 'id');
         $assignedWorkerCount = $this->getAssignedWorkerCount($projectIds);
         $assignedWorkerCount++;
 
-        if ($assignedWorkerCount > $applicationDeatils->quota_requested) {
+        if ($assignedWorkerCount > $applicationDetails->quota_requested) {
             return self::ERROR_QUOTA;
         }
     }
@@ -501,7 +501,7 @@ class EContractTransferServices
     /**
      * Get the count of assigned worker.
      *
-     * @param int $projectIds to fetch the count of the assigned worker.
+     * @param array $projectIds to fetch the count of the assigned worker.
      * @return int Returns the count of assigned worker based on the specified criteria.
      */
     private function getAssignedWorkerCount($projectIds)
@@ -631,10 +631,10 @@ class EContractTransferServices
         $this->workerEmployment->create([
             'worker_id' => $request['worker_id'],
             'project_id' => $request['new_project_id'],
-            'accommodation_provider_id' => (isset($request['accommodation_provider_id']) && !empty($request['accommodation_provider_id'])) ? $request['accommodation_provider_id'] : null,
-            'accommodation_unit_id' => (isset($request['accommodation_unit_id']) && !empty($request['accommodation_unit_id'])) ? $request['accommodation_unit_id'] : null,
-            'department' => (isset($request['department']) && !empty($request['department'])) ? $request['department'] : null,
-            'sub_department' => (isset($request['sub_department']) && !empty($request['sub_department'])) ? $request['sub_department'] : null,
+            'accommodation_provider_id' => (!empty($request['accommodation_provider_id'])) ? $request['accommodation_provider_id'] : null,
+            'accommodation_unit_id' => (!empty($request['accommodation_unit_id'])) ? $request['accommodation_unit_id'] : null,
+            'department' => (!empty($request['department'])) ? $request['department'] : null,
+            'sub_department' => (!empty($request['sub_department'])) ? $request['sub_department'] : null,
             'work_start_date' => $request['new_joining_date'],
             'service_type' => $request['service_type'],
             'transfer_flag' => self::TRANSFER_FLAG_0,
