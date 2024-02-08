@@ -10,6 +10,7 @@ use App\Models\BulkUploadRecords;
 use App\Models\WorkerFomema;
 use App\Models\WorkerInsuranceDetails;
 use App\Models\WorkerBankDetails;
+use App\Services\DatabaseConnectionServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
@@ -20,6 +21,7 @@ class CommonWorkersImport extends Job
     private mixed $workerParameter;
     private mixed $bulkUpload;
     private mixed $workerNonMandatory;
+    private $dbName;
 
     /**
      * Constructor method for the class.
@@ -27,10 +29,12 @@ class CommonWorkersImport extends Job
      * @param mixed $workerParameter The value for the workerParameter property.
      * @param bool $bulkUpload The value for the bulkUpload property.
      * @param mixed $workerNonMandatory The value for the workerNonMandatory property.
+     * @param $dbName
      * @return void
      */
-    public function __construct($workerParameter, $bulkUpload, $workerNonMandatory)
+    public function __construct($dbName, $workerParameter, $bulkUpload, $workerNonMandatory)
     {
+        $this->dbName = $dbName;
         $this->workerParameter = $workerParameter;
         $this->bulkUpload = $bulkUpload;
         $this->workerNonMandatory = $workerNonMandatory;
@@ -39,11 +43,14 @@ class CommonWorkersImport extends Job
     /**
      * Method to handle the worker insert process.
      *
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * @return void
+     * @throws \JsonException
      */
-    public function handle(): void
+    public function handle(DatabaseConnectionServices $databaseConnectionServices): void
     {
-        Log::info('Worker insert - started ');
+        Log::info('Worker insert - started '.$this->dbName);
+        $databaseConnectionServices->dbConnectQueue($this->dbName);
         $comments = '';
         $successFlag = 0;
         $validationError = $this->validateParameters();

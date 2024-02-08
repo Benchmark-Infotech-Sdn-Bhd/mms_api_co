@@ -29,6 +29,7 @@ class ModulesServices
         if(isset($request['user_type']) && $request['user_type'] == 'Super Admin'){
             return $this->module->where('status', 1)
             ->whereNotIn('id', Config::get('services.SUPER_ADMIN_MODULES'))
+            ->where('feature_flag', 0)
             ->select('id', 'module_name')
             ->get();
         }else{
@@ -38,8 +39,33 @@ class ModulesServices
                      ->whereNull('company_module_permission.deleted_at');
             })->where('modules.status', 1)
             ->whereNotIn('modules.id', Config::get('services.SUPER_ADMIN_MODULES'))
+            ->where('modules.feature_flag', 0)
             ->select('modules.id', 'modules.module_name')
             ->get();
         }
+    }
+    /**
+     * @return mixed
+     */
+    public function featureDropDown($request): mixed
+    {
+        if($this->isSuperAdminUser($request)) {
+            return $this->module->where('status', 1)
+            ->whereNotIn('id', Config::get('services.SUPER_ADMIN_MODULES'))
+            ->where('feature_flag', 1)
+            ->select('id', 'module_name')
+            ->get();
+        } 
+        return [];
+    }
+    /**
+     * Checks if the user is a super admin.
+     *
+     * @param array $user The user data.
+     * @return bool Returns true if the user is a super admin, false otherwise.
+     */
+    private function isSuperAdminUser($user): bool
+    {
+        return $user['user_type'] == 'Super Admin';
     }
 }

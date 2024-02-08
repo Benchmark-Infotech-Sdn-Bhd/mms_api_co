@@ -286,7 +286,8 @@ class DirectRecruitmentRepatriationServices
                 ];
             }
 
-            $applicationCheck = $this->checkApplication($request);
+            $applicationCheck = $this->checkForApplication($request['company_id'], $request['onboarding_country_id']);
+
             if(is_null($applicationCheck) || ($applicationCheck->application_id != $request[self::REQUEST_APPLICATION_ID])) {
                 return [
                     'InvalidUser' => true
@@ -298,7 +299,7 @@ class DirectRecruitmentRepatriationServices
 
                 if (request()->hasFile('attachment')) {
                     foreach($request->file('attachment') as $file) {
-                        $this->uploadFiles($request->file('attachment'), $workerId);
+                        $this->uploadFiles($request->file('attachment'), $workerId, $request['modified_by']);
                     }
                 }
             }
@@ -361,10 +362,11 @@ class DirectRecruitmentRepatriationServices
      *
      * @param array $files A array of files to be uploaded.
      * @param int $workerId The ID of the worker to associate the files with.
+     * @param int $modifiedBy The login user who modify the record
      *
      * @return void
      */
-    public function uploadFiles($files, $workerId)
+    public function uploadFiles($files, $workerId, $modifiedBy)
     {
         foreach ($files as $file) {
             $fileName = $file->getClientOriginalName();
@@ -380,8 +382,8 @@ class DirectRecruitmentRepatriationServices
                 'file_name' => $fileName,
                 'file_type' => self::FILE_TYPE_REPATRIATION,
                 'file_url' => $fileUrl,
-                'created_by' => $request['modified_by'],
-                'modified_by' => $request['modified_by']
+                'created_by' => $modifiedBy,
+                'modified_by' => $modifiedBy
             ]);                        
         }
     }
@@ -451,7 +453,6 @@ class DirectRecruitmentRepatriationServices
             ->orderBy('workers.id', 'desc')
             ->get();
     }
-
     /**
      * Applies the search query to the given query builder.
      *
@@ -466,5 +467,22 @@ class DirectRecruitmentRepatriationServices
             ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search'].'%')
             ->orWhere('workers.passport_number', 'like', '%'.$request['search'].'%');
         }
+    }
+    /**
+     * checks the onbording country exists for the particular company
+     * 
+     * @param int $companyId
+     * @param int $onboardingCoyntryId
+     * @return mixed The onboarding country details
+     */
+    private function checkForApplication(int $companyId, int $onboardingCoyntryId): mixed
+    {
+        return $this->directRecruitmentOnboardingCountry
+                    ->join('directrecruitment_applications', function ($join) use($companyId) {
+                        $join->on('directrecruitment_onboarding_countries.application_id', '=', 'directrecruitment_applications.id')
+                            ->where('directrecruitment_applications.company_id', $companyId);
+                    })->select('directrecruitment_onboarding_countries.id', 'directrecruitment_onboarding_countries.application_id', 'directrecruitment_onboarding_countries.country_id', 'directrecruitment_onboarding_countries.quota', 'directrecruitment_onboarding_countries.utilised_quota', 'directrecruitment_onboarding_countries.status', 'directrecruitment_onboarding_countries.onboarding_status', 'directrecruitment_onboarding_countries.created_by', 'directrecruitment_onboarding_countries.modified_by', 'directrecruitment_onboarding_countries.created_at', 'directrecruitment_onboarding_countries.updated_at', 'directrecruitment_onboarding_countries.deleted_at')
+                    ->find($onboardingCoyntryId);
+
     }
 }

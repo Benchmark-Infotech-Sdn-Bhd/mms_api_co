@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-
-use App\Services\InvoiceServices;
 use Illuminate\Support\Facades\Log;
+use App\Services\InvoiceServices;
+use App\Services\DatabaseConnectionServices;
 
 class XeroGetTaxRates extends Command
 {
@@ -14,7 +14,7 @@ class XeroGetTaxRates extends Command
      *
      * @var string
      */
-    protected $signature = 'command:XeroGetTaxRates';
+    protected $signature = 'command:XeroGetTaxRates {database}';
 
     /**
      * The console command description.
@@ -24,9 +24,14 @@ class XeroGetTaxRates extends Command
     protected $description = 'XeroGetTaxRates Generation';
 
     /**
-     * @var InvoiceServices
+     * @var InvoiceServices $invoiceServices
      */
     private InvoiceServices $invoiceServices;
+
+    /**
+     * @var DatabaseConnectionServices $databaseConnectionServices
+     */
+    private $databaseConnectionServices;
 
     /**
      * __construct method.
@@ -37,10 +42,11 @@ class XeroGetTaxRates extends Command
      *
      * @return void
      */
-    public function __construct(InvoiceServices $invoiceServices)
+    public function __construct(InvoiceServices $invoiceServices, DatabaseConnectionServices $databaseConnectionServices)
     {
         parent::__construct();
         $this->invoiceServices = $invoiceServices;
+        $this->databaseConnectionServices = $databaseConnectionServices;
     }
 
     /**
@@ -50,8 +56,9 @@ class XeroGetTaxRates extends Command
      */
     public function handle(): void
     {
-        Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Save Tax Rates Generation');
-        $this->invoiceServices->saveTaxRates();
-        Log::channel('cron_activity_logs')->info('Cron Job Ended - InvoiceServices Save Tax Rates Generation');
+        $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
+        Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Save Tax Rates Generation for Tenant DB - '.$this->argument('database'));
+        $data = $this->invoiceServices->saveTaxRates();
+        Log::channel('cron_activity_logs')->info('Cron Job Ended - InvoiceServices Save Tax Rates Generation for Tenant DB - '.$this->argument('database'));
     }
 }

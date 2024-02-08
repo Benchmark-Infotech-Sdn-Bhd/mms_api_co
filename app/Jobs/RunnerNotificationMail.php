@@ -9,6 +9,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+use App\Services\DatabaseConnectionServices; 
 
 class RunnerNotificationMail implements ShouldQueue
 {
@@ -19,6 +20,7 @@ class RunnerNotificationMail implements ShouldQueue
     private mixed $user;
     private mixed $message;
     private const CRON_ACTIVITY_LOGS = 'cron_activity_logs';
+    private $dbName;
 
     /**
      * Constructs a new instance of the class.
@@ -26,8 +28,9 @@ class RunnerNotificationMail implements ShouldQueue
      * @param $user - The user object to associate with the instance.
      * @param $message - The message to be assigned to the instance.
      */
-    public function __construct($user, $message)
+    public function __construct($dbName, $user, $message)
     {
+        $this->dbName = $dbName;
         $this->user = $user;
         $this->message = $message;
     }
@@ -39,11 +42,13 @@ class RunnerNotificationMail implements ShouldQueue
      * If the email address is valid, sends the notification mail using the prepared data.
      * Logs the completion or failure of the process based on the success of the mail sent.
      *
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * @return void
      */
-    public function handle()
-    {
+    public function handle(DatabaseConnectionServices $databaseConnectionServices)
+    {   
         Log::channel(self::CRON_ACTIVITY_LOGS)->info('Runners notification mail process started');
+        $databaseConnectionServices->dbConnectQueue($this->dbName);
 
         $input = $this->prepareMailData();
 

@@ -385,7 +385,7 @@ class DirectRecruitmentOnboardingAttestationServices
         }
     
         $onboardingAttestation = $this->getOnboardingAttestation($request);
-        
+
         if(is_null($onboardingAttestation)) {
             return[
                 'InvalidUser' => true
@@ -775,7 +775,7 @@ class DirectRecruitmentOnboardingAttestationServices
                     "file_name" => $fileName,
                     "file_url" =>  $fileUrl,
                     "amount" => $request['amount'] ?? $onboardingEmbassy->amount,
-                    "modified_by" =>  $params['created_by'] ?? self::DEFAULT_INT_VALUE
+                    "modified_by" =>  $request['created_by'] ?? self::DEFAULT_INT_VALUE
                 ]); 
             }
 
@@ -812,7 +812,7 @@ class DirectRecruitmentOnboardingAttestationServices
         }else{
             $onboardingEmbassy->update([
                 "amount" => $request['amount'],
-                "modified_by" =>  $params['created_by'] ?? self::DEFAULT_INT_VALUE
+                "modified_by" =>  $request['created_by'] ?? self::DEFAULT_INT_VALUE
             ]); 
         }
         // ADD OTHER EXPENSES - Onboarding - Attestation Costing
@@ -903,8 +903,7 @@ class DirectRecruitmentOnboardingAttestationServices
         ->join('directrecruitment_applications', function ($join) use($request) {
             $join->on('onboarding_attestation.application_id', '=', 'directrecruitment_applications.id')
             ->where('directrecruitment_applications.company_id', $request[self::REQUEST_COMPANY_ID]);
-        })->find($request['onboarding_embassy_id']); 
-
+        })->select('onboarding_embassy.id', 'onboarding_embassy.onboarding_attestation_id', 'onboarding_embassy.embassy_attestation_id', 'onboarding_embassy.file_name', 'onboarding_embassy.file_type', 'onboarding_embassy.file_url', 'onboarding_embassy.amount', 'onboarding_embassy.created_by', 'onboarding_embassy.modified_by', 'onboarding_embassy.created_at', 'onboarding_embassy.updated_at', 'onboarding_embassy.deleted_at')->find($request['onboarding_embassy_id']); 
         if(is_null($data)){
             return [
                 "isDeleted" => false,

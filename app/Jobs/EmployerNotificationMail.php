@@ -19,11 +19,13 @@ use App\Exports\CallingVisaRenewalExport;
 use App\Exports\SpecialPassRenewalExport;
 use App\Exports\EntryVisaRenewalExport;
 use App\Exports\ServiceAgreementExport;
+use App\Services\DatabaseConnectionServices;
 
 class EmployerNotificationMail implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
+    private $dbName;
     public $timeout = 7200; // 2 hours
     public $maxExceptions = 2;
     private mixed $user;
@@ -50,8 +52,9 @@ class EmployerNotificationMail implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($user, $message)
+    public function __construct($dbName, $user, $message)
     {
+        $this->dbName = $dbName;
         $this->user = $user;
         $this->message = $message;
     }
@@ -63,10 +66,12 @@ class EmployerNotificationMail implements ShouldQueue
      * and sends the mail. Finally, it logs the completion of the mail process or the failure due
      * to an incorrect email id.
      *
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * @return void
      */
-    public function handle()
+    public function handle(DatabaseConnectionServices $databaseConnectionServices)
     {
+        $databaseConnectionServices->dbConnectQueue($this->dbName);
         Log::info('Employer notification mail process started', ['channel' => 'cron_activity_logs']);
 
         $mailMessage = $this->message;
@@ -98,7 +103,7 @@ class EmployerNotificationMail implements ShouldQueue
         $input['message'] = $this->message;
 
         $this->buildExcelAttachments($input, $mailMessage);
-
+        
         return $input;
     }
 

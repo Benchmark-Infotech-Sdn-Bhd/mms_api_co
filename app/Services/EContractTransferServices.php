@@ -128,7 +128,7 @@ class EContractTransferServices
         })
         ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospect_services.service_id', 'sectors.sector_name')
         ->selectRaw("(CASE WHEN (crm_prospect_services.service_id = 1) THEN 'Direct Recruitment' WHEN (crm_prospect_services.service_id = 2) THEN 'e-Contract' ELSE 'Total Management' END) as service_type, crm_prospect_services.id as prospect_service_id")
-        ->distinct('crm_prospects.id')
+        ->distinct('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospect_services.service_id', 'sectors.sector_name', 'crm_prospect_services.id')
         ->orderBy('crm_prospects.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
@@ -227,7 +227,7 @@ class EContractTransferServices
                 $query->on('e-contract_applications.id','=','e-contract_project.application_id')
                 ->where('e-contract_applications.company_id', $user['company_id']);
             })
-            ->select('e-contract_project.*')
+            ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
             ->find($request['new_project_id']);
             if(is_null($projectDetails)){
                 return [

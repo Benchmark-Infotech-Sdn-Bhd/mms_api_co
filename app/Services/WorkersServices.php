@@ -1043,7 +1043,7 @@ class WorkersServices
         return $this->workerBankDetails->join('workers', function ($join) use ($request) {
             $join->on('workers.id', '=', 'worker_bank_details.worker_id')
                  ->whereIn('workers.company_id', $request['company_id']);
-        })->select('worker_bank_details.*')->find($request['id']);
+        })->select('worker_bank_details.id', 'worker_bank_details.worker_id', 'worker_bank_details.bank_name','worker_bank_details.account_number','worker_bank_details.socso_number','worker_bank_details.created_by','worker_bank_details.modified_by', 'worker_bank_details.created_at', 'worker_bank_details.updated_at', 'worker_bank_details.deleted_at')->find($request['id']);
     }
 
     /**

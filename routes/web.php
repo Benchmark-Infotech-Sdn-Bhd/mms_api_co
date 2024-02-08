@@ -52,11 +52,13 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('list', 'V1\CompanyController@list');
                     $router->post('show', 'V1\CompanyController@show');   
                     $router->post('moduleList', 'V1\CompanyController@moduleList');                                    
+                    $router->post('featureList', 'V1\CompanyController@featureList');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Add']], function () use ($router) {
                     $router->post('create', 'V1\CompanyController@create');
                     $router->post('assignSubsidiary', 'V1\CompanyController@assignSubsidiary');
                     $router->post('assignModule', 'V1\CompanyController@assignModule');
+                    $router->post('assignFeature', 'V1\CompanyController@assignFeature');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Edit']], function () use ($router) {
                     $router->post('update', 'V1\CompanyController@update');
@@ -65,10 +67,20 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                 $router->group(['prefix' => '', 'middleware' => ['permissions:15,Delete']], function () use ($router) {
                     $router->post('deleteAttachment', 'V1\CompanyController@deleteAttachment');
                 });    
-                $router->post('subsidiaryDropDown', 'V1\CompanyController@subsidiaryDropDown');
-                $router->post('parentDropDown', 'V1\CompanyController@parentDropDown');  
-                $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');    
-                $router->post('dropdown', 'V1\CompanyController@dropdown');       
+                $router->group(['prefix' => 'accountSystem'], function () use ($router) {
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:15,Add']], function () use ($router) {
+                        $router->post('update', 'V1\CompanyController@accountSystemUpdate');
+                    });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:15,Delete']], function () use ($router) {
+                        $router->post('delete', 'V1\CompanyController@accountSystemDelete');
+                    });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:15,View']], function () use ($router) {
+                        $router->post('titleList', 'V1\CompanyController@accountSystemTitleList');
+                        $router->post('show', 'V1\CompanyController@accountSystemShow');
+                    });
+                });
+                $router->post('parentDropDown', 'V1\CompanyController@parentDropDown');      
+                $router->post('dropdown', 'V1\CompanyController@dropdown');     
             });
             
         });
@@ -78,12 +90,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
         $router->group(['prefix' => 'company'], function () use ($router) {
             $router->post('listUserCompany', 'V1\CompanyController@listUserCompany');
             $router->post('updateCompanyId', 'V1\CompanyController@updateCompanyId');
+            $router->post('subsidiaryDropDown', 'V1\CompanyController@subsidiaryDropDown');
+            $router->post('subsidiaryDropdownBasedOnParent', 'V1\CompanyController@subsidiaryDropdownBasedOnParent');
         });  
         /**
          * Routes for Modules.
          */
         $router->group(['prefix' => 'module'], function () use ($router) {
             $router->post('dropDown', 'V1\ModulesController@dropDown');
+            $router->post('featureDropDown', 'V1\ModulesController@featureDropDown');
         });
         /**
          * Routes for Services.
@@ -890,6 +905,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('export', 'V1\EContractPayrollController@export');
                         $router->post('listTimesheet', 'V1\EContractPayrollController@listTimesheet');
                         $router->post('viewTimesheet', 'V1\EContractPayrollController@viewTimesheet');
+                        $router->post('importHistory', 'V1\EContractPayrollController@importHistory');
+                        $router->post('failureExport', 'V1\EContractPayrollController@failureExport');
                     });
                     $router->group(['prefix' => '', 'middleware' => ['permissions:6,Add']], function () use ($router) {
                         $router->post('import', 'V1\EContractPayrollController@import');
@@ -1000,6 +1017,8 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('show', 'V1\TotalManagementPayrollController@show');
                         $router->post('listTimesheet', 'V1\TotalManagementPayrollController@listTimesheet');
                         $router->post('viewTimesheet', 'V1\TotalManagementPayrollController@viewTimesheet');
+                        $router->post('importHistory', 'V1\TotalManagementPayrollController@importHistory');
+                        $router->post('failureExport', 'V1\TotalManagementPayrollController@failureExport');
                     });
                     $router->group(['prefix' => '', 'middleware' => ['permissions:7,Add']], function () use ($router) {
                         $router->post('import', 'V1\TotalManagementPayrollController@import');
