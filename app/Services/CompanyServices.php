@@ -148,8 +148,7 @@ class CompanyServices
             'client_secret' => 'required',
             'tenant_id' => 'required',
             'access_token' => 'required',
-            'refresh_token' => 'required',
-            'redirect_url' => 'required'
+            'refresh_token' => 'required'
         ];
     }
     /**
