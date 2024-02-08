@@ -84,11 +84,11 @@ class EContractCostManagementController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->eContractCostManagementServices->show($params);
-            if(is_null($data) || count($data->toArray()) == 0){
-                return $this->sendError(['message' => 'Unauthorized']);
-            }
             if(isset($data['validate'])){
                 return $this->validationError($data['validate']); 
+            }
+            if(is_null($data) || count($data->toArray()) == 0){
+                return $this->sendError(['message' => 'Unauthorized']);
             }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
