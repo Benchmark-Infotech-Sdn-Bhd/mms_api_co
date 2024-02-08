@@ -16,7 +16,7 @@ class CommonWorkerImport implements ToModel, WithChunkReading, WithHeadingRow
 {
     protected const CHUNK_ROW = 250;
     private mixed $parameters;
-    private string $bulkUpload;
+    private mixed $bulkUpload;
 
     /**
      * __construct method
@@ -25,7 +25,7 @@ class CommonWorkerImport implements ToModel, WithChunkReading, WithHeadingRow
      *
      * @param mixed $parameters The parameters to initialize the instance with.
      *
-     * @param string $bulkUpload (Optional) The file path for bulk upload.
+     * @param mixed $bulkUpload (Optional) The file path for bulk upload.
      *
      * @return void
      */

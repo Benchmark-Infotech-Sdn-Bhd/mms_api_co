@@ -139,16 +139,16 @@ class AuthServices extends Controller
     {
         $request = $this->processPassword($request);
         $user = $this->createUser($request);
-        if ($request->user_type != 'Admin') {
+        if ($request['user_type'] != 'Admin') {
             $this->assignRoles($request, $user);
         }
-        if (isset($request->pic_flag) && $request->pic_flag == 1) {
+        if (isset($request['pic_flag']) && $request['pic_flag'] == 1) {
             $this->updateCompany($request);
         }
         $this->sendRegistrationEmail([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password
+            'name' => $request['name'],
+            'email' => $request['email'],
+            'password' => $request['password']
         ]);
         return true;
     }
@@ -165,8 +165,8 @@ class AuthServices extends Controller
      */
     private function processPassword(array $request): array
     {
-        if ($request->user_type == 'Admin' || $request->user_type == 'Super User') {
-            $request->password = Str::random(8);
+        if ($request['user_type'] == 'Admin' || $request['user_type'] == 'Super User') {
+            $request['password'] = Str::random(8);
         }
         return $request;
     }
@@ -185,15 +185,15 @@ class AuthServices extends Controller
     private function createUser(array $request): User
     {
         return $this->user->create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'created_by' => $request->user_id,
-            'modified_by' => $request->user_id,
-            'user_type' => $request->user_type ?? '',
-            'reference_id' => $request->reference_id ?? 0,
-            'company_id' => $request->company_id ?? 0,
-            'pic_flag' => isset($request->pic_flag) ?? 0
+            'name' => $request['name'],
+            'email' => $request['email'],
+            'password' => Hash::make($request['password']),
+            'created_by' => $request['user_id'],
+            'modified_by' => $request['user_id'],
+            'user_type' => $request['user_type'] ?? '',
+            'reference_id' => $request['reference_id'] ?? 0,
+            'company_id' => $request['company_id'] ?? 0,
+            'pic_flag' => isset($request['pic_flag']) ?? 0
         ]);
     }
 
@@ -211,22 +211,22 @@ class AuthServices extends Controller
     {
         $this->userRoleType->create($this->prepareRoleData($request, $user));
 
-        $roleDetails = $this->role->find($request->role_id);
-        if ($roleDetails->special_permission == 1 && count($request->subsidiary_companies) > 0) {
-            foreach ($request->subsidiary_companies as $subsidiaryCompany) {
-                $subRole = $this->role->where('parent_role_id', $request->role_id)
+        $roleDetails = $this->role->find($request['role_id']);
+        if ($roleDetails->special_permission == 1 && count($request['subsidiary_companies']) > 0) {
+            foreach ($request['subsidiary_companies'] as $subsidiaryCompany) {
+                $subRole = $this->role->where('parent_role_id', $request['role_id'])
                     ->where('company_id', $subsidiaryCompany)
                     ->first(['id']);
                 $this->userRoleType->create($this->prepareRoleData($request, $user, $subRole));
             }
         }
-        $request['subsidiary_companies'][] = $request->company_id;
-        foreach ($request->subsidiary_companies as $subsidiaryCompany) {
+        $request['subsidiary_companies'][] = $request['company_id'];
+        foreach ($request['subsidiary_companies'] as $subsidiaryCompany) {
             $this->userCompany->create([
                 'user_id' => $user->id,
                 'company_id' => $subsidiaryCompany ?? 0,
-                'created_by' => $request->user_id ?? 0,
-                'modified_by' => $request->user_id ?? 0
+                'created_by' => $request['user_id'] ?? 0,
+                'modified_by' => $request['user_id'] ?? 0
             ]);
         }
     }
@@ -247,10 +247,10 @@ class AuthServices extends Controller
     {
         return [
             'user_id' => $user->id,
-            'role_id' => $role ? $role->id : $request->role_id,
-            'status' => $request->status ?? 1,
-            'created_by' => $request->user_id ?? 0,
-            'modified_by' => $request->user_id ?? 0
+            'role_id' => $role ? $role->id : $request['role_id'],
+            'status' => $request['status'] ?? 1,
+            'created_by' => $request['user_id'] ?? 0,
+            'modified_by' => $request['user_id'] ?? 0
         ];
     }
 
@@ -262,10 +262,10 @@ class AuthServices extends Controller
      */
     private function updateCompany(array $request): void
     {
-        $this->company->where('id', $request->company_id)
+        $this->company->where('id', $request['company_id'])
             ->update([
-                'pic_name' => $request->name ?? '',
-                'role' => $request->user_type ?? ''
+                'pic_name' => $request['name'] ?? '',
+                'role' => $request['user_type'] ?? ''
             ]);
     }
 

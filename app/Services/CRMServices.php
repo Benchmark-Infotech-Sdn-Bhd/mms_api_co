@@ -408,7 +408,7 @@ class CRMServices
 
         if (\DB::getDriverName() !== 'sqlite') {
             $request['prospect_id'] = $prospect['id'];
-            $createContactXero = $this->invoiceServices->createContacts($request);
+            //$createContactXero = $this->invoiceServices->createContacts($request);
         }
         return true;
     }

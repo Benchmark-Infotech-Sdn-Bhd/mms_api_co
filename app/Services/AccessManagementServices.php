@@ -87,13 +87,14 @@ class AccessManagementServices
      */
     public function list($request)
     {
-        if ($request['user_type'] == Config::get('services.ROLE_TYPE_ADMIN')) {
+        if ($request['user_type'] == Config::get('services.ROLE_TYPE_ADMIN') && !is_int($request['role_id'])) {
             $result = $this->getCompanyPermission($request['company_id']);
         } else {
             $result = $this->getUserPermission($request['company_id'], $request['role_id']);
         }
 
-        return $this->getFinalResult($result);
+        //return $this->getFinalResult($result);
+        return $result;
     }
 
     /**
@@ -105,7 +106,9 @@ class AccessManagementServices
     private function getCompanyPermission($companyId)
     {
         return $this->companyModulePermission->leftJoin('modules', 'modules.id', 'company_module_permission.module_id')
-            ->where('company_module_permission.company_id', $companyId);
+            ->where('company_module_permission.company_id', $companyId)
+            ->select('modules.id', 'modules.module_name', 'company_module_permission.id as role_permission_id')
+            ->get();
     }
 
     /**
@@ -120,8 +123,16 @@ class AccessManagementServices
         return $this->rolePermission
             ->join('roles', 'roles.id', 'role_permission.role_id')
             ->join('modules', 'modules.id', 'role_permission.module_id')
+            ->leftJoin('permissions', function ($join) {
+                $join->on('permissions.id', '=', 'role_permission.permission_id');
+            })
             ->where('roles.company_id', $companyId)
-            ->where('role_permission.role_id', $roleId);
+            ->where('role_permission.role_id', $roleId)
+            ->select('modules.id', 'modules.module_name')
+            ->selectRaw('GROUP_CONCAT(role_permission.permission_id) as permission_ids')
+            ->selectRaw('GROUP_CONCAT(permissions.permission_name) as permission_name')
+            ->groupBy('modules.id', 'modules.module_name')
+            ->get();
     }
 
     /**
@@ -147,17 +158,20 @@ class AccessManagementServices
      */
     public function create($request): mixed
     {
+        $modules = json_decode($request['modules']);
+        $moduleIds = array_unique(array_column($modules, 'module_id'));
+
         if ($this->doesRoleExist($request)) {
             return self::ERROR_ROLE_EXISTS;
         }
 
         $companyModuleIds = $this->getCompanyModuleIds($request['company_id']);
 
-        if ($this->areThereDiffModules($request['modules'], $companyModuleIds)) {
+        if ($this->areThereDiffModules($moduleIds, $companyModuleIds)) {
             return self::ERROR_MODULE_EXISTS;
         }
 
-        $this->createRolePermissions($request);
+        $this->createRolePermissions($request,$modules);
 
         return true;
     }
@@ -214,13 +228,13 @@ class AccessManagementServices
      * @param array $request The request data containing modules, role_id, permission_id, created_by, and modified_by.
      * @return void
      */
-    private function createRolePermissions($request): void
+    private function createRolePermissions($request,$modules): void
     {
-        foreach ($request['modules'] as $moduleId) {
+        foreach ($modules as $module) {
             $this->rolePermission->create([
                 'role_id' => $request['role_id'],
-                'module_id' => $moduleId,
-                'permission_id' => $request['permission_id'] ?? 1,
+                'module_id' => $module->module_id,
+                'permission_id' => $module->permission_id ?? 1,
                 'created_by' => $request['created_by'] ?? 0,
                 'modified_by' => $request['created_by'] ?? 0
             ]);
@@ -235,9 +249,12 @@ class AccessManagementServices
      */
     public function update($request): mixed
     {
+        $modules = json_decode($request['modules']);
+        $moduleIds = array_unique(array_column($modules, 'module_id'));
+
         $currentCompanyModules = $this->getCurrentCompanyModules($request);
 
-        $diffModules = $this->compareModules($request['modules'], $currentCompanyModules);
+        $diffModules = $this->compareModules($moduleIds, $currentCompanyModules);
         if (count($diffModules) > 0) {
             return ['moduleError' => true];
         }

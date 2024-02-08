@@ -20,6 +20,7 @@ class PayrollsImport extends Job
     const WORKER_DATA_ERROR = 'ERROR - WORKER DATA NOT FOUND';
     const WORKER_EMPLOYMENT_DATA_ERROR = 'ERROR - WORKER EMPLOYMENT DATA NOT FOUND';
     const INPUT_ERROR = 'ERROR - EMPTY INPUT';
+    const SUCCESS_MSG = 'SUCCESS - payroll imported';
     private mixed $passportNumber;
     private mixed $projectId;
     private mixed $month;
@@ -68,9 +69,17 @@ class PayrollsImport extends Job
      */
     public function handle(DatabaseConnectionServices $databaseConnectionServices): void
     {
+        $successFlag = 0;
         $this->extractPayrollParameters();
 
-        if ($this->validPayrollParameters()) {
+        $validationError = [];
+        $validator = Validator::make($this->payrollParameter, $this->formatValidation());
+        if($validator->fails()) {
+            $validationError = str_replace(".","", implode(",",$validator->messages()->all()));
+        }
+
+        if(empty($validationError)) {
+            
             $workerId = $this->getWorkerId();
             if ($workerId !== null) {
                 Log::info('worker data ID - ' . print_r($workerId, true));
@@ -78,14 +87,19 @@ class PayrollsImport extends Job
 
                 if ($workerEmployment > 0) {
                     $this->updateOrInsertPayroll($workerId);
+                    $successFlag = 1;
+                    $comments = self::SUCCESS_MSG;
                 } else {
                     $this->logErrorAndIncrementFailure(self::WORKER_EMPLOYMENT_DATA_ERROR);
+                    $comments = self::WORKER_EMPLOYMENT_DATA_ERROR;
                 }
             } else {
                 $this->logErrorAndIncrementFailure(self::WORKER_DATA_ERROR);
+                $comments = self::WORKER_DATA_ERROR;
             }
         } else {
             $this->logErrorAndIncrementFailure(self::INPUT_ERROR);
+            $comments = 'ERROR - ' . $validationError;
         }
         $this->insertRecord($comments, 1, $successFlag, $this->payrollParameter['company_id']);
     }

@@ -12,6 +12,14 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Excel as BaseExcel;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PassportRenewalExport;
+use App\Exports\InsuranceRenewalExport;
+use App\Exports\FomemaRenewalExport;
+use App\Exports\PlksRenewalExport;
+use App\Exports\CallingVisaRenewalExport;
+use App\Exports\SpecialPassRenewalExport;
+use App\Exports\EntryVisaRenewalExport;
+use App\Exports\ServiceAgreementExport;
 
 class AdminNotificationMail implements ShouldQueue
 {
@@ -115,14 +123,14 @@ class AdminNotificationMail implements ShouldQueue
     private function formMailAttachments($mailMessage, $input)
     {
         $attachmentDetails = [
-            'passportRenewal' => '\App\Export\PassportRenewalExport',
-            'insuranceRenewal' => '\App\Export\InsuranceRenewalExport',
-            'fomemaRenewal' => '\App\Export\FomemaRenewalExport',
-            'plksRenewal' => '\App\Export\PlksRenewalExport',
-            'callingVisaRenewal' => '\App\Export\CallingVisaRenewalExport',
-            'specialPassRenewal' => '\App\Export\SpecialPassRenewalExport',
-            'entryVisaRenewal' => '\App\Export\EntryVisaRenewalExport',
-            'serviceAgreement' => '\App\Export\ServiceAgreementExport',
+            'passportRenewal' => PassportRenewalExport::class,
+            'insuranceRenewal' => InsuranceRenewalExport::class,
+            'fomemaRenewal' => FomemaRenewalExport::class,
+            'plksRenewal' => PlksRenewalExport::class,
+            'callingVisaRenewal' => CallingVisaRenewalExport::class,
+            'specialPassRenewal' => SpecialPassRenewalExport::class,
+            'entryVisaRenewal' => EntryVisaRenewalExport::class,
+            'serviceAgreement' => ServiceAgreementExport::class,
         ];
         foreach ($attachmentDetails as $key => $value) {
             if (!empty($mailMessage[$key]['company_id'])) {
