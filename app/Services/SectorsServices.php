@@ -12,17 +12,26 @@ class SectorsServices
     private ValidationServices $validationServices;
     /**
      * SectorsServices constructor.
-     * @param Sectors $sectors
-     * @param ValidationServices $validationServices
+     * @param Sectors $sectors Instance of the Sectors class
+     * @param ValidationServices $validationServices Instance of the ValidationServices class
+     * 
+     * @return void
+     * 
      */
-    public function __construct(Sectors $sectors,ValidationServices $validationServices)
+    public function __construct(
+        Sectors             $sectors,
+        ValidationServices  $validationServices
+    )
     {
         $this->sectors = $sectors;
         $this->validationServices = $validationServices;
     }
 
     /**
+     * Create the sector
+     * 
      * @param $request
+     * 
      * @return mixed
      */
     public function create($request) : mixed

@@ -15,6 +15,9 @@ use Carbon\Carbon;
 
 class WorkerEventServices
 {
+    public const DEFAULT_VALUE = 0;
+    public const ATTACHMENT_FILE_TYPE = 'Event Attachment';
+
     /**
      * @var Workers
      */
@@ -41,14 +44,25 @@ class WorkerEventServices
     private AuthServices $authServices;
     /**
      * WorkerEventServices constructor.
-     * @param Workers $workers
-     * @param WorkerEvent $workerEvent;
-     * @param WorkerEventAttachments $workerEventAttachments
-     * @param Storage $storage
-     * @param WorkerEmployment $workerEmployment
-     * @param AuthServices $authServices
+     * 
+     * @param Workers $workers Instance of the Workers class
+     * @param WorkerEvent $workerEvent Instance of the WorkerEvent class
+     * @param WorkerEventAttachments $workerEventAttachments Instance of the WorkerEventAttachments class
+     * @param Storage $storage Instance of the Storage class
+     * @param WorkerEmployment $workerEmployment Instance of the WorkerEmployment class
+     * @param AuthServices $authServices Instance of the AuthServices class
+     * 
+     * @return void
+     * 
      */
-    public function __construct(Workers $workers, WorkerEvent $workerEvent, WorkerEventAttachments $workerEventAttachments, Storage $storage, WorkerEmployment $workerEmployment, AuthServices $authServices)
+    public function __construct(
+        Workers                 $workers, 
+        WorkerEvent             $workerEvent, 
+        WorkerEventAttachments  $workerEventAttachments, 
+        Storage                 $storage, 
+        WorkerEmployment        $workerEmployment, 
+        AuthServices            $authServices
+    )
     {
         $this->workers                = $workers;
         $this->workerEvent            = $workerEvent;
@@ -126,8 +140,13 @@ class WorkerEventServices
     }
 
     /**
+     * List the worker event
+     * 
      * @param $request
-     * @return mixed
+     *        worker_id (int) Id of the worker
+     *        filter (string) filter type
+     * 
+     * @return mixed Returns the paginated list of worker event.
      */
     public function list($request): mixed
     {
@@ -141,10 +160,14 @@ class WorkerEventServices
         ->select('id', 'worker_id', 'event_type', 'created_at', 'updated_at')
         ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
-    }        
+    } 
+
     /**
-     * @param $request
-     * @return array|bool
+     * Create the worker event
+     * 
+     * @param $request  The request data
+     * 
+     * @return array|bool An array of validation errors or boolean based on the processing result
      */
     public function create($request): array|bool
     {
@@ -175,7 +198,7 @@ class WorkerEventServices
      * create worker event.
      *
      * @param array $request
-     *              worker_id (in) ID of the worker
+     *              worker_id (int) ID of the worker
      *              event_date (date) event data
      *              event_type (string) event type
      *              flight_number (string) flight number
@@ -189,7 +212,7 @@ class WorkerEventServices
     private function createWorkerEvent($request): mixed
     {
         return $this->workerEvent->create([
-            'worker_id' => $request['worker_id'] ?? 0,
+            'worker_id' => $request['worker_id'] ?? self::DEFAULT_VALUE,
             'event_date' => $request['event_date'] ?? '',
             'event_type' => $request['event_type'] ?? '',
             'flight_number' => (isset($request['flight_number']) && !empty($request['flight_number'])) ? $request['flight_number'] : NULL,
@@ -290,7 +313,7 @@ class WorkerEventServices
                 $this->workerEventAttachments->create([
                     'file_id' => $workerEvent->id,
                     'file_name' => $fileName,
-                    'file_type' => 'Event Attachment',
+                    'file_type' => self::ATTACHMENT_FILE_TYPE,
                     'file_url' => $fileUrl,
                     'created_by' => $request['created_by'],
                     'modified_by' => $request['created_by']
@@ -320,8 +343,11 @@ class WorkerEventServices
     }
 
     /**
-     * @param $request
-     * @return array|bool
+     * Update the worker event
+     * 
+     * @param $request The request data
+     * 
+     * @return array|bool  An array of validation errors or boolean based on the processing result
      */
     public function update($request): array|bool
     {
@@ -368,8 +394,11 @@ class WorkerEventServices
         return true;
     }
     /**
-     * @param $request
-     * @return mixed
+     * Show the worker event
+     * 
+     * @param $request The request data containing the company_id and id.
+     * 
+     * @return mixed Returns the worker event detail with related attachments
      */
     public function show($request): mixed
     {
@@ -381,9 +410,11 @@ class WorkerEventServices
         ->find($request['id']);
     }
     /**
-     *
-     * @param $request
-     * @return bool
+     * Delete the attchment of worker event.
+     * 
+     * @param $request  The request data containing the company_id and id.
+     * 
+     * @return bool Returns true if the deletion is successfully, otherwise false.
      */    
     public function deleteAttachment($request): bool
     {   
