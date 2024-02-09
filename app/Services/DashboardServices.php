@@ -7,137 +7,84 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\DB;
-use App\Services\ValidationServices;
 use Carbon\Carbon;
-use App\Models\CRMProspect;
 use App\Models\Workers;
-use App\Models\WorkerVisa;
 use App\Models\TotalManagementApplications;
 use App\Models\EContractApplications;
 use App\Models\DirectrecruitmentApplications;
 
 class DashboardServices
 {
-    /**
-     * @var CRMProspect
-     */
-    private CRMProspect $crmProspect;
-    /**
-     * @var ValidationServices
-     */
-    private ValidationServices $validationServices;
+    public const STATUS_ON_BENCH = 'On-Bench';
+    public const TRANSFER_FLAG_0 = 0;
+    public const PROSPECT_ID_0 = 0;
+    public const SERVICE_ID_1 = 1;
+    public const SERVICE_ID_2 = 2;
+    public const SERVICE_ID_3 = 3;
+
     /**
      * @var Workers
      */
     private Workers $workers;
-    /**
-     * @var WorkerVisa
-     */
-    private WorkerVisa $workerVisa;
+
     /**
      * @var TotalManagementApplications
      */
     private TotalManagementApplications $totalManagementApplications;
+
     /**
      * @var EContractApplications
      */
     private EContractApplications $eContractApplications;
+
     /**
      * @var DirectrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
+
     /**
      * DashboardServices constructor.
-     * @param CRMProspect $crmProspect
-     * @param ValidationServices $validationServices
      * @param Workers $workers
-     * @param WorkerVisa $workerVisa
      * @param TotalManagementApplications $totalManagementApplications
      * @param EContractApplications $eContractApplications
      * @param DirectrecruitmentApplications $directrecruitmentApplications
      */
-    public function __construct(CRMProspect $crmProspect, ValidationServices $validationServices, Workers $workers, WorkerVisa $workerVisa, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, DirectrecruitmentApplications $directrecruitmentApplications)
+    public function __construct(
+        Workers                           $workers,
+        TotalManagementApplications       $totalManagementApplications,
+        EContractApplications             $eContractApplications,
+        DirectrecruitmentApplications     $directrecruitmentApplications
+    )
     {
-        $this->crmProspect = $crmProspect;
-        $this->validationServices = $validationServices;
         $this->workers = $workers;
-        $this->workerVisa = $workerVisa;
         $this->totalManagementApplications = $totalManagementApplications;
         $this->eContractApplications = $eContractApplications;
         $this->directrecruitmentApplications = $directrecruitmentApplications;
     }
+
     /**
      * @param $request
      * @return mixed
      */   
     public function list($request): mixed
     {
-        $workerCount = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
-        ->leftJoin('worker_employment', function ($join) {
-            $join->on('workers.id', '=', 'worker_employment.worker_id')
-                    ->where('worker_employment.transfer_flag', 0)
-                    ->whereNull('worker_employment.remove_date');
-        })
-        ->where('workers.crm_prospect_id',0)
-        ->whereIn('workers.company_id', $request['company_id'])
-        ->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
-		WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
-		ELSE 'On-Bench' END) IN('On-Bench','Assigned','Counselling','e-Run')")->count('workers.id');
-                        
-        $workerOnbenchCount = $this->workers->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
-        ->leftJoin('worker_employment', function ($join) {
-            $join->on('workers.id', '=', 'worker_employment.worker_id')
-                    ->where('worker_employment.transfer_flag', 0)
-                    ->whereNull('worker_employment.remove_date');
-        })
-        ->where('workers.crm_prospect_id',0)
-        ->whereIn('workers.company_id', $request['company_id'])
-        ->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
-		WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
-		ELSE 'On-Bench' END) = 'On-Bench'")->count('workers.id');
+        $workerCount = $this->getworkerCount($request);
 
-        $serviceDirectRecruitment = $this->directrecruitmentApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
-        ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
-        ->whereIn('crm_prospects.company_id', $request['company_id'])
-        ->where('crm_prospect_services.service_id', 1)
-        ->where('crm_prospect_services.deleted_at', NULL)
-        ->count('directrecruitment_applications.id');
+        $workerOnbenchCount = $this->getworkerCount(array_merge($request, ['econtractStatus' => self::STATUS_ON_BENCH]));
 
-        $serviceEcontract = $this->eContractApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'e-contract_applications.crm_prospect_id')
-        ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'e-contract_applications.service_id')
-        ->whereIn('crm_prospects.company_id', $request['company_id'])
-        ->where('crm_prospect_services.service_id', 2)
-        ->where('crm_prospect_services.deleted_at', NULL)
-        ->count('e-contract_applications.id');
+        $serviceDirectRecruitment = $this->getDirectrecruitmentApplicationCount($request);
 
-        $serviceTotalManagementCount = $this->totalManagementApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
-        ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'total_management_applications.service_id')
-        ->whereIn('crm_prospects.company_id', $request['company_id'])
-        ->where('crm_prospect_services.service_id', 3)
-        ->where('crm_prospect_services.deleted_at', NULL)
-        ->count('total_management_applications.id');
+        $serviceEcontract =  $this->getEContractApplicationCount($request);
+
+        $serviceTotalManagementCount = $this->getTotalManagementApplicationCount($request);
 
         $conditionDate = Carbon::now()->addDays(60)->toDateTimeString(); 
 
-        $workerPassportExpired = $this->workers
-        ->where('passport_valid_until', '<=', $conditionDate)
-        ->whereIn('company_id', $request['company_id'])
-        ->count('id');
+        $workerPassportExpired = $this->getWorkerPassportExpiredCount($conditionDate, $request);
 
-        $fomemaExpired = $this->workers
-        ->where('fomema_valid_until', '<=', $conditionDate)
-        ->whereIn('company_id', $request['company_id'])
-        ->count('id');
+        $fomemaExpired = $this->getFomemaExpiredCount($conditionDate, $request);
 
-        $visaPermitExpired = $this->workers
-                    ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
-                    ->whereIn('workers.company_id', $request['company_id'])
-                    ->where('worker_visa.work_permit_valid_until', '<=', $conditionDate)
-                    ->count('workers.id');
-
-        // $visaPermitExpired = $this->workerVisa
-        // ->where('work_permit_valid_until', '<=', $conditionDate)
-        // ->count('id');
+        $visaPermitExpired = $this->getVisaPermitExpiredCount($conditionDate, $request);
 
         return [
             'worker_count' => $workerCount,
@@ -151,4 +98,87 @@ class DashboardServices
         ];
     }
 
+    private function getworkerCount($request)
+    {
+        return $this->workers
+            ->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+            ->leftJoin('worker_employment', function ($join) {
+                $join->on('workers.id', '=', 'worker_employment.worker_id')
+                    ->where('worker_employment.transfer_flag', self::TRANSFER_FLAG_0)
+                    ->whereNull('worker_employment.remove_date');
+            })
+            ->where('workers.crm_prospect_id', self::PROSPECT_ID_0)
+            ->whereIn('workers.company_id', $request['company_id'])
+            ->where(function ($query) use ($request) {
+                $this->applyWorkerEcontractStatusFilter($query, $request);
+            })
+            ->count('workers.id');
+    }
+
+    private function applyWorkerEcontractStatusFilter($query, $request){
+        if (!empty($request['econtractStatus']) && $request['econtractStatus'] == self::STATUS_ON_BENCH) {
+            $query->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status ELSE 'On-Bench' END) = 'On-Bench'");
+
+        } else {
+            $query->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status ELSE 'On-Bench' END) IN('On-Bench','Assigned','Counselling','e-Run')");
+        }
+    }
+
+    private function getDirectrecruitmentApplicationCount($request)
+    {
+        return $this->directrecruitmentApplications
+            ->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
+            ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
+            ->whereIn('crm_prospects.company_id', $request['company_id'])
+            ->where('crm_prospect_services.service_id', self::SERVICE_ID_1)
+            ->where('crm_prospect_services.deleted_at', NULL)
+            ->count('directrecruitment_applications.id');
+    }
+
+    private function getEContractApplicationCount($request)
+    {
+        return $this->eContractApplications
+            ->leftJoin('crm_prospects', 'crm_prospects.id', 'e-contract_applications.crm_prospect_id')
+            ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'e-contract_applications.service_id')
+            ->whereIn('crm_prospects.company_id', $request['company_id'])
+            ->where('crm_prospect_services.service_id', self::SERVICE_ID_2)
+            ->where('crm_prospect_services.deleted_at', NULL)
+            ->count('e-contract_applications.id');
+    }
+
+    private function getTotalManagementApplicationCount($request)
+    {
+        return $this->totalManagementApplications
+            ->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
+            ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'total_management_applications.service_id')
+            ->whereIn('crm_prospects.company_id', $request['company_id'])
+            ->where('crm_prospect_services.service_id', self::SERVICE_ID_3)
+            ->where('crm_prospect_services.deleted_at', NULL)
+            ->count('total_management_applications.id');
+    }
+
+    private function getWorkerPassportExpiredCount($conditionDate, $request)
+    {
+        return $this->workers
+            ->where('passport_valid_until', '<=', $conditionDate)
+            ->whereIn('company_id', $request['company_id'])
+            ->count('id');
+    }
+
+    private function getFomemaExpiredCount($conditionDate, $request)
+    {
+        return $this->workers
+            ->where('fomema_valid_until', '<=', $conditionDate)
+            ->whereIn('company_id', $request['company_id'])
+            ->count('id');
+    }
+
+    private function getVisaPermitExpiredCount($conditionDate, $request)
+    {
+        return $this->workers
+            ->leftJoin('worker_visa', 'worker_visa.worker_id', 'workers.id')
+            ->whereIn('workers.company_id', $request['company_id'])
+            ->where('worker_visa.work_permit_valid_until', '<=', $conditionDate)
+            ->count('workers.id');
+    }
 }

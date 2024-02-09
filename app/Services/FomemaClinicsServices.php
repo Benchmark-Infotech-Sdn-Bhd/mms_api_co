@@ -15,31 +15,36 @@ class FomemaClinicsServices
      */
     private FomemaClinics $fomemaClinics;
 
-    public function __construct(FomemaClinics $fomemaClinics)
+    public function __construct(
+        FomemaClinics $fomemaClinics
+    )
     {
         $this->fomemaClinics = $fomemaClinics;
     }
+
     /**
      * @param $request
      * @return mixed | void
      */
     public function inputValidation($request)
     {
-        if(!($this->fomemaClinics->validate($request->all()))){
+        if (!($this->fomemaClinics->validate($request->all()))) {
             return $this->fomemaClinics->errors();
         }
     }
+
     /**
      * @param $request
      * @return mixed | void
      */
     public function updateValidation($request)
     {
-        if(!($this->fomemaClinics->validateUpdation($request->all()))){
+        if (!($this->fomemaClinics->validateUpdation($request->all()))) {
             return $this->fomemaClinics->errors();
         }
     }
-	 /**
+
+	/**
      *
      * @param $request
      * @return mixed
@@ -61,7 +66,8 @@ class FomemaClinicsServices
             'company_id' => $user['company_id']
         ]);
     }
-	 /**
+
+	/**
      *
      * @param $request
      * @return LengthAwarePaginator
@@ -79,7 +85,8 @@ class FomemaClinicsServices
         ->orderBy('fomema_clinics.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
-	 /**
+	
+    /**
      *
      * @param $request
      * @return mixed
@@ -88,7 +95,8 @@ class FomemaClinicsServices
     {
         return $this->fomemaClinics->whereIn('company_id', $request['company_id'])->find($request['id']);        
     }
-	 /**
+
+	/**
      *
      * @param $request
      * @return mixed
@@ -98,7 +106,7 @@ class FomemaClinicsServices
         $data = $this->fomemaClinics::find($request['id']);
         $user = JWTAuth::parseToken()->authenticate();
         $request['modified_by'] = $user['id'];
-        if($data->company_id != $user['company_id']) {
+        if ($data->company_id != $user['company_id']) {
             return [
                 'InvalidUser' => true
             ];
@@ -108,7 +116,8 @@ class FomemaClinicsServices
             "message" => "Updated Successfully"
         ];
     }
-	 /**
+
+	/**
      *
      * @param $request
      * @return mixed
@@ -117,13 +126,13 @@ class FomemaClinicsServices
     {    
         $data = $this->fomemaClinics::find($request['id']);
         $user = JWTAuth::parseToken()->authenticate();
-        if(is_null($data)){
+        if (is_null($data)) {
             return [
                 "isDeleted" => false,
                 "message" => "Data not found"
             ];
         }
-        if($data->company_id != $user['company_id']) {
+        if ($data->company_id != $user['company_id']) {
             return [
                 'InvalidUser' => true
             ];
