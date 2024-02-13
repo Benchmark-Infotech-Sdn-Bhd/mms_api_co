@@ -11,6 +11,11 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class InsuranceServices
 {
+    public const ERROR_UNAUTHORIZED = ['unauthorizedError' => 'Unauthorized'];
+    public const MESSAGE_DATA_NOT_FOUND = 'Data not found';
+    public const MESSAGE_DELETED_SUCCESSFULLY = 'Deleted Successfully';
+    public const MESSAGE_UPDATED_SUCCESSFULLY = 'Updated Successfully';
+
     /**
      * @var Insurance
      */
@@ -21,6 +26,14 @@ class InsuranceServices
      */
     private Vendor $vendor;
 
+    /**
+     * InsuranceServices Constructor
+     * 
+     * @param Insurance $insurance Instance of the Insurance class
+     * @param Vendor $vendor Instance of the Vendor class 
+     * 
+     * @return void
+     */
     public function __construct(Insurance $insurance, Vendor $vendor)
     {
         $this->insurance = $insurance;
@@ -46,25 +59,31 @@ class InsuranceServices
             return $this->insurance->errors();
         }
     }
-	 /**
+
+    /**
+     * Enriches the given request data with user details.
      *
-     * @param $request
+     * @param array $request The request data to be enriched.
+     * @return array Returns the enriched request data.
+     */
+    private function enrichRequestWithUserDetails($request): array
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
+
+        return $request;
+    }
+
+    /**
+     * create levy
+     *
+     * @param array $request The request data containing the create data
+     * 
      * @return mixed
      */
-    public function create($request): mixed
-    {   
-        $user = JWTAuth::parseToken()->authenticate();
-        $vendor = $this->vendor
-        ->where('company_id', $request['company_id'])
-        ->find($request['vendor_id']);
-
-        if(is_null($vendor)){
-            return [
-                'unauthorizedError' => 'Unauthorized'
-            ];
-        }
-
-        $request['created_by'] = $user['id'];
+    private function createInsurance($request)
+    {
         return $this->insurance::create([
             'no_of_worker_from' => $request["no_of_worker_from"],
             'no_of_worker_to' => $request["no_of_worker_to"],
@@ -73,9 +92,33 @@ class InsuranceServices
             'created_by' => $request["created_by"],
         ]);
     }
+
+	 /**
+     * Create the Insurance
+     * 
+     * @param $request The request data containing the create Insurance data
+     * 
+     * @return mixed Returns the created Insurance data
+     */
+    public function create($request): mixed
+    {  
+        $vendor = $this->vendor
+        ->where('company_id', $request['company_id'])
+        ->find($request['vendor_id']);
+
+        if(is_null($vendor)){
+            return self::ERROR_UNAUTHORIZED;
+        }
+        $request = $this->enrichRequestWithUserDetails($request);
+
+        return $this->createInsurance($request);
+    }
     /**
-     * @param $request
-     * @return mixed
+     * List the Inusurance
+     * 
+     * @param $request The request data containing the company_id, vendor_id,  search_param key
+     * 
+     * @return mixed Returns the paginated list of insurance.
      */
     public function list($request): mixed
     {
@@ -85,24 +128,40 @@ class InsuranceServices
             ->where('vendors.company_id', $request['company_id']);
         })
         ->where(function ($query) use ($request) {
-            if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
-                $query->where('vendor_id', '=', $request['vendor_id']);
-            }
-            if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('vendor_id', '=', $request['vendor_id'])
-                ->where('no_of_worker_from', 'like', '%' . $request['search_param'] . '%')
-                ->orWhere('no_of_worker_to', 'like', '%' . $request['search_param'] . '%')
-                ->orWhere('fee_per_pax', 'like', '%' . $request['search_param'] . '%');
-            }
+            $this->applyCondition($query,$request);
         })
         ->select('insurance.*')
         ->orderBy('insurance.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
-	 /**
+
+    /**
+     * Apply condition to the query.
      *
-     * @param $request
-     * @return mixed
+     * @param array $request The request data containing the search keyword.
+     * 
+     * @return void
+     */
+    private function applyCondition($query, $request)
+    {
+        $vendorId = $request['vendor_id'] ?? '';
+        $search = $request['search_param'] ?? '';
+        if (!empty($vendorId)) {
+            $query->where('vendor_id', '=', $vendorId);
+        }
+        if (!empty($search)) {
+            $query->where('no_of_worker_from', 'like', '%' . $search . '%')
+            ->orWhere('no_of_worker_to', 'like', '%' . $search . '%')
+            ->orWhere('fee_per_pax', 'like', '%' . $search . '%');
+        }
+    }
+
+	 /**
+     * Show the insurance detail
+     * 
+     * @param $request The request data containing the company_id, and id key
+     * 
+     * @return mixed Returns the insurance data
      */
     public function show($request) : mixed
     {
@@ -115,9 +174,11 @@ class InsuranceServices
         ->find($request['id']);
     }
 	 /**
-     *
-     * @param $request
-     * @return mixed
+     * Update the insurance
+     * 
+     * @param $request $request The request data containing the updata data
+     * 
+     * @return mixed Returns an array with two keys: 'isUpdated' and 'message'
      */
     public function update($request): mixed
     {           
@@ -130,22 +191,24 @@ class InsuranceServices
         ->find($request['id']);
         if(is_null($data)){
             return [
-                "isDeleted" => false,
-                "message" => "Data not found"
+                "isUpdated" => false,
+                "message" => self::MESSAGE_DATA_NOT_FOUND
             ];
         }
 
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['modified_by'] = $user['id'];
+        $request = $this->enrichRequestWithUserDetails($request);
+
         return  [
             "isUpdated" => $data->update($request->all()),
-            "message" => "Updated Successfully"
+            "message" => self::MESSAGE_UPDATED_SUCCESSFULLY
         ];
     }
 	 /**
-     *
-     * @param $request
-     * @return mixed
+     * Delethe the insurance
+     * 
+     * @param $request $request The request data containing the company_id, and id key
+     * 
+     * @return mixed Returns an array with two keys: 'isDeleted' and 'message'
      */    
     public function delete($request) : mixed
     {     
@@ -159,12 +222,12 @@ class InsuranceServices
         if(is_null($data)){
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_DATA_NOT_FOUND
             ];
         }
         return [
             "isDeleted" => $data->delete(),
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
     }
 }

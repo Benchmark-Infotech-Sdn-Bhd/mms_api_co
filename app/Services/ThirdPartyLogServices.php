@@ -14,6 +14,8 @@ class ThirdPartyLogServices
      * Assign the basic information for API log
      * @param $url
      * @param array $params
+     * 
+     * @return void
      */
     public function startApiLog($url, $params = [])
     {
@@ -28,6 +30,9 @@ class ThirdPartyLogServices
     /**
      * store the API log details into DB
      * @param $response
+     * 
+     * @return void
+     * 
      */
     public function endApiLog($response)
     {
@@ -39,8 +44,11 @@ class ThirdPartyLogServices
     }
 
     /**
+     * Delete the log
      * @param $request
+     * 
      * @return mixed
+     * 
      */
     public function delete() : mixed
     {
