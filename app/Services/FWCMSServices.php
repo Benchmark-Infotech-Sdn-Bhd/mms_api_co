@@ -12,6 +12,14 @@ use Illuminate\Support\Facades\Config;
 
 class FWCMSServices
 {
+    public const STATUS_APPROVED = 'Approved';
+    public const STATUS_REJECTED = 'Rejected';
+    public const STATUS_COMPLETED = 'Completed';
+
+    public const ERROR_INVALID_USER = ['InvalidUser' => true];
+    public const ERROR_QUOTA = ['quotaError' => true];
+    public const ERROR_PROCESS = ['processError' => true];
+
     /**
      * @var FWCMS
      */
@@ -140,33 +148,25 @@ class FWCMSServices
      */
     public function create($request): bool|array
     {
-        if (!empty($request['search'])) {
-            $validationResult = $this->createValidateRequest($request);
-            if (is_array($validationResult)) {
-                return $validationResult;
-            }
+        $validationResult = $this->createValidateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
         
         $applicationDetails = $this->findDirectrecruitmentApplications($request);
         if ($request['company_id'] != $applicationDetails->company_id) {
-            return [
-                'InvalidUser' => true
-            ];
+            return self::ERROR_INVALID_USER;
         }
         
         $proposalQuota = $this->getCountDirectrecruitmentApplicationsQuotaApplied($request);
-        $fwcmsQuota = $this->getCountFwcmsAppliedQuota($request);
+        $fwcmsQuota = $this->getFwcmsAppliedQuotaCount($request);
         $fwcmsQuota += $request['applied_quota'];
         if ($fwcmsQuota > $proposalQuota) {
-            return [
-                'quotaError' => true
-            ];
+            return self::ERROR_QUOTA;
         }
 
         if ($applicationDetails->status == Config::get('services.APPROVAL_COMPLETED')) {
-            return [
-                'processError' => true
-            ];
+            return self::ERROR_PROCESS;
         }
         
         $this->createFwcms($request);
@@ -184,100 +184,51 @@ class FWCMSServices
      */
     public function update($request): bool|array
     {
-        $validator = Validator::make($request, $this->updateValidation($request));
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
-        }
-        $applicationDetails = $this->directrecruitmentApplications->find($request['application_id']);
-        $fwcmsDetails = $this->fwcms->find($request['id']);
-        if($request['company_id'] != $applicationDetails->company_id) {
-            return [
-                'InvalidUser' => true
-            ];
-        } else if($request['application_id'] != $fwcmsDetails->application_id) {
-            return [
-                'InvalidUser' => true
-            ];
+        $validationResult = $this->updateValidateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
 
-        $proposalQuota = $this->directrecruitmentApplications->where('id', $request['application_id'])->sum('quota_applied');
-        $fwcmsQuota = $this->fwcms
-        ->where('application_id', $request['application_id'])
-        ->where('status', '<>' , 'Rejected')
-        ->where('id', '<>' , $request['id'])
-        ->sum('applied_quota');
+        $applicationDetails = $this->findDirectrecruitmentApplications($request);
+        $fwcmsDetails = $this->findFwcms($request);
+        if($request['company_id'] != $applicationDetails->company_id) {
+            return self::ERROR_INVALID_USER;
+        }
+
+        if($request['application_id'] != $fwcmsDetails->application_id) {
+            return self::ERROR_INVALID_USER;
+        }
+
+        $proposalQuota = $this->getCountDirectrecruitmentApplicationsQuotaApplied($request);
+        $fwcmsQuota = $this->getFwcmsAppliedApplicationQuotaCount($request);
         $fwcmsQuota += $request['applied_quota'];
         if($fwcmsQuota > $proposalQuota) {
-            return [
-                'quotaError' => true
-            ];
+            return self::ERROR_QUOTA;
         }
-        
-        $ksmReferenceNumbers = $this->levy->levyKSM($request['application_id']);
+
+        $ksmReferenceNumbers = $this->showLevyKSM($request);
         if(count($ksmReferenceNumbers) > 0) {
             if(in_array($fwcmsDetails->ksm_reference_number, $ksmReferenceNumbers)) {
-                return [
-                    'processError' => true
-                ];
+                return self::ERROR_PROCESS;
             } else {
-                $interviewDetails = $this->applicationInterviews->where('ksm_reference_number', $fwcmsDetails->ksm_reference_number)
-                                    ->where('application_id', $request['application_id'])
-                                    ->select('id')
-                                    ->first();
+
+                $interviewDetails = $this->showApplicationInterviews(['ksm_reference_number' => $fwcmsDetails->ksm_reference_number, 'application_id' => $request['application_id']]);
                 if(!empty($interviewDetails)) {
-                    $this->applicationInterviews->where('id', $interviewDetails->id)->update(['ksm_reference_number' => $request['ksm_reference_number']]);
+                    $this->updateApplicationInterviews($request, $interviewDetails->id);
                 }
             }
         }
-        $fwcmsDetails->application_id       = $request['application_id'] ?? $fwcmsDetails->application_id;
-        $fwcmsDetails->submission_date      = $request['submission_date'] ?? $fwcmsDetails->submission_date;
-        $fwcmsDetails->applied_quota        = $request['applied_quota'] ?? $fwcmsDetails->applied_quota;
-        $fwcmsDetails->status               = $request['status'] ?? $fwcmsDetails->status;
-        $fwcmsDetails->ksm_reference_number = $request['ksm_reference_number'] ?? $fwcmsDetails->ksm_reference_number;
-        $fwcmsDetails->remarks              = $request['remarks'] ?? $fwcmsDetails->remarks;
-        $fwcmsDetails->modified_by          = $request['modified_by'] ?? $fwcmsDetails->modified_by;
-        $fwcmsDetails->save();
 
-        $fwcmsCount = $this->fwcms->where('application_id', $request['application_id'])->count();
-        $fwcmsRejectedCount = $this->fwcms->where('application_id', $request['application_id'])
-                        ->where('status', 'Rejected')
-                        ->count();
-        $fwcmsApprovedCount = $this->fwcms->where('application_id', $request['application_id'])
-                        ->where('status', 'Approved')
-                        ->count();
-        if($request['status'] == 'Rejected') {
-            $approvalCount = $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])->count('id');
-            if($approvalCount > 0) {
-                if($fwcmsCount == ($fwcmsApprovedCount + $fwcmsRejectedCount)) {
-                    $applicationDetails->status = Config::get('services.APPROVAL_COMPLETED');
-                    $applicationDetails->save();
-                }
-            }
-        }
-        $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? $fwcmsDetails->ksm_reference_number;
-        $request['status'] = $request['status'] ?? $fwcmsDetails->status;
-        $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
-        $this->applicationSummaryServices->ksmUpdateStatus($request);
-
-        if($request['status'] == 'Approved') {
-            if(($applicationDetails->status <= Config::get('services.FWCMS_COMPLETED'))  || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')) {
-                $applicationDetails->status = Config::get('services.FWCMS_COMPLETED');
-                $applicationDetails->save();
-            }             
-        }
+        $this->updateFwcms($fwcmsDetails, $request);
+        $fwcmsCount = $this->showFwcmsApplicationCount($request);
+        $fwcmsRejectedCount = $this->showFwcmsRejectedApplicationCount($request);
+        $fwcmsApprovedCount = $this->showFwcmsApprovedApplicationCount($request);
         
-        if($request['status'] == 'Rejected') {
-            if($fwcmsCount == $fwcmsRejectedCount) {
-                $applicationDetails->status = Config::get('services.FWCMS_REJECTED');
-                $applicationDetails->save();
-            }
-        }
-
-        $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
-        $request['status'] = 'Completed';
-        $this->applicationSummaryServices->updateStatus($request);
+        $this->updateFwcmsApplicationApprovalCompletedStatus($applicationDetails, $request, $fwcmsCount, $fwcmsApprovedCount, $fwcmsRejectedCount);
+        $this->updateApplicationSummaryKsmStatus($fwcmsDetails, $request);
+        $this->updateFwcmsApplicationApprovedStatus($applicationDetails, $request);
+        $this->updateFwcmsApplicationRejectedStatus($applicationDetails, $request, $fwcmsCount, $fwcmsRejectedCount);
+        $this->updateApplicationSummaryStatus($request);
         
         return true;
     }
@@ -320,11 +271,11 @@ class FWCMSServices
         return $this->directrecruitmentApplications->where('id', $request['application_id'])->sum('quota_applied');
     }
 
-    private function getCountFwcmsAppliedQuota($request)
+    private function getFwcmsAppliedQuotaCount($request)
     {
         return $this->fwcms
             ->where('application_id', $request['application_id'])
-            ->where('status', '<>' , 'Rejected')
+            ->where('status', '<>' , self::STATUS_REJECTED)
             ->sum('applied_quota');
     }
 
@@ -356,5 +307,139 @@ class FWCMSServices
         $request['status'] = $request['status'] ?? '';
         $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
         $this->applicationSummaryServices->ksmUpdateStatus($request);
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
+    private function updateValidateRequest($request): array|bool
+    {
+        $validator = Validator::make($request, $this->updateValidation($request));
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    private function findFwcms($request)
+    {
+        return $this->fwcms->find($request['id']);
+    }
+
+    private function getFwcmsAppliedApplicationQuotaCount($request)
+    {
+        return $this->fwcms
+            ->where('application_id', $request['application_id'])
+            ->where('status', '<>' , self::STATUS_REJECTED)
+            ->where('id', '<>' , $request['id'])
+            ->sum('applied_quota');
+    }
+
+    private function showLevyKSM($request)
+    {
+        return $this->levy->levyKSM($request['application_id']); 
+    }
+
+    private function showApplicationInterviews($request)
+    {
+        return $this->applicationInterviews->where('ksm_reference_number', $request['ksm_reference_number'])
+            ->where('application_id', $request['application_id'])
+            ->select('id')
+            ->first();
+    }
+
+    private function updateApplicationInterviews($request, $interviewDetailsId)
+    {
+        $this->applicationInterviews->where('id', $interviewDetailsId)->update(['ksm_reference_number' => $request['ksm_reference_number']]);
+    }
+
+    private function updateFwcms($fwcmsDetails, $request)
+    {
+        $fwcmsDetails->application_id       = $request['application_id'] ?? $fwcmsDetails->application_id;
+        $fwcmsDetails->submission_date      = $request['submission_date'] ?? $fwcmsDetails->submission_date;
+        $fwcmsDetails->applied_quota        = $request['applied_quota'] ?? $fwcmsDetails->applied_quota;
+        $fwcmsDetails->status               = $request['status'] ?? $fwcmsDetails->status;
+        $fwcmsDetails->ksm_reference_number = $request['ksm_reference_number'] ?? $fwcmsDetails->ksm_reference_number;
+        $fwcmsDetails->remarks              = $request['remarks'] ?? $fwcmsDetails->remarks;
+        $fwcmsDetails->modified_by          = $request['modified_by'] ?? $fwcmsDetails->modified_by;
+        $fwcmsDetails->save();
+    }
+
+    private function showFwcmsApplicationCount($request)
+    {
+        return $this->fwcms->where('application_id', $request['application_id'])->count();
+    }
+
+    private function showFwcmsRejectedApplicationCount($request)
+    {
+        return $this->fwcms->where('application_id', $request['application_id'])
+            ->where('status', self::STATUS_REJECTED)
+            ->count();
+    }
+
+    private function showFwcmsApprovedApplicationCount($request)
+    {
+        return $this->fwcms->where('application_id', $request['application_id'])
+            ->where('status', self::STATUS_APPROVED)
+            ->count();   
+    }
+
+    private function updateApplicationSummaryKsmStatus($fwcmsDetails, $request)
+    {
+        $request['ksm_reference_number'] = $request['ksm_reference_number'] ?? $fwcmsDetails->ksm_reference_number;
+        $request['status'] = $request['status'] ?? $fwcmsDetails->status;
+        $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
+        $this->applicationSummaryServices->ksmUpdateStatus($request);
+    }
+
+    private function updateApplicationSummaryStatus($request)
+    {
+        $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[3];
+        $request['status'] = self::STATUS_COMPLETED;
+        $this->applicationSummaryServices->updateStatus($request);
+    }
+
+    private function updateFwcmsApplicationApprovedStatus($applicationDetails, $request)
+    {
+        if($request['status'] == self::STATUS_APPROVED) {
+            if(($applicationDetails->status <= Config::get('services.FWCMS_COMPLETED'))  || $applicationDetails->status == Config::get('services.FWCMS_REJECTED')) {
+                $applicationDetails->status = Config::get('services.FWCMS_COMPLETED');
+                $applicationDetails->save();
+            }             
+        }
+    }
+
+    private function updateFwcmsApplicationRejectedStatus($applicationDetails, $request, $fwcmsCount, $fwcmsRejectedCount)
+    {
+        if($request['status'] == self::STATUS_REJECTED) {
+            if($fwcmsCount == $fwcmsRejectedCount) {
+                $applicationDetails->status = Config::get('services.FWCMS_REJECTED');
+                $applicationDetails->save();
+            }
+        }
+    }
+
+    private function updateFwcmsApplicationApprovalCompletedStatus($applicationDetails, $request, $fwcmsCount, $fwcmsApprovedCount, $fwcmsRejectedCount)
+    {
+        if($request['status'] == self::STATUS_REJECTED) {
+            $approvalCount = $this->showDirectRecruitmentApplicationApprovalApplication($request);
+            if($approvalCount > 0) {
+                if($fwcmsCount == ($fwcmsApprovedCount + $fwcmsRejectedCount)) {
+                    $applicationDetails->status = Config::get('services.APPROVAL_COMPLETED');
+                    $applicationDetails->save();
+                }
+            }
+        }
+    }
+
+    private function showDirectRecruitmentApplicationApprovalApplication($request)
+    {
+        return $this->directRecruitmentApplicationApproval->where('application_id', $request['application_id'])->count('id');
     }
 }

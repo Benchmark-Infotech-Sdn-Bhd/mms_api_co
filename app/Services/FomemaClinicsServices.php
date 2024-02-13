@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Services;
 
 use App\Models\FomemaClinics;
@@ -10,13 +9,24 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class FomemaClinicsServices
 {
+    public const MESSAGE_UPDATED_SUCCESSFULLY = 'Updated Successfully';
+    public const MESSAGE_DATA_NOT_FOUND = "Data not found";
+    public const MESSAGE_DELETED_SUCCESSFULLY = "Deleted Successfully";
+
+    public const ERROR_INVALID_USER = ['InvalidUser' => true];
+
     /**
      * @var fomemaClinics
      */
     private FomemaClinics $fomemaClinics;
-
+    
+    /**
+     * Constructor method.
+     * 
+     * @param FomemaClinics $fomemaClinics Instance of the FomemaClinics class.
+     */
     public function __construct(
-        FomemaClinics $fomemaClinics
+        FomemaClinics     $fomemaClinics
     )
     {
         $this->fomemaClinics = $fomemaClinics;
@@ -51,8 +61,7 @@ class FomemaClinicsServices
      */
     public function create($request): mixed
     { 
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['created_by'] = $user['id'];
+        $user = $this->getJwtUserAuthenticate();
         return $this->fomemaClinics::create([
             'clinic_name' => $request["clinic_name"],
             'person_in_charge' => $request["person_in_charge"],
@@ -61,8 +70,8 @@ class FomemaClinicsServices
             'state' => $request["state"],
             'city' => $request["city"],
             'postcode' => $request["postcode"],
-            'created_by' => $request["created_by"],
-            'modified_by' => $request["created_by"],
+            'created_by' => $user['id'],
+            'modified_by' => $user['id'],
             'company_id' => $user['company_id']
         ]);
     }
@@ -104,16 +113,15 @@ class FomemaClinicsServices
     public function update($request): mixed
     {     
         $data = $this->fomemaClinics::find($request['id']);
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getJwtUserAuthenticate();
         $request['modified_by'] = $user['id'];
         if ($data->company_id != $user['company_id']) {
-            return [
-                'InvalidUser' => true
-            ];
+            return self::ERROR_INVALID_USER;
         }
+
         return  [
             "isUpdated" => $data->update($request->all()),
-            "message" => "Updated Successfully"
+            "message" => self::MESSAGE_UPDATED_SUCCESSFULLY
         ];
     }
 
@@ -125,21 +133,31 @@ class FomemaClinicsServices
     public function delete($request): mixed
     {    
         $data = $this->fomemaClinics::find($request['id']);
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getJwtUserAuthenticate();
         if (is_null($data)) {
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_DATA_NOT_FOUND
             ];
         }
+
         if ($data->company_id != $user['company_id']) {
-            return [
-                'InvalidUser' => true
-            ];
+            return self::ERROR_INVALID_USER;
         }
+
         return [
             "isDeleted" => $data->delete(),
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
+    }
+
+    /**
+     * get the user of jwt authenticate.
+     *
+     * @return mixed Returns the user data.
+     */
+    private function getJwtUserAuthenticate(): mixed
+    {
+        return JWTAuth::parseToken()->authenticate();
     }
 }
