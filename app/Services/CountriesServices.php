@@ -38,6 +38,8 @@ class CountriesServices
      * @param Countries $countries Instance of the Countries class.
      * @param ValidationServices $validationServices Instance of the ValidationServices class.
      * @param AgentServices $agentServices Instance of the AgentServices class.
+     * 
+     * @return void
      */
     public function __construct(
         Countries              $countries,
@@ -51,8 +53,22 @@ class CountriesServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Creates a new country from the given request data.
+     * 
+     * @param array $request The array containing country data.
+     *                      The array should have the following keys:
+     *                      - company_id: The company id of the country.
+     *                      - country_name: The country name of the country.
+     *                      - system_type: The system type of the country.
+     *                      - fee: The fee of the country.
+     *                      - bond: The bond of the country.
+     *                      - status: The status of the country.
+     *                      - created_by: The ID of the country who created the application.
+     *                      - modified_by: (int) The updated country modified by.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "countryExistsError": A array returns countryExists if country has already created
+     * - "isSubmit": A object indicating if the country was successfully created.
      */
     public function create($request) : mixed
     {
@@ -70,8 +86,20 @@ class CountriesServices
     }
 
     /**
-     * @param $request
-     * @return array
+     * Updates the country data with the given request.
+     * 
+     * @param array $request The array containing country data.
+     *                      The array should have the following keys:
+     *                      - country_name: The updated country name.
+     *                      - system_type: The updated system type.
+     *                      - costing_status: The updated costing status.
+     *                      - fee: The updated fee.
+     *                      - bond: The updated bond.
+     *                      - status: The updated status.
+     *                      - modified_by: The updated country modified by.
+     * @return array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "isUpdated" (boolean): Indicates whether the data was updated. Always set to `false`.
      */
     public function update($request) : array
     {
@@ -92,8 +120,12 @@ class CountriesServices
     }
 
     /**
-     * @param $request
-     * @return array
+     * Delete the country
+     * 
+     * @param array $request The array containing country id.
+     * @return array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "isDeleted" (boolean): Indicates whether the data was deleted. Always set to `false`.
      */
     public function delete($request) : array
     {
@@ -118,8 +150,10 @@ class CountriesServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Show the country.
+     * 
+     * @param array $request The request data containing company id, country id
+     * @return mixed Returns the country.
      */
     public function show($request) : mixed
     {
@@ -132,8 +166,10 @@ class CountriesServices
     }
 
     /**
-     * @param $companyId
-     * @return mixed
+     * List of the country.
+     * 
+     * @param array $request The request data containing company id
+     * @return mixed Returns the country.
      */
     public function dropdown($companyId) : mixed
     {
@@ -145,8 +181,12 @@ class CountriesServices
     }
 
     /**
-     * @param $request
-     * @return array
+     * Updates the costing status with the given request.
+     * 
+     * @param array $request The array containing country id, status.
+     * @return array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "isUpdated" (boolean): Indicates whether the data was updated. Always set to `false`.
      */
     public function updateCostingStatus($request) : array
     {
@@ -171,8 +211,10 @@ class CountriesServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Returns a paginated list of countries based on the given search request.
+     * 
+     * @param array $request The search request parameters and company id.
+     * @return mixed Returns an array with a 'validate' key containing the validation errors, if the search request is invalid. Otherwise, returns a paginated list of countries.
      */
     public function list($request) : mixed
     {
@@ -190,8 +232,12 @@ class CountriesServices
     }
 
     /**
-     * @param $request
-     * @return array
+     * Updates the country status with the given request.
+     * 
+     * @param array $request The array containing country id, status.
+     * @return array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "isUpdated" (boolean): Indicates whether the data was updated. Always set to `false`.
      */
     public function updateStatus($request) : array
     {
@@ -227,7 +273,13 @@ class CountriesServices
 
         return true;
     }
-
+    
+    /**
+     * Validate the country given request data.
+     *
+     * @param array $request The request data containing country name, company id.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
     private function validateCountryExists($request)
     {
         $countryExists = $this->countries
@@ -242,7 +294,23 @@ class CountriesServices
 
         return true;
     }
-
+    
+    /**
+     * Creates a new country from the given request data.
+     * 
+     * @param array $request The array containing country data.
+     *                      The array should have the following keys:
+     *                      - company_id: The company id of the country.
+     *                      - country_name: The country name of the country.
+     *                      - system_type: The system type of the country.
+     *                      - fee: The fee of the country.
+     *                      - bond: The bond of the country.
+     *                      - status: The status of the country.
+     *                      - created_by: The ID of the country who created the application.
+     *                      - modified_by: (int) The updated country modified by.
+     * 
+     * @return country The newly created country object.
+     */
     private function createCountry($request)
     {
         return $this->countries->create([
@@ -274,12 +342,34 @@ class CountriesServices
 
         return true;
     }
-
+    
+    /**
+     * Show the country.
+     * 
+     * @param array $request The request data containing country id, company id
+     * @return mixed Returns the country.
+     */
     private function showCompanyCountry($request)
     {
         return $this->countries->where('company_id', $request['company_id'])->find($request['id']);
     }
-
+    
+    /**
+     * Updates the country data with the given request.
+     * 
+     * @param object $country The country object to be updated.
+     * @param array $request The array containing country data.
+     *                      The array should have the following keys:
+     *                      - country_name: The updated country name.
+     *                      - system_type: The updated system type.
+     *                      - costing_status: The updated costing status.
+     *                      - fee: The updated fee.
+     *                      - bond: The updated bond.
+     *                      - status: The updated status.
+     *                      - modified_by: The updated country modified by.
+     * @return array Returns an array with the following keys:
+     * - "isUpdated" (boolean): Indicates whether the data was updated. Always set to `false`.
+     */
     private function updateCountry($country, $request)
     {
         return  [
@@ -366,7 +456,15 @@ class CountriesServices
 
         return true;
     }
-
+    
+    /**
+     * Apply search filter to the query.
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the search keyword.
+     * 
+     * @return void
+     */
     private function applySearchFilter($query, $request)
     {
         if (!empty($request['search_param'])) {
@@ -390,7 +488,15 @@ class CountriesServices
 
         return true;
     }
-
+    
+    /**
+     * Updates the country status with the given request.
+     * 
+     * @param object $country The country object to be updated.
+     * @param array $request The array containing country id, status.
+     * @return array Returns an array with the following keys:
+     * - "isUpdated" (boolean): Indicates whether the data was updated. Always set to `false`.
+     */
     private function updateCountryStatus($country, $request)
     {
         $country->status = $request['status'];

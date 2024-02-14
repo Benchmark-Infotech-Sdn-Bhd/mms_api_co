@@ -13,6 +13,8 @@ use App\Models\CRMProspect;
 
 class WorkerStatisticsReportServices
 {
+    public const DEFAULT_INTEGER_VALUE_ONE = 1;
+
     /**
      * @var CRMProspect
      */
@@ -28,6 +30,8 @@ class WorkerStatisticsReportServices
      * 
      * @param CRMProspect $crmProspect Instance of the CRMProspect class.
      * @param ValidationServices $validationServices Instance of the ValidationServices class.
+     * 
+     * @return void
      */
     public function __construct(
         CRMProspect            $crmProspect,
@@ -39,9 +43,11 @@ class WorkerStatisticsReportServices
     }
 
     /**
-     * @param $request
-     * @return mixed
-     */   
+     * Returns a paginated list of crm prospect based on the given search request.
+     * 
+     * @param array $request The search request parameters.
+     * @return mixed Returns an array with a 'validate' key containing the validation errors, if the search request is invalid. Otherwise, returns a paginated list of crm prospect.
+     */  
     public function list($request): mixed
     {
         $validationResult = $this->listValidateRequest($request);
@@ -67,7 +73,7 @@ class WorkerStatisticsReportServices
                 $this->applySearchFilter($query, $request);
             });
 
-        if(isset($request['export']) && !empty($request['export']) ){
+        if(!empty($request['export']) ){
             $data = $this->selectExportData($data);
         } else {
             $data = $this->selectListData($data);
@@ -75,20 +81,43 @@ class WorkerStatisticsReportServices
 
         return $data;
     }
-
+    
+    /**
+     * Apply the "directrecruitment application approval" filter to the query
+     *
+     * @param Illuminate\Database\Query\Builder $join The query builder instance
+     *
+     * @return void
+     */
     private function applyDirectrecruitmentApplicationApprovalTableFilter($join)
     {
         $join->on('levy.application_id', '=', 'directrecruitment_application_approval.application_id')->on('levy.new_ksm_reference_number', '=', 'directrecruitment_application_approval.ksm_reference_number');
     }
-
+    
+    /**
+     * Apply the "company" filter to the query
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the company id
+     *
+     * @return void
+     */
     private function applyCompanyFilter($query, $request)
     {
         $query->whereIn('crm_prospects.company_id', $request['company_id'])
-            ->where('crm_prospect_services.service_id', 1)
+            ->where('crm_prospect_services.service_id', self::DEFAULT_INTEGER_VALUE_ONE)
             ->whereNotNull('levy.ksm_reference_number')
             ->whereNotNull('directrecruitment_application_approval.ksm_reference_number');
     }
-
+    
+    /**
+     * Apply search filter to the query.
+     *
+     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the search keyword.
+     * 
+     * @return void
+     */
     private function applySearchFilter($query, $request)
     {
         if(!empty($request['search'])) {
@@ -114,7 +143,12 @@ class WorkerStatisticsReportServices
 
         return true;
     }
-
+    
+    /**
+     * Select prospect data from the query.
+     *
+     * @return $data The modified instance of the class.
+     */
     private function selectExportData($data)
     {
         return $data->select('crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospect_services.sector_name', 'levy.approved_quota', 'levy.new_ksm_reference_number')
@@ -123,7 +157,12 @@ class WorkerStatisticsReportServices
             ->orderBy('crm_prospects.id','DESC')
             ->get();
     }
-
+    
+    /**
+     * Select prospect data from the query.
+     *
+     * @return $data The modified instance of the class.
+     */
     private function selectListData($data)
     {
         return $data->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospect_services.sector_name', 'levy.ksm_reference_number', 'levy.approved_quota', 'levy.new_ksm_reference_number')

@@ -20,6 +20,8 @@ class ModulesServices
      * Constructor method.
      * 
      * @param Module $module Instance of the Module class.
+     * 
+     * @return void
      */
     public function __construct(
         Module     $module
@@ -29,7 +31,10 @@ class ModulesServices
     }
 
     /**
-     * @return mixed
+     * Returns a list of super admin module | company module permission based on the given search request.
+     * 
+     * @param array $request The search request parameters.
+     * @return mixed Returns an array list of super admin module | company module permission based on the given search request.
      */
     public function dropDown($request): mixed
     {
@@ -41,16 +46,19 @@ class ModulesServices
     }
 
     /**
-     * @return mixed
+     * Returns a list of module based on the given search request.
+     * 
+     * @param array $request The array containing user type.
+     * @return mixed Returns an array is "empty" user type has not allowed. Otherwise, returns a list of module.
      */
     public function featureDropDown($request): mixed
     {
         if($this->isSuperAdminUser($request)) {
             return $this->module->where('status', self::DEFAULT_INTEGER_VALUE_ONE)
-            ->whereNotIn('id', Config::get('services.SUPER_ADMIN_MODULES'))
-            ->where('feature_flag', self::DEFAULT_INTEGER_VALUE_ONE)
-            ->select('id', 'module_name')
-            ->get();
+                ->whereNotIn('id', Config::get('services.SUPER_ADMIN_MODULES'))
+                ->where('feature_flag', self::DEFAULT_INTEGER_VALUE_ONE)
+                ->select('id', 'module_name')
+                ->get();
         } 
         return [];
     }
@@ -65,7 +73,12 @@ class ModulesServices
     {
         return $user['user_type'] == self::USER_TYPE_SUPER_ADMIN;
     }
-
+    
+    /**
+     * Show the super admin module.
+     * 
+     * @return mixed Returns the module.
+     */
     private function showSuperAdminModule()
     {
         return $this->module->where('status', self::DEFAULT_INTEGER_VALUE_ONE)
@@ -74,7 +87,13 @@ class ModulesServices
             ->select('id', 'module_name')
             ->get();
     }
-
+    
+    /**
+     * Show the company module permission.
+     * 
+     * @param array $request The request data containing company id
+     * @return mixed Returns the company module permission.
+     */
     private function showCompanyModulePermission($request)
     {
         return $this->module::join('company_module_permission', function ($join) use ($request) {

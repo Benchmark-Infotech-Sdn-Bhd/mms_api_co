@@ -14,6 +14,18 @@ use Carbon\Carbon;
 
 class DocumentChecklistAttachmentsServices
 {
+    public const MESSAGE_DATA_NOT_FOUND = "Data not found";
+    public const MESSAGE_DOCUMENT_NOT_FOUND = "Document not found";
+    public const MESSAGE_DOCUMENT_UPLOADED_SUCCESSFULLY = "Document uploaded Successfully";
+    public const MESSAGE_DELETED_SUCCESSFULLY = "Deleted Successfully";
+    public const STATUS_PENDING = "Pending";
+    public const STATUS_PROPOSAL_SUBMITTED = "Proposal Submitted";
+    public const STATUS_COMPLETED = "Completed";
+    public const STATUS_CHECKLIST_COMPLETED = "Checklist Completed";
+    public const FILE_TYPE_CHECKLIST = "checklist";
+    public const DEFAULT_INTEGER_VALUE_ZERO = 0;
+    public const DEFAULT_INTEGER_VALUE_ONE = 1;
+
     /**
      * @var DocumentChecklistAttachments
      */
@@ -99,7 +111,7 @@ class DocumentChecklistAttachmentsServices
         if(is_null($documentChecklist)){
             return [
                 "isUploaded" => false,
-                "message"=> "Data not found"
+                "message"=> self::MESSAGE_DATA_NOT_FOUND
             ];
         }
 
@@ -110,7 +122,7 @@ class DocumentChecklistAttachmentsServices
         {
             return [
                 "isUploaded" => false,
-                "message" => "Document not found"
+                "message" => self::MESSAGE_DOCUMENT_NOT_FOUND
             ];
         }
         
@@ -118,7 +130,7 @@ class DocumentChecklistAttachmentsServices
 
         return [
             "isUploaded" => true,
-            "message" => "Document uploaded Successfully"
+            "message" => self::MESSAGE_DOCUMENT_UPLOADED_SUCCESSFULLY
         ];
     }
     /**
@@ -138,14 +150,14 @@ class DocumentChecklistAttachmentsServices
         if(is_null($directrecruitmentApplicationAttachment)){
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_DATA_NOT_FOUND
             ];
         }
 
         $directRecruitmentApplicationChecklist = $this->showDirectRecruitmentApplicationChecklistServices(["application_id" =>  $directrecruitmentApplicationAttachment['application_id']]);
         $res = [
             "isDeleted" => $directrecruitmentApplicationAttachment->delete(),
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
 
         if($res['isDeleted']){
@@ -218,7 +230,7 @@ class DocumentChecklistAttachmentsServices
     private function updateApplicationSummaryStatus($request)
     {
         $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[2];
-        $request['status'] = 'Completed';
+        $request['status'] = self::STATUS_COMPLETED;
         $this->applicationSummaryServices->updateStatus($request);
     }
 
@@ -233,11 +245,11 @@ class DocumentChecklistAttachmentsServices
             $this->documentChecklistAttachments->create([
                 "document_checklist_id" => $request['document_checklist_id'],
                 "application_id" => $request['application_id'],
-                "application_checklist_id" => $directRecruitmentApplicationChecklist['id'] ?? 0,
-                "file_type" => 'checklist',
+                "application_checklist_id" => $directRecruitmentApplicationChecklist['id'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+                "file_type" => self::FILE_TYPE_CHECKLIST,
                 "file_url" =>  $fileUrl ,
-                "created_by"    => $request['created_by'] ?? 0,
-                "modified_by"   => $request['created_by'] ?? 0    
+                "created_by"    => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+                "modified_by"   => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO    
             ]);
         }
     }
@@ -246,9 +258,9 @@ class DocumentChecklistAttachmentsServices
     {
         $count = $this->getDocumentChecklistAttachmentsCount($request);
         $directRecruitmentApplicationChecklist->modified_on = Carbon::now();
-        if($count == 1){
-            $res = $this->updateDirectRecruitmentStatus($request, 'Checklist Completed');
-            $directRecruitmentApplicationChecklist->application_checklist_status = 'Completed';
+        if($count == self::DEFAULT_INTEGER_VALUE_ONE){
+            $res = $this->updateDirectRecruitmentStatus($request, self::STATUS_CHECKLIST_COMPLETED);
+            $directRecruitmentApplicationChecklist->application_checklist_status = self::STATUS_COMPLETED;
             $directRecruitmentApplicationChecklist->modified_by = $request['modified_by'] ?? $directRecruitmentApplicationChecklist['modified_by'];
             $directRecruitmentApplicationChecklist->submitted_on = Carbon::now();
             
@@ -318,9 +330,9 @@ class DocumentChecklistAttachmentsServices
     {
         $count = $this->getDirectrecruitmentApplicationAttachmentCount($directrecruitmentApplicationAttachment);
         $directRecruitmentApplicationChecklist->modified_on = Carbon::now();
-        if($count == 0){
-            $resUpdate = $this->updateDirectRecruitmentStatus(['application_id' => $directrecruitmentApplicationAttachment['application_id']] , 'Proposal Submitted');
-            $directRecruitmentApplicationChecklist->application_checklist_status = 'Pending';
+        if($count == self::DEFAULT_INTEGER_VALUE_ZERO){
+            $resUpdate = $this->updateDirectRecruitmentStatus(['application_id' => $directrecruitmentApplicationAttachment['application_id']] , self::STATUS_PROPOSAL_SUBMITTED);
+            $directRecruitmentApplicationChecklist->application_checklist_status = self::STATUS_PENDING;
             $directRecruitmentApplicationChecklist->modified_by = $request['modified_by'] ?? $directRecruitmentApplicationChecklist['modified_by'];
             
             $this->deleteApplicationSummaryStatus($directrecruitmentApplicationAttachment, $request);

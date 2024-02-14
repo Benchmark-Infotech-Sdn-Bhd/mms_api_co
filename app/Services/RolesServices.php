@@ -34,6 +34,8 @@ class RolesServices
      * Constructor method.
      * @param Role $role Instance of the Role class.
      * @param Company $company Instance of the Company class.
+     * 
+     * @return void
      */
     public function __construct(
         Role        $role, 
@@ -45,29 +47,10 @@ class RolesServices
     }
 
     /**
-     * @return array
-     */
-    public function createValidation(): array
-    {
-        return [
-            'name' => 'required|regex:/^[a-zA-Z ]*$/|max:250',
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public function updateValidation(): array
-    {
-        return [
-            'id' => 'required',
-            'name' => 'required|regex:/^[a-zA-Z ]*$/|max:250'
-        ];
-    }
-
-    /**
-     * @param $request
-     * @return mixed
+     * Returns a paginated list of role based on the given search request.
+     * 
+     * @param array $request The search request parameters and company id.
+     * @return mixed Returns the paginated list of role.
      */
     public function list($request): mixed
     {
@@ -82,8 +65,10 @@ class RolesServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Show the role.
+     * 
+     * @param array $request The request data containing role id, company id
+     * @return mixed Returns the role.
      */
     public function show($request): mixed
     {
@@ -91,8 +76,12 @@ class RolesServices
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * Creates a new role from the given request data.
+     * 
+     * @return bool|array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "adminUserError": A array returns adminUserError if special permission has not allowed.
+     * - "isSubmit": A boolean indicating if the role was successfully updated.
      */
     public function create($request): bool|array
     {
@@ -118,8 +107,11 @@ class RolesServices
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * Updates the role from the given request data.
+     * 
+     * @return bool|array Returns an array with the following keys:
+     * - "unauthorizedError": A array returns unauthorized if role is null.
+     * - "isSubmit": A boolean indicating if the role was successfully updated.
      */
     public function update($request): bool|array
     {
@@ -134,8 +126,10 @@ class RolesServices
     }
 
     /**
-     * @param $request
-     * @return bool
+     * Delete the role.
+     * 
+     * @param array $request The request data containing the role ID and company ID.
+     * @return boolean indicating if the role was successfully deleted.
      */
     public function delete($request): bool
     {
@@ -143,8 +137,10 @@ class RolesServices
     }
 
     /**
-     * @param $companyId
-     * @return mixed
+     * Returns a list of role based on the given search request.
+     * 
+     * @param array $companyId The array of company ids
+     * @return mixed Returns the list of role.
      */
     public function dropDown($companyId): mixed
     {
@@ -155,8 +151,11 @@ class RolesServices
     }
 
     /**
-     * @param $request
-     * @return array
+     * Updates the role status with the given request.
+     * 
+     * @param array $request The array containing role id, status.
+     * @return array Returns an array with the following keys:
+     * - "isUpdated" (boolean): Indicates whether the data was updated. Always set to `false`.
      */
     public function updateStatus($request) : array
     {
@@ -181,10 +180,12 @@ class RolesServices
      *
      * @param Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the search keyword.
+     * 
+     * @return void
      */
     private function applySearchFilter($query, $request)
     {
-        if (isset($request['search']) && !empty($request['search'])) {
+        if (!empty($request['search'])) {
             $query->where('role_name', 'like', '%'.$request['search'].'%');
         }
     }
@@ -225,7 +226,23 @@ class RolesServices
 
         return true;
     }
-
+    
+    /**
+     * Creates a new role from the given request data.
+     * 
+     * @param array $request The array containing role data.
+     *                      The array should have the following keys:
+     *                      - role_name: The role name of the role.
+     *                      - system_role: The system role of the role.
+     *                      - status: The status of the role.
+     *                      - parent_id: The parent id of the role.
+     *                      - company_id: The company id of the role.
+     *                      - special_permission: The special permission of the role.
+     *                      - created_by: The ID of the role who created the application.
+     *                      - modified_by: (int) The updated role modified by.
+     * 
+     * @return role The newly created role object.
+     */
     private function createRole($request)
     {
         return $this->role->create([
@@ -239,18 +256,42 @@ class RolesServices
             'special_permission' => $request['special_permission'] ?? self::DEFAULT_INTEGER_VALUE_ZERO
         ]);
     }
-
+    
+    /**
+     * Show the company.
+     * 
+     * @param array $request The request data containing company id
+     * @return mixed Returns the company.
+     */
     private function showCompany($request)
     {
         return $this->company->where('parent_id', $request['company_id'])
             ->select('id')
-            ->get()->toArray();
+            ->get()
+            ->toArray();
     }
-
+     
+    /**
+     * Creates a new special permission role from the given request data.
+     * 
+     * @param array $subsidiaryCompanyIds The array containing subsidiary company ids.
+     * @param array $roleDetails The array containing role data.
+     *                      The array should have the following keys:
+     *                      - role_name: The role name of the role.
+     *                      - system_role: The system role of the role.
+     *                      - status: The status of the role.
+     *                      - parent_id: The parent id of the role.
+     *                      - subsidiaryCompanyId: The subsidiary company id of the role.
+     *                      - parent_role_id: The parent role id of the role.
+     *                      - created_by: The ID of the role who created the application.
+     *                      - modified_by: (int) The updated role modified by.
+     * 
+     * @return void
+     */
     private function createSpecialPermission($subsidiaryCompanyIds, $roleDetails)
     {
         foreach ($subsidiaryCompanyIds as $subsidiaryCompanyId) {
-            $subRole = $this->role->create([
+            $this->role->create([
                 'role_name'     => $roleDetails->role_name,
                 'system_role'   => $roleDetails->system_role,
                 'status'        => $roleDetails->status,
@@ -263,12 +304,32 @@ class RolesServices
             ]);
         }
     }
-
+    
+    /**
+     * Show the role.
+     * 
+     * @param array $request The request data containing company id, role id
+     * @return mixed Returns the role.
+     */
     private function showRole($request)
     {
         return $this->role::where('company_id', $request['company_id'])->find($request['id']);
     }
-
+    
+    /**
+     * Updates the role data with the given request.
+     * 
+     * @param object $role The role object to be updated.
+     * @param array $request The array containing role data.
+     *                      The array should have the following keys:
+     *                      - name: The updated name.
+     *                      - system_role: The updated system type.
+     *                      - status: The updated status.
+     *                      - parent_id: The updated parent id.
+     *                      - modified_by: The updated role modified by.
+     * 
+     * @return void
+     */
     private function updateRole($role, $request)
     {
         $role->role_name    = $request['name'] ?? $role->role_name;

@@ -16,7 +16,7 @@ class FomemaClinicsServices
     public const ERROR_INVALID_USER = ['InvalidUser' => true];
 
     /**
-     * @var fomemaClinics
+     * @var FomemaClinics
      */
     private FomemaClinics $fomemaClinics;
     
@@ -24,6 +24,8 @@ class FomemaClinicsServices
      * Constructor method.
      * 
      * @param FomemaClinics $fomemaClinics Instance of the FomemaClinics class.
+     * 
+     * @return void
      */
     public function __construct(
         FomemaClinics     $fomemaClinics
@@ -33,8 +35,9 @@ class FomemaClinicsServices
     }
 
     /**
-     * @param $request
-     * @return mixed | void
+     * Creates the validation rules for create a new fomema clinics.
+     *
+     * @return array The array containing the validation rules.
      */
     public function inputValidation($request)
     {
@@ -44,8 +47,9 @@ class FomemaClinicsServices
     }
 
     /**
-     * @param $request
-     * @return mixed | void
+     * Creates the validation rules for updating the fomema clinics.
+     *
+     * @return array The array containing the validation rules.
      */
     public function updateValidation($request)
     {
