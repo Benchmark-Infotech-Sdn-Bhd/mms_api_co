@@ -92,25 +92,46 @@ class CRMServices
     private RolePermission $rolePermission;
 
     /**
-     * RolesServices constructor.
-     * @param CRMProspect $crmProspect
-     * @param CRMProspectService $crmProspectService
-     * @param CRMProspectAttachment $crmProspectAttachment
-     * @param LoginCredential $loginCredential
-     * @param Storage $storage
-     * @param Sectors $sectors
-     * @param DirectrecruitmentApplications $directrecruitmentApplications;
-     * @param SystemType $systemType
-     * @param TotalManagementApplications $totalManagementApplications
-     * @param EContractApplications $eContractApplications
-     * @param InvoiceServices $invoiceServices
-     * @param AuthServices $authServices
-     * @param User $user
-     * @param Role $role
-     * @param CompanyModulePermission $companyModulePermission
-     * @param RolePermission $rolePermission
+     * CRMServices constructor.
+     * 
+     * @param CRMProspect $crmProspect Instance of the CRMProspect class
+     * @param CRMProspectService $crmProspectService Instance of the CRMProspectService class
+     * @param CRMProspectAttachment $crmProspectAttachment Instance of the CRMProspectAttachment class
+     * @param LoginCredential $loginCredential Instance of the LoginCredential class
+     * @param Storage $storage Instance of the Storage class
+     * @param Sectors $sectors Instance of the Sectors class
+     * @param DirectrecruitmentApplications $directrecruitmentApplications Instance of the DirectrecruitmentApplications class
+     * @param SystemType $systemType Instance of the SystemType class
+     * @param TotalManagementApplications $totalManagementApplications Instance of the TotalManagementApplications class
+     * @param EContractApplications $eContractApplications Instance of the EContractApplications class
+     * @param InvoiceServices $invoiceServices Instance of the InvoiceServices class
+     * @param AuthServices $authServices Instance of the AuthServices class
+     * @param User $user Instance of the User class
+     * @param Role $role Instance of the Role class
+     * @param CompanyModulePermission $companyModulePermission Instance of the CompanyModulePermission class
+     * @param RolePermission $rolePermission Instance of the RolePermission class
+     * 
+     * @return void
+     * 
      */
-    public function __construct(CRMProspect $crmProspect, CRMProspectService $crmProspectService, CRMProspectAttachment $crmProspectAttachment, LoginCredential $loginCredential, Storage $storage, Sectors $sectors, DirectrecruitmentApplications $directrecruitmentApplications, SystemType $systemType, TotalManagementApplications $totalManagementApplications, EContractApplications $eContractApplications, InvoiceServices $invoiceServices, AuthServices $authServices, User $user, Role $role, CompanyModulePermission $companyModulePermission, RolePermission $rolePermission)
+    public function __construct(
+        CRMProspect                     $crmProspect, 
+        CRMProspectService              $crmProspectService, 
+        CRMProspectAttachment           $crmProspectAttachment, 
+        LoginCredential                 $loginCredential, 
+        Storage                         $storage, 
+        Sectors                         $sectors, 
+        DirectrecruitmentApplications   $directrecruitmentApplications, 
+        SystemType $systemType, 
+        TotalManagementApplications     $totalManagementApplications, 
+        EContractApplications           $eContractApplications, 
+        InvoiceServices                 $invoiceServices, 
+        AuthServices                    $authServices, 
+        User                            $user, 
+        Role                            $role, 
+        CompanyModulePermission         $companyModulePermission, 
+        RolePermission                  $rolePermission
+    )
     {
         $this->crmProspect = $crmProspect;
         $this->crmProspectService = $crmProspectService;
@@ -130,7 +151,9 @@ class CRMServices
         $this->rolePermission = $rolePermission;
     }
     /**
-     * @return array
+     * validate the update create request data
+     * 
+     * @return array The validation rules for the input data.
      */
     public function createValidation(): array
     {
@@ -156,8 +179,10 @@ class CRMServices
         ];
     }
     /**
+     * validate the update update request data
+     * 
      * @param $params
-     * @return array
+     * @return array The validation rules for the input data.
      */
     public function updateValidation($params): array
     {
@@ -183,7 +208,9 @@ class CRMServices
         ];
     }
     /**
-     * @return array
+     * custom message
+     * 
+     * @return array The validation rules for the input data.
      */
     public function crmValidationCustomMessage(): array
     {
@@ -196,7 +223,9 @@ class CRMServices
         ];
     }
     /**
-     * @return array
+     * validate the update search request data
+     * 
+     * @return array The validation rules for the input data.
      */
     public function searchValidation(): array
     {
@@ -204,13 +233,18 @@ class CRMServices
             'search' => 'required|min:3'
         ];
     }
+
     /**
-     * @param $request
-     * @return mixed
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
      */
-    public function list($request): mixed
+    private function validateListRequest($request): array|bool
     {
-        if(isset($request['search']) && !empty($request['search'])){
+	    $search = $request['search'] ?? '';
+        if(!empty($search)){
             $validator = Validator::make($request, $this->searchValidation());
             if($validator->fails()) {
                 return [
@@ -218,23 +252,72 @@ class CRMServices
                 ];
             }
         }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateCreateRequest($request): array|bool
+    {
+	    $validator = Validator::make($request->toArray(), $this->createValidation(), $this->crmValidationCustomMessage());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateUpdateRequest($request): array|bool
+    {
+	    $validator = Validator::make($request->toArray(), $this->updateValidation($request), $this->crmValidationCustomMessage());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * List the CRM
+     * 
+     * @param $request The request data containg the 'search', 'filter', 'company_id'
+     * 
+     * @return mixed Returns the paginated list of crm.
+     */
+    public function list($request): mixed
+    {
+        $validationResult = $this->validateListRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
         return $this->crmProspect
             ->leftJoin('employee', 'employee.id', 'crm_prospects.registered_by')
             ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
             ->whereIn('crm_prospects.company_id', $request['company_id'])
             ->where('crm_prospects.status', 1)
             ->where(function ($query) use ($request) {
-                if(isset($request['search']) && !empty($request['search'])) {
-                    $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%')
-                    ->orWhere('crm_prospects.pic_name', 'like', '%'.$request['search'].'%')
-                    ->orWhere('crm_prospects.director_or_owner', 'like', '%'.$request['search'].'%');
-                }
+                $this->applySearchFilter($query,$request);
             })
             ->where(function ($query) use ($request) {
-                if(isset($request['filter']) && !empty($request['filter'])) {
-                    $query->where('crm_prospect_services.service_id', $request['filter'])
-                    ->where('crm_prospect_services.deleted_at', NULL);
-                }
+                $this->applyServiceFilter($query,$request);
             })
             ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospects.director_or_owner', 'crm_prospects.created_at', 'employee.employee_name as registered_by')
             ->withCount('prospectServices')
@@ -244,9 +327,46 @@ class CRMServices
             ->orderBy('crm_prospects.id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
+
     /**
-     * @param $request
-     * @return mixed
+     * Apply search filter to the query.
+     *
+     * @param array $request The request data containing the search keyword.
+     * 
+     * @return void
+     */
+    private function applySearchFilter($query, $request)
+    {
+        $search = $request['search'] ?? '';
+        if(!empty($search)) {
+            $query->where('crm_prospects.company_name', 'like', '%'.$search.'%')
+            ->orWhere('crm_prospects.pic_name', 'like', '%'.$search.'%')
+            ->orWhere('crm_prospects.director_or_owner', 'like', '%'.$search.'%');
+        }
+    }
+
+    /**
+     * Apply service filter to the query.
+     *
+     * @param array $request The request data containing the filter key.
+     * 
+     * @return void
+     */
+    private function applyServiceFilter($query, $request)
+    {
+        $filter = $request['filter'] ?? '';
+        if(!empty($filter)) {
+            $query->where('crm_prospect_services.service_id', $filter)
+            ->where('crm_prospect_services.deleted_at', NULL);
+        }
+    }
+
+    /**
+     * show the crm detail
+     * 
+     * @param $request The request data containg the 'company_id', 'id' key
+     * 
+     * @return mixed Returns the crm detail with related attachments
      */
     public function show($request): mixed
     {
@@ -256,20 +376,17 @@ class CRMServices
             ->with(['prospectServices', 'prospectServices.prospectAttachment', 'prospectLoginCredentials'])
             ->get();
     }
+
     /**
-     * @param $request
-     * @return bool|array
+     * create CRM Prospect
+     *
+     * @param array $request The request data containing the create data
+     * 
+     * @return mixed Returns the created crm prospect data
      */
-    public function create($request): bool|array
+    private function createCrmProspect($request)
     {
-        $validator = Validator::make($request->toArray(), $this->createValidation(), $this->crmValidationCustomMessage());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
-        }
-       
-        $prospect  = $this->crmProspect->create([
+        return $this->crmProspect->create([
             'company_name'                  => $request['company_name'] ?? '',
             'roc_number'                    => $request['roc_number'] ?? '',
             'director_or_owner'             => $request['director_or_owner'] ?? '',
@@ -290,21 +407,190 @@ class CRMServices
             'modified_by'                   => $request['created_by'] ?? 0,
             'company_id'                    => $request['company_id'] ?? 0
         ]);
+    }
+
+    /**
+     * create Role
+     *
+     * @param array $request The request data containing the create role data
+     * 
+     * @return mixed Returns the created role data
+     */
+    private function createRole($request)
+    {
+        return $this->role->create([
+            'role_name'     => 'Customer',
+            'system_role'   => $request['system_role'] ?? 0,
+            'status'        => $request['status'] ?? 1,
+            'parent_id'     => $request['parent_id'] ?? 0,
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0,
+            'company_id'   => $request['company_id'] ?? 0,
+            'special_permission' => $request['special_permission'] ?? 0,
+            'editable' => 0
+        ]);
+    }
+
+    /**
+     * Upload attachment of prospect.
+     *
+     * @param array $request
+     *              attachment (file) 
+     * @param int $prospectId
+     * @param int $prospectServiceId
+     * 
+     * @return void
+     */
+    private function uploadAttachment($request, $prospectId, $prospectServiceId): void
+    {
+        if (request()->hasFile('attachment')) {
+            foreach($request->file('attachment') as $file) {
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/crm/prospect/' . $request['sector_type']. '/'. $fileName;
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+                $this->crmProspectAttachment->create([
+                    "file_id" => $prospectId,
+                    "prospect_service_id" => $prospectServiceId,
+                    "file_name" => $fileName,
+                    "file_type" => 'prospect',
+                    "file_url" =>  $fileUrl
+                ]);
+            }
+        }
+    }
+
+    /**
+     * create Directrecruitment Applications
+     *
+     * @param array $request The request data containing the create application details 
+     * @param int $prospectId
+     * @param int $prospectServiceId
+     * 
+     * @return void
+     */
+    private function createDirectrecruitmentApplications($request, $prospectId, $prospectServiceId): void
+    {
+        $this->directrecruitmentApplications::create([
+                   'crm_prospect_id' => $prospectId,
+                   'service_id' => $prospectServiceId,
+                   'quota_applied' => 0,
+                   'person_incharge' => '',
+                   'cost_quoted' => 0,
+                   'status' => Config::get('services.PENDING_PROPOSAL'),
+                   'remarks' => '',
+                   'created_by' => $request["created_by"] ?? 0,
+                   'company_id' => $request['company_id'] ?? 0
+               ]);
+    }
+
+    /**
+     * create TotalManagement Applications
+     *
+     * @param array $request The request data containing the create application details 
+     * @param int $prospectId
+     * @param int $prospectServiceId
+     * 
+     * @return void
+     */
+    private function createTotalManagementApplications($request, $prospectId, $prospectServiceId): void
+    {
+        $this->totalManagementApplications::create([
+                'crm_prospect_id' => $prospectId,
+                'service_id' => $prospectServiceId,
+                'quota_applied' => 0,
+                'person_incharge' => $request['pic_name'],
+                'cost_quoted' => 0,
+                'status' => 'Pending Proposal',
+                'remarks' => '',
+                'created_by' => $request["created_by"] ?? 0,
+                'company_id' => $request['company_id'] ?? 0
+        ]);
+    }
+
+    /**
+     * create Econtract Applications
+     *
+     * @param array $request The request data containing the create application details 
+     * @param int $prospectId
+     * @param int $prospectServiceId
+     * 
+     * @return void
+     */
+    private function createEcontractApplications($request, $prospectId, $prospectServiceId): void
+    {
+        $this->eContractApplications::create([
+                    'crm_prospect_id' => $prospectId,
+                    'service_id' => $prospectServiceId,
+                    'quota_requested' => 0,
+                    'person_incharge' => $request['pic_name'],
+                    'cost_quoted' => 0,
+                    'status' => 'Pending Proposal',
+                    'remarks' => '',
+                    'created_by' => $request["created_by"] ?? 0,
+                    'company_id' => $request['company_id'] ?? 0
+        ]);
+    }
+
+    /**
+     * create Service
+     *
+     * @param array $request The request data containing the create service data
+     * 
+     * @return void
+     */
+    private function createService($services, $prospect, $sector, $request)
+    {
+        foreach ($services as $service) {
+
+            $prospectService = $this->crmProspectService->create([
+                'crm_prospect_id'   => $prospect->id,
+                'service_id'        => $service->service_id,
+                'service_name'      => $service->service_name,
+                'sector_id'         => $request['sector_type'] ?? 0,
+                'sector_name'       => $sector->sector_name,
+                'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract',
+                'status'            => $request['status'] ?? 0
+            ]);
+            
+            $prospectId = $prospect->id;
+            $prospectServiceId = $prospectService->id;
+
+            $this->uploadAttachment($request, $prospectId, $prospectServiceId);
+
+            if($service->service_id == 1) {
+               $this->createDirectrecruitmentApplications($request, $prospectId, $prospectServiceId);
+            }
+            if($service->service_id == 3) {
+                $this->createTotalManagementApplications($request, $prospectId, $prospectServiceId);
+            }
+            if($service->service_id == 2) {
+                $this->createEcontractApplications($request, $prospectId, $prospectServiceId);
+            }
+        }
+    }
+
+    /**
+     * Create the CRM
+     * 
+     * @param $request The request data containg the create CRM data
+     *  
+     * @return bool|array Return an array of validation errors or boolean based on the processing result
+     */
+    public function create($request): bool|array
+    {
+        $validationResult = $this->validateCreateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
+        $prospect  = $this->createCrmProspect($request);
 
         if($this->hasCustomerLogin($request['company_id'])) {
             $role = $this->checkCustomerRole($request['company_id']);
             if(is_null($role)) {
-                $role = $this->role->create([
-                    'role_name'     => 'Customer',
-                    'system_role'   => $request['system_role'] ?? 0,
-                    'status'        => $request['status'] ?? 1,
-                    'parent_id'     => $request['parent_id'] ?? 0,
-                    'created_by'    => $request['created_by'] ?? 0,
-                    'modified_by'   => $request['created_by'] ?? 0,
-                    'company_id'   => $request['company_id'] ?? 0,
-                    'special_permission' => $request['special_permission'] ?? 0,
-                    'editable' => 0
-                ]);
+                $role = $this->createRole($request);
                 $this->assignAccess($role);
             }
 
@@ -325,72 +611,7 @@ class CRMServices
         $sector = $this->sectors->findOrFail($request['sector_type']);
         if(isset($request['prospect_service']) && !empty($request['prospect_service'])) {
             $services = json_decode($request['prospect_service']);
-            foreach ($services as $service) {
-                $prospectService = $this->crmProspectService->create([
-                    'crm_prospect_id'   => $prospect->id,
-                    'service_id'        => $service->service_id,
-                    'service_name'      => $service->service_name,
-                    'sector_id'         => $request['sector_type'] ?? 0,
-                    'sector_name'       => $sector->sector_name,
-                    'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract',
-                    'status'            => $request['status'] ?? 0
-                ]);
-                if (request()->hasFile('attachment')) {
-                    foreach($request->file('attachment') as $file) {
-                        $fileName = $file->getClientOriginalName();
-                        $filePath = '/crm/prospect/' . $request['sector_type']. '/'. $fileName;
-                        $linode = $this->storage::disk('linode');
-                        $linode->put($filePath, file_get_contents($file));
-                        $fileUrl = $this->storage::disk('linode')->url($filePath);
-                        $this->crmProspectAttachment->create([
-                            "file_id" => $prospect->id,
-                            "prospect_service_id" => $prospectService->id,
-                            "file_name" => $fileName,
-                            "file_type" => 'prospect',
-                            "file_url" =>  $fileUrl
-                        ]);
-                    }
-                }
-                if($service->service_id == 1) {
-                    $this->directrecruitmentApplications::create([
-                       'crm_prospect_id' => $prospect->id,
-                       'service_id' => $prospectService->id,
-                       'quota_applied' => 0,
-                       'person_incharge' => '',
-                       'cost_quoted' => 0,
-                       'status' => Config::get('services.PENDING_PROPOSAL'),
-                       'remarks' => '',
-                       'created_by' => $request["created_by"] ?? 0,
-                       'company_id' => $request['company_id'] ?? 0
-                   ]);
-                }
-                if($service->service_id == 3) {
-                    $this->totalManagementApplications::create([
-                        'crm_prospect_id' => $prospect->id,
-                        'service_id' => $prospectService->id,
-                        'quota_applied' => 0,
-                        'person_incharge' => $request['pic_name'],
-                        'cost_quoted' => 0,
-                        'status' => 'Pending Proposal',
-                        'remarks' => '',
-                        'created_by' => $request["created_by"] ?? 0,
-                        'company_id' => $request['company_id'] ?? 0
-                    ]);
-                }
-                if($service->service_id == 2) {
-                    $this->eContractApplications::create([
-                        'crm_prospect_id' => $prospect->id,
-                        'service_id' => $prospectService->id,
-                        'quota_requested' => 0,
-                        'person_incharge' => $request['pic_name'],
-                        'cost_quoted' => 0,
-                        'status' => 'Pending Proposal',
-                        'remarks' => '',
-                        'created_by' => $request["created_by"] ?? 0,
-                        'company_id' => $request['company_id'] ?? 0
-                    ]);
-                }
-            }
+            $this->createService($services, $prospect, $sector, $request);
         }
 
         if(isset($request['login_credential']) && !empty($request['login_credential'])) {
@@ -412,24 +633,16 @@ class CRMServices
         }
         return true;
     }
+
     /**
-     * @param $request
-     * @return bool|array
+     * update the CRM Prospect
+     *
+     * @param array $request The request data containing the update data
+     * 
+     * @return void
      */
-    public function update($request): bool|array
+    private function updateCrmProspect($request, $prospect)
     {
-        $validator = Validator::make($request->toArray(), $this->updateValidation($request), $this->crmValidationCustomMessage());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
-        }
-        $prospect = $this->crmProspect::where('company_id', $request['company_id'])->find($request['id']);
-        if(is_null($prospect)) {
-            return [
-                'unauthorizedError' => true
-            ];
-        }
         $prospect['company_name'] = $request['company_name'] ?? $prospect['company_name'];
         $prospect['roc_number'] = $request['roc_number'] ?? $prospect['roc_number'];
         $prospect['director_or_owner'] = $request['director_or_owner'] ?? $prospect['director_or_owner'];
@@ -448,6 +661,30 @@ class CRMServices
         $prospect['account_payable_tax_type'] = $request['account_payable_tax_type'] ?? $prospect['account_receivable_tax_type'];
         $prospect['modified_by'] = $request['modified_by'] ?? $prospect['modified_by'];
         $prospect->save();
+    }
+
+    /**
+     * Update the CRM
+     * 
+     * @param $request The request data containg the update CRM data
+     * 
+     * @return bool|array An array of validation errors or boolean based on the processing result
+     */
+    public function update($request): bool|array
+    {
+        $validationResult = $this->validateUpdateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
+        $prospect = $this->crmProspect::where('company_id', $request['company_id'])->find($request['id']);
+        if(is_null($prospect)) {
+            return [
+                'unauthorizedError' => true
+            ];
+        }
+
+        $this->updateCrmProspect($request, $prospect);
 
         if(isset($request['login_credential']) && !empty($request['login_credential'])) {
             $prospect->prospectLoginCredentials()->delete();
@@ -486,8 +723,11 @@ class CRMServices
         return true;
     }
     /**
-     * @param $request
-     * @return bool
+     * Delete the Attachment
+     * 
+     * @param $request The request data containing the company_id, id key
+     * 
+     * @return bool Returns true if the deletion is successfully, otherwise false.
      */
     public function deleteAttachment($request): bool
     {
@@ -497,7 +737,11 @@ class CRMServices
         })->where('crm_prospect_attachments.id', $request['id'])->delete();
     }
     /**
-     * @return mixed
+     * List the CRM dropdown
+     * 
+     * @param $request The request data containing the company_id, service_id key
+     * 
+     * @return mixed Returns the list of CRM
      */
     public function dropDownCompanies($request): mixed
     {
@@ -506,8 +750,9 @@ class CRMServices
         ->whereIn('crm_prospects.company_id', $request['company_id'])
         ->where('crm_prospects.status', 1)
         ->where(function ($query) use ($request) {
-            if(isset($request['service_id']) && !empty($request['service_id'])) {
-                $query->where('crm_prospect_services.service_id', $request['service_id']);
+            $serviceId = $request['service_id'] ?? '';
+            if(!empty($serviceId)) {
+                $query->where('crm_prospect_services.service_id', $serviceId);
             }
         })
         ->select('crm_prospects.id', 'crm_prospects.company_name')
@@ -515,8 +760,11 @@ class CRMServices
         ->get();
     }
     /**
-     * @param $request
-     * @return mixed
+     * Get the Prospect Details
+     * 
+     * @param $request The request data containing the id, company_id key
+     * 
+     * @return mixed Returns the Prospect data
      */
     public function getProspectDetails($request): mixed
     {
@@ -525,7 +773,9 @@ class CRMServices
             ->get();
     }
     /**
-     * @return mixed
+     * List the system type
+     * 
+     * @return mixed Returns the list of system type 
      */
     public function systemList(): mixed
     {
@@ -535,7 +785,12 @@ class CRMServices
     }
 
     /**
-     * @return mixed
+     * Import the CRM data
+     * 
+     * @param $request
+     * @param $file
+     * 
+     * @return mixed Returns true if the import is successfully, otherwise false.
      */
     public function crmImport($request, $file): mixed
     {

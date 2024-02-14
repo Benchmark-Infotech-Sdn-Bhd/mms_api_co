@@ -183,7 +183,7 @@ class VendorServices
      *
      * @param $request  The request data containg the 'company_id', 'search_param', 'filter'
      * 
-     * @return Returns the paginated list of vendor.
+     * @return mixed Returns the paginated list of vendor.
      */ 
     public function list($request)
     {
