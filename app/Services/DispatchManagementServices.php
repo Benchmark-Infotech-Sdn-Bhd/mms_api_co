@@ -49,23 +49,23 @@ class DispatchManagementServices
 
     /**
      * dispatchManagementServices constructor.
-     * 
+     *
      * @param OnboardingDispatch $onboardingDispatch Instance of the OnboardingDispatch class
      * @param OnboardingDispatchAttachments $onboardingDispatchAttachments Instance of the OnboardingDispatchAttachments class
      * @param Storage $storage Instance of the Storage class
      * @param AuthServices $authServices Instance of the AuthServices class
      * @param NotificationServices $notificationServices Instance of the NotificationServices class
      * @param Employee $employee Instance of the Employee class
-     * 
+     *
      * @return void
-     * 
+     *
      */
     public function __construct(
-        OnboardingDispatch              $onboardingDispatch, 
-        OnboardingDispatchAttachments   $onboardingDispatchAttachments, 
-        Storage                         $storage, 
-        AuthServices                    $authServices, 
-        NotificationServices            $notificationServices, 
+        OnboardingDispatch              $onboardingDispatch,
+        OnboardingDispatchAttachments   $onboardingDispatchAttachments,
+        Storage                         $storage,
+        AuthServices                    $authServices,
+        NotificationServices            $notificationServices,
         Employee                        $employee
     )
     {
@@ -78,7 +78,7 @@ class DispatchManagementServices
     }
     /**
      * validate the update create request data
-     * 
+     *
      * @return array The validation rules for the input data.
      */
     public function createValidation(): array
@@ -97,7 +97,7 @@ class DispatchManagementServices
     }
     /**
      * validate the update update request data
-     * 
+     *
      * @return array The validation rules for the input data.
      */
     public function updateValidation(): array
@@ -152,14 +152,14 @@ class DispatchManagementServices
 
         return true;
     }
-    
+
     /**
-     * List the Dispath
-     * 
-     * @param $request The request data containg the 'search', 'status_filter', 'company_id'
-     * 
+     * List the Dispatch
+     *
+     * @param $request The request data containing the 'search', 'status_filter', 'company_id'
+     *
      * @return mixed Returns the paginated list of dispatch.
-     */   
+     */
     public function list($request): mixed
     {
         $user = JWTAuth::parseToken()->authenticate();
@@ -173,14 +173,14 @@ class DispatchManagementServices
         })
         ->select('onboarding_dispatch.id', 'employee.employee_name', 'onboarding_dispatch.date', 'onboarding_dispatch.calltime', 'onboarding_dispatch.reference_number')
         ->selectRaw("(CASE WHEN (onboarding_dispatch.dispatch_status = 'Completed') THEN onboarding_dispatch.dispatch_status
-        WHEN (onboarding_dispatch.dispatch_status = 'Assigned' AND onboarding_dispatch.calltime > '".Carbon::now()."') THEN onboarding_dispatch.dispatch_status 
+        WHEN (onboarding_dispatch.dispatch_status = 'Assigned' AND onboarding_dispatch.calltime > '".Carbon::now()."') THEN onboarding_dispatch.dispatch_status
         ELSE 'Pending' END) as status")
         ->distinct('onboarding_dispatch.id')
         ->orderBy('onboarding_dispatch.id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
 
         $assigned_count = $this->getAssignedDispatchCount($request);
-        
+
         $completed_count = $this->getCompletedDispatchCount($request);
 
         $pending_count = $this->getPendingDispatchCount($request);
@@ -197,7 +197,7 @@ class DispatchManagementServices
      * Apply search filter to the query.
      *
      * @param array $request The request data containing the search keyword.
-     * 
+     *
      * @return void
      */
     private function applySearchFilter($query, $request)
@@ -225,8 +225,8 @@ class DispatchManagementServices
      * Get the assigned dispatch count
      *
      * @param array $request The request data containing the company_id key.
-     * 
-     * @return int Returns an assigned dispatch count 
+     *
+     * @return int Returns an assigned dispatch count
      */
     private function getAssignedDispatchCount($request){
         return $this->onboardingDispatch
@@ -242,8 +242,8 @@ class DispatchManagementServices
      * Get the completed dispatch count
      *
      * @param array $request The request data containing the company_id key.
-     * 
-     * @return int Returns the completed dispatch count 
+     *
+     * @return int Returns the completed dispatch count
      */
     private function getCompletedDispatchCount($request){
         return $this->onboardingDispatch
@@ -258,8 +258,8 @@ class DispatchManagementServices
      * Get the pending dispatch count
      *
      * @param array $request The request data containing the company_id key.
-     * 
-     * @return int Returns the pending dispatch count 
+     *
+     * @return int Returns the pending dispatch count
      */
     private function getPendingDispatchCount($request){
         return $this->onboardingDispatch
@@ -273,11 +273,11 @@ class DispatchManagementServices
 
     /**
      * Show the Dispatch detail
-     * 
-     * @param $request The request data containg the company_id, id key
-     * 
+     *
+     * @param $request The request data containing the company_id, id key
+     *
      * @return mixed Returns the dispatch record
-     */   
+     */
     public function show($request): mixed
     {
         $user = JWTAuth::parseToken()->authenticate();
@@ -293,7 +293,7 @@ class DispatchManagementServices
      * create dispatch record
      *
      * @param array $request The request data containing the create data
-     * 
+     *
      * @return mixed Returns the created dispatch data
      */
     private function createDispathRecord($request)
@@ -324,18 +324,18 @@ class DispatchManagementServices
      * Upload attachment of dispatch.
      *
      * @param array $request
-     *              attachment (file) 
+     *              attachment (file)
      * @param array $params
      * @param int $onboardingDispatchId
-     * 
+     *
      * @return void
      */
     private function uploadAttachment($request, $params, $onboardingDispatchId): void
     {
         if (request()->hasFile('attachment') && isset($onboardingDispatchId)) {
-            foreach($request->file('attachment') as $file) {                
-                $fileName = $file->getClientOriginalName();                 
-                $filePath = '/onboardingDispatch/attachment/'. $fileName; 
+            foreach($request->file('attachment') as $file) {
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/onboardingDispatch/attachment/'. $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
@@ -359,22 +359,22 @@ class DispatchManagementServices
      * Upload Acknowledgement attachment of dispatch.
      *
      * @param array $request
-     *              attachment (file) 
+     *              attachment (file)
      * @param array $params
      * @param int $onboardingDispatchId
-     * 
+     *
      * @return void
      */
     private function uploadAcknowledgementAttachment($request, $params, $onboardingDispatchId): void
     {
         if (request()->hasFile('acknowledgement_attachment') && isset($onboardingDispatchId)) {
-            foreach($request->file('acknowledgement_attachment') as $file) {                
-                $fileName = $file->getClientOriginalName();                 
-                $filePath = '/onboardingDispatch/acknowledgementAttachment/'. $fileName; 
+            foreach($request->file('acknowledgement_attachment') as $file) {
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/onboardingDispatch/acknowledgementAttachment/'. $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                
+
                 $this->onboardingDispatchAttachments->updateOrCreate(
                     [
                         "file_id" => $onboardingDispatchId,
@@ -393,10 +393,10 @@ class DispatchManagementServices
     /**
      * send create dispatch notification.
      *
-     * @param array $request 
+     * @param array $request
      * @param array $params
      * @param object $user
-     * 
+     *
      * @return void
      */
     private function sendCreateDispatchNotification($request, $params, $user){
@@ -419,11 +419,11 @@ class DispatchManagementServices
 
     /**
      * Create the dispatch
-     * 
+     *
      * @param $request The request data containing the create data
-     * 
+     *
      * @return bool|array Returns An array of validation errors or boolean based on the processing result
-     */   
+     */
     public function create($request): bool|array
     {
         $user = JWTAuth::parseToken()->authenticate();
@@ -447,11 +447,11 @@ class DispatchManagementServices
                 'unauthorizedError' => true
             ];
         }
-        
+
         $onboardingDispatch = $this->createDispathRecord($request);
 
         $this->sendCreateDispatchNotification($request, $params, $user);
-        
+
         $this->uploadAttachment($request, $params, $onboardingDispatch['id']);
 
         $this->uploadAcknowledgementAttachment($request, $params, $onboardingDispatch['id']);
@@ -463,11 +463,11 @@ class DispatchManagementServices
      * update the dispatch record
      *
      * @param array $request The request data containing the update data
-     * @param array params
-     * @param object user
+     * @param array $params
+     * @param object $user
      * @param object $onboardingDispatch
-     * 
-     * 
+     *
+     *
      * @return void
      */
     private function updateDispathRecord($request, $params, $user, $onboardingDispatch)
@@ -491,8 +491,8 @@ class DispatchManagementServices
 
         $acknowledgementRemarks = $request['acknowledgement_remarks'] ?? '';
         if(!empty($acknowledgementRemarks)){
-            $onboardingDispatch->dispatch_status = 'Completed'; 
-            $onboardingDispatch->acknowledgement_date = Carbon::now(); 
+            $onboardingDispatch->dispatch_status = 'Completed';
+            $onboardingDispatch->acknowledgement_date = Carbon::now();
 
             $getUser = $this->getUser($request['employee_id']);
             if($getUser){
@@ -514,10 +514,10 @@ class DispatchManagementServices
         $onboardingDispatch->save();
     }
     /**
-     * Update the Disptach
-     * 
+     * Update the Dispatch
+     *
      * @param $request The request data containing the update data
-     * 
+     *
      * @return bool|array Returns An array of validation errors or boolean based on the processing result
      */
     public function update($request): bool|array
@@ -547,21 +547,21 @@ class DispatchManagementServices
         $this->uploadAttachment($request, $params, $request['id']);
 
         $this->uploadAcknowledgementAttachment($request, $params, $request['id']);
-        
+
         return true;
     }
     /**
      * Delete the attachment
-     * 
+     *
      * @param $request The request data containing the attachment_id key
-     * 
+     *
      * @return array Returns an array with two keys: 'isDeleted' and 'message'
-     */    
+     */
     public function deleteAttachment($request): array
-    {   
+    {
         $user = JWTAuth::parseToken()->authenticate();
         $request['company_id'] = $this->authServices->getCompanyIds($user);
-        
+
         $data = $this->onboardingDispatchAttachments::join('onboarding_dispatch', 'onboarding_dispatch.id', '=', 'onboarding_dispatch_attachments.file_id')
         ->join('employee', function ($join) use ($request) {
             $join->on('employee.id', '=', 'onboarding_dispatch.employee_id')
@@ -583,13 +583,13 @@ class DispatchManagementServices
     }
     /**
      * get the user data
-     * 
-     * @param $referenceId 
-     * 
+     *
+     * @param $referenceId
+     *
      * return mixed Returns the user data
-     */    
+     */
     public function getUser($referenceId)
-    {   
+    {
         return User::where('reference_id',$referenceId)->where('user_type','Employee')->first('id', 'name', 'email');
     }
 }

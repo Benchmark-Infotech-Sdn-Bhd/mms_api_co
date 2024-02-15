@@ -85,8 +85,8 @@ class ZohoServices
 
     /**
      * ZohoServices constructor.
-     * 
-     * @param Invoice $Invoice Instance of the Invoice class
+     *
+     * @param Invoice $invoice Instance of the Invoice class
      * @param InvoiceItems $invoiceItems Instance of the InvoiceItems class
      * @param InvoiceItemsTemp $invoiceItemsTemp Instance of the InvoiceItemsTemp class
      * @param DirectRecruitmentExpenses $directRecruitmentExpenses Instance of the DirectRecruitmentExpenses class
@@ -99,9 +99,9 @@ class ZohoServices
      * @param XeroItems $xeroItems Instance of the XeroItems class
      * @param AuthServices $authServices Instance of the AuthServices class
      * @param EmailServices $emailServices Instance of the EmailServices class
-     * 
+     *
      * @return void
-     * 
+     *
      */
     public function __construct(
             Invoice                     $invoice,
@@ -133,12 +133,12 @@ class ZohoServices
         $this->authServices = $authServices;
         $this->emailServices = $emailServices;
     }
-    
+
     /**
      * Add the heaer params.
-     * 
+     *
      * @param array $clients
-     * 
+     *
      * @return array
      */
     private function getHeaders($clients): array
@@ -156,8 +156,8 @@ class ZohoServices
      * create Zoho TaxRate
      *
      * @param array $clients
-     * @param array $row The row containg the tax rate data
-     * 
+     * @param array $row The row containing the tax rate data
+     *
      * @return void
      */
     private function createZohoTaxRate($clients, $row): void
@@ -165,19 +165,19 @@ class ZohoServices
         $this->xeroTaxRates->updateOrCreate(
             [
                 'company_id' => $clients['company_id'],
-                'tax_id' => $row['tax_id'] ?? null, 
-                'name' => $row['tax_name'] ?? null, 
-                'tax_type' => $row['tax_type'] ?? null, 
-                'report_tax_type' => $row['ReportTaxType'] ?? null, 
-                'display_tax_rate' => $row['tax_percentage'] ?? 0, 
-                'effective_rate' => $row['tax_percentage'] ?? 0, 
+                'tax_id' => $row['tax_id'] ?? null,
+                'name' => $row['tax_name'] ?? null,
+                'tax_type' => $row['tax_type'] ?? null,
+                'report_tax_type' => $row['ReportTaxType'] ?? null,
+                'display_tax_rate' => $row['tax_percentage'] ?? 0,
+                'effective_rate' => $row['tax_percentage'] ?? 0,
                 'status' => $row['status'] ?? null
             ],
             [
-                'can_applyto_assets' => $row['CanApplyToAssets'] ?? null, 
-                'can_applyto_equity' => $row['CanApplyToEquity'] ?? null, 
-                'can_applyto_expenses' => $row['CanApplyToExpenses'] ?? null, 
-                'can_applyto_liabilities' => $row['CanApplyToLiabilities'] ?? null, 
+                'can_applyto_assets' => $row['CanApplyToAssets'] ?? null,
+                'can_applyto_equity' => $row['CanApplyToEquity'] ?? null,
+                'can_applyto_expenses' => $row['CanApplyToExpenses'] ?? null,
+                'can_applyto_liabilities' => $row['CanApplyToLiabilities'] ?? null,
                 'can_applyto_revenue' => $row['CanApplyToRevenue'] ?? null,
 
                 'tax_specific_type' => $row['tax_specific_type'] ?? null,
@@ -198,8 +198,8 @@ class ZohoServices
      * create Zoho Items
      *
      * @param array $clients
-     * @param array $row The row containg the items data
-     * 
+     * @param array $row The row containing the items data
+     *
      * @return void
      */
     private function createZohoItems($clients, $row): void
@@ -209,19 +209,19 @@ class ZohoServices
                 'item_id' => $row['item_id'],
                 'company_id' => $clients['company_id'],
             ],
-            [   
+            [
                 'code' => $row['code'] ?? null,
-                'description' => $row['description'] ?? null, 
-                'purchase_description' => $row['PurchaseDescription'] ?? null, 
-                'name' => $row['name'] ?? null, 
-                'is_tracked_as_inventory' => $row['IsTrackedAsInventory'] ?? null, 
+                'description' => $row['description'] ?? null,
+                'purchase_description' => $row['PurchaseDescription'] ?? null,
+                'name' => $row['name'] ?? null,
+                'is_tracked_as_inventory' => $row['IsTrackedAsInventory'] ?? null,
                 'is_sold' => $row['IsSold'] ?? null,
-                'is_purchased' => $row['IsPurchased'] ?? null,                                            
-                'status' => $row['status'] ?? null, 
-                'rate' => $row['rate'] ?? null, 
-                'item_type' => $row['item_type'] ?? null, 
-                'product_type' => $row['product_type'] ?? null, 
-                'sku' => $row['sku'] ?? null,                                             
+                'is_purchased' => $row['IsPurchased'] ?? null,
+                'status' => $row['status'] ?? null,
+                'rate' => $row['rate'] ?? null,
+                'item_type' => $row['item_type'] ?? null,
+                'product_type' => $row['product_type'] ?? null,
+                'sku' => $row['sku'] ?? null,
             ]
         );
     }
@@ -230,23 +230,23 @@ class ZohoServices
      * create Zoho Accounts
      *
      * @param array $clients
-     * @param array $row The row containg the account data
-     * 
+     * @param array $row The row containing the account data
+     *
      * @return void
      */
     private function createZohoAccounts($clients, $row): void
     {
         $this->xeroAccounts->updateOrCreate(
             [
-                'account_id' => $row['account_id'] ?? null,                                             
+                'account_id' => $row['account_id'] ?? null,
             ],
             [
                 'company_id' => $clients['company_id'],
                 'code' => $row['Code'] ?? null,
-                'name' => $row['account_name'] ?? null, 
-                'status' => ($row['is_active'] == true) ? 'ACTIVE' : 'INACTIVE', 
-                'type' => $row['account_type'] ?? null, 
-                'tax_type' => $row['TaxType'] ?? null, 
+                'name' => $row['account_name'] ?? null,
+                'status' => ($row['is_active'] == true) ? 'ACTIVE' : 'INACTIVE',
+                'type' => $row['account_type'] ?? null,
+                'tax_type' => $row['TaxType'] ?? null,
                 'class' => $row['Class'] ?? null,
                 'enable_payments_to_account' => $row['EnablePaymentsToAccount'] ?? null,
                 'show_in_expense_claims' => $row['ShowInExpenseClaims'] ?? null,
@@ -255,7 +255,7 @@ class ZohoServices
                 'currency_code' => $row['CurrencyCode'] ?? null,
                 'reporting_code' => $row['ReportingCode'] ?? null,
                 'reporting_code_name' => $row['ReportingCodeName'] ?? null,
-                
+
                 'description' => $row['description'] ?? null,
                 'is_user_created' => $row['is_user_created'] ?? null,
                 'is_system_account' => $row['is_system_account'] ?? null,
@@ -275,7 +275,7 @@ class ZohoServices
      *
      * @param array $item
      * @param int $invoiceNumber
-     * 
+     *
      * @return void
      */
     private function updateExpense($item, $invoiceNumber){
@@ -297,15 +297,15 @@ class ZohoServices
 
     /**
      * Save tax rates from Zoho.
-     * 
+     *
      * @param array $clients
-     * 
+     *
      * @return mixed
      */
     public function saveTaxRates($clients) : mixed
     {
         $http = new Client();
-        try {            
+        try {
             $response = $http->request('GET', $clients['url'] . Config::get('services.ZOHO_TAX_RATES_URL'). '?organization_id=' . $clients['tenant_id'], $this->getHeaders($clients));
             $result = json_decode((string)$response->getBody(), true);
             if(isset($result['taxes'])){
@@ -322,15 +322,15 @@ class ZohoServices
 
     /**
      * Save tax items from Zoho.
-     * 
+     *
      * @param array $clients
-     * 
+     *
      * @return mixed
      */
     public function saveItems($clients) : mixed
     {
         $http = new Client();
-        try {            
+        try {
             $response = $http->request('GET', $clients['url'] . Config::get('services.ZOHO_ITEMS_URL'). '?organization_id=' . $clients['tenant_id'], $this->getHeaders($clients));
             $result = json_decode((string)$response->getBody(), true);
             //dd($result); exit;
@@ -338,7 +338,7 @@ class ZohoServices
                 foreach ($result['items'] as $row) {
                     $this->createZohoItems($clients, $row);
                 }
-            }            
+            }
             return true;
         } catch (Exception $e) {
             Log::channel('cron_activity_logs')->info('Exception in getting Tax details' . $e);
@@ -347,22 +347,22 @@ class ZohoServices
     }
     /**
      * Save the accounts from Zoho
-     * 
+     *
      * @param array $clients
-     * 
+     *
      * @return mixed
      */
     public function saveAccounts($clients) : mixed
     {
         $http = new Client();
-        try {            
+        try {
             $response = $http->request('GET', $clients['url'] . Config::get('services.ZOHO_ACCOUNTS_URL'). '?organization_id=' . $clients['tenant_id'], $this->getHeaders($clients));
             $result = json_decode((string)$response->getBody(), true);
             if(isset($result['chartofaccounts'])){
                 foreach ($result['chartofaccounts'] as $row) {
                     $this->createZohoAccounts($clients, $row);
                 }
-            }          
+            }
             return true;
         } catch (Exception $e) {
             Log::channel('cron_activity_logs')->info('Exception in getting Tax details' . $e);
@@ -371,20 +371,20 @@ class ZohoServices
     }
     /**
      * Get the access token
-     * 
+     *
      * @param array $clients
-     * 
+     *
      * @return mixed
      */
     public function getAccessToken($clients) : mixed
     {
         $http = new Client();
-        try {            
+        try {
             $response = $http->request('POST', Config::get('services.ZOHO_TOKEN_URL'). '?refresh_token=' . $clients['refresh_token'] . '&client_id=' . $clients['client_id'] . '&client_secret=' . $clients['client_secret'] . '&redirect_uri=' . $clients['redirect_url'] . '&grant_type=refresh_token', [
                 'headers' => [
                     'Content-Type' => 'multipart/form-data; boundary=XXX',
                     'Accept' => '*/*'
-                ], 
+                ],
             ]);
             if(isset($response) && !empty($response)){
                 $result = json_decode((string)$response->getBody(), true);
@@ -392,7 +392,7 @@ class ZohoServices
                 $newConfig->refresh_token = $result['refresh_token'] ?? $clients['refresh_token'];
                 $newConfig->access_token = $result['access_token'];
                 $newConfig->save();
-            }        
+            }
             return true;
         } catch (Exception $e) {
             Log::channel('cron_activity_logs')->info('Exception in getting Tax details' . $e);
@@ -402,10 +402,10 @@ class ZohoServices
 
     /**
      * Get the invoice
-     * 
+     *
      * @param object $request
      * @param array $xeroConfig
-     * 
+     *
      * @return mixed
      */
     public function getInvoices($request, $xeroConfig) : mixed
@@ -445,10 +445,10 @@ class ZohoServices
 
     /**
      * Create the contact
-     * 
+     *
      * @param $request
      * @param $xeroConfig
-     * 
+     *
      * @return mixed
      */
     public function createContacts($request, $xeroConfig) : mixed
@@ -460,7 +460,7 @@ class ZohoServices
         } else {
             $method = 'POST';
             $contactIdUrl = '';
-        }     
+        }
 
         $data = [
             'contact_name'=>$request['company_name'],
@@ -477,7 +477,7 @@ class ZohoServices
                 'enable_portal' => false
             ]]
         ];
-        
+
         try {
             app('thirdPartyLogServices')->startApiLog($xeroConfig['url'] . Config::get('services.ZOHO_CONTACTS_URL'). $contactIdUrl . '?organization_id=' . $xeroConfig['tenant_id'], $data);
             $response = $http->request($method, $xeroConfig['url'] . Config::get('services.ZOHO_CONTACTS_URL'). $contactIdUrl . '?organization_id=' . $xeroConfig['tenant_id'], [
@@ -505,10 +505,10 @@ class ZohoServices
 
     /**
      * Create the invoice
-     * 
+     *
      * @param $request
      * @param $xeroConfig
-     * 
+     *
      * @return mixed
      */
     public function createInvoice($request, $xeroConfig) : mixed
@@ -522,15 +522,15 @@ class ZohoServices
         $generateInvoice['is_inclusive_tax'] = '';
 
         $lineItems = json_decode($request['invoice_items']);
-        
+
         if ($request['invoice_items']){
             $increment = 0;
             foreach($lineItems as $item){
 
-                $taxData = $this->xeroTaxRates::find($item->tax_id);                
+                $taxData = $this->xeroTaxRates::find($item->tax_id);
                 $itemData = $this->xeroItems::find($item->item_id);
                 $accountData = $this->xeroAccounts::find($item->account_id);
-                
+
                 $this->invoiceItems::create([
                     "invoice_id" => $request['invoice_id'],
                     "service_id" => $taxData['service_id'] ?? null,
@@ -553,12 +553,12 @@ class ZohoServices
                 $generateInvoice['line_items'][$increment]->description = $item->description;
                 $generateInvoice['line_items'][$increment]->quantity = $item->quantity;
                 $generateInvoice['line_items'][$increment]->tax_id = $taxData['tax_id'] ?? '';
-                $generateInvoice['line_items'][$increment]->account_id = $accountData['account_id'] ?? ''; 
+                $generateInvoice['line_items'][$increment]->account_id = $accountData['account_id'] ?? '';
                 $increment++;
             }
         }
 
-        $generateInvoiceXero = $this->generateInvoices($generateInvoice, $xeroConfig);   
+        $generateInvoiceXero = $this->generateInvoices($generateInvoice, $xeroConfig);
 
         if(isset($generateInvoiceXero->original['invoice']['invoice_id'])){
 
@@ -581,10 +581,10 @@ class ZohoServices
 
     /**
      * Generate the Invoice
-     * 
+     *
      * @param $request
      * @param $xeroConfig
-     * 
+     *
      * @return mixed
      */
     public function generateInvoices($request, $xeroConfig) : mixed
@@ -592,7 +592,7 @@ class ZohoServices
         $http = new Client();
         try {
             $data = [
-                'reference_number' => $request['reference_number'],              
+                'reference_number' => $request['reference_number'],
                 'customer_id' => $request['customer_id'],
                 'date' => $request['date'],
                 'due_date' => $request['due_date'],
@@ -606,8 +606,8 @@ class ZohoServices
                     'Content-Type' => 'application/json',
                     'Accept' => '*/*'
                 ],
-                'json' => [    
-                    'reference_number' => $request['reference_number'],              
+                'json' => [
+                    'reference_number' => $request['reference_number'],
                     'customer_id' => $request['customer_id'],
                     'date' => $request['date'],
                     'due_date' => $request['due_date'],
@@ -626,10 +626,10 @@ class ZohoServices
 
     /**
      * Invoice Resubmit
-     * 
+     *
      * @param $invoice
      * @param $xeroConfig
-     * 
+     *
      * @return mixed
      */
     public function invoiceReSubmit($invoice, $xeroConfig) : mixed
@@ -641,17 +641,17 @@ class ZohoServices
         $invoiceData->save();
 
         $crmProspect = $this->crmProspect->findOrFail($invoice['crm_prospect_id']);
-                        
+
         $generateInvoice['date'] = $invoice['issue_date'] ?? null;
         $generateInvoice['due_date'] = $invoice['due_date'] ?? null;
         $generateInvoice['reference_number'] = $invoice['reference_number'] ?? null;
         $generateInvoice['customer_id'] = $crmProspect->xero_contact_id;
         $generateInvoice['is_inclusive_tax'] = '';
-    
+
         if ($invoice['invoiceItems']){
             $increment = 0;
             foreach($invoice['invoiceItems'] as $item){
-                
+
                 $generateInvoice['line_items'][$increment] = new \stdClass();
                 $generateInvoice['line_items'][$increment]->item_order = '';
                 $generateInvoice['line_items'][$increment]->item_id = $item['item'];
@@ -660,13 +660,13 @@ class ZohoServices
                 $generateInvoice['line_items'][$increment]->description = $item['description'];
                 $generateInvoice['line_items'][$increment]->quantity = $item['quantity'];
                 $generateInvoice['line_items'][$increment]->tax_id = $item['tax_id'] ?? '';
-                $generateInvoice['line_items'][$increment]->account_id = $item['account'] ?? ''; 
+                $generateInvoice['line_items'][$increment]->account_id = $item['account'] ?? '';
                 $increment++;
             }
         }
 
-        $generateInvoiceXero = $this->generateInvoices($generateInvoice, $xeroConfig);  
-        
+        $generateInvoiceXero = $this->generateInvoices($generateInvoice, $xeroConfig);
+
         if(isset($generateInvoiceXero->original['invoice']['invoice_id'])){
 
             $invoiceData->invoice_number = $generatedInvoiceNumber = $generateInvoiceXero->original['invoice']['invoice_id'];

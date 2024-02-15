@@ -5,7 +5,6 @@ namespace App\Services;
 
 use App\Models\Vendor;
 use App\Models\VendorAttachments;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -35,16 +34,16 @@ class VendorServices
 
     /**
      * VendorServices constructor.
-     * 
+     *
      * @param Vendor $vendor Instance of the Vendor class
      * @param VendorAttachments $vendorAttachments Instance of the VendorAttachments class
      * @param Storage $storage Instance of the Storage class
-     * 
+     *
      * @return void
      */
     public function __construct(
         Vendor              $vendor,
-        VendorAttachments   $vendorAttachments, 
+        VendorAttachments   $vendorAttachments,
         Storage             $storage
     )
     {
@@ -54,9 +53,9 @@ class VendorServices
     }
     /**
      * validate the request data
-     * 
+     *
      * @param $request
-     * 
+     *
      * @return mixed | void
      */
      public function inputValidation($request)
@@ -67,9 +66,9 @@ class VendorServices
      }
     /**
      * validate the request data
-     * 
+     *
      * @param $request
-     * 
+     *
      * @return mixed | void
      */
     public function updateValidation($request)
@@ -99,13 +98,13 @@ class VendorServices
      * Create a new Vendor.
      *
      * @param $request The request data containing the create vendor data
-     * 
-     * @return mixed 
+     *
+     * @return mixed
      */
     public function create($request): mixed
-    {  
+    {
         $input = $request->all();
-        $input = $this->enrichRequestWithUserDetails($input); 
+        $input = $this->enrichRequestWithUserDetails($input);
         $vendorData = $this->createVendor($input);
         $vendorDataId = $vendorData->id;
         $this->uploadAttachment($request, $vendorDataId);
@@ -128,7 +127,7 @@ class VendorServices
      *              postcode (int) post code
      *              remarks (string) remarks
      *              created_by The ID of the user who created the vendor.
-     * 
+     *
      * @return mixed Returns the created vendor record.
      */
     private function createVendor($input): mixed
@@ -137,7 +136,7 @@ class VendorServices
             'name' => $input["name"],
             'type' => $input["type"],
             'email_address' => $input["email_address"],
-            'contact_number' => $input["contact_number"],            
+            'contact_number' => $input["contact_number"],
             'person_in_charge' => $input["person_in_charge"],
             'pic_contact_number' => $input["pic_contact_number"],
             'address' => $input["address"],
@@ -154,9 +153,9 @@ class VendorServices
      * Upload attachment of vendor.
      *
      * @param array $request
-     *              attachment (file) 
+     *              attachment (file)
      * @param int $vendorDataId
-     * 
+     *
      * @return void
      */
     private function uploadAttachment($request, $vendorDataId): void
@@ -164,7 +163,7 @@ class VendorServices
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/vendor/' . $fileName; 
+                $filePath = '/vendor/' . $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
@@ -172,8 +171,8 @@ class VendorServices
                         "file_id" => $vendorDataId,
                         "file_name" => $fileName,
                         "file_type" => self::ATTACHMENT_FILE_TYPE,
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                        "file_url" =>  $fileUrl
+                    ]);
             }
         }
     }
@@ -181,10 +180,10 @@ class VendorServices
 	 /**
      * Display a listing of the Vendors.
      *
-     * @param $request  The request data containg the 'company_id', 'search_param', 'filter'
-     * 
+     * @param $request  The request data containing the 'company_id', 'search_param', 'filter'
+     *
      * @return mixed Returns the paginated list of vendor.
-     */ 
+     */
     public function list($request)
     {
         return $this->vendor::with('accommodations', 'insurances', 'transportations')
@@ -209,11 +208,11 @@ class VendorServices
      * Show the vendor record.
      *
      * @param $request
-     * 
+     *
      * @return mixed Returns the vendor detail with related attachments
      */
     public function show($request): mixed
-    {   
+    {
         return $this->vendor::with(['vendorAttachments' => function ($query) {
             $query->orderBy('created_at', 'desc');
         }])->where('company_id', $request['company_id'])->find($request['id']);
@@ -221,16 +220,16 @@ class VendorServices
         // $insurances = $vendors->insurances;
         // $transportations = $vendors->transportations;
         // $vendors = Vendor::findorfail($id);
-    } 
+    }
 	 /**
      * Update the specified Vendor data.
      *
      * @param $request  The request data containing update vendor data
-     * 
+     *
      * @return mixed Returns an array with two keys: 'isUpdated' and 'message'
      */
     public function update($request): mixed
-    {  
+    {
         $input = $request->all();
         $vendors = $this->vendor::where('company_id', $input['company_id'])->find($input['id']);
         if(is_null($vendors)){
@@ -250,11 +249,11 @@ class VendorServices
      * delete the specified Vendors data.
      *
      * @param $request The request data containing company_id, id
-     * 
+     *
      * @return mixed Returns an array with two keys: 'isDeleted' and 'message'
-     */    
+     */
     public function delete($request): mixed
-    {   
+    {
         $vendors = $this->vendor::where('company_id', $request['company_id'])->find($request['id']);
 
         if(is_null($vendors)){
@@ -275,20 +274,20 @@ class VendorServices
     }
     /**
      * Delete the attachment
-     * 
+     *
      * @param $request The request data containing company_id and id
-     * 
+     *
      * @return mixed Returns an array with two keys: 'isDeleted' and 'message'
-     */    
+     */
     public function deleteAttachment($request): mixed
-    {   
+    {
         $data = $this->vendorAttachments
         ->join('vendors', function($query) use($request) {
             $query->on('vendors.id','=','vendor_attachments.file_id')
             ->where('vendors.company_id', $request['company_id']);
         })
         ->select('vendor_attachments.id', 'vendor_attachments.file_id', 'vendor_attachments.file_name', 'vendor_attachments.file_type', 'vendor_attachments.file_url', 'vendor_attachments.created_by', 'vendor_attachments.modified_by', 'vendor_attachments.created_at', 'vendor_attachments.updated_at', 'vendor_attachments.deleted_at')
-        ->find($request['id']); 
+        ->find($request['id']);
         if(is_null($data)){
             return [
                 "isDeleted" => false,
@@ -304,8 +303,8 @@ class VendorServices
      * Display a listing of the insurance Vendors.
      *
      * @param $request The request data containing company_id
-     * 
-     * @return Returns the list of insurance vendor.
+     *
+     * @return mixed Returns the list of insurance vendor.
      */
     public function insuranceVendorList($request)
     {
@@ -320,8 +319,8 @@ class VendorServices
      * Display a listing of the Transportation Vendors.
      *
      * @param $request  The request data containing company_id
-     * 
-     * @return Returns the list of Transportation vendor.
+     *
+     * @return mixed Returns the list of Transportation vendor.
      */
     public function transportationVendorList($request)
     {

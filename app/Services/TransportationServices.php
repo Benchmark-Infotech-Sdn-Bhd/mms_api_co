@@ -61,7 +61,7 @@ class TransportationServices
 
     /**
      * TransportationServices constructor.
-     * 
+     *
      * @param Transportation $transportation Instance of the Transportation class
      * @param TransportationAttachments $transportationAttachments Instance of the TransportationAttachments class
      * @param Storage $storage Instance of the Storage class
@@ -70,17 +70,17 @@ class TransportationServices
      * @param User $user Instance of the User class
      * @param Vendor $vendor Instance of the Vendor class
      * @param RolesServices $rolesServices Instance of the RolesServices class
-     * 
+     *
      * @return void
      */
     public function __construct(
-        Transportation              $transportation, 
-        TransportationAttachments   $transportationAttachments, 
-        Storage                     $storage, 
-        AuthServices                $authServices, 
-        Role                        $role, 
-        User                        $user, 
-        Vendor                      $vendor, 
+        Transportation              $transportation,
+        TransportationAttachments   $transportationAttachments,
+        Storage                     $storage,
+        AuthServices                $authServices,
+        Role                        $role,
+        User                        $user,
+        Vendor                      $vendor,
         RolesServices               $rolesServices
     )
     {
@@ -98,7 +98,7 @@ class TransportationServices
      * Get the Authenticated User data
      *
      * @return mixed Returns the authenticated user data.
-     * 
+     *
      */
     private function getAuthenticatedUser(): mixed
     {
@@ -123,14 +123,14 @@ class TransportationServices
 
 	 /**
      * Create the transportation
-     * 
-     * @param $request The request data containg the create transportation data
-     * 
+     *
+     * @param $request The request data containing the create transportation data
+     *
      * @return mixed Returns the created transportation record.
-     * 
+     *
      */
     public function create($request): mixed
-    {   
+    {
         $user = $this->getAuthenticatedUser();
         $request['created_by'] = $user['id'];
 
@@ -149,7 +149,7 @@ class TransportationServices
 
         if(isset($request["assigned_supervisor"]) && $request["assigned_supervisor"] == 1){
 
-            $role = $this->getRole($user);   
+            $role = $this->getRole($user);
 
             if(empty($role)){
 
@@ -161,7 +161,7 @@ class TransportationServices
                 $this->rolesServices->create($addRole);
 
                 $role = $this->getRole($user);
-                
+
             }
 
             $res = $this->createSupervisorUser($request,$role,$user,$transportationId);
@@ -169,7 +169,7 @@ class TransportationServices
             if($res){
                 return $transportationData;
             }
-            
+
             $data = $this->transportation::findorfail($transportationData->id);
             $data->transportationAttachments()->delete();
             $transportationData->delete();
@@ -185,8 +185,8 @@ class TransportationServices
     /**
      * create transportation.
      *
-     * @param array $requestThe request data containg the driver_name, driver_contact_number, driver_email, vehicle_type, number_plate, vehicle_capacity, vendor_id, assigned_supervisor
-     * 
+     * @param array $request The request data containing the driver_name, driver_contact_number, driver_email, vehicle_type, number_plate, vehicle_capacity, vendor_id, assigned_supervisor
+     *
      * @return mixed Returns the created vendor record.
      */
     private function createTransportation($request): mixed
@@ -208,17 +208,17 @@ class TransportationServices
      * Upload attachment of transportation.
      *
      * @param array $request
-     *              attachment (file) 
+     *              attachment (file)
      * @param int $transportationId
-     * 
+     *
      * @return void
      */
     private function uploadAttachment($request, $transportationId): void
     {
         if (request()->hasFile('attachment')){
-            foreach($request->file('attachment') as $file){                
-                $fileName = $file->getClientOriginalName();                 
-                $filePath = '/vendor/transportation/' . $fileName; 
+            foreach($request->file('attachment') as $file){
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/vendor/transportation/' . $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
@@ -226,8 +226,8 @@ class TransportationServices
                         "file_id" => $transportationId,
                         "file_name" => $fileName,
                         "file_type" => 'transportation',
-                        "file_url" =>  $fileUrl          
-                    ]);  
+                        "file_url" =>  $fileUrl
+                    ]);
             }
         }
     }
@@ -235,9 +235,9 @@ class TransportationServices
     /**
      * Retrieve the role record based on requested data.
      *
-     * 
+     *
      * @param object $user
-     * 
+     *
      * @return mixed Returns the role data
 
      */
@@ -253,11 +253,11 @@ class TransportationServices
     /**
      * create a new user.
      *
-     * @param array $request The request data containg the driver_name, driver_email
+     * @param array $request The request data containing the driver_name, driver_email
      * @param object $role
      * @param object $user
      * @param int $transportationId
-     * 
+     *
      * @return mixed Returns the created user record.
      */
     private function createSupervisorUser($request,$role,$user,$transportationId): mixed
@@ -278,9 +278,9 @@ class TransportationServices
 
     /**
      * List the transportation
-     * 
-     * @param $request  The request data containg the vendor_id, search_param
-     * 
+     *
+     * @param $request The request data containing the vendor_id, search_param
+     *
      * @return mixed Returns the paginated list of transportation.
      */
     public function list($request): mixed
@@ -308,9 +308,9 @@ class TransportationServices
 
 	 /**
      * Show the transportation data based on the request data
-     * 
-     * @param $request The request data containg the id
-     * 
+     *
+     * @param $request The request data containing the id
+     *
      * @return mixed returns the transportation record
      */
     public function show($request) : mixed
@@ -331,7 +331,7 @@ class TransportationServices
      *
      * @param array $request
      * @param object $user
-     * 
+     *
      * @return mixed Returns the transportation data
 
      */
@@ -348,13 +348,13 @@ class TransportationServices
 
 	 /**
      * Update the transportation
-     * 
-     * @param $request The request data containg the update transportation data
-     * 
+     *
+     * @param $request The request data containing the update transportation data
+     *
      * @return mixed  Returns An array of validation errors or boolean based on the processing result
      */
     public function update($request): mixed
-    {     
+    {
         $user = $this->getAuthenticatedUser();
         $data = $this->getTransportation($request, $user);
 
@@ -364,7 +364,7 @@ class TransportationServices
                 "message" => self::MESSAGE_DATA_NOT_FOUND
             ];
         }
-        
+
         $request['modified_by'] = $user['id'];
 
         $this->uploadAttachment($request, $request['id']);
@@ -378,7 +378,7 @@ class TransportationServices
                 ];
             }
 
-            $role = $this->getRole($user);      
+            $role = $this->getRole($user);
 
 
             if(empty($role)){
@@ -390,8 +390,8 @@ class TransportationServices
 
                 $this->rolesServices->create($addRole);
 
-                $role = $this->getRole($user);  
-                
+                $role = $this->getRole($user);
+
             }
 
             $res = $this->createSupervisorUser($request,$role,$user,$request['id']);
@@ -402,7 +402,7 @@ class TransportationServices
                     "message" => self::MESSAGE_UPDATED_SUCCESSFULLY
                 ];
             }
-            
+
             return [
                 "isCreated" => false,
                 "message"=> self::MESSAGE_TRANSPORTATION_NOT_CREATED
@@ -417,14 +417,14 @@ class TransportationServices
 
 	 /**
      * Delete the transportation
-     * 
-     * @param $request The request data containg the id
-     * 
+     *
+     * @param $request The request data containing the id
+     *
      * @return mixed  Returns an array with two keys: 'isDeleted' and 'message'
-     */    
+     */
     public function delete($request): mixed
-    {     
-    
+    {
+
         $user = $this->getAuthenticatedUser();
 
         $data = $this->getTransportation($request, $user);
@@ -452,13 +452,13 @@ class TransportationServices
 
     /**
      * Delete attachment
-     * 
-     * @param $request  The request data containg the id
-     * 
+     *
+     * @param $request  The request data containing the id
+     *
      * @return mixed Returns an array with two keys: 'isDeleted' and 'message'
-     */    
+     */
     public function deleteAttachment($request): mixed
-    {   
+    {
 
         $user = $this->getAuthenticatedUser();
         $data = $this->transportationAttachments
@@ -483,9 +483,9 @@ class TransportationServices
     }
     /**
      * Get the transportation data based on request
-     * 
-     * @param $request The request data containg the vendor_id
-     * 
+     *
+     * @param $request The request data containing the vendor_id
+     *
      * @return mixed Returns the transportation data
      */
     public function dropdown($request): mixed

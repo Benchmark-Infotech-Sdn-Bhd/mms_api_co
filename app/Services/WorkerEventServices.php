@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use App\Services\AuthServices;
 use Carbon\Carbon;
 
 class WorkerEventServices
@@ -44,23 +43,23 @@ class WorkerEventServices
     private AuthServices $authServices;
     /**
      * WorkerEventServices constructor.
-     * 
+     *
      * @param Workers $workers Instance of the Workers class
      * @param WorkerEvent $workerEvent Instance of the WorkerEvent class
      * @param WorkerEventAttachments $workerEventAttachments Instance of the WorkerEventAttachments class
      * @param Storage $storage Instance of the Storage class
      * @param WorkerEmployment $workerEmployment Instance of the WorkerEmployment class
      * @param AuthServices $authServices Instance of the AuthServices class
-     * 
+     *
      * @return void
-     * 
+     *
      */
     public function __construct(
-        Workers                 $workers, 
-        WorkerEvent             $workerEvent, 
-        WorkerEventAttachments  $workerEventAttachments, 
-        Storage                 $storage, 
-        WorkerEmployment        $workerEmployment, 
+        Workers                 $workers,
+        WorkerEvent             $workerEvent,
+        WorkerEventAttachments  $workerEventAttachments,
+        Storage                 $storage,
+        WorkerEmployment        $workerEmployment,
         AuthServices            $authServices
     )
     {
@@ -73,7 +72,7 @@ class WorkerEventServices
     }
     /**
      * validate the create request data
-     * 
+     *
      * @return array The validation rules for the input data.
      */
     public function createValidation(): array
@@ -89,7 +88,7 @@ class WorkerEventServices
     }
     /**
      * validate the update request data
-     * 
+     *
      * @return array The validation rules for the input data.
      */
     public function updateValidation(): array
@@ -141,11 +140,11 @@ class WorkerEventServices
 
     /**
      * List the worker event
-     * 
+     *
      * @param $request
      *        worker_id (int) Id of the worker
      *        filter (string) filter type
-     * 
+     *
      * @return mixed Returns the paginated list of worker event.
      */
     public function list($request): mixed
@@ -153,20 +152,20 @@ class WorkerEventServices
         return $this->workerEvent
             ->where('worker_id', $request['worker_id'])
             ->where(function ($query) use ($request) {
-            if(isset($request['filter']) && !empty($request['filter'])) {
+            if(!empty($request['filter'])) {
                 $query->where('event_type', $request['filter']);
             }
         })
         ->select('id', 'worker_id', 'event_type', 'created_at', 'updated_at')
         ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
-    } 
+    }
 
     /**
      * Create the worker event
-     * 
+     *
      * @param $request  The request data
-     * 
+     *
      * @return array|bool An array of validation errors or boolean based on the processing result
      */
     public function create($request): array|bool
@@ -185,11 +184,11 @@ class WorkerEventServices
         } else if(isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[1]){
             $this->updateWorkerTotalManagementStatus($request);
         }
-        
+
         if(isset($request['service_type']) && isset($request['project_id']) && isset($request['last_working_day']) && in_array($request['event_type'], Config::get('services.OTHERS_EVENT_TYPE'))){
             $this->updateWorkerEmployment($workerEvent, $request);
-        } 
-        
+        }
+
         $this->uploadAttachment($request, $workerEvent);
         return true;
     }
@@ -206,7 +205,7 @@ class WorkerEventServices
      *              last_working_day (date) last working date
      *              remarks (string) remarks
      *              created_by The ID of the user who created the event.
-     * 
+     *
      * @return mixed Returns the created worker event record.
      */
     private function createWorkerEvent($request): mixed
@@ -231,14 +230,14 @@ class WorkerEventServices
      *              worker_id (in) ID of the worker
      *              event_type (string) event type
      *              created_by The ID of the user who created the event.
-     * 
+     *
      * @return void.
      */
     private function updateWorkerEcontractStatus($request)
     {
         $this->workers->where('id', $request['worker_id'])
             ->update([
-                "econtract_status" => $request['event_type'], 
+                "econtract_status" => $request['event_type'],
                 "modified_by" => $request['created_by']
             ]);
     }
@@ -250,14 +249,14 @@ class WorkerEventServices
      *              worker_id (in) ID of the worker
      *              event_type (string) event type
      *              created_by The ID of the user who created the event.
-     * 
+     *
      * @return void.
      */
     private function updateWorkerTotalManagementStatus($request)
     {
         $this->workers->where('id', $request['worker_id'])
             ->update([
-                "total_management_status" => $request['event_type'], 
+                "total_management_status" => $request['event_type'],
                 "modified_by" => $request['created_by']
             ]);
     }
@@ -273,9 +272,9 @@ class WorkerEventServices
      *              last_working_day (date) last working date
      *              event_type (string) event type
      *              created_by The ID of the user who modified the record.
-     * 
+     *
      * @return void
-     * 
+     *
      */
     private function updateWorkerEmployment($workerEvent, $request)
     {
@@ -285,7 +284,7 @@ class WorkerEventServices
             'service_type' => $request['service_type'],
         ])->update([
             'work_end_date' => $request['last_working_day'],
-            'updated_at' => Carbon::now(), 
+            'updated_at' => Carbon::now(),
             'modified_by' => $request['created_by'],
             'event_type' => $request['event_type'],
             'event_id' => $workerEvent->id
@@ -296,9 +295,9 @@ class WorkerEventServices
      * Upload attachment of event.
      *
      * @param array $request
-     *              attachment (file) 
+     *              attachment (file)
      * @param object $workerEvent
-     * 
+     *
      * @return void
      */
     private function uploadAttachment($request, $workerEvent): void
@@ -306,7 +305,7 @@ class WorkerEventServices
         if(request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file) {
                 $fileName = $file->getClientOriginalName();
-                $filePath = 'workers/event/' . $request['worker_id']. '/'. $fileName; 
+                $filePath = 'workers/event/' . $request['worker_id']. '/'. $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
@@ -325,11 +324,11 @@ class WorkerEventServices
     /**
      * Retrieve the worker event record based on requested data.
      *
-     * 
+     *
      * @param array $request
      *              company_id (array) ID of the user company
      *              id (int) ID of the event
-     * 
+     *
      * @return mixed Returns the event data
 
      */
@@ -344,9 +343,9 @@ class WorkerEventServices
 
     /**
      * Update the worker event
-     * 
+     *
      * @param $request The request data
-     * 
+     *
      * @return array|bool  An array of validation errors or boolean based on the processing result
      */
     public function update($request): array|bool
@@ -395,9 +394,9 @@ class WorkerEventServices
     }
     /**
      * Show the worker event
-     * 
+     *
      * @param $request The request data containing the company_id and id.
-     * 
+     *
      * @return mixed Returns the worker event detail with related attachments
      */
     public function show($request): mixed
@@ -410,14 +409,14 @@ class WorkerEventServices
         ->find($request['id']);
     }
     /**
-     * Delete the attchment of worker event.
-     * 
+     * Delete the attachment of worker event.
+     *
      * @param $request  The request data containing the company_id and id.
-     * 
+     *
      * @return bool Returns true if the deletion is successfully, otherwise false.
-     */    
+     */
     public function deleteAttachment($request): bool
-    {   
+    {
         $request = $this->enrichRequestWithUserDetails($request);
         $data = $this->workerEventAttachments::join('worker_event', 'worker_event.id', 'worker_event_attachments.file_id')
         ->join('workers', function ($join) use ($request) {
@@ -429,5 +428,5 @@ class WorkerEventServices
         }
         $data->delete();
         return true;
-    }    
+    }
 }

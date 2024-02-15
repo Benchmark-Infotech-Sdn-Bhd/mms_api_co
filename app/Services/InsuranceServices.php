@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\Services; 
+namespace App\Services;
 
 use App\Models\Insurance;
 use App\Models\Vendor;
@@ -28,10 +28,10 @@ class InsuranceServices
 
     /**
      * InsuranceServices Constructor
-     * 
+     *
      * @param Insurance $insurance Instance of the Insurance class
-     * @param Vendor $vendor Instance of the Vendor class 
-     * 
+     * @param Vendor $vendor Instance of the Vendor class
+     *
      * @return void
      */
     public function __construct(Insurance $insurance, Vendor $vendor)
@@ -79,7 +79,7 @@ class InsuranceServices
      * create levy
      *
      * @param array $request The request data containing the create data
-     * 
+     *
      * @return mixed
      */
     private function createInsurance($request)
@@ -95,13 +95,13 @@ class InsuranceServices
 
 	 /**
      * Create the Insurance
-     * 
+     *
      * @param $request The request data containing the create Insurance data
-     * 
+     *
      * @return mixed Returns the created Insurance data
      */
     public function create($request): mixed
-    {  
+    {
         $vendor = $this->vendor
         ->where('company_id', $request['company_id'])
         ->find($request['vendor_id']);
@@ -114,10 +114,10 @@ class InsuranceServices
         return $this->createInsurance($request);
     }
     /**
-     * List the Inusurance
-     * 
+     * List the Insurance
+     *
      * @param $request The request data containing the company_id, vendor_id,  search_param key
-     * 
+     *
      * @return mixed Returns the paginated list of insurance.
      */
     public function list($request): mixed
@@ -139,7 +139,7 @@ class InsuranceServices
      * Apply condition to the query.
      *
      * @param array $request The request data containing the search keyword.
-     * 
+     *
      * @return void
      */
     private function applyCondition($query, $request)
@@ -158,9 +158,9 @@ class InsuranceServices
 
 	 /**
      * Show the insurance detail
-     * 
+     *
      * @param $request The request data containing the company_id, and id key
-     * 
+     *
      * @return mixed Returns the insurance data
      */
     public function show($request) : mixed
@@ -175,13 +175,13 @@ class InsuranceServices
     }
 	 /**
      * Update the insurance
-     * 
-     * @param $request $request The request data containing the updata data
-     * 
+     *
+     * @param $request $request The request data containing the update data
+     *
      * @return mixed Returns an array with two keys: 'isUpdated' and 'message'
      */
     public function update($request): mixed
-    {           
+    {
         $data = $this->insurance
         ->join('vendors', function($query) use($request) {
             $query->on('vendors.id','=','insurance.vendor_id')
@@ -204,14 +204,14 @@ class InsuranceServices
         ];
     }
 	 /**
-     * Delethe the insurance
-     * 
+     * Delete the insurance
+     *
      * @param $request $request The request data containing the company_id, and id key
-     * 
+     *
      * @return mixed Returns an array with two keys: 'isDeleted' and 'message'
-     */    
+     */
     public function delete($request) : mixed
-    {     
+    {
         $data = $this->insurance
         ->join('vendors', function($query) use($request) {
             $query->on('vendors.id','=','insurance.vendor_id')

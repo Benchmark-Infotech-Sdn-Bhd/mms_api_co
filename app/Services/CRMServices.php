@@ -93,7 +93,7 @@ class CRMServices
 
     /**
      * CRMServices constructor.
-     * 
+     *
      * @param CRMProspect $crmProspect Instance of the CRMProspect class
      * @param CRMProspectService $crmProspectService Instance of the CRMProspectService class
      * @param CRMProspectAttachment $crmProspectAttachment Instance of the CRMProspectAttachment class
@@ -110,26 +110,26 @@ class CRMServices
      * @param Role $role Instance of the Role class
      * @param CompanyModulePermission $companyModulePermission Instance of the CompanyModulePermission class
      * @param RolePermission $rolePermission Instance of the RolePermission class
-     * 
+     *
      * @return void
-     * 
+     *
      */
     public function __construct(
-        CRMProspect                     $crmProspect, 
-        CRMProspectService              $crmProspectService, 
-        CRMProspectAttachment           $crmProspectAttachment, 
-        LoginCredential                 $loginCredential, 
-        Storage                         $storage, 
-        Sectors                         $sectors, 
-        DirectrecruitmentApplications   $directrecruitmentApplications, 
-        SystemType $systemType, 
-        TotalManagementApplications     $totalManagementApplications, 
-        EContractApplications           $eContractApplications, 
-        InvoiceServices                 $invoiceServices, 
-        AuthServices                    $authServices, 
-        User                            $user, 
-        Role                            $role, 
-        CompanyModulePermission         $companyModulePermission, 
+        CRMProspect                     $crmProspect,
+        CRMProspectService              $crmProspectService,
+        CRMProspectAttachment           $crmProspectAttachment,
+        LoginCredential                 $loginCredential,
+        Storage                         $storage,
+        Sectors                         $sectors,
+        DirectrecruitmentApplications   $directrecruitmentApplications,
+        SystemType $systemType,
+        TotalManagementApplications     $totalManagementApplications,
+        EContractApplications           $eContractApplications,
+        InvoiceServices                 $invoiceServices,
+        AuthServices                    $authServices,
+        User                            $user,
+        Role                            $role,
+        CompanyModulePermission         $companyModulePermission,
         RolePermission                  $rolePermission
     )
     {
@@ -152,7 +152,7 @@ class CRMServices
     }
     /**
      * validate the update create request data
-     * 
+     *
      * @return array The validation rules for the input data.
      */
     public function createValidation(): array
@@ -180,7 +180,7 @@ class CRMServices
     }
     /**
      * validate the update update request data
-     * 
+     *
      * @param $params
      * @return array The validation rules for the input data.
      */
@@ -209,7 +209,7 @@ class CRMServices
     }
     /**
      * custom message
-     * 
+     *
      * @return array The validation rules for the input data.
      */
     public function crmValidationCustomMessage(): array
@@ -224,7 +224,7 @@ class CRMServices
     }
     /**
      * validate the update search request data
-     * 
+     *
      * @return array The validation rules for the input data.
      */
     public function searchValidation(): array
@@ -296,9 +296,9 @@ class CRMServices
 
     /**
      * List the CRM
-     * 
-     * @param $request The request data containg the 'search', 'filter', 'company_id'
-     * 
+     *
+     * @param $request The request data containing the 'search', 'filter', 'company_id'
+     *
      * @return mixed Returns the paginated list of crm.
      */
     public function list($request): mixed
@@ -332,7 +332,7 @@ class CRMServices
      * Apply search filter to the query.
      *
      * @param array $request The request data containing the search keyword.
-     * 
+     *
      * @return void
      */
     private function applySearchFilter($query, $request)
@@ -349,7 +349,7 @@ class CRMServices
      * Apply service filter to the query.
      *
      * @param array $request The request data containing the filter key.
-     * 
+     *
      * @return void
      */
     private function applyServiceFilter($query, $request)
@@ -363,9 +363,9 @@ class CRMServices
 
     /**
      * show the crm detail
-     * 
-     * @param $request The request data containg the 'company_id', 'id' key
-     * 
+     *
+     * @param $request The request data containing the 'company_id', 'id' key
+     *
      * @return mixed Returns the crm detail with related attachments
      */
     public function show($request): mixed
@@ -381,7 +381,7 @@ class CRMServices
      * create CRM Prospect
      *
      * @param array $request The request data containing the create data
-     * 
+     *
      * @return mixed Returns the created crm prospect data
      */
     private function createCrmProspect($request)
@@ -413,7 +413,7 @@ class CRMServices
      * create Role
      *
      * @param array $request The request data containing the create role data
-     * 
+     *
      * @return mixed Returns the created role data
      */
     private function createRole($request)
@@ -435,10 +435,10 @@ class CRMServices
      * Upload attachment of prospect.
      *
      * @param array $request
-     *              attachment (file) 
+     *              attachment (file)
      * @param int $prospectId
      * @param int $prospectServiceId
-     * 
+     *
      * @return void
      */
     private function uploadAttachment($request, $prospectId, $prospectServiceId): void
@@ -464,10 +464,10 @@ class CRMServices
     /**
      * create Directrecruitment Applications
      *
-     * @param array $request The request data containing the create application details 
+     * @param array $request The request data containing the create application details
      * @param int $prospectId
      * @param int $prospectServiceId
-     * 
+     *
      * @return void
      */
     private function createDirectrecruitmentApplications($request, $prospectId, $prospectServiceId): void
@@ -488,10 +488,10 @@ class CRMServices
     /**
      * create TotalManagement Applications
      *
-     * @param array $request The request data containing the create application details 
+     * @param array $request The request data containing the create application details
      * @param int $prospectId
      * @param int $prospectServiceId
-     * 
+     *
      * @return void
      */
     private function createTotalManagementApplications($request, $prospectId, $prospectServiceId): void
@@ -512,10 +512,10 @@ class CRMServices
     /**
      * create Econtract Applications
      *
-     * @param array $request The request data containing the create application details 
+     * @param array $request The request data containing the create application details
      * @param int $prospectId
      * @param int $prospectServiceId
-     * 
+     *
      * @return void
      */
     private function createEcontractApplications($request, $prospectId, $prospectServiceId): void
@@ -537,7 +537,7 @@ class CRMServices
      * create Service
      *
      * @param array $request The request data containing the create service data
-     * 
+     *
      * @return void
      */
     private function createService($services, $prospect, $sector, $request)
@@ -553,7 +553,7 @@ class CRMServices
                 'contract_type'     => $service->service_id == 1 ? $request['contract_type'] : 'No Contract',
                 'status'            => $request['status'] ?? 0
             ]);
-            
+
             $prospectId = $prospect->id;
             $prospectServiceId = $prospectService->id;
 
@@ -573,9 +573,9 @@ class CRMServices
 
     /**
      * Create the CRM
-     * 
-     * @param $request The request data containg the create CRM data
-     *  
+     *
+     * @param $request The request data containing the create CRM data
+     *
      * @return bool|array Return an array of validation errors or boolean based on the processing result
      */
     public function create($request): bool|array
@@ -638,7 +638,7 @@ class CRMServices
      * update the CRM Prospect
      *
      * @param array $request The request data containing the update data
-     * 
+     *
      * @return void
      */
     private function updateCrmProspect($request, $prospect)
@@ -665,9 +665,9 @@ class CRMServices
 
     /**
      * Update the CRM
-     * 
-     * @param $request The request data containg the update CRM data
-     * 
+     *
+     * @param $request The request data containing the update CRM data
+     *
      * @return bool|array An array of validation errors or boolean based on the processing result
      */
     public function update($request): bool|array
@@ -724,9 +724,9 @@ class CRMServices
     }
     /**
      * Delete the Attachment
-     * 
+     *
      * @param $request The request data containing the company_id, id key
-     * 
+     *
      * @return bool Returns true if the deletion is successfully, otherwise false.
      */
     public function deleteAttachment($request): bool
@@ -738,9 +738,9 @@ class CRMServices
     }
     /**
      * List the CRM dropdown
-     * 
+     *
      * @param $request The request data containing the company_id, service_id key
-     * 
+     *
      * @return mixed Returns the list of CRM
      */
     public function dropDownCompanies($request): mixed
@@ -761,9 +761,9 @@ class CRMServices
     }
     /**
      * Get the Prospect Details
-     * 
+     *
      * @param $request The request data containing the id, company_id key
-     * 
+     *
      * @return mixed Returns the Prospect data
      */
     public function getProspectDetails($request): mixed
@@ -774,8 +774,8 @@ class CRMServices
     }
     /**
      * List the system type
-     * 
-     * @return mixed Returns the list of system type 
+     *
+     * @return mixed Returns the list of system type
      */
     public function systemList(): mixed
     {
@@ -786,10 +786,10 @@ class CRMServices
 
     /**
      * Import the CRM data
-     * 
+     *
      * @param $request
      * @param $file
-     * 
+     *
      * @return mixed Returns true if the import is successfully, otherwise false.
      */
     public function crmImport($request, $file): mixed
@@ -803,7 +803,7 @@ class CRMServices
 
     }
     /**
-     * Checks if the company has cutomer login feature.
+     * Checks if the company has customer login feature.
      *
      * @param integer $companyId .
      * @return bool Returns true if the company has customer login, false otherwise.
@@ -817,7 +817,7 @@ class CRMServices
         return $featureCheck > 0;
     }
     /**
-     * Checks if the company has cutomer role.
+     * Checks if the company has customer role.
      *
      * @param integer $companyId .
      * @return mixed Returns role if the company have the role customer, returns null otherwise.
@@ -845,7 +845,7 @@ class CRMServices
                 'permission_id' => Config::get('services.VIEW_PERMISSION'),
                 'created_by'    => $role->created_by ?? 0,
                 'modified_by'   => $role->created_by ?? 0
-            ]);   
+            ]);
         }
 
         return true;

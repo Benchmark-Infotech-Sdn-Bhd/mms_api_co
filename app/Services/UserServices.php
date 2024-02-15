@@ -4,10 +4,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\CRMProspect;
 use App\Models\Employee;
-use App\Services\ValidationServices;
 use Illuminate\Support\Facades\Config;
-use App\Services\AuthServices;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 
@@ -46,18 +43,18 @@ class UserServices
     private Employee $employee;
     /**
      * UserServices constructor.
-     * 
+     *
      * @param User $user Instance of the User class
      * @param ValidationServices $validationServices Instance of the ValidationServices class
      * @param AuthServices $authServices Instance of the AuthServices class
-     * 
+     *
      * @return void
      */
     public function __construct(
         User                $user,
         ValidationServices  $validationServices,
         AuthServices        $authServices,
-        CRMProspect         $crmProspect, 
+        CRMProspect         $crmProspect,
         Employee            $employee
     )
     {
@@ -70,7 +67,7 @@ class UserServices
 
     /**
      *  validate the reset password request data
-     * 
+     *
      * @return array  The validation rules for the input data.
      */
     public function resetPasswordValidation(): array
@@ -83,7 +80,7 @@ class UserServices
     }
     /**
      *  validate the update employee request data
-     * 
+     *
      * @return array  The validation rules for the input data.
      */
     public function updateEmployeeValidation(): array
@@ -99,7 +96,7 @@ class UserServices
     }
     /**
      *  validate the update customer request data
-     * 
+     *
      * @return array  The validation rules for the input data.
      */
     public function updateCustomerValidation(): array
@@ -131,7 +128,7 @@ class UserServices
      */
     private function validateAdminListRequest($request): array|bool
     {
-        if(isset($request['search_param']) && !empty($request['search_param'])){
+        if(!empty($request['search_param'])){
             if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
                 return [
                     'validate' => $this->validationServices->errors()
@@ -237,11 +234,11 @@ class UserServices
     /**
      * Retrieve the user record based on requested data.
      *
-     * 
+     *
      * @param array $request
      *              company_id (array) ID of the user company
      *              id (int) ID of the event
-     * 
+     *
      * @return mixed Returns the user data
 
      */
@@ -290,11 +287,11 @@ class UserServices
 
     /**
      * List the admin user
-     * 
-     * @param $request The request data containg the search_param
-     * 
+     *
+     * @param $request The request data containing the search_param
+     *
      * @return mixed Returns the paginated list of admin user.
-     * 
+     *
      */
     public function adminList($request) : mixed
     {
@@ -306,7 +303,7 @@ class UserServices
         return $this->user
             ->leftJoin('company', 'company.id', 'users.company_id')
             ->where(function ($query) use ($request) {
-                if (isset($request['search_param']) && !empty($request['search_param'])) {
+                if (!empty($request['search_param'])) {
                     $query->where('users.name', 'like', "%{$request['search_param']}%")
                     ->orWhere('users.email', 'like', '%'.$request['search_param'].'%');
                 }
@@ -320,9 +317,9 @@ class UserServices
 
     /**
      * Show the Admin User Detail
-     * 
-     * @param $request The request data containg the id
-     * 
+     *
+     * @param $request The request data containing the id
+     *
      * @return mixed Returns the admin user record.
      */
     public function adminShow($request) : mixed
@@ -339,10 +336,10 @@ class UserServices
 
     /**
      * Update the admin user
-     * 
-     * @param $request The request data containg the admin user update data
-     * 
-     * @return bool  Returns an array with two keys: 'isUpdated' and 'message'
+     *
+     * @param $request The request data containing the admin user update data
+     *
+     * @return array  Returns an array with two keys: 'isUpdated' and 'message'
      */
     public function adminUpdate($request)
     {
@@ -352,7 +349,7 @@ class UserServices
         }
 
         $user = $this->user->where('id',$request['id'])->first();
-        
+
         $user->update([
             'name' => $request['name'] ?? $user['name'],
             'email' => $request['email'] ?? $user['email'],
@@ -367,9 +364,9 @@ class UserServices
 
     /**
      * Update admin user status
-     * 
-     * @param $request The request data containg the id and status
-     * 
+     *
+     * @param $request The request data containing the id and status
+     *
      * @return array Returns an array with two keys: 'isUpdated' and 'message'
      */
     public function adminUpdateStatus($request) : array
@@ -395,9 +392,9 @@ class UserServices
     }
     /**
      * Reset Password
-     * 
-     * @param $request The request data containg the reset password data
-     * 
+     *
+     * @param $request The request data containing the reset password data
+     *
      * @return array|bool  returns An array of validation errors or boolean based on the processing result
      */
     public function resetPassword($request): array|bool
@@ -425,9 +422,9 @@ class UserServices
 
     /**
      * Update user
-     * 
-     * @param $request  The request data containg the update user data
-     * 
+     *
+     * @param $request  The request data containing the update user data
+     *
      * @return array|bool returns An array of validation errors or boolean based on the processing result
      */
     public function updateUser($request): array|bool
@@ -464,10 +461,10 @@ class UserServices
      * update Employee record based on request data.
      *
      * @param object $userDetails user object
-     * @param array $request The request containg the name, contact_number, address, state, city, modified_by
-     * 
+     * @param array $request The request containing the name, contact_number, address, state, city, modified_by
+     *
      * @return void
-     * 
+     *
      */
     private function updateEmployeeData($userDetails, $request)
     {
@@ -485,10 +482,10 @@ class UserServices
      * update customer record based on request data.
      *
      * @param object $userDetails user object
-     * @param array $request The request containg the contact_number, modified_by
-     * 
+     * @param array $request The request containing the contact_number, modified_by
+     *
      * @return void
-     * 
+     *
      */
     private function updateCustomerData($userDetails, $request)
     {
@@ -500,11 +497,11 @@ class UserServices
 
     /**
      * Show the user data based on the user type
-     * 
-     * @param $request The request data containg the id
-     * 
+     *
+     * @param $request The request data containing the id
+     *
      * @return mixed Returns the user record
-     * 
+     *
      */
     public function showUser($request) : mixed
     {
