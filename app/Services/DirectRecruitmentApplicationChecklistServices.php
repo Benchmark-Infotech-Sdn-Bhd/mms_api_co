@@ -186,12 +186,28 @@ class DirectRecruitmentApplicationChecklistServices
      */
     public function showBasedOnApplication($request): mixed
     {
-        $validationResult = $this->validateRequest($request);
-        if ($validationResult !== true) {
+        $validationResult = $this->validateRequestApplicationId($request);
+        if (!is_null($validationResult)) {
             return $validationResult;
         }
 
         return $this->retrieveApplicationChecklist($request);
+    }
+
+    /**
+     * Validates the request Application ID against the required rule.
+     *
+     * @param mixed $request The request data containing the application Id to be validated.
+     * @return array|null Returns an array containing validation errors if validation fails, otherwise returns null.
+     */
+    private function validateRequestApplicationId($request): ?array
+    {
+        if (!$this->validationServices->validate($request, ['application_id' => 'required'])) {
+            return [
+                'validationErrors' => $this->validationServices->errors()
+            ];
+        }
+        return null;
     }
 
     /**

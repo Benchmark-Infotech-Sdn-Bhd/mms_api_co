@@ -391,7 +391,7 @@ class DirectRecruitmentApplicationApprovalServices
         }
 
         // Check validity of user by comparing company ids
-        if ($this->checkInvalidUser($data, $request)) {
+        if ($this->checkInvalidUser($data->toArray(), $request)) {
             return $this->getInvalidUserResponse();
         }
 
@@ -404,9 +404,9 @@ class DirectRecruitmentApplicationApprovalServices
      *
      * @param int $id The ID of the data to retrieve.
      *
-     * @return array|null The retrieved data with approval attachments, or null if not found.
+     * @return mixed The retrieved data with approval attachments, or null if not found.
      */
-    private function getDataWithApproval(int $id): ?array
+    private function getDataWithApproval(int $id): mixed
     {
         return $this->approvalAttachments
             ->with([
@@ -438,7 +438,7 @@ class DirectRecruitmentApplicationApprovalServices
     private function checkInvalidUser(array $data, array $request): bool
     {
         return $this->directrecruitmentApplications
-                ->find($data['directRecruitmentApplicationApproval']['application_id'])->company_id != $request['company_id'];
+                ->find($data['direct_recruitment_application_approval']['application_id'])->company_id != $request['company_id'];
     }
 
     /**
@@ -454,10 +454,10 @@ class DirectRecruitmentApplicationApprovalServices
     /**
      * Get the delete response.
      *
-     * @param array $data An array of data.
+     * @param mixed $data An object that needs to be deleted.
      * @return array The delete response array with keys "isDeleted" and "message".
      */
-    private function getDeleteResponse(array $data): array
+    private function getDeleteResponse($data): array
     {
         return ["isDeleted" => $data->delete(), "message" => "Deleted Successfully"];
     }
