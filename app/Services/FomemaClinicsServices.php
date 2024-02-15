@@ -59,9 +59,21 @@ class FomemaClinicsServices
     }
 
 	/**
+     * Creates a new fomema clinics from the given request data.
      *
-     * @param $request
-     * @return mixed
+     * @param array $request The array containing fomema clinics.
+     *                      The array should have the following keys:
+     *                      - clinic_name: The clinic name of the fomema.
+     *                      - person_in_charge: The person incharge of the fomema.
+     *                      - pic_contact_number: The pic contact number of the fomema.
+     *                      - address: The address of the fomema.
+     *                      - state: The state of the fomema.
+     *                      - city: The city of the fomema.
+     *                      - postcode: The postcode of the fomema.
+     *                      - created_by: The ID of the fomema who created the application.
+     *                      - modified_by: (int) The updated fomema modified by.
+     * 
+     * @return fomema clinics The newly created fomema clinics object.
      */
     public function create($request): mixed
     { 
@@ -81,11 +93,12 @@ class FomemaClinicsServices
     }
 
 	/**
-     *
-     * @param $request
-     * @return LengthAwarePaginator
-     */ 
-    public function list($request)
+     * Returns a paginated list of fomema clinics based on the given search request.
+     * 
+     * @param array $request The search request parameters and company id.
+     * @return mixed Returns the paginated list of fomema clinics.
+     */
+    public function list($request): mixed
     {
         return $this->fomemaClinics->whereIn('company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
@@ -100,9 +113,10 @@ class FomemaClinicsServices
     }
 	
     /**
-     *
-     * @param $request
-     * @return mixed
+     * Show the fomema clinics.
+     * 
+     * @param array $request The request data containing fomema clinics id, company id
+     * @return mixed Returns the fomema clinics.
      */
     public function show($request) : mixed
     {
@@ -110,9 +124,21 @@ class FomemaClinicsServices
     }
 
 	/**
-     *
-     * @param $request
-     * @return mixed
+     * Updates the fomema clinics data with the given request.
+     * 
+     * @param array $request The array containing country data.
+     *                      The array should have the following keys:
+     *                      - clinic_name: The updated clinic name.
+     *                      - person_in_charge: The updated person incharge.
+     *                      - pic_contact_number: The updated pic contact number.
+     *                      - address: The updated address.
+     *                      - state: The updated state.
+     *                      - city: The updated city.
+     *                      - postcode: The updated postcode. 
+     *                      - modified_by: The updated country modified by.
+     * @return mixed Returns an array with the following keys:
+     * - "InvalidUser": if the company id is not matching with login user company id.
+     * - "isUpdated" (boolean): Indicates whether the data was updated. Always set to `false`.
      */
     public function update($request): mixed
     {     
@@ -130,10 +156,15 @@ class FomemaClinicsServices
     }
 
 	/**
-     *
-     * @param $request
-     * @return mixed
-     */    
+     * Delete the fomema clinics
+     * 
+     * @param array $request The array containing fomema id.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "isDeleted": A value returns false if fomemaClinics is null.
+     * - "InvalidUser": if the company id is not matching with login user company id.
+     * - "isDeleted" (boolean): Indicates whether the data was deleted. Always set to `false`.
+     */
     public function delete($request): mixed
     {    
         $data = $this->fomemaClinics::find($request['id']);

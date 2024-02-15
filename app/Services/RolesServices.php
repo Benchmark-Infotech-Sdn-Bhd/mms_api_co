@@ -47,6 +47,31 @@ class RolesServices
     }
 
     /**
+     * Creates the validation rules for create a new role.
+     *
+     * @return array The array containing the validation rules.
+     */
+    public function createValidation(): array
+    {
+        return [
+            'name' => 'required|regex:/^[a-zA-Z ]*$/|max:250',
+        ];
+    }
+
+    /**
+     * Creates the validation rules for updating the role.
+     *
+     * @return array The array containing the validation rules.
+     */
+    public function updateValidation(): array
+    {
+        return [
+            'id' => 'required',
+            'name' => 'required|regex:/^[a-zA-Z ]*$/|max:250'
+        ];
+    }
+
+    /**
      * Returns a paginated list of role based on the given search request.
      * 
      * @param array $request The search request parameters and company id.

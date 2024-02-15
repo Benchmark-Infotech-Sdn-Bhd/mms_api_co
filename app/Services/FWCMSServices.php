@@ -59,6 +59,8 @@ class FWCMSServices
      * @param Levy $levy Instance of the Levy class.
      * @param ApplicationInterviews $applicationInterviews Instance of the ApplicationInterviews class.
      * @param DirectRecruitmentApplicationApproval $directRecruitmentApplicationApproval Instance of the DirectRecruitmentApplicationApproval class.
+     * 
+     * @return void
      */
     public function __construct(
         FWCMS                                    $fwcms,
@@ -78,7 +80,9 @@ class FWCMSServices
     }
 
     /**
-     * @return array
+     * Creates the validation rules for create a new fwcms.
+     *
+     * @return array The array containing the validation rules.
      */
     public function createValidation(): array
     {
@@ -92,7 +96,9 @@ class FWCMSServices
     }
     
     /**
-     * @return array
+     * Creates the validation rules for updating the fwcms.
+     *
+     * @return array The array containing the validation rules.
      */
     public function updateValidation($param): array
     {
@@ -105,10 +111,12 @@ class FWCMSServices
             'ksm_reference_number' => 'required|regex:/^[a-zA-Z0-9\/]*$/|max:21|unique:fwcms,ksm_reference_number,'.$param['id']
         ];
     }
-
+    
     /**
-     * @param $request
-     * @return mixed
+     * Returns a paginated list of fwcms based on the given search request.
+     * 
+     * @param array $request The search request parameters and company id.
+     * @return mixed Returns the paginated list of fwcms.
      */
     public function list($request): mixed
     {

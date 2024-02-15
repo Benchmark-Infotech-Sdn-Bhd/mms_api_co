@@ -71,6 +71,8 @@ class DocumentChecklistAttachmentsServices
      * @param Storage $storage Instance of the Storage class.
      * @param DirectRecruitmentServices $directRecruitmentServices Instance of the DirectRecruitmentServices class.
      * @param ApplicationSummaryServices $applicationSummaryServices Instance of the ApplicationSummaryServices class.
+     * 
+     * @return void
      */
     public function __construct(
         DocumentChecklistAttachments                  $documentChecklistAttachments,
@@ -133,6 +135,7 @@ class DocumentChecklistAttachmentsServices
             "message" => self::MESSAGE_DOCUMENT_UPLOADED_SUCCESSFULLY
         ];
     }
+
     /**
      * @param $request
      * @return mixed
@@ -166,6 +169,7 @@ class DocumentChecklistAttachmentsServices
 
         return $res;
     }
+    
     /**
      * @param $request
      * @return mixed

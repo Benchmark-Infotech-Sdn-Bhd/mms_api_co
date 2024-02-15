@@ -47,12 +47,14 @@ class DocumentChecklistServices
      * @param ValidationServices $validationServices Instance of the ValidationServices class.
      * @param SectorsServices $sectorsServices Instance of the SectorsServices class.
      * @param Sectors $sectors Instance of the Sectors class.
+     * 
+     * @return void
      */
     public function __construct(
-        DocumentChecklist $documentChecklist,
-        ValidationServices $validationServices,
-        SectorsServices $sectorsServices,
-        Sectors $sectors
+        DocumentChecklist      $documentChecklist,
+        ValidationServices     $validationServices,
+        SectorsServices        $sectorsServices,
+        Sectors                $sectors
     )
     {
         $this->documentChecklist = $documentChecklist;
@@ -62,8 +64,17 @@ class DocumentChecklistServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Creates a new document check list from the given request data.
+     * 
+     * @param array $request The array containing document check list data.
+     *                      The array should have the following keys:
+     *                      - sector_id: The sector id of the document.
+     *                      - document_title: The document title of the document.
+     *                      - remarks: The remarks of the document.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "InvalidUser" (boolean): A array returns InvalidUser if sectorDetails is null.
+     * - "isSubmit": A object indicating if the document check list was successfully created.
      */
     public function create($request) : mixed
     {
@@ -86,9 +97,19 @@ class DocumentChecklistServices
 
         return $checklist;
     }
+
     /**
-     * @param $request
-     * @return mixed
+     * Updates the document check list from the given request data.
+     * 
+     * @param array $request The array containing document check list data.
+     *                      The array should have the following keys:
+     *                      - sector_id: The sector id of the document.
+     *                      - document_title: The document title of the document.
+     *                      - remarks: The remarks of the document.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "isUpdated" (boolean): A value returns false if documentChecklist is null.
+     * - "isUpdated" (boolean): Indicates whether the data was updated. Always set to `false`.
      */
     public function update($request) : mixed
     {
@@ -114,8 +135,13 @@ class DocumentChecklistServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Delete the document check list
+     * 
+     * @param array $request The array containing document id.
+     * @return array Returns an array with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "InvalidUser" (boolean): A value returns false if documentChecklist is null.
+     * - "isDeleted" (boolean): Indicates whether the data was deleted. Always set to `false`.
      */
     public function delete($request) : mixed
     {
@@ -153,8 +179,14 @@ class DocumentChecklistServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Show the document check list
+     * 
+     * @param array $request The request data containing company id, document id.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "Error" (boolean): A value returns true if document check list is null.
+     * - "InvalidUser" (boolean): A value returns false if sectors is null.
+     * - mixed Returns the document check list.
      */
     public function show($request) : mixed
     {
@@ -180,8 +212,13 @@ class DocumentChecklistServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Returns a paginated list of document check list based on the given search request.
+     * 
+     * @param array $request The request data containing company id, sector id.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "InvalidUser" (boolean): A value returns false if sectors is null.
+     * - mixed Returns a paginated list of document check list.
      */
     public function list($request) : mixed
     {
@@ -217,12 +254,31 @@ class DocumentChecklistServices
 
         return true;
     }
-
+    
+    /**
+     * Show the sectors.
+     * 
+     * @param array $request The request data containing sector id, company id
+     * @return mixed Returns the sectors.
+     */
     private function showCompanySectors($request)
     {
         return $this->sectors->where('company_id', $request['company_id'])->find($request['sector_id']);
     }
-
+    
+    /**
+     * Creates a new document check list from the given request data.
+     * 
+     * @param array $request The array containing document check list data.
+     *                      The array should have the following keys:
+     *                      - sector_id: The sector id of the document.
+     *                      - document_title: The document title of the document.
+     *                      - remarks: The remarks of the document.
+     *                      - created_by: The created document check list created by.
+     *                      - modified_by: The updated document check list modified by.
+     * 
+     * @return document check list The newly created document check list object.
+     */
     private function createDocumentChecklist($request)
     {
         return $this->documentChecklist->create([
@@ -233,17 +289,30 @@ class DocumentChecklistServices
             'modified_by'   => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO
         ]);
     }
-
+    
+    /**
+     * Returns a count of document check list based on the given sector id.
+     * 
+     * @param array $request The request data containing sector id.
+     * @return array Returns a count of document check list.
+     */
     private function getDocumentChecklistCount($request)
     {
         return $this->documentChecklist->whereNull('deleted_at')
             ->where('sector_id','=',$request['sector_id'])->count('id');
     }
-
+    
+    /**
+     * Updates the sectors status with the given request.
+     * 
+     * @param array $request The request data containing sector id.
+     * @param string $status The status of the sector check list.
+     * @return Object sectors The updated sectors object.
+     */
     private function updateChecklistStatus($request, $status)
     {
         return $this->sectorsServices->updateChecklistStatus([ 'id' => $request['sector_id'], 'checklist_status' => $status]);
-    }
+    }   
 
     /**
      * Validate the given request data.
@@ -261,12 +330,33 @@ class DocumentChecklistServices
 
         return true;
     }
-
+    
+    /**
+     * Show the document check list.
+     * 
+     * @param array $request The request data containing document check list id
+     * @return mixed Returns the document check list.
+     */
     private function showDocumentChecklist($request)
     {
         return $this->documentChecklist->find($request['id']);
     }
-
+    
+    /**
+     * Updates the document check list with the given request.
+     * 
+     * @param object $documentChecklist The documentChecklist object to be updated.
+     * @param array $request The array containing document check list data.
+     *                      The array should have the following keys:
+     *                      - id: The updated id.
+     *                      - sector_id: The updated sector id.
+     *                      - document_title: The updated document title.
+     *                      - remarks: The updated remarks.
+     *                      - modified_by: The updated document modified by.
+     * 
+     * @return array Returns an array with the following keys:
+     * - "isUpdated" (boolean): Indicates whether the data was updated. Always set to `false`.
+     */
     private function updateDocumentChecklist($documentChecklist, $request)
     {
         return [
