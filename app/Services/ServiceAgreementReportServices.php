@@ -18,54 +18,51 @@ class ServiceAgreementReportServices
     private CRMProspect $crmProspect;
     /**
      * ServiceAgreementReportServices constructor.
+     * 
      * @param CRMProspect $crmProspect
+     * 
+     * @return void
+     * 
      */
     public function __construct(CRMProspect $crmProspect)
     {
         $this->crmProspect = $crmProspect;
     }
     /**
+     * List the service agreement
+     * 
      * @param $request
-     * @return mixed
+     * 
+     * @return mixed Returns the paginated list of service agreement.
      */   
     public function list($request): mixed
     {
-        $totalManagementCrmList = $this->crmProspect
-        ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
-        ->leftJoin('total_management_applications', 'total_management_applications.crm_prospect_id', 'crm_prospects.id')
-        ->leftJoin('total_management_application_attachemnts', function($join) use ($request){
-            $join->on('total_management_applications.id', '=', 'total_management_application_attachemnts.file_id');
-          })
+        return $this->crmProspect->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number')
         ->whereIn('crm_prospects.company_id', $request['company_id'])
-        ->where('crm_prospects.status', 1)
-        ->where('crm_prospect_services.service_id', 3)
-        ->whereNotNull('total_management_application_attachemnts.file_url')
         ->where(function ($query) use ($request) {
-            if(isset($request['search']) && !empty($request['search'])) {
-                $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
+            $search = $request['search'] ?? '';
+            if (!empty($search)) {
+                $query->where('crm_prospects.company_name', 'like', '%' . $search . '%');
             }
         })
-        ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospect_services.service_id', 'crm_prospect_services.service_name', 'total_management_applications.id as application_id', 'total_management_application_attachemnts.file_url')
-        ->distinct('crm_prospect_services.id', 'total_management_applications.id', 'total_management_application_attachemnts.id');
+        ->with(['prospectServices' => function ($query) {
+            $query->select(['id', 'crm_prospect_id', 'service_id', 'service_name']);
+        }])
+        ->with(['prospectServices.totalManagemntApplications.applicationAttachment' => function ($query) {
+            $query->select([ 'file_id', 'file_url']);
+        }])
+        ->with(['prospectServices.eContractApplications.applicationAttachment' => function ($query) { 
+            $query->select(['file_id', 'file_url']);
+        }])
+        ->whereHas('prospectServices.totalManagemntApplications.applicationAttachment', function($query){
+            $query->whereNotNull('file_url');
+        })
+        ->orWhereHas('prospectServices.eContractApplications.applicationAttachment', function ($query) {
+            $query->whereNotNull('file_url');
+        })
+        ->orderBy('crm_prospects.id','DESC')
+        ->paginate(Config::get('services.paginate_row'));
 
-        $eContractCrmList = $this->crmProspect
-        ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
-        ->leftJoin('e-contract_applications as econtract_application', 'econtract_application.crm_prospect_id', 'crm_prospects.id')
-        ->leftJoin('e-contract_application_attachments as econtract_application_attachments', function($join) use ($request){
-            $join->on('econtract_application.id', '=', 'econtract_application_attachments.file_id');
-          })
-        ->whereIn('crm_prospects.company_id', $request['company_id'])
-        ->where('crm_prospects.status', 1)
-        ->where('crm_prospect_services.service_id', 2)
-        ->whereNotNull('econtract_application_attachments.file_url')
-        ->where(function ($query) use ($request) {
-            if(isset($request['search']) && !empty($request['search'])) {
-                $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
-            }
-        })
-        ->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospects.roc_number', 'crm_prospect_services.service_id', 'crm_prospect_services.service_name', 'econtract_application.id as application_id', 'econtract_application_attachments.file_url');
-        
-        return $eContractCrmList->union($totalManagementCrmList)->paginate(Config::get('services.paginate_row'));
     }
 
 }

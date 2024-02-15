@@ -42,7 +42,12 @@ class WorkersServices
     public const ERROR_WORKER = ['workerError' => true];
     public const ERROR_WORKER_COUNT = ['workerCountError' => true];
 
-    public const ATTACHMENT_FILE_TYPE = 'COSTMANAGEMENT';
+    public const ATTACHMENT_FILE_TYPE_FOMEMA = 'FOMEMA';
+    public const ATTACHMENT_FILE_TYPE_PASSPORT = 'PASSPORT';
+    public const ATTACHMENT_FILE_TYPE_PROFILE = 'PROFILE';
+    public const ATTACHMENT_FILE_TYPE_WORKERATTACHMENT = 'WORKERATTACHMENT';
+    public const ATTACHMENT_FILE_TYPE_WORKPERMIT = 'WORKPERMIT';
+    public const ATTACHMENT_FILE_TYPE_BIOMEDICAL = 'BIOMEDICAL';
     public const MODULE_TYPE_WORKERBIODATA = 'WorkerBioData';
     public const MODULE_TYPE_WORKERS = 'Workers';
     public const PROCESS_STATUS = 'Processed';
@@ -51,6 +56,7 @@ class WorkersServices
     public const MESSAGE_DELETED_SUCCESSFULLY = 'Deleted Successfully';
     public const MESSAGE_UPDATED_SUCCESSFULLY = 'Updated Successfully';
     public const WORKER_BANK_ACCOUNT_LIMIT = 3;
+    public const USER_TYPE_CUSTOMER = 'Customer';
 
     /**
      * @var Workers
@@ -423,7 +429,7 @@ class WorkersServices
      */
     private function validateExportRequest($request): array|bool
     {
-        if(isset($request['search_param']) && !empty($request['search_param'])){
+        if(!empty($request['search_param'])){
             if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
                 return [
                     'validate' => $this->validationServices->errors()
@@ -543,12 +549,15 @@ class WorkersServices
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
+                $this->workerAttachments->updateOrCreate(
+                    [
                         "file_id" => $worker['id'],
+                        "file_type" => self::ATTACHMENT_FILE_TYPE_FOMEMA,
+                    ],
+                    [
                         "file_name" => $fileName,
-                        "file_type" => 'FOMEMA',
                         "file_url" =>  $fileUrl
-                    ]);  
+                ]);
             }
         }
     }
@@ -571,12 +580,15 @@ class WorkersServices
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
+                $this->workerAttachments->updateOrCreate(
+                    [
                         "file_id" => $worker['id'],
+                        "file_type" => self::ATTACHMENT_FILE_TYPE_PASSPORT,
+                    ],
+                    [
                         "file_name" => $fileName,
-                        "file_type" => 'PASSPORT',
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                        "file_url" =>  $fileUrl
+                ]);  
             }
         }
     }
@@ -599,12 +611,15 @@ class WorkersServices
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
+                $this->workerAttachments->updateOrCreate(
+                    [
                         "file_id" => $worker['id'],
+                        "file_type" => self::ATTACHMENT_FILE_TYPE_PROFILE,
+                    ],
+                    [
                         "file_name" => $fileName,
-                        "file_type" => 'PROFILE',
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                        "file_url" =>  $fileUrl
+                ]);      
             }
         }
     }
@@ -627,12 +642,15 @@ class WorkersServices
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
+                $this->workerAttachments->updateOrCreate(
+                    [
                         "file_id" => $worker['id'],
+                        "file_type" => self::ATTACHMENT_FILE_TYPE_WORKERATTACHMENT,
+                    ],
+                    [
                         "file_name" => $fileName,
-                        "file_type" => 'WORKERATTACHMENT',
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                        "file_url" =>  $fileUrl
+                ]);     
             }
         }
     }
@@ -702,12 +720,15 @@ class WorkersServices
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerVisaAttachments::create([
-                        "file_id" => $workerVisa['id'],
-                        "file_name" => $fileName,
-                        "file_type" => 'WORKPERMIT',
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                    $this->workerVisaAttachments->updateOrCreate(
+                        [
+                            "file_id" => $workerVisa['id'],
+                            "file_type" => self::ATTACHMENT_FILE_TYPE_WORKPERMIT,
+                        ],
+                        [
+                            "file_name" => $fileName,
+                            "file_url" =>  $fileUrl
+                    ]);    
             }
         }
     }
@@ -750,12 +771,15 @@ class WorkersServices
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerBioMedicalAttachments::create([
-                        "file_id" => $workerBioMedical['id'],
-                        "file_name" => $fileName,
-                        "file_type" => 'BIOMEDICAL',
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                    $this->workerBioMedicalAttachments->updateOrCreate(
+                        [
+                            "file_id" => $workerBioMedical['id'],
+                            "file_type" => self::ATTACHMENT_FILE_TYPE_BIOMEDICAL,
+                        ],
+                        [
+                            "file_name" => $fileName,
+                            "file_url" =>  $fileUrl
+                    ]);    
             }
         }
     }
@@ -905,117 +929,14 @@ class WorkersServices
         
         $worker->save();
 
-        if (request()->hasFile('fomema_attachment')){
-
-            $this->workerAttachments->where('file_id', $request['id'])->where('file_type', 'FOMEMA')->delete();
-
-            foreach($request->file('fomema_attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$request['id'].'/fomema/'. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
-                    "file_id" => $request['id'],
-                    "file_name" => $fileName,
-                    "file_type" => 'FOMEMA',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
-
-        if (request()->hasFile('passport_attachment')){
-
-            $this->workerAttachments->where('file_id', $request['id'])->where('file_type', 'PASSPORT')->delete();
-
-            foreach($request->file('passport_attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$request['id'].'/passport/' . $fileName;
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
-                    "file_id" => $request['id'],
-                    "file_name" => $fileName,
-                    "file_type" => 'PASSPORT',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
-
-        if (request()->hasFile('profile_picture')){
-
-            $this->workerAttachments->where('file_id', $request['id'])->where('file_type', 'PROFILE')->delete();
-
-            foreach($request->file('profile_picture') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$request['id'].'/profile/' . $fileName;
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
-                    "file_id" => $request['id'],
-                    "file_name" => $fileName,
-                    "file_type" => 'PROFILE',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
-
-        if (request()->hasFile('worker_attachment')){
-
-            foreach($request->file('worker_attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerAttachment/'.$worker['id'].'/attachment/' . $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
-                        "file_id" => $request['id'],
-                        "file_name" => $fileName,
-                        "file_type" => 'WORKERATTACHMENT',
-                        "file_url" =>  $fileUrl         
-                    ]);  
-            }
-        }
-
-        if (request()->hasFile('worker_visa_attachment')){
-
-            $this->workerVisaAttachments->where('file_id', $worker->workerVisa->id)->where('file_type', 'WORKPERMIT')->delete();
-
-            foreach($request->file('worker_visa_attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$request['id'].'/workerVisa/' . $fileName;
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerVisaAttachments::create([
-                    "file_id" => $worker->workerVisa->id,
-                    "file_name" => $fileName,
-                    "file_type" => 'WORKPERMIT',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
-
-        if (request()->hasFile('worker_bio_medical_attachment')){
-
-            $this->workerBioMedicalAttachments->where('file_id', $worker->workerBioMedical->id)->where('file_type', 'BIOMEDICAL')->delete();
-
-            foreach($request->file('worker_bio_medical_attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$request['id'].'/workerBioMedical/' . $fileName;
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerBioMedicalAttachments::create([
-                    "file_id" => $worker->workerBioMedical->id,
-                    "file_name" => $fileName,
-                    "file_type" => 'BIOMEDICAL',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
+        $this->uploadFomemaAttachment($worker, $request);
+        $this->uploadPassportAttachment($worker, $request);
+        $this->uploadProfilePicture($worker, $request);
+        $this->uploadWorkerAttachment($worker, $request);
+        $workerVisa = $worker->workerVisa;
+        $this->uploadWorkerVisaAttachment($worker, $workerVisa, $request);
+        $workerBioMedical = $worker->workerBioMedical;
+        $this->uploadWorkerBioMedicalAttachment($worker, $workerBioMedical, $request);
 
         return true;
     }
@@ -1107,7 +1028,7 @@ class WorkersServices
 
             $worker->workerVisa->save();
         } else { 
-            $workerVisa = $this->workerVisa::create([
+            $this->workerVisa::create([
                 "worker_id" => $worker->id,
                 "ksm_reference_number" => $request['ksm_reference_number'],
                 "calling_visa_reference_number" => $request['calling_visa_reference_number'] ?? '',
@@ -1135,7 +1056,7 @@ class WorkersServices
 
             $worker->workerBioMedical->save();
         } else {
-            $workerBioMedical = $this->workerBioMedical::create([
+            $this->workerBioMedical::create([
                 "worker_id" => $worker->id,
                 "bio_medical_reference_number" => $request['bio_medical_reference_number'],
                 "bio_medical_valid_until" => $request['bio_medical_valid_until'],
@@ -1163,7 +1084,7 @@ class WorkersServices
 
             $worker->workerFomema->save();
         } else {
-            $workerFomema = $this->workerFomema::create([
+            $this->workerFomema::create([
                 "worker_id" => $worker->id,
                 "purchase_date" => ((isset($request['purchase_date']) && !empty($request['purchase_date'])) ? $request['purchase_date'] : null),
                 "clinic_name" => $request['clinic_name'] ?? '',
@@ -1194,7 +1115,7 @@ class WorkersServices
 
             $worker->workerInsuranceDetails->save();
         } else {
-            $workerInsuranceDetails = $this->workerInsuranceDetails::create([
+            $this->workerInsuranceDetails::create([
                 "worker_id" => $worker['id'],
                 "ig_policy_number" => $request['ig_policy_number'] ?? '',
                 "ig_policy_number_valid_until" => ((isset($request['ig_policy_number_valid_until']) && !empty($request['ig_policy_number_valid_until'])) ? $request['ig_policy_number_valid_until'] : null),
@@ -1223,7 +1144,7 @@ class WorkersServices
 
             $worker->workerBankDetails->save();
         } else {
-            $workerBankDetails = $this->workerBankDetails::create([
+            $this->workerBankDetails::create([
                 "worker_id" => $worker['id'],
                 "bank_name" => $request['bank_name'] ?? '',
                 "account_number" => $request['account_number'] ?? '',
@@ -1252,43 +1173,55 @@ class WorkersServices
         return $this->workers
         ->select('workers.id', 'workers.onboarding_country_id','workers.agent_id','workers.application_id','workers.name','workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'workers.passport_valid_until', 'workers.fomema_valid_until','workers.address', 'workers.status', 'workers.cancel_status', 'workers.remarks','workers.city','workers.state', 'workers.special_pass', 'workers.special_pass_submission_date', 'workers.special_pass_valid_until', 'workers.plks_status', 'workers.plks_expiry_date', 'workers.directrecruitment_status', 'workers.created_by','workers.modified_by', 'workers.crm_prospect_id', 'workers.total_management_status', 'workers.econtract_status', 'workers.module_type')
         ->with(['directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails', 'workerFomemaAttachments', 'workerEmployment' => function ($query) {
-            $query->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
-            ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
-            ->leftJoin('workers', 'workers.id', 'worker_employment.worker_id')
-            ->leftJoin('total_management_applications', 'total_management_applications.id', 'total_management_project.application_id')
-            ->leftJoin('e-contract_applications as econtrat_applications', 'econtrat_applications.id', 'econtract_project.application_id')
-            ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
-            ->leftjoin('directrecruitment_applications', 'directrecruitment_applications.id', '=', 'directrecruitment_workers.application_id')
-            ->leftJoin('crm_prospects as crm_prospects_tm', 'crm_prospects_tm.id', 'total_management_applications.crm_prospect_id')
-            ->leftJoin('crm_prospects as crm_prospects_econt', 'crm_prospects_econt.id', 'econtrat_applications.crm_prospect_id')
-            ->leftJoin('crm_prospects as crm_prospects_dr', 'crm_prospects_dr.id', 'directrecruitment_applications.crm_prospect_id')
-            ->leftJoin('crm_prospect_services as crm_prospect_services_tm', 'crm_prospect_services_tm.id', 'total_management_applications.service_id')
-            ->leftJoin('crm_prospect_services as crm_prospect_services_econt', 'crm_prospect_services_econt.id', 'econtrat_applications.service_id')
-            ->leftJoin('crm_prospect_services as crm_prospect_services_dr', 'crm_prospect_services_dr.id', 'directrecruitment_applications.service_id')
-            ->select('worker_employment.project_id', 'worker_employment.worker_id', 'worker_employment.work_start_date', 'worker_employment.work_end_date', 'worker_employment.remove_date', 'worker_employment.service_type')
-            ->selectRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospects_tm.company_name 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospects_econt.company_name 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.company_name 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' END) as assignment_company_name, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospects_tm.roc_number 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospects_econt.roc_number 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.roc_number 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['roc_number']."' END) as assigned_roc_number, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.name 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.name 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_project, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.city 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_city, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.state 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.state 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_state, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospect_services_tm.sector_name 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospect_services_econt.sector_name 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospect_services_dr.sector_name 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_sector")
-        ->distinct('worker_employment.worker_id', 'worker_employment.project_id');
+            $this->showSelectColumns($query);
         }])
         ->whereIn('workers.company_id', $request['company_id'])
         ->find($request['id']);
+    }
+
+    /**
+     * Added the query
+     *
+     * @param object $query
+     *
+     * @return mixed Returns the query builder object
+     */
+    private function showSelectColumns($query)
+    {
+        $query->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
+        ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
+        ->leftJoin('workers', 'workers.id', 'worker_employment.worker_id')
+        ->leftJoin('total_management_applications', 'total_management_applications.id', 'total_management_project.application_id')
+        ->leftJoin('e-contract_applications as econtrat_applications', 'econtrat_applications.id', 'econtract_project.application_id')
+        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
+        ->leftjoin('directrecruitment_applications', 'directrecruitment_applications.id', '=', 'directrecruitment_workers.application_id')
+        ->leftJoin('crm_prospects as crm_prospects_tm', 'crm_prospects_tm.id', 'total_management_applications.crm_prospect_id')
+        ->leftJoin('crm_prospects as crm_prospects_econt', 'crm_prospects_econt.id', 'econtrat_applications.crm_prospect_id')
+        ->leftJoin('crm_prospects as crm_prospects_dr', 'crm_prospects_dr.id', 'directrecruitment_applications.crm_prospect_id')
+        ->leftJoin('crm_prospect_services as crm_prospect_services_tm', 'crm_prospect_services_tm.id', 'total_management_applications.service_id')
+        ->leftJoin('crm_prospect_services as crm_prospect_services_econt', 'crm_prospect_services_econt.id', 'econtrat_applications.service_id')
+        ->leftJoin('crm_prospect_services as crm_prospect_services_dr', 'crm_prospect_services_dr.id', 'directrecruitment_applications.service_id')
+        ->select('worker_employment.project_id', 'worker_employment.worker_id', 'worker_employment.work_start_date', 'worker_employment.work_end_date', 'worker_employment.remove_date', 'worker_employment.service_type')
+        ->selectRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospects_tm.company_name 
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospects_econt.company_name 
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.company_name 
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' END) as assignment_company_name, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospects_tm.roc_number 
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospects_econt.roc_number 
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.roc_number 
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['roc_number']."' END) as assigned_roc_number, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.name 
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.name 
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_project, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city 
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.city 
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_city, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.state 
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.state 
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_state, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospect_services_tm.sector_name 
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospect_services_econt.sector_name 
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospect_services_dr.sector_name 
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_sector")
+    ->distinct('worker_employment.worker_id', 'worker_employment.project_id');
     }
     
     /**
@@ -1326,10 +1259,12 @@ class WorkersServices
         $data = $this->listApplySearchFilter($request,$data);
         $data = $this->listApplyReferenceFilter($user,$data);
         $data = $this->listSelectColumns($data);
-        if(isset($request['status']) && !empty($request['status'])) {
+        $data = $this->listApplyStatusFilter($request,$data);
+        $status = $request['status'] ?? '';
+        if(!empty($status)) {
             $data = $data->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
 		WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
-		ELSE 'On-Bench' END) = '".$request['status']."'");
+		ELSE 'On-Bench' END) = '".$status."'");
         }
         $data = $data->distinct('workers.id')
         ->orderBy('workers.id','DESC')
@@ -1360,14 +1295,15 @@ class WorkersServices
      */
     private function listApplySearchFilter($request,$data)
     {
+        $search = $request['search_param'] ?? '';
         return $data->where(function ($query) use ($request) {
             if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
                 $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
             }
-            if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('workers.name', 'like', "%{$request['search_param']}%")
-                ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
-                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
+            if (!empty($search)) {
+                $query->where('workers.name', 'like', "%{$search}%")
+                ->orWhere('workers.passport_number', 'like', '%'.$search.'%')
+                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$search.'%');
             }
             
         });
@@ -1383,7 +1319,7 @@ class WorkersServices
     private function listApplyReferenceFilter($user,$data)
     {
         return $data->where(function ($query) use ($user) {
-            if ($user['user_type'] == 'Customer') {
+            if ($user['user_type'] == self::USER_TYPE_CUSTOMER) {
                 $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
             }
         });
@@ -1441,25 +1377,52 @@ class WorkersServices
         ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
         ->where(function ($query) use ($request) {
-            if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
-                $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
-            }
-            if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('workers.name', 'like', "%{$request['search_param']}%")
-                ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
-                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
-            }
+            $this->exportSearchFilter($query, $request);
             
         })
         ->whereIn('workers.company_id', $request['company_id'])
         ->where(function ($query) use ($user) {
-            if ($user['user_type'] == 'Customer') {
-                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
-            }
+            $this->exportCustomerFilter($query, $user);
         })
          ->select('workers.id','workers.name','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','workers.address','workers.state','worker_kin.kin_name','kin_relationship.name as kin_relationship_name','worker_kin.kin_contact_number','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_reference_number','worker_bio_medical.bio_medical_valid_until')
          ->distinct('workers.id')
          ->orderBy('workers.id','DESC')->get();
+    }
+
+    /**
+     * Apply the search filter to the query
+     *
+     * @param $query $query The query builder instance
+     * @param array $request The request data containing the  crm_prospect_id, search_param
+     *
+     * @return void
+     */
+    private function exportSearchFilter($query, $request)
+    {
+        if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
+                $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
+        }
+        $search = $request['search_param'] ?? '';
+        if (!empty($search)) {
+            $query->where('workers.name', 'like', "%{$search}%")
+            ->orWhere('workers.passport_number', 'like', '%'.$search.'%')
+            ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$search.'%');
+        }
+    }
+
+    /**
+     * Apply the customer filter to the query
+     *
+     * @param object $query The query builder instance
+     * @param object $user
+     *
+     * @return void
+     */
+    private function exportCustomerFilter($query, $user)
+    {
+        if ($user['user_type'] == self::USER_TYPE_CUSTOMER) {
+            $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+        }
     }
 
     /**
@@ -1486,7 +1449,7 @@ class WorkersServices
         ->where('worker_visa.status', 'Pending')
         ->whereIn('workers.company_id', $request['company_id'])
         ->where(function ($query) use ($user) {
-            if ($user['user_type'] == 'Customer') {
+            if ($user['user_type'] == self::USER_TYPE_CUSTOMER) {
                 $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
             }
         })
