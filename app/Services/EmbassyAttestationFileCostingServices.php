@@ -62,10 +62,16 @@ class EmbassyAttestationFileCostingServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Creates a new filecosting from the given request data.
+     * 
+     * @param mixed $request The mixed containing filecosting data.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "InvalidUser": A array returns Invalid if check Country is null.
+     * - "countryExistsError": A array returns countryExists if country has already created
+     * - "isSubmit": A object indicating if the filecosting was successfully created.
      */
-    public function create($request) : mixed
+    public function create($request): mixed
     {
         $validationResult = $this->createValidateRequest($request);
         if (is_array($validationResult)) {
@@ -87,10 +93,15 @@ class EmbassyAttestationFileCostingServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Updates the filecosting with the given request.
+     * 
+     * @param array $request The array containing filecosting data.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "InvalidUser": A array returns Invalid if check Country is null.
+     * - "isUpdated": Indicates whether the data was updated. Always set to `false`.
      */
-    public function update($request) : mixed
+    public function update($request): mixed
     {
         $validationResult = $this->updateValidateRequest($request);
         if (is_array($validationResult)) {
@@ -114,8 +125,12 @@ class EmbassyAttestationFileCostingServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Delete the filecosting.
+     * 
+     * @param array $request The request data containing filecosting id.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * -"isDeleted": Returns an mixed with 'error' as key and validation error messages as value if filecosting delete has fails. | Returns true if filecosting was deleted successfully.
      */
     public function delete($request) : mixed
     {
@@ -153,8 +168,13 @@ class EmbassyAttestationFileCostingServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Show the filecosting.
+     * 
+     * @param array $request The request data containing filecosting id
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "InvalidUser": A array returns Invalid if check Country is null.
+     * - Otherwise, returns a filecosting.
      */
     public function show($request) : mixed
     {
@@ -180,8 +200,13 @@ class EmbassyAttestationFileCostingServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * List the filecosting.
+     * 
+     * @param array $request The request data containing country id
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - "InvalidUser": A array returns Invalid if check Country is null.
+     * - Otherwise, returns a paginated list of filecosting.
      */
     public function list($request) : mixed
     {
@@ -217,12 +242,31 @@ class EmbassyAttestationFileCostingServices
 
         return true;
     }
-
+    
+    /**
+     * Show the country.
+     * 
+     * @param array $request The request data containing country id, company id
+     * @return mixed Returns the country.
+     */
     private function showCompanyCountry($request)
     {
         return $this->countries->where('company_id', $request['company_id'])->find($request['country_id']);
     }
-
+    
+    /**
+     * Creates a new embassy attestation fileCosting from the given request data.
+     * 
+     * @param array $request The array containing fileCosting data.
+     *                      The array should have the following keys:
+     *                      - country_id: The country_id of the fileCosting.
+     *                      - title: The title of the fileCosting.
+     *                      - amount: The amount of the fileCosting.
+     *                      - created_by: The created fileCosting created by.
+     *                      - modified_by: (int) The updated fileCosting modified by.
+     * 
+     * @return fileCosting The newly created fileCosting object.
+     */
     private function createEmbassyAttestationFileCosting($request)
     {
         return $this->embassyAttestationFileCosting->create([
@@ -233,13 +277,26 @@ class EmbassyAttestationFileCostingServices
             'modified_by'   => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO
         ]);
     }
-
+    
+    /**
+     * Returns a count of embassy attestation fileCosting based on the given country id, fileCosting id.
+     * 
+     * @param array $request The request data containing country id, fileCosting id
+     * @return array Returns a count of embassy attestation fileCosting.
+     */
     private function getEmbassyAttestationFileCostingCount($request)
     {
         return $this->embassyAttestationFileCosting->whereNull('deleted_at')
             ->where('country_id','=',$request['country_id'])->count('id');
     }
-
+    
+    /**
+     * Updates the costing status with the given request.
+     * 
+     * @param array $request The array containing country id.
+     * @param string $status The status of the countries.
+     * @return country The updated country object.
+     */
     private function updateCostingStatus($request, $status)
     {
         return $this->countriesServices->updateCostingStatus([ 'id' => $request['country_id'], 'costing_status' => $status]);
@@ -261,12 +318,32 @@ class EmbassyAttestationFileCostingServices
 
         return true;
     }
-
+    
+    /**
+     * Show the embassy attestation fileCosting.
+     * 
+     * @param array $request The request data containing fileCosting id.
+     * @return mixed Returns the embassy attestation fileCosting.
+     */
     private function showEmbassyAttestationFileCosting($request)
     {
         return $this->embassyAttestationFileCosting->find($request['id']);
     }
-
+    
+    /**
+     * Updates the embassy attestation fileCosting data with the given request.
+     * 
+     * @param object $embassyAttestationFileCosting The embassyAttestationFileCosting object to be updated.
+     * @param array $request The array containing fileCosting data.
+     *                      The array should have the following keys:
+     *                      - id: The updated id.
+     *                      - country_id: The updated country id.
+     *                      - title: The updated title.
+     *                      - amount: The updated amount.
+     *                      - modified_by: The updated fileCosting modified by.
+     * @return array Returns an array with the following keys:
+     * - "isUpdated": Indicates whether the data was updated. Always set to `false`.
+     */
     private function updateEmbassyAttestationFileCosting($embassyAttestationFileCosting, $request)
     {
         return [

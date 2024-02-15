@@ -94,8 +94,12 @@ class DocumentChecklistAttachmentsServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Creates a new document checklist attachments from the given request data.
+     * 
+     * @param array $request The request data containing application id, attachment and document checklist id.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * -"isUpdated": Returns an mixed with 'error' as key and validation error messages as value if checklist create has fails. | Returns true if document checklist attachments was successfully created.
      */
     public function create($request) : mixed
     {
@@ -137,10 +141,14 @@ class DocumentChecklistAttachmentsServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Delete the document checklist attachments.
+     * 
+     * @param array $request The request data containing document checklist attachment id.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * -"isDeleted": Returns an mixed with 'error' as key and validation error messages as value if attachment delete has fails. | Returns true if document checklist attachments was deleted successfully.
      */
-    public function delete($request) : mixed
+    public function delete($request): mixed
     {
         $validationResult = $this->deleteValidateRequest($request);
         if (is_array($validationResult)) {
@@ -171,10 +179,14 @@ class DocumentChecklistAttachmentsServices
     }
     
     /**
-     * @param $request
-     * @return mixed
+     * Returns a paginated list of document checklist with related document checklist attachments.
+     * 
+     * @param array $request The search request parameters and sector id, application id.
+     * @return mixed Returns an mixed with the following keys:
+     * - "validate": An array of validation errors, if any.
+     * - Returns a paginated list of document checklist with related document checklist attachments.
      */
-    public function list($request) : mixed
+    public function list($request): mixed
     {
         $validationResult = $this->listValidateRequest($request);
         if (is_array($validationResult)) {
@@ -204,17 +216,35 @@ class DocumentChecklistAttachmentsServices
 
         return true;
     }
-
+    
+    /**
+     * Show the document checklist.
+     * 
+     * @param array $request The request data containing document checklist id
+     * @return mixed Returns the document checklist.
+     */
     private function showDocumentChecklist($request)
     {
         return $this->documentChecklist->find($request['document_checklist_id']);
     }
-
+    
+    /**
+     * Show the directrecruitment application checklist.
+     * 
+     * @param array $request The request data containing application id
+     * @return mixed Returns the directrecruitment application checklist.
+     */
     private function showDirectRecruitmentApplicationChecklistServices($request)
     {
         return $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" => $request['application_id']]);
     }
-
+    
+    /**
+     * Returns a count of document checklist attachments based on the given application id.
+     * 
+     * @param array $request The request data containing application id
+     * @return array Returns a count of document checklist attachments.
+     */
     private function getDocumentChecklistAttachmentsCount($request)
     {
         return $this->documentChecklistAttachments->whereNull('deleted_at')
@@ -225,19 +255,41 @@ class DocumentChecklistAttachmentsServices
             })
             ->count('id');
     }
-
+    
+    /**
+     * Updates the directrecruitment status.
+     * 
+     * @param array $request The array containing application id.
+     * @param string $status The status of the directrecruitment.
+     * 
+     * @return void.
+     */
     private function updateDirectRecruitmentStatus($request, $status)
     {
         $this->directRecruitmentServices->updateStatus(['id' => $request['application_id'] , 'status' => $status]);
     }
-
+    
+    /**
+     * Updates the application summary status.
+     * 
+     * @param array $request The array containing summary status.
+     * @return void.
+     */
     private function updateApplicationSummaryStatus($request)
     {
         $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[2];
         $request['status'] = self::STATUS_COMPLETED;
         $this->applicationSummaryServices->updateStatus($request);
     }
-
+    
+    /**
+     * Upload attachment of document checklist.
+     *
+     * @param array $directRecruitmentApplicationChecklist The directRecruitmentApplicationChecklist data containing application checklist id.
+     * @param array $request The request data containing document checklist attachments.
+     * 
+     * @return void.
+     */
     private function uploadDocumentChecklistAttachments($directRecruitmentApplicationChecklist, $request)
     {
         foreach($request->file('attachment') as $file){
@@ -257,7 +309,15 @@ class DocumentChecklistAttachmentsServices
             ]);
         }
     }
-
+    
+    /**
+     * Updates the directrecruitment application checklist status.
+     * 
+     * @param object $directRecruitmentApplicationChecklist The directRecruitmentApplicationChecklist object to be updated.
+     * @param array $request The array containing user details.
+     * 
+     * @return void.
+     */
     private function createDirectRecruitmentApplicationChecklistUpdateStatus($directRecruitmentApplicationChecklist, $request)
     {
         $count = $this->getDocumentChecklistAttachmentsCount($request);
@@ -289,19 +349,37 @@ class DocumentChecklistAttachmentsServices
 
         return true;
     }
-
+    
+    /**
+     * Show the document checklist attachments.
+     * 
+     * @param array $request The request data containing document checklist attachment id
+     * @return mixed Returns the document checklist attachments.
+     */
     private function showDocumentChecklistAttachments($request)
     {
         return $this->documentChecklistAttachments->find($request['id']);
     }
-
+    
+    /**
+     * Delete the application summary status.
+     * 
+     * @param array $directrecruitmentApplicationAttachment The directrecruitmentApplicationAttachment data containing application id
+     * @return void.
+     */
     private function deleteApplicationSummaryStatus($directrecruitmentApplicationAttachment, $request)
     {
         $request['application_id'] = $directrecruitmentApplicationAttachment['application_id'];
         $request['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[2];
         $this->applicationSummaryServices->deleteStatus($request);
     }
-
+    
+    /**
+     * Returns a count of document checklist attachments.
+     * 
+     * @param array $directrecruitmentApplicationAttachment The directrecruitmentApplicationAttachment data containing application id
+     * @return array Returns a count of document checklist attachments.
+     */
     private function getDirectrecruitmentApplicationAttachmentCount($directrecruitmentApplicationAttachment)
     {
         return $this->documentChecklistAttachments->whereNull('deleted_at')
@@ -329,7 +407,16 @@ class DocumentChecklistAttachmentsServices
 
         return true;
     }
-
+    
+    /**
+     * Updates the directrecruitment application attachment status.
+     * 
+     * @param object $directrecruitmentApplicationAttachment The application of directrecruitment attachment.
+     * @param object $directRecruitmentApplicationChecklist The directRecruitmentApplicationChecklist object to be updated.
+     * @param array $request The array containing user details.
+     * 
+     * @return void.
+     */
     private function deleteDirectRecruitmentApplicationChecklistUpdateStatus($directrecruitmentApplicationAttachment, $directRecruitmentApplicationChecklist, $request)
     {
         $count = $this->getDirectrecruitmentApplicationAttachmentCount($directrecruitmentApplicationAttachment);

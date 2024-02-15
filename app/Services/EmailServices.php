@@ -14,10 +14,10 @@ class EmailServices
     public const MESSAGE_SENDING_MAIL_INFO = 'Sending mail - mail service ';
 
     /**
-     * @param $name
-     * @param $email
-     * @param $password
-     * @return mixed | boolean
+     * @param $name The name of the user
+     * @param $email The email of the user
+     * @param $password The password of the user
+     * @return boolean Returns true if email was send successfully, otherwise false
      */
     public function sendRegistrationMail($name,$email,$password)
     {
@@ -26,8 +26,8 @@ class EmailServices
     }
 
     /**
-     * @param $params
-     * @return mixed | boolean
+     * @param $params The params data containing user name, email, token, url
+     * @return boolean Returns true if email was send successfully, otherwise false
      */
     public function sendForgotPasswordMail($params)
     {
@@ -36,8 +36,8 @@ class EmailServices
     }
 
     /**
-     * @param $params
-     * @return mixed | boolean
+     * @param $params The params data containing company_name, company_email, reference_number
+     * @return boolean Returns true if email was send successfully, otherwise false
      */
     public function sendInvoiceResubmissionFailedMail($params)
     {

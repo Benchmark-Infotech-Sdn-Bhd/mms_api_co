@@ -63,7 +63,7 @@ class CountriesServices
      *                      - fee: The fee of the country.
      *                      - bond: The bond of the country.
      *                      - status: The status of the country.
-     *                      - created_by: The ID of the country who created the application.
+     *                      - created_by: The created country created by.
      *                      - modified_by: (int) The updated country modified by.
      * @return mixed Returns an mixed with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -306,7 +306,7 @@ class CountriesServices
      *                      - fee: The fee of the country.
      *                      - bond: The bond of the country.
      *                      - status: The status of the country.
-     *                      - created_by: The ID of the country who created the application.
+     *                      - created_by: The created country created by.
      *                      - modified_by: (int) The updated country modified by.
      * 
      * @return country The newly created country object.
