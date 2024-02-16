@@ -464,7 +464,7 @@ class DirectRecruitmentCallingVisaServices
 
         $this->updateUtilisedQuotaBasedOnKsmReferenceNumber($request, $workerIds);
 
-        event(new WorkerQuotaUpdated($request['onboarding_country_id'], count($request['workers']), 'decrement'));
+        event(new WorkerQuotaUpdated($request['onboarding_country_id'], count($workerIds), 'decrement'));
     }
 
     /**

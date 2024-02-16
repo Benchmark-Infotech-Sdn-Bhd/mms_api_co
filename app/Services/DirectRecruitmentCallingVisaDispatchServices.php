@@ -266,33 +266,43 @@ class DirectRecruitmentCallingVisaDispatchServices
             ->leftJoin('worker_immigration', 'worker_immigration.worker_id', 'workers.id')
             ->leftjoin('directrecruitment_workers', 'directrecruitment_workers.worker_id', '=', 'workers.id')
             ->whereIn('workers.company_id', $request['company_id'])
-            ->where($this->buildWhereClosures($request))
+            ->where($this->getCustomerCondition($request))
+            ->where($this->getSearchConditions($request))
             ->where('worker_visa.generated_status', 'Generated')
             ->where('worker_immigration.immigration_status', 'Paid')
             ->where($this->buildWhereArray($request));
     }
 
     /**
-     * Builds an array of closure functions to be used as where clauses in a query.
+     * Get the search conditions for the query.
      *
-     * @param array $request The request data, containing search criteria and user information.
-     * @return array An array of closure functions representing the where clauses.
+     * @param array $request The request data to filter the search.
+     * @return Closure
      */
-    private function buildWhereClosures($request): array
+    private function getSearchConditions($request)
     {
-        return [
-            function ($query) use ($request) {
-                if ($request['user']['user_type'] == 'Customer') {
-                    $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
-                }
-            },
-            function ($query) use ($request) {
-                if (!empty($request['search'])) {
-                    $query->orWhere('worker_visa.ksm_reference_number', 'like', '%' . $request['search'] . '%')
-                        ->orWhere('worker_visa.calling_visa_reference_number', 'like', '%' . $request['search'] . '%');
-                }
-            },
-        ];
+        return function ($query) use ($request) {
+            if (!empty($request['search'])) {
+                $query->where('workers.name', 'like', '%' . $request['search'] . '%')
+                    ->orWhere('worker_visa.ksm_reference_number', 'like', '%' . $request['search'] . '%')
+                    ->orWhere('workers.passport_number', 'like', '%' . $request['search'] . '%');
+            }
+        };
+    }
+
+    /**
+     * Retrieves the condition to filter customers based on user type.
+     *
+     * @param array $request The request data containing user information.
+     * @return Closure The condition to be applied to the database query.
+     */
+    private function getCustomerCondition($request)
+    {
+        return function ($query) use ($request) {
+            if ($request['user']['user_type'] == 'Customer') {
+                $query->where('workers.crm_prospect_id', '=', $request['user']['reference_id']);
+            }
+        };
     }
 
     /**
@@ -352,7 +362,7 @@ class DirectRecruitmentCallingVisaDispatchServices
      */
     private function buildGroupByArray(): array
     {
-        return [
+        $fields = [
             'worker_visa.ksm_reference_number',
             'worker_visa.calling_visa_reference_number',
             'worker_visa.calling_visa_valid_until',
@@ -361,6 +371,13 @@ class DirectRecruitmentCallingVisaDispatchServices
             'worker_visa.dispatch_consignment_number',
             'worker_visa.dispatch_acknowledgement_number'
         ];
+
+        if (empty($request['export'])) {
+            array_push($fields, 'worker_immigration.immigration_status');
+        }
+
+        return $fields;
+        
     }
 
     /**
