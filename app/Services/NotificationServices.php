@@ -15,6 +15,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Carbon;
+use App\Models\OnboardingDispatch;
 
 class NotificationServices
 {
@@ -251,7 +252,12 @@ class NotificationServices
 
         foreach ($adminUsers as $user) {
             foreach ($notifications as $notification) {
-                $message[$notification] = $this->{'${notification}Notifications'}($user);
+                if($notification == 'dispatchPending'){
+                    $message[$notification] = $this->dispatchSummaryNotifications($user);
+                }else {
+                    $message[$notification] = $this->{$notification.'Notifications'}($user);
+                }
+                
             }
 
             $dispatchConditions = $this->checkDispatchConditions($message);
@@ -659,6 +665,64 @@ class NotificationServices
         dispatch(new RunnerNotificationMail(Config::get('database.connections.mysql.database'), $user, $message))
             ->onQueue(Config::get('services.RUNNER_NOTIFICATION_MAIL'))
             ->onConnection(Config::get('services.QUEUE_CONNECTION'));
+    }
+
+    /**
+     * Process the dispatch summary notification
+     * 
+     * @param $user
+     * 
+     * @return mixed Returns the notification message
+     */
+    public function dispatchSummaryNotifications($user)
+    {
+        $notificationMessage = '';
+        $mailMessage = '';
+        
+        $pending_count = OnboardingDispatch::leftJoin('employee', 'employee.id', 'onboarding_dispatch.employee_id')
+        ->where('employee.company_id', $user['company_id'])
+        ->where('onboarding_dispatch.dispatch_status', 'Assigned')
+        ->where('onboarding_dispatch.calltime', '<', Carbon::now())
+        ->distinct('onboarding_dispatch.id')->count('onboarding_dispatch.id');
+
+        $assigned_count = OnboardingDispatch::leftJoin('employee', 'employee.id', 'onboarding_dispatch.employee_id')
+        ->where('employee.company_id', $user['company_id'])
+        ->where('onboarding_dispatch.dispatch_status', 'Assigned')
+        ->where('onboarding_dispatch.calltime', '>', Carbon::now())
+        ->distinct('onboarding_dispatch.id')->count('onboarding_dispatch.id');
+
+        $completed_count = OnboardingDispatch::leftJoin('employee', 'employee.id', 'onboarding_dispatch.employee_id')
+        ->where('employee.company_id', $user['company_id'])
+        ->where('onboarding_dispatch.dispatch_status', 'Completed')
+        ->distinct('onboarding_dispatch.id')->count('onboarding_dispatch.id');
+
+        if($pending_count > 0){
+            $notificationMessage .= $pending_count.' Dispatches are Pending. ';
+            $mailMessage .= $pending_count.' no. of Dispatches are Pending. <br/>';
+        }
+        if($assigned_count > 0){
+            $notificationMessage .= $assigned_count.' Dispatches are Assigned. ';
+            $mailMessage .= $assigned_count.' no. of Dispatches are Assigned. <br/>';
+        }
+        if($completed_count > 0){
+            $notificationMessage .= $completed_count.' Dispatches are Completed.';
+            $mailMessage .= $completed_count.' no. of Dispatches are Completed. <br/>';
+        }
+
+        if(!empty($notificationMessage)){
+            $NotificationParams['user_id'] = $user['id'];
+            $NotificationParams['from_user_id'] = 1;
+            $NotificationParams['type'] = Config::get('services.DISPATCH_NOTIFICATION_TITLE');
+            $NotificationParams['title'] = Config::get('services.DISPATCH_NOTIFICATION_TITLE');
+            $NotificationParams['message'] = $notificationMessage;
+            $NotificationParams['status'] = 1;
+            $NotificationParams['read_flag'] = 0;
+            $NotificationParams['created_by'] = 1;
+            $NotificationParams['modified_by'] = 1;
+            $this->insertNotification($NotificationParams);
+        }
+
+        return $mailMessage;       
     }
 
 }
