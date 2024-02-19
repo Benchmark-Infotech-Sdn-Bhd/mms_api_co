@@ -64,9 +64,9 @@ class InsuranceServices
      * Enriches the given request data with user details.
      *
      * @param array $request The request data to be enriched.
-     * @return array Returns the enriched request data.
+     * @return mixed Returns the enriched request data.
      */
-    private function enrichRequestWithUserDetails($request): array
+    private function enrichRequestWithUserDetails($request): mixed
     {
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];

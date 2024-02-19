@@ -95,6 +95,32 @@ class TransportationServices
     }
 
     /**
+     * validate the create request data
+     * 
+     * @param $request
+     * 
+     * @return mixed | void
+     */
+    public function inputValidation($request)
+    {
+       if(!($this->transportation->validate($request->all()))){
+           return $this->transportation->errors();
+       }
+    }
+    /**
+     * validate the update request data
+     * 
+     * @param $request
+     * @return mixed | void
+     */
+    public function updateValidation($request)
+    {
+        if(!($this->transportation->validateUpdation($request->all()))){
+            return $this->transportation->errors();
+        }
+    }
+
+    /**
      * Get the Authenticated User data
      *
      * @return mixed Returns the authenticated user data.
@@ -109,14 +135,16 @@ class TransportationServices
      * Enriches the given request data with user details.
      *
      * @param array $request The request data to be enriched.
-     * @return array Returns the enriched request data.
+     * @return mixed Returns the enriched request data.
      */
-    private function enrichRequestWithUserDetails($request): array
+    private function enrichRequestWithUserDetails($request): mixed
     {
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
         $request['modified_by'] = $user['id'];
         $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        //print_r($request);
 
         return $request;
     }

@@ -542,7 +542,7 @@ class DispatchManagementServices
 
         $onboardingDispatch = $this->onboardingDispatch->findOrFail($request['id']);
 
-        $this->$this->updateDispathRecord($request, $params, $user, $onboardingDispatch);
+        $this->updateDispathRecord($request, $params, $user, $onboardingDispatch);
 
         $this->uploadAttachment($request, $params, $request['id']);
 

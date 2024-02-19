@@ -107,9 +107,9 @@ class WorkerEventServices
      * Enriches the given request data with user details.
      *
      * @param array $request The request data to be enriched.
-     * @return array Returns the enriched request data.
+     * @return mixed Returns the enriched request data.
      */
-    private function enrichRequestWithUserDetails($request): array
+    private function enrichRequestWithUserDetails($request): mixed
     {
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
@@ -129,6 +129,25 @@ class WorkerEventServices
     private function validateCreateRequest($request): array|bool
     {
         $validator = Validator::make($request->toArray(), $this->createValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateUpdateRequest($request): array|bool
+    {
+        $validator = Validator::make($request->toArray(), $this->updateValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()

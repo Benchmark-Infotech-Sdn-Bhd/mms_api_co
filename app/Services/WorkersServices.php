@@ -258,9 +258,9 @@ class WorkersServices
      * Enriches the given request data with user details.
      *
      * @param array $request The request data to be enriched.
-     * @return array Returns the enriched request data.
+     * @return mixed Returns the enriched request data.
      */
-    private function enrichRequestWithUserDetails($request): array
+    private function enrichRequestWithUserDetails($request): mixed
     {
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
@@ -472,7 +472,10 @@ class WorkersServices
         }
 
         $params = $request->all();
-        $params = $this->enrichRequestWithUserDetails($params);
+        $user = $this->getAuthenticatedUser();
+        $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
+        //$params = $this->enrichRequestWithUserDetails($params);
 
         $worker = $this->createWorker($params);
 

@@ -144,7 +144,7 @@ class VendorServices
             'city' => $input["city"],
             'postcode' => $input["postcode"],
             'remarks' => $input["remarks"],
-            'created_by' => $input['id'],
+            'created_by' => $input['created_by'],
             'company_id' => $input['company_id'] ?? self::DEFAULT_VALUE
         ]);
     }
