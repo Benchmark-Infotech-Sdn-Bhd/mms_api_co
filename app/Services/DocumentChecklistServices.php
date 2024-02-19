@@ -150,7 +150,7 @@ class DocumentChecklistServices
             return $validationResult;
         }
 
-        $documentChecklist = $this->showDocumentChecklist($request)
+        $documentChecklist = $this->showDocumentChecklist($request);
         if(is_null($documentChecklist)){
             return [
                 "isDeleted" => false,
@@ -227,7 +227,7 @@ class DocumentChecklistServices
             return $validationResult;
         }
 
-        $sectorDetails = $this->showCompanySectors(['company_id' => $request['company_id'], 'sector_id' => $request['sector_id']]);;
+        $sectorDetails = $this->showCompanySectors(['company_id' => $request['company_id'], 'sector_id' => $request['sector_id']]);
         if(is_null($sectorDetails)) {
             return self::ERROR_INVALID_USER;
         }
