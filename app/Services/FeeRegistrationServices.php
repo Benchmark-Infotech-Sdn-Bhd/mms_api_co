@@ -199,7 +199,7 @@ class FeeRegistrationServices
      */  
     public function delete($request): mixed
     { 
-        $data = showFeeRegistration($request);
+        $data = $this->showFeeRegistration($request);
         if (is_null($data)) {
             return [
                 "isDeleted" => false,
