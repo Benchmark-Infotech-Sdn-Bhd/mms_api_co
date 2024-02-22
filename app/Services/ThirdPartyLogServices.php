@@ -45,7 +45,6 @@ class ThirdPartyLogServices
 
     /**
      * Delete the log
-     * @param $request
      * 
      * @return mixed
      * 

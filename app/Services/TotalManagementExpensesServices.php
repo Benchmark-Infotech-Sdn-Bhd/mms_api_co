@@ -595,7 +595,7 @@ class TotalManagementExpensesServices
 
         $request = $this->enrichRequestWithUserDetails($request);
 
-        $expense = $this->getExpense($request['id'], $$request['company_id']);
+        $expense = $this->getExpense($request['id'], $request['company_id']);
 
         $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;

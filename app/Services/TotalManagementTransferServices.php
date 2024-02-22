@@ -168,18 +168,18 @@ class TotalManagementTransferServices
     {
         $user = JWTAuth::parseToken()->authenticate();
         $companyIds = $this->authServices->getCompanyIds($user);
-        return $this->crmProspect
+        $data = $this->crmProspect
             ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
-            ->leftJoin('sectors', 'sectors.id', 'crm_prospect_services.sector_id')
-            ->filterByStatusAndDeletion(self::STATUS_ACTIVE)
-            ->applyServiceFilter($userData)
-            ->filterByCompanyId($companyIds)
-            ->applyUserFilter($user)
-            ->applySearchFilter($userData)
-            ->applySelectionFilter($userData)
-            ->selectProspectData()
+            ->leftJoin('sectors', 'sectors.id', 'crm_prospect_services.sector_id');
+        $data = $this->filterByStatusAndDeletion(self::STATUS_ACTIVE,$data);
+        $data = $this->applyServiceFilter($userData,$data);
+        $data = $this->filterByCompanyId($companyIds,$data);
+        $data = $this->applyUserFilter($user,$data);
+        $data = $this->applySearchFilter($userData,$data);
+        $data = $this->applySelectionFilter($userData,$data);
+        return $this->selectProspectData($data)
             ->orderBy('crm_prospects.id', 'desc')
-            ->paginate(Config::get('services.paginate_row'));    
+            ->paginate(Config::get('services.paginate_row'));
     }
 
     /**
@@ -188,19 +188,19 @@ class TotalManagementTransferServices
      * @param array $userData The user data for filtering the services
      *        from_existing (int) Flag indicating if it is from an existing service
      *
-     * @return $this Returns the query builder object with the applied service filter
+     * @return $data Returns the query builder object with the applied service filter
      */
-    private function applyServiceFilter($userData)
+    private function applyServiceFilter($userData,$data)
     {
         if (isset($userData['from_existing']) && $userData['from_existing'] == self::FROM_EXISTING) {
-            $this->where('crm_prospect_services.from_existing', self::FROM_EXISTING)
+            $data->where('crm_prospect_services.from_existing', self::FROM_EXISTING)
                 ->where('crm_prospect_services.service_id', '=', self::TOTAL_MANAGEMENT_SERVICE_ID);
         } else {
-            $this->where('crm_prospect_services.service_id', '!=', self::DIRECT_RECRUITMENT_SERVICE_ID)
+            $data->where('crm_prospect_services.service_id', '!=', self::DIRECT_RECRUITMENT_SERVICE_ID)
                 ->where('crm_prospect_services.from_existing', '!=', self::FROM_EXISTING);
         }
 
-        return $this;
+        return $data;
     }
 
     /**
@@ -208,15 +208,15 @@ class TotalManagementTransferServices
      *
      * @param array $user The user data.
      *
-     * @return $this The modified instance of the class.
+     * @return $data The modified instance of the class.
      */
-    private function applyUserFilter($user)
+    private function applyUserFilter($user,$data)
     {
         if ($user['user_type'] == self::CUSTOMER) {
-            $this->where('crm_prospects.id', '=', $user['reference_id']);
+            $data->where('crm_prospects.id', '=', $user['reference_id']);
         }
 
-        return $this;
+        return $data;
     }
 
     /**
@@ -226,14 +226,14 @@ class TotalManagementTransferServices
      *
      * @return $this The modified instance of the class.
      */
-    private function applySearchFilter($userData)
+    private function applySearchFilter($userData,$data)
     {
         $search = $userData['search'] ?? '';
         if (!empty($search)) {
-            $this->where('crm_prospects.company_name', 'like', '%' . $search . '%');
+            $data->where('crm_prospects.company_name', 'like', '%' . $search . '%');
         }
 
-        return $this;
+        return $data;
     }
 
     /**
@@ -241,26 +241,26 @@ class TotalManagementTransferServices
      *
      * @param array $userData The user data containing filter information.
      *
-     * @return $this The modified instance of the class.
+     * @return $data The modified instance of the class.
      */
-    private function applySelectionFilter($userData)
+    private function applySelectionFilter($userData,$data)
     {
         $filter = $userData['filter'] ?? '';
         if (!empty($filter)) {
-            $this->where('crm_prospect_services.service_id', $filter);
+            $data->where('crm_prospect_services.service_id', $filter);
         }
 
-        return $this;
+        return $data;
     }
 
     /**
      * Select prospect data from the query.
      *
-     * @return $this The modified instance of the class.
+     * @return $data The modified instance of the class.
      */
-    private function selectProspectData()
+    private function selectProspectData($data)
     {
-        return $this->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospect_services.service_id', 'sectors.sector_name', 'crm_prospect_services.from_existing')
+        return $data->select('crm_prospects.id', 'crm_prospects.company_name', 'crm_prospect_services.service_id', 'sectors.sector_name', 'crm_prospect_services.from_existing')
             ->selectRaw("(CASE WHEN (crm_prospect_services.service_id = 1) THEN 'Direct Recruitment' WHEN (crm_prospect_services.service_id = 2) THEN 'e-Contract' ELSE 'Total Management' END) as service_type, crm_prospect_services.id as prospect_service_id")
             ->distinct('crm_prospect_services.id');
     }
@@ -270,11 +270,11 @@ class TotalManagementTransferServices
      *
      * @param mixed $status The status value to filter by.
      *
-     * @return $this The modified instance of the class.
+     * @return $data The modified instance of the class.
      */
-    private function filterByStatusAndDeletion($status)
+    private function filterByStatusAndDeletion($status,$data)
     {
-        return $this->where('crm_prospects.status', $status)
+        return $data->where('crm_prospects.status', $status)
             ->whereNull('crm_prospect_services.deleted_at');
     }
 
@@ -283,11 +283,11 @@ class TotalManagementTransferServices
      *
      * @param array|int $companyIds The company IDs to filter by.
      *
-     * @return $this The modified instance of the class.
+     * @return $data The modified instance of the class.
      */
-    private function filterByCompanyId($companyIds)
+    private function filterByCompanyId($companyIds,$data)
     {
-        return $this->whereIn('crm_prospects.company_id', $companyIds);
+        return $data->whereIn('crm_prospects.company_id', $companyIds);
     }
 
     /**
@@ -664,7 +664,7 @@ class TotalManagementTransferServices
 
         if ($serviceDetails->from_existing == self::FROM_EXISTING) {
             return $this->processFromExisting($request, $projectDetails, $applicationDetails, $serviceDetails);
-        } else {    
+        } else {
             return $this->processNotFromExisting($request, $projectDetails, $applicationDetails, $serviceDetails);
         }
     }
@@ -698,7 +698,7 @@ class TotalManagementTransferServices
      * Get the details of a total management service detail.
      *
      * @param object $applicationDetails The application details object.
-     * 
+     *
      * @return Model Returns the CRM Prospect Service as an instance of the crmProspectService model.
      * @throws ModelNotFoundException Throws an exception if the crmProspectService with the specified service_id is not found.
      */
@@ -714,12 +714,12 @@ class TotalManagementTransferServices
      * @param object $projectDetails The project details object.
      * @param object $applicationDetails The application details object.
      * @param object $serviceDetails The service details object.
-     * 
+     *
      * @return mixed|void Returns the appropriate error code if an error occurs during processing. otherwise null
-     * 
+     *
      * @see getWorkerDetails()
      * @see processFromExistingWorker()
-     * 
+     *
      */
     private function processFromExisting($request, $projectDetails, $applicationDetails, $serviceDetails)
     {
@@ -739,13 +739,13 @@ class TotalManagementTransferServices
      * @param object $projectDetails The project details object.
      * @param object $applicationDetails The application details object.
      * @param object $serviceDetails The service details object.
-     * 
+     *
      * @return mixed|void Returns the appropriate error code if an error occurs during processing.otherwise null
-     * 
+     *
      * @see getWorkerCount()
      * @see getWorkerDetails()
      * @see processNotFromExistingWorker()
-     * 
+     *
      */
     private function processNotFromExisting($request, $projectDetails, $applicationDetails, $serviceDetails)
     {
@@ -754,7 +754,7 @@ class TotalManagementTransferServices
 
         if ($request['from_existing'] == self::FROM_EXISTING) {
             return self::ERROR_FROM_EXISTING_WORKER;
-        } else {  
+        } else {
             return $this->processNotFromExistingWorker($request, $workerDetail, $workerCountArray, $serviceDetails);
         }
     }
@@ -766,11 +766,11 @@ class TotalManagementTransferServices
      * @param object $projectDetails The project details object.
      * @param object $applicationDetails The application details object.
      * @param object $workerDetail The worker details object.
-     * 
+     *
      * @return mixed|void Returns the appropriate error code if an error occurs during processing.otherwise null.
-     * 
+     *
      * @see getWorkerCount()
-     * 
+     *
      */
     private function processFromExistingWorker($request, $workerDetail, $projectDetails, $applicationDetails)
     {
@@ -797,11 +797,11 @@ class TotalManagementTransferServices
      * @param object $workerDetail The worker details object.
      * @param array $workerCountArray The worker count array.
      * @param object $serviceDetails The service details object.
-     * 
+     *
      * @return mixed|void Returns the appropriate error code if an error occurs during processing. otherwise null.
-     * 
+     *
      * @see processClientWorker()
-     * 
+     *
      */
     private function processNotFromExistingWorker($request, $workerDetail, $workerCountArray, $serviceDetails)
     {
@@ -815,7 +815,7 @@ class TotalManagementTransferServices
             return $this->processClientWorker($request, $workerDetail, $workerCountArray, $serviceDetails);
         }
     }
-    
+
     /**
      * Process Client Worker
      *
@@ -823,9 +823,9 @@ class TotalManagementTransferServices
      * @param object $workerDetail The worker details object.
      * @param array $workerCountArray The worker count array.
      * @param object $serviceDetails The service details object.
-     * 
+     *
      * @return mixed|void Returns the appropriate error code if an error occurs during processing. otherwise returns null.
-     * 
+     *
      */
     private function processClientWorker($request, $workerDetail, $workerCountArray, $serviceDetails)
     {
@@ -849,42 +849,42 @@ class TotalManagementTransferServices
      *              modified_by (int) modified user ID
      *
      * @return void
-     * 
+     *
      * @see updateWorker()
      * @see getWorkerDetails()
      * @see isEcontractServiceType()
      * @see updateEcontractServiceType()
      * @see isTotalManagementServiceType()
      * @see updateTotalManagementServiceType()
-     * 
+     *
      */
     private function updateWorkerTransferDetail($request)
     {
         $this->updateWorker($request);
 
         $worker = $this->getWorkerDetails($request);
-        
+
         if ($this->isEcontractServiceType($request)) {
             $this->updateEcontractServiceType($worker);
-        } 
-        
+        }
+
         if ($this->isTotalManagementServiceType($request)) {
             $this->updateTotalManagementServiceType($worker);
         }
-    
+
         $worker->module_type = $request['service_type'];
         $worker->updated_at = Carbon::now();
         $worker->modified_by = $request['modified_by'];
         $worker->save();
     }
-    
+
     /**
      * Update the worker propect detail.
      *
      * @param array $request The request data containing the 'worker_id', 'new_prospect_id' and modified_by.
      *
      * @return void
-     * 
+     *
      */
     private function updateWorker($request)
     {
@@ -923,7 +923,7 @@ class TotalManagementTransferServices
      * Update the worker e-contract detail.
      *
      * @param object $worker The worker object.
-     * 
+     *
      * return modifed worker object
      *
      */
@@ -943,7 +943,7 @@ class TotalManagementTransferServices
      * @param object $worker The worker object.
      *
      * return modifed worker object
-     * 
+     *
      */
     private function updateTotalManagementServiceType($worker)
     {
@@ -971,10 +971,10 @@ class TotalManagementTransferServices
      *              service_type (string) type of the service
      *
      * @return void
-     * 
+     *
      * @see updateCurrentWorkerEmployment()
      * @see createNewWorkerEmployment()
-     * 
+     *
      */
     private function updateWorkerEmploymentDetail($request)
     {
@@ -992,7 +992,7 @@ class TotalManagementTransferServices
      *              modified_by (int) modified user ID
      *
      * @return void
-     * 
+     *
      */
     private function updateCurrentWorkerEmployment($request)
     {
@@ -1022,7 +1022,7 @@ class TotalManagementTransferServices
      *              modified_by (int) modified user ID
      *
      * @return void
-     * 
+     *
      */
     private function createNewWorkerEmployment($request)
     {
@@ -1063,7 +1063,7 @@ class TotalManagementTransferServices
      * Retrieve total management project ID's.
      *
      * @param $applicationId
-     * 
+     *
      * @return array Returns the total management project ID's
      */
     private function getTotalManagementProjectIds($applicationId)

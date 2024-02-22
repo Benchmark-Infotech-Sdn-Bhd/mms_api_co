@@ -40,8 +40,11 @@ class InsuranceServices
         $this->vendor = $vendor;
     }
     /**
+     * validate the create insurance request data
+     * 
      * @param $request
-     * @return mixed | void
+     * 
+     * @return mixed | void Returns the validation error messages if validation fails, otherwise false.
      */
     public function inputValidation($request)
     {
@@ -50,8 +53,11 @@ class InsuranceServices
         }
     }
     /**
+     * validate the update insurance request data
+     * 
      * @param $request
-     * @return mixed | void
+     * 
+     * @return mixed | void Returns the validation error messages if validation fails, otherwise false.
      */
     public function updateValidation($request)
     {
@@ -76,11 +82,11 @@ class InsuranceServices
     }
 
     /**
-     * create levy
+     * create insurance record
      *
-     * @param array $request The request data containing the create data
+     * @param array $request The request data containing the create data params no_of_worker_from,no_of_worker_to,fee_per_pax,vendor_id,created_by
      *
-     * @return mixed
+     * @return mixed Returns the created insurance record
      */
     private function createInsurance($request)
     {
@@ -98,7 +104,7 @@ class InsuranceServices
      *
      * @param $request The request data containing the create Insurance data
      *
-     * @return mixed Returns the created Insurance data
+     * @return mixed Returns the created Insurance data or an array with error messages otherwise.
      */
     public function create($request): mixed
     {
@@ -136,9 +142,10 @@ class InsuranceServices
     }
 
     /**
-     * Apply condition to the query.
+     * Apply the vendor filter and search filter condition to the query.
      *
-     * @param array $request The request data containing the search keyword.
+     * @param object $query
+     * @param array $request The request data containing the vendor_id, search_param
      *
      * @return void
      */

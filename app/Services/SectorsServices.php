@@ -15,7 +15,13 @@ class SectorsServices
     public const MESSAGE_DELETED_SUCCESSFULLY = 'Deleted Successfully';
     public const MESSAGE_UPDATED_SUCCESSFULLY = 'Updated Successfully';
 
+    /**
+     * @var Sectors
+     */
     private Sectors $sectors;
+    /**
+     * @var ValidationServices
+     */
     private ValidationServices $validationServices;
 
     /**

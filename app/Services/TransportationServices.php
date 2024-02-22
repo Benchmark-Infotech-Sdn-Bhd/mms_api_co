@@ -99,7 +99,7 @@ class TransportationServices
      * 
      * @param $request
      * 
-     * @return mixed | void
+     * @return mixed | void Returns the validation error messages if validation fails, otherwise false.
      */
     public function inputValidation($request)
     {
@@ -111,7 +111,7 @@ class TransportationServices
      * validate the update request data
      * 
      * @param $request
-     * @return mixed | void
+     * @return mixed | void Returns the validation error messages if validation fails, otherwise false.
      */
     public function updateValidation($request)
     {

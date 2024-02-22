@@ -216,10 +216,6 @@ class VendorServices
         return $this->vendor::with(['vendorAttachments' => function ($query) {
             $query->orderBy('created_at', 'desc');
         }])->where('company_id', $request['company_id'])->find($request['id']);
-        // $accommodations = $vendors->accommodations;
-        // $insurances = $vendors->insurances;
-        // $transportations = $vendors->transportations;
-        // $vendors = Vendor::findorfail($id);
     }
 	 /**
      * Update the specified Vendor data.

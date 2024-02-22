@@ -475,7 +475,6 @@ class WorkersServices
         $user = $this->getAuthenticatedUser();
         $params['created_by'] = $user['id'];
         $params['company_id'] = $user['company_id'];
-        //$params = $this->enrichRequestWithUserDetails($params);
 
         $worker = $this->createWorker($params);
 
@@ -1716,8 +1715,6 @@ class WorkersServices
             return self::ERROR_WORKER_COUNT;
         }
 
-        //$workerBankDetail = $this->workerBankDetails::findOrFail($request['id']);
-
         $workerBankDetail = $this->workerBankDetails->create([
             'worker_id' => $request['worker_id'],
             "bank_name" => $request['bank_name'] ?? '',
@@ -2069,7 +2066,7 @@ class WorkersServices
             }
         }
         $this->updateWorkerBulkUploadStatus($ids);
-        $this->createWorkerFailureCasesDocument($ids);
+        $this->createWorkerFailureCasesDocument($ids,$data);
         return true;
     }
 
@@ -2104,9 +2101,10 @@ class WorkersServices
      * create worker failure cases document.
      *
      * @param $ids
+     * @param $data
      * @return void
      */
-    private function createWorkerFailureCasesDocument($ids)
+    private function createWorkerFailureCasesDocument($ids,$data)
     {
         foreach($ids as $id) {
             $moduleType = isset($data[$id]['module_type']) ? $data[$id]['module_type'] : '';
