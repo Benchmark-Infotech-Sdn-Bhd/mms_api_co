@@ -93,9 +93,9 @@ class LevyServices
     }
     
     /**
-     * validate the create request data
+     * validate the update request data
      * 
-     * @param $param
+     * @param $param The parameter used to build the validation rules.
      * 
      * @return array The validation rules for the input data.
      */
@@ -373,7 +373,7 @@ class LevyServices
      * 
      * @param $request The request data containing the create levy data
      * 
-     * @return bool|array An array of validation errors or boolean based on the processing result
+     * @return bool|array Returns true on success or an array with error information if validation fails or invalid user is found or quotaError if quota exceed the interview quota.
      */
     public function create($request): bool|array
     {
@@ -410,7 +410,7 @@ class LevyServices
      * 
      * @param $request The request data containing the update levy data
      * 
-     * @return bool|array An array of validation errors or boolean based on the processing result
+     * @return bool|array Returns true if the levy is updated successfully or an array with error information if validation fails or invalid user is found or quotaError if quota exceed the interview quota.
      */
     public function update($request): bool|array
     {

@@ -73,7 +73,7 @@ class TotalManagementProjectServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the add project request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -92,7 +92,7 @@ class TotalManagementProjectServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the update project request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -186,7 +186,7 @@ class TotalManagementProjectServices
     }
 
     /**
-     * Select data from the query.
+     * Select the project columns for the list project query
      *
      * @return $data The modified instance of the class.
      */
@@ -285,7 +285,9 @@ class TotalManagementProjectServices
      *        id (int) ID of the project
      *        request data containg the total mangement project update data
      * 
-     * @return bool|array Returns true if the update is successful. Returns an error array if validation fails or any error occurs during the update process.
+     * @return bool|array Returns true if the update is successful. 
+     *                    Returns an error array if validation fails or any error occurs during the update process.
+     *                    Returns ERROR_UNAUTHORIZED - if the project is not mapped with user
      * 
      * @see validateUpdateRequest()
      * @see getTotalManagementProject()

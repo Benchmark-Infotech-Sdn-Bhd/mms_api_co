@@ -177,7 +177,7 @@ class TotalManagementPayrollServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the add payroll request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -196,7 +196,7 @@ class TotalManagementPayrollServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the import payroll request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -215,7 +215,7 @@ class TotalManagementPayrollServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the update payroll request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -374,7 +374,7 @@ class TotalManagementPayrollServices
     }
 
     /**
-     * Select data from the query.
+     * Select the worker payroll columns from the list payroll query.
      *
      * @return $data The modified instance of the class.
      */
@@ -431,7 +431,7 @@ class TotalManagementPayrollServices
     }
 
     /**
-     * Select data from the query.
+     * Select the worker payroll columns from the export payroll query.
      *
      * @return $data The modified instance of the class.
      */
@@ -487,7 +487,7 @@ class TotalManagementPayrollServices
     }
 
 	/**
-     * Select data from the query.
+     * Select the worker payroll columns from the show payroll query.
      *
      * @return $data The modified instance of the class.
      */
@@ -744,6 +744,8 @@ class TotalManagementPayrollServices
      *              sosco_deduction (float) sosco deduction amount
      *              sosco_contribution (float) sosco contribution amount
      *              created_by ID of the user who created payroll
+     * 
+     * @return void
      *
      */
     private function updatePayroll($totalManagementPayroll, $request)
@@ -1022,7 +1024,7 @@ class TotalManagementPayrollServices
     }
 
     /**
-     * Select data from the query.
+     * Select the worker payroll columns from the worker query.
      *
      * @return $data The modified instance of the class.
      */
@@ -1115,8 +1117,13 @@ class TotalManagementPayrollServices
     /**
      * total management payroll import failure excel download
      *
-     * @param $request
-     * @return array
+     * @param $request The request data containing the params 
+     *                 company_id (array) User company id
+     *                 bulk_upload_id (int) upload id
+     * 
+     * @return array Returns the file_url with datas otherwise returns error message
+     *               Returns ERROR_INVALID_USER - if the payroll bulk upload is not mapped with user company id and id.
+     *               Returns ERROR_QUEUE - if the process status is not equal to Processed and file url is null
      */
     public function failureExport($request): array
     {
@@ -1175,7 +1182,8 @@ class TotalManagementPayrollServices
     /**
      * Update the status of payroll bulk upload rows.
      *
-     * @param $ids
+     * @param array $ids payroll bulk upload id's
+     * 
      * @return void
      */
     private function updatePayrollBulkUploadStatus($ids)
@@ -1186,7 +1194,7 @@ class TotalManagementPayrollServices
     /**
      * create payroll failure cases document.
      *
-     * @param $ids
+     * @param array $ids payroll bulk upload id's
      * @return void
      */
     private function createPayrollFailureCasesDocument($ids)
