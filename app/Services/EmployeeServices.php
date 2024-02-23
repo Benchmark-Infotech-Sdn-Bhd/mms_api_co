@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Config;
 use App\Services\AuthServices;
 use Illuminate\Support\Str;
 use App\Models\Role;
-use App\Models\Transportation;
 
 class EmployeeServices
 {
@@ -54,11 +53,6 @@ class EmployeeServices
     private User $user;
 
     /**
-     * @var Transportation
-     */
-    private Transportation $transportation;
-
-    /**
      * @var Company
      */
     private Company $company;
@@ -70,26 +64,24 @@ class EmployeeServices
 
     /**
      * Constructor method.
-     * 
+     *
      * @param Employee $employee Instance of the employee class.
      * @param ValidationServices $validationServices Instance of the validation services class.
      * @param AuthServices $authServices Instance of the auth services class.
      * @param Role $role Instance of the role class.
      * @param User $user Instance of the user class.
-     * @param Transportation $transportation Instance of the transportation class.
      * @param Company $company Instance of the company class.
      * @param Branch $branch Instance of the branch class.
-     * 
+     *
      * @return void.
      */
     public function __construct(
         Employee               $employee,
         ValidationServices     $validationServices,
         AuthServices           $authServices,
-        Role                   $role, 
-        User                   $user, 
-        Transportation         $transportation, 
-        Company                $company, 
+        Role                   $role,
+        User                   $user,
+        Company                $company,
         Branch                 $branch
     )
     {
@@ -98,14 +90,13 @@ class EmployeeServices
         $this->authServices = $authServices;
         $this->role = $role;
         $this->user = $user;
-        $this->transportation = $transportation;
         $this->company = $company;
         $this->branch = $branch;
     }
 
     /**
      * Creates a new employee from the given request data.
-     * 
+     *
      * @param array $request The array containing employee data.
      * @return mixed Returns an mixed with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -138,7 +129,7 @@ class EmployeeServices
 
         $employee = $this->createEmployee($request);
 
-        $res = $this->createEmployeeAuth($employee, $request); 
+        $res = $this->createEmployeeAuth($employee, $request);
 
         if ($res) {
             return $employee;
@@ -154,7 +145,7 @@ class EmployeeServices
 
     /**
      * Updates the employee from the given request data.
-     * 
+     *
      * @param array $request The array containing employee data.
      * @return array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -168,7 +159,7 @@ class EmployeeServices
         if (is_array($validationResult)) {
             return $validationResult;
         }
-        
+
         $employee = $this->showEmployeeCompany($request);
         if (is_null($employee)) {
             return [
@@ -176,7 +167,7 @@ class EmployeeServices
                 "message"=> self::MESSAGE_DATA_NOT_FOUND
             ];
         }
-        
+
         $res = $this->updateEmployeeAuth($employee, $request);
         if (!$res) {
             return [
@@ -190,7 +181,7 @@ class EmployeeServices
 
     /**
      * Delete the employee
-     * 
+     *
      * @param array $request The request data containing the employee id and company id.
      * @return array The result of the delete operation containing the deletion status and message.
      */
@@ -200,7 +191,7 @@ class EmployeeServices
         if (is_array($validationResult)) {
             return $validationResult;
         }
-        
+
         $employee = $this->showDeleteEmployeeCompany($request);
         if (is_null($employee)) {
             return [
@@ -225,7 +216,7 @@ class EmployeeServices
 
     /**
      * Show the employee with related branch and companies.
-     * 
+     *
      * @param array $request The request data containing employee id, company id
      * @return array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -254,10 +245,10 @@ class EmployeeServices
 
     /**
      * Updates the employee status from the given request data.
-     * 
+     *
      * @param array $request The request data containing employee id, company id and status.
-     * 
-     * @return "isUpdated": Returns an array with 'error' as key and validation error messages as value if status updation fails. | Returns true if employee status was successfully updated.
+     *
+     * @return array "isUpdated": Returns an array with 'error' as key and validation error messages as value if status updation fails. | Returns true if employee status was successfully updated.
      */
     public function updateStatus($request): array
     {
@@ -292,7 +283,7 @@ class EmployeeServices
 
     /**
      * Returns a paginated list of employee with related branch, roles and user_role_type.
-     * 
+     *
      * @param array $request The search request parameters and company id.
      * @return mixed Returns an mixed with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -326,7 +317,7 @@ class EmployeeServices
 
     /**
      * Returns a list of employee.
-     * 
+     *
      * @param id $companyId The id of the employee company.
      * @return mixed Returns a list of employee.
      */
@@ -342,7 +333,7 @@ class EmployeeServices
 
     /**
      * Updates the employee status.
-     * 
+     *
      * @param $request The request data containing branch id, status.
      * @return array Returns an array with the following keys:
      * - "isUpdated": Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if employee status updated successfully.
@@ -351,7 +342,7 @@ class EmployeeServices
     {
         $employee = $this->employee->where('branch_id', $request['branch_id'])
             ->update(['status' => $request['status']]);
-        
+
         return  [
             "isUpdated" => $employee,
             "message" => self::MESSAGE_UPDATED_SUCCESSFULLY
@@ -360,7 +351,7 @@ class EmployeeServices
 
     /**
      * Returns a list of supervisor with related employee, transportation, roles and user_role_type.
-     * 
+     *
      * @param array $request The request data containing company id
      * @return mixed Returns a list of supervisor with related employee, transportation, roles and user_role_type.
      */
@@ -404,7 +395,7 @@ class EmployeeServices
 
         return true;
     }
-    
+
     /**
      * Validate the given request data.
      *
@@ -428,7 +419,7 @@ class EmployeeServices
 
         return true;
     }
-    
+
     /**
      * Validate the given request data.
      *
@@ -448,7 +439,7 @@ class EmployeeServices
 
         return true;
     }
-    
+
     /**
      * Validate the given request data.
      *
@@ -468,7 +459,7 @@ class EmployeeServices
 
         return true;
     }
-    
+
     /**
      * Creates a new employee from the given request data.
      *
@@ -516,7 +507,7 @@ class EmployeeServices
             'company_id' => $request['company_id'] ?? self::DEFAULT_INTEGER_VALUE_ZERO
         ]);
     }
-    
+
     /**
      * Creates a new auth services from the given request data.
      *
@@ -533,7 +524,7 @@ class EmployeeServices
      *                      - subsidiary_companies: The subsidiary companies of the service.
      *                      - company_id: The company id of the service.
      *
-     * @return authServices The newly created authServices object.
+     * @return bool authServices The newly created authServices.
      */
     private function createEmployeeAuth($employee, $request)
     {
@@ -567,10 +558,10 @@ class EmployeeServices
 
         return true;
     }
-    
+
     /**
      * Show the role.
-     * 
+     *
      * @param int $role_id The id of the role
      * @return mixed Returns the role.
      */
@@ -578,10 +569,10 @@ class EmployeeServices
     {
         return $this->role->find($role_id);
     }
-    
+
     /**
      * Show the company.
-     * 
+     *
      * @param int $company_id The id of the company
      * @return mixed Returns the company.
      */
@@ -592,10 +583,10 @@ class EmployeeServices
             ->get()
             ->toArray();
     }
-    
+
     /**
      * Show the branch.
-     * 
+     *
      * @param int $branch_id The id of the branch
      * @return mixed Returns the branch.
      */
@@ -603,10 +594,10 @@ class EmployeeServices
     {
         return $this->branch->find($branch_id);
     }
-    
+
     /**
      * Show the employee.
-     * 
+     *
      * @param array $request The request data containing employee id, company id
      * @return mixed Returns the employee.
      */
@@ -614,10 +605,10 @@ class EmployeeServices
     {
         return $this->employee->where('company_id', $request['company_id'])->find($request['id']);
     }
-    
+
     /**
      * Updates the auth services from the given request data.
-     * 
+     *
      * @param object $employee The employee object to be updated.
      * @param array $request The array containing services data.
      *                      The array should have the following keys:
@@ -626,8 +617,8 @@ class EmployeeServices
      *                      - role_id: The updated role id.
      *                      - user_id: The updated user id.
      *                      - reference_id: The updated reference id.
-     * 
-     * @return authServices The updated authServices object.
+     *
+     * @return bool authServices The updated authServices.
      */
     private function updateEmployeeAuth($employee, $request)
     {
@@ -639,10 +630,10 @@ class EmployeeServices
             'reference_id' => $request['id']
         ]);
     }
-    
+
     /**
      * Updates the employee from the given request data.
-     * 
+     *
      * @param object $employee The employee object to be updated.
      * @param array $request The array containing employee data.
      *                      The array should have the following keys:
@@ -662,8 +653,8 @@ class EmployeeServices
      *                      - city: The updated city.
      *                      - state: The updated state.
      *                      - modified_by: The updated employee modified by.
-     * 
-     * @return "isUpdated": Returns an array with 'error' as key and validation error messages as value if updation fails. | Returns true if employee was successfully updated.
+     *
+     * @return array "isUpdated": Returns an array with 'error' as key and validation error messages as value if updation fails. | Returns true if employee was successfully updated.
      */
     private function updateEmployee($employee, $request)
     {
@@ -706,10 +697,10 @@ class EmployeeServices
 
         return true;
     }
-    
+
     /**
      * Show the employee.
-     * 
+     *
      * @param array $request The request data containing employee id, company id
      * @return mixed Returns the employee.
      */
@@ -717,10 +708,10 @@ class EmployeeServices
     {
         return $this->employee->where('company_id', $request['company_id'])->find($request['id']);
     }
-    
+
     /**
      * Delete the auth services.
-     * 
+     *
      * @param array $request The array containing reference id.
      * @return mixed array Returns an 'error' if deleted fails. | Returns true if auth services was successfully deleted.
      */
@@ -728,10 +719,10 @@ class EmployeeServices
     {
         return $this->authServices->delete(['reference_id' => $request['id']]);
     }
-    
+
     /**
      * Show the employee with related branches and user.
-     * 
+     *
      * @param array $request The request data containing employee id
      * @return mixed Returns the employee with related branches and user.
      */
@@ -739,10 +730,10 @@ class EmployeeServices
     {
         return $this->employee->with(['branches', 'user'])->find($request['id']);
     }
-    
+
     /**
      * Show the user with related companies.
-     * 
+     *
      * @param int $id The id of the user.
      * @return mixed Returns the user with related companies.
      */
@@ -750,10 +741,10 @@ class EmployeeServices
     {
         return $this->user->with('companies')->findOrFail($id);
     }
-    
+
     /**
      * Show the auth services.
-     * 
+     *
      * @param int $id The id of the auth services.
      * @return mixed Returns the auth services.
      */
@@ -795,10 +786,10 @@ class EmployeeServices
 
         return true;
     }
-    
+
     /**
      * Show the employee with related branches.
-     * 
+     *
      * @param array $request The request data containing company id, employee id
      * @return mixed Returns the employee with related branches.
      */
@@ -825,7 +816,7 @@ class EmployeeServices
 
         return true;
     }
-    
+
     /**
      * Apply the "company" filter to the query
      *
@@ -838,7 +829,7 @@ class EmployeeServices
     {
         $query->whereIn('employee.company_id', $request['company_id'])->whereNull('employee.deleted_at');
     }
-    
+
     /**
      * Apply the search filter to the query
      *
@@ -865,10 +856,10 @@ class EmployeeServices
             $query->where('roles.id',$request['role_id']);
         }
     }
-    
+
     /**
      * Show the supervisor role.
-     * 
+     *
      * @param array $request The request data containing company id
      * @return mixed Returns the supervisor role.
      */
@@ -880,7 +871,7 @@ class EmployeeServices
             ->where('status',self::DEFAULT_INTEGER_VALUE_ONE)
             ->first('id');
     }
-    
+
     /**
      * Apply the "supervisor" filter to the query
      *

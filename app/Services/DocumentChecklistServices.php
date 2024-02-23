@@ -42,12 +42,12 @@ class DocumentChecklistServices
 
     /**
      * Constructor method.
-     * 
+     *
      * @param DocumentChecklist $documentChecklist Instance of the DocumentChecklist class.
      * @param ValidationServices $validationServices Instance of the ValidationServices class.
      * @param SectorsServices $sectorsServices Instance of the SectorsServices class.
      * @param Sectors $sectors Instance of the Sectors class.
-     * 
+     *
      * @return void
      */
     public function __construct(
@@ -65,7 +65,7 @@ class DocumentChecklistServices
 
     /**
      * Creates a new document check list from the given request data.
-     * 
+     *
      * @param array $request The array containing document check list data.
      *                      The array should have the following keys:
      *                      - sector_id: The sector id of the document.
@@ -82,12 +82,12 @@ class DocumentChecklistServices
         if (is_array($validationResult)) {
             return $validationResult;
         }
-        
+
         $sectorDetails = $this->showCompanySectors($request);
         if(is_null($sectorDetails)) {
             return self::ERROR_INVALID_USER;
         }
-        
+
         $checklist = $this->createDocumentChecklist($request);
 
         $count = $this->getDocumentChecklistCount($request);
@@ -100,7 +100,7 @@ class DocumentChecklistServices
 
     /**
      * Updates the document check list from the given request data.
-     * 
+     *
      * @param array $request The array containing document check list data.
      *                      The array should have the following keys:
      *                      - sector_id: The sector id of the document.
@@ -117,7 +117,7 @@ class DocumentChecklistServices
         if (is_array($validationResult)) {
             return $validationResult;
         }
-        
+
         $documentChecklist = $this->showDocumentChecklist($request);
         if(is_null($documentChecklist)){
             return [
@@ -136,7 +136,7 @@ class DocumentChecklistServices
 
     /**
      * Delete the document check list
-     * 
+     *
      * @param array $request The array containing document id.
      * @return array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -180,7 +180,7 @@ class DocumentChecklistServices
 
     /**
      * Show the document check list
-     * 
+     *
      * @param array $request The request data containing company id, document id.
      * @return mixed Returns an mixed with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -213,7 +213,7 @@ class DocumentChecklistServices
 
     /**
      * Returns a paginated list of document check list based on the given search request.
-     * 
+     *
      * @param array $request The request data containing company id, sector id.
      * @return mixed Returns an mixed with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -254,10 +254,10 @@ class DocumentChecklistServices
 
         return true;
     }
-    
+
     /**
      * Show the sectors.
-     * 
+     *
      * @param array $request The request data containing sector id, company id
      * @return mixed Returns the sectors.
      */
@@ -265,10 +265,10 @@ class DocumentChecklistServices
     {
         return $this->sectors->where('company_id', $request['company_id'])->find($request['sector_id']);
     }
-    
+
     /**
      * Creates a new document check list from the given request data.
-     * 
+     *
      * @param array $request The array containing document check list data.
      *                      The array should have the following keys:
      *                      - sector_id: The sector id of the document.
@@ -276,8 +276,8 @@ class DocumentChecklistServices
      *                      - remarks: The remarks of the document.
      *                      - created_by: The created document check list created by.
      *                      - modified_by: The updated document check list modified by.
-     * 
-     * @return document check list The newly created document check list object.
+     *
+     * @return object document check list The newly created document check list object.
      */
     private function createDocumentChecklist($request)
     {
@@ -289,10 +289,10 @@ class DocumentChecklistServices
             'modified_by'   => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO
         ]);
     }
-    
+
     /**
      * Returns a count of document check list based on the given sector id.
-     * 
+     *
      * @param array $request The request data containing sector id.
      * @return array Returns a count of document check list.
      */
@@ -301,18 +301,19 @@ class DocumentChecklistServices
         return $this->documentChecklist->whereNull('deleted_at')
             ->where('sector_id','=',$request['sector_id'])->count('id');
     }
-    
+
     /**
      * Updates the sectors status with the given request.
-     * 
+     *
      * @param array $request The request data containing sector id.
      * @param string $status The status of the sector check list.
-     * @return Object sectors The updated sectors object.
+     * @return array sectors The updated sectors array.
      */
     private function updateChecklistStatus($request, $status)
     {
-        return $this->sectorsServices->updateChecklistStatus([ 'id' => $request['sector_id'], 'checklist_status' => $status]);
-    }   
+        return $this->sectorsServices
+            ->updateChecklistStatus([ 'id' => $request['sector_id'], 'checklist_status' => $status]);
+    }
 
     /**
      * Validate the given request data.
@@ -330,10 +331,10 @@ class DocumentChecklistServices
 
         return true;
     }
-    
+
     /**
      * Show the document check list.
-     * 
+     *
      * @param array $request The request data containing document check list id
      * @return mixed Returns the document check list.
      */
@@ -341,10 +342,10 @@ class DocumentChecklistServices
     {
         return $this->documentChecklist->find($request['id']);
     }
-    
+
     /**
      * Updates the document check list with the given request.
-     * 
+     *
      * @param object $documentChecklist The documentChecklist object to be updated.
      * @param array $request The array containing document check list data.
      *                      The array should have the following keys:
@@ -353,7 +354,7 @@ class DocumentChecklistServices
      *                      - document_title: The updated document title.
      *                      - remarks: The updated remarks.
      *                      - modified_by: The updated document modified by.
-     * 
+     *
      * @return array Returns an array with the following keys:
      * - "isUpdated" (boolean): Indicates whether the data was updated. Always set to `false`.
      */

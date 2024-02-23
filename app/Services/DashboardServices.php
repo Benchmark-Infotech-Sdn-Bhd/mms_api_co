@@ -2,11 +2,6 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Config;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Workers;
 use App\Models\TotalManagementApplications;
@@ -48,7 +43,7 @@ class DashboardServices
      * @param TotalManagementApplications $totalManagementApplications
      * @param EContractApplications $eContractApplications
      * @param DirectrecruitmentApplications $directrecruitmentApplications
-     * 
+     *
      * @return void
      */
     public function __construct(
@@ -66,7 +61,7 @@ class DashboardServices
 
     /**
      * Returns a list of worker count, worker onbench count, service direct recruitment count, service econtract count, service total management count, worker passport expired count, fomema expired count, visa permit expired count based on the given search request.
-     * 
+     *
      * @param array $request The array containing company id.
      * @return mixed Returns an array list of worker count, worker onbench count, service direct recruitment count, service econtract count, service total management count, worker passport expired count, fomema expired count, visa permit expired count.
      */
@@ -82,7 +77,7 @@ class DashboardServices
 
         $serviceTotalManagementCount = $this->getTotalManagementApplicationCount($request);
 
-        $conditionDate = Carbon::now()->addDays(60)->toDateTimeString(); 
+        $conditionDate = Carbon::now()->addDays(60)->toDateTimeString();
 
         $workerPassportExpired = $this->getWorkerPassportExpiredCount($conditionDate, $request);
 
@@ -101,10 +96,10 @@ class DashboardServices
             'visa_permit_expired_count' =>$visaPermitExpired
         ];
     }
-    
+
     /**
      * Returns a count of workers based on the given company id.
-     * 
+     *
      * @param array $request The search request parameters and company id.
      * @return array Returns a count of workers.
      */
@@ -124,7 +119,7 @@ class DashboardServices
             })
             ->count('workers.id');
     }
-    
+
     /**
      * Apply the "worker econtract status" filter to the query
      *
@@ -134,7 +129,7 @@ class DashboardServices
      * @return void
      */
     private function applyWorkerEcontractStatusFilter($query, $request){
-        
+
         if (!empty($request['econtractStatus']) && $request['econtractStatus'] == self::STATUS_ON_BENCH) {
             $query->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status ELSE 'On-Bench' END) = 'On-Bench'");
 
@@ -142,10 +137,10 @@ class DashboardServices
             $query->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status ELSE 'On-Bench' END) IN('On-Bench','Assigned','Counselling','e-Run')");
         }
     }
-    
+
     /**
      * Returns a count of directrecruitment applications based on the given company id.
-     * 
+     *
      * @param array $request The request data containing the company id.
      * @return array Returns a count of directrecruitment applications.
      */
@@ -159,10 +154,10 @@ class DashboardServices
             ->where('crm_prospect_services.deleted_at', NULL)
             ->count('directrecruitment_applications.id');
     }
-    
+
     /**
      * Returns a count of e-contract applications based on the given company id.
-     * 
+     *
      * @param array $request The request data containing the company id.
      * @return array Returns a count of e-contract applications.
      */
@@ -176,10 +171,10 @@ class DashboardServices
             ->where('crm_prospect_services.deleted_at', NULL)
             ->count('e-contract_applications.id');
     }
-    
+
     /**
      * Returns a count of total management applications based on the given company id.
-     * 
+     *
      * @param array $request The request data containing the company id.
      * @return array Returns a count of total management applications.
      */
@@ -193,10 +188,10 @@ class DashboardServices
             ->where('crm_prospect_services.deleted_at', NULL)
             ->count('total_management_applications.id');
     }
-    
+
     /**
      * Returns a count of worker passport expired based on the given company id.
-     * 
+     *
      * @param date $conditionDate The date of workers passport valid until.
      * @param array $request The request data containing the company id.
      * @return array Returns a count of worker passport expired.
@@ -208,10 +203,10 @@ class DashboardServices
             ->whereIn('company_id', $request['company_id'])
             ->count('id');
     }
-    
+
     /**
      * Returns a count of fomema expired based on the given company id.
-     * 
+     *
      * @param date $conditionDate The date of workers fomema valid until.
      * @param array $request The request data containing the company id.
      * @return array Returns a count of fomema expired.
@@ -223,10 +218,10 @@ class DashboardServices
             ->whereIn('company_id', $request['company_id'])
             ->count('id');
     }
-    
+
     /**
      * Returns a count of visa permit expired based on the given company id.
-     * 
+     *
      * @param date $conditionDate The date of workers work permit valid until.
      * @param array $request The request data containing the company id.
      * @return array Returns a count of visa permit.

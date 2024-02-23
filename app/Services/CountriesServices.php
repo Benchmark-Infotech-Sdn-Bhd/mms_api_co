@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services; 
+namespace App\Services;
 
 use App\Models\Countries;
 use App\Services\ValidationServices;
@@ -34,11 +34,11 @@ class CountriesServices
 
     /**
      * Constructor method.
-     * 
+     *
      * @param Countries $countries Instance of the Countries class.
      * @param ValidationServices $validationServices Instance of the ValidationServices class.
      * @param AgentServices $agentServices Instance of the AgentServices class.
-     * 
+     *
      * @return void
      */
     public function __construct(
@@ -54,7 +54,7 @@ class CountriesServices
 
     /**
      * Creates a new country from the given request data.
-     * 
+     *
      * @param array $request The array containing country data.
      *                      The array should have the following keys:
      *                      - company_id: The company id of the country.
@@ -87,7 +87,7 @@ class CountriesServices
 
     /**
      * Updates the country data with the given request.
-     * 
+     *
      * @param array $request The array containing country data.
      *                      The array should have the following keys:
      *                      - country_name: The updated country name.
@@ -115,13 +115,13 @@ class CountriesServices
                 "message"=> self::MESSAGE_DATA_NOT_FOUND
             ];
         }
-        
+
         return $this->updateCountry($country, $request);
     }
 
     /**
      * Delete the country
-     * 
+     *
      * @param array $request The array containing country id.
      * @return array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -151,7 +151,7 @@ class CountriesServices
 
     /**
      * Show the country.
-     * 
+     *
      * @param array $request The request data containing company id, country id
      * @return mixed Returns the country.
      */
@@ -167,7 +167,7 @@ class CountriesServices
 
     /**
      * List of the country.
-     * 
+     *
      * @param array $request The request data containing company id
      * @return mixed Returns the country.
      */
@@ -182,7 +182,7 @@ class CountriesServices
 
     /**
      * Updates the costing status with the given request.
-     * 
+     *
      * @param array $request The array containing country id, status.
      * @return array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -212,7 +212,7 @@ class CountriesServices
 
     /**
      * Returns a paginated list of countries based on the given search request.
-     * 
+     *
      * @param array $request The search request parameters and company id.
      * @return mixed Returns an array with a 'validate' key containing the validation errors, if the search request is invalid. Otherwise, returns a paginated list of countries.
      */
@@ -233,7 +233,7 @@ class CountriesServices
 
     /**
      * Updates the country status with the given request.
-     * 
+     *
      * @param array $request The array containing country id, status.
      * @return array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -273,7 +273,7 @@ class CountriesServices
 
         return true;
     }
-    
+
     /**
      * Validate the country given request data.
      *
@@ -294,10 +294,10 @@ class CountriesServices
 
         return true;
     }
-    
+
     /**
      * Creates a new country from the given request data.
-     * 
+     *
      * @param array $request The array containing country data.
      *                      The array should have the following keys:
      *                      - company_id: The company id of the country.
@@ -308,7 +308,7 @@ class CountriesServices
      *                      - status: The status of the country.
      *                      - created_by: The created country created by.
      *                      - modified_by: (int) The updated country modified by.
-     * 
+     *
      * @return country The newly created country object.
      */
     private function createCountry($request)
@@ -342,10 +342,10 @@ class CountriesServices
 
         return true;
     }
-    
+
     /**
      * Show the country.
-     * 
+     *
      * @param array $request The request data containing country id, company id
      * @return mixed Returns the country.
      */
@@ -353,10 +353,10 @@ class CountriesServices
     {
         return $this->countries->where('company_id', $request['company_id'])->find($request['id']);
     }
-    
+
     /**
      * Updates the country data with the given request.
-     * 
+     *
      * @param object $country The country object to be updated.
      * @param array $request The array containing country data.
      *                      The array should have the following keys:
@@ -456,13 +456,13 @@ class CountriesServices
 
         return true;
     }
-    
+
     /**
      * Apply search filter to the query.
      *
      * @param Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the search keyword.
-     * 
+     *
      * @return void
      */
     private function applySearchFilter($query, $request)
@@ -488,10 +488,10 @@ class CountriesServices
 
         return true;
     }
-    
+
     /**
      * Updates the country status with the given request.
-     * 
+     *
      * @param object $country The country object to be updated.
      * @param array $request The array containing country id, status.
      * @return array Returns an array with the following keys:
@@ -502,9 +502,8 @@ class CountriesServices
         $country->status = $request['status'];
         $res = $country->save();
         if($res == self::DEFAULT_INTEGER_VALUE_ONE){
-            $agents = $this->agentServices
-                ->updateStatusBasedOnCountries(['country_id' => $request['id'],
-            'status' => $request['status']]);
+            $this->agentServices
+                ->updateStatusBasedOnCountries(['country_id' => $request['id'], 'status' => $request['status']]);
         }
 
         return  [

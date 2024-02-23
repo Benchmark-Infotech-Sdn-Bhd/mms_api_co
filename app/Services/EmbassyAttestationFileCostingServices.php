@@ -42,7 +42,7 @@ class EmbassyAttestationFileCostingServices
 
     /**
      * Constructor method.
-     * 
+     *
      * @param EmbassyAttestationFileCosting $embassyAttestationFileCosting Instance of the EmbassyAttestationFileCosting class.
      * @param ValidationServices $validationServices Instance of the ValidationServices class.
      * @param CountriesServices $countriesServices Instance of the CountriesServices class.
@@ -63,7 +63,7 @@ class EmbassyAttestationFileCostingServices
 
     /**
      * Creates a new filecosting from the given request data.
-     * 
+     *
      * @param mixed $request The mixed containing filecosting data.
      * @return mixed Returns an mixed with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -77,12 +77,12 @@ class EmbassyAttestationFileCostingServices
         if (is_array($validationResult)) {
             return $validationResult;
         }
-        
+
         $countryDetails = $this->showCompanyCountry($request);
         if (is_null($countryDetails)) {
             return self::ERROR_INVALID_USER;
         }
-        
+
         $filecosting = $this->createEmbassyAttestationFileCosting($request);
         $count = $this->getEmbassyAttestationFileCostingCount($request);
         if ($count == self::DEFAULT_INTEGER_VALUE_ONE) {
@@ -94,7 +94,7 @@ class EmbassyAttestationFileCostingServices
 
     /**
      * Updates the filecosting with the given request.
-     * 
+     *
      * @param array $request The array containing filecosting data.
      * @return mixed Returns an mixed with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -107,7 +107,7 @@ class EmbassyAttestationFileCostingServices
         if (is_array($validationResult)) {
             return $validationResult;
         }
-        
+
         $embassyAttestationFileCosting = $this->showEmbassyAttestationFileCosting($request);
         if (is_null($embassyAttestationFileCosting)) {
             return [
@@ -126,7 +126,7 @@ class EmbassyAttestationFileCostingServices
 
     /**
      * Delete the filecosting.
-     * 
+     *
      * @param array $request The request data containing filecosting id.
      * @return mixed Returns an mixed with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -169,7 +169,7 @@ class EmbassyAttestationFileCostingServices
 
     /**
      * Show the filecosting.
-     * 
+     *
      * @param array $request The request data containing filecosting id
      * @return mixed Returns an mixed with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -201,7 +201,7 @@ class EmbassyAttestationFileCostingServices
 
     /**
      * List the filecosting.
-     * 
+     *
      * @param array $request The request data containing country id
      * @return mixed Returns an mixed with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -242,10 +242,10 @@ class EmbassyAttestationFileCostingServices
 
         return true;
     }
-    
+
     /**
      * Show the country.
-     * 
+     *
      * @param array $request The request data containing country id, company id
      * @return mixed Returns the country.
      */
@@ -253,10 +253,10 @@ class EmbassyAttestationFileCostingServices
     {
         return $this->countries->where('company_id', $request['company_id'])->find($request['country_id']);
     }
-    
+
     /**
      * Creates a new embassy attestation fileCosting from the given request data.
-     * 
+     *
      * @param array $request The array containing fileCosting data.
      *                      The array should have the following keys:
      *                      - country_id: The country_id of the fileCosting.
@@ -264,7 +264,7 @@ class EmbassyAttestationFileCostingServices
      *                      - amount: The amount of the fileCosting.
      *                      - created_by: The created fileCosting created by.
      *                      - modified_by: (int) The updated fileCosting modified by.
-     * 
+     *
      * @return fileCosting The newly created fileCosting object.
      */
     private function createEmbassyAttestationFileCosting($request)
@@ -277,10 +277,10 @@ class EmbassyAttestationFileCostingServices
             'modified_by'   => $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO
         ]);
     }
-    
+
     /**
      * Returns a count of embassy attestation fileCosting based on the given country id, fileCosting id.
-     * 
+     *
      * @param array $request The request data containing country id, fileCosting id
      * @return array Returns a count of embassy attestation fileCosting.
      */
@@ -289,13 +289,13 @@ class EmbassyAttestationFileCostingServices
         return $this->embassyAttestationFileCosting->whereNull('deleted_at')
             ->where('country_id','=',$request['country_id'])->count('id');
     }
-    
+
     /**
      * Updates the costing status with the given request.
-     * 
+     *
      * @param array $request The array containing country id.
      * @param string $status The status of the countries.
-     * @return country The updated country object.
+     * @return array country The updated country array.
      */
     private function updateCostingStatus($request, $status)
     {
@@ -318,10 +318,10 @@ class EmbassyAttestationFileCostingServices
 
         return true;
     }
-    
+
     /**
      * Show the embassy attestation fileCosting.
-     * 
+     *
      * @param array $request The request data containing fileCosting id.
      * @return mixed Returns the embassy attestation fileCosting.
      */
@@ -329,10 +329,10 @@ class EmbassyAttestationFileCostingServices
     {
         return $this->embassyAttestationFileCosting->find($request['id']);
     }
-    
+
     /**
      * Updates the embassy attestation fileCosting data with the given request.
-     * 
+     *
      * @param object $embassyAttestationFileCosting The embassyAttestationFileCosting object to be updated.
      * @param array $request The array containing fileCosting data.
      *                      The array should have the following keys:
