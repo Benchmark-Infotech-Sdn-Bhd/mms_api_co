@@ -74,6 +74,7 @@ class FeeRegistrationServices
     /**
      * Creates the validation rules for create a new fee registration.
      *
+     * @param array $request The request data containing fee type, cost
      * @return array The array containing the validation rules.
      */
     public function inputValidation($request)
@@ -86,7 +87,8 @@ class FeeRegistrationServices
     /**
      * Creates the validation rules for updating the fee registration.
      *
-     * @return array The array containing the validation rules.
+     * @param array $request The request data containing fee type, cost
+     * @return void|array The array containing the validation rules.
      */
     public function updateValidation($request)
     {
@@ -216,7 +218,7 @@ class FeeRegistrationServices
      * Show the sectors.
      *
      * @param array $request The request data containing company id
-     * @return mixed Returns the sectors.
+     * @return array Returns the sectors.
      */
     private function showCompanySectors($request)
     {

@@ -82,7 +82,7 @@ class EContractPayrollServices
 
     /**
      * Constructs a new instance of the class.
-     * 
+     *
      * @param Workers $workers Instance of the Workers class.
      * @param EContractPayroll $eContractPayroll Instance of the EContractPayroll class.
      * @param EContractPayrollAttachments $eContractPayrollAttachments Instance of the EContractPayrollAttachments class.
@@ -91,17 +91,17 @@ class EContractPayrollServices
      * @param EContractCostManagement $eContractCostManagement Instance of the EContractCostManagement class.
      * @param EContractProject $eContractProject Instance of the EContractProject class.
      * @param AuthServices $authServices Instance of the AuthServices class.
-     * 
+     *
      * @return void
      */
     public function __construct(
-        Workers $workers, 
-        EContractPayroll $eContractPayroll, 
-        EContractPayrollAttachments $eContractPayrollAttachments, 
-        Storage $storage, 
-        EContractPayrollBulkUpload $eContractPayrollBulkUpload, 
-        EContractCostManagement $eContractCostManagement, 
-        EContractProject $eContractProject, 
+        Workers $workers,
+        EContractPayroll $eContractPayroll,
+        EContractPayrollAttachments $eContractPayrollAttachments,
+        Storage $storage,
+        EContractPayrollBulkUpload $eContractPayrollBulkUpload,
+        EContractCostManagement $eContractCostManagement,
+        EContractProject $eContractProject,
         AuthServices $authServices
     )
     {
@@ -170,17 +170,17 @@ class EContractPayrollServices
 
     /**
      * Returns a project details of workers based on the given search request.
-     * 
+     *
      * @param array $request The search request parameters and project id.
      * @return mixed Returns a project details of workers.
-     */  
+     */
     public function projectDetails($request): mixed
     {
         $user = $this->getJwtUserAuthenticate();
         return $this->workers
             ->leftJoin('worker_employment', 'worker_employment.worker_id','=','workers.id')
             ->leftJoin('e-contract_project', 'e-contract_project.id', '=', 'worker_employment.project_id')
-            ->where('worker_employment.project_id', $request['project_id']) 
+            ->where('worker_employment.project_id', $request['project_id'])
             ->where('worker_employment.service_type', self::SERVICE_TYPE_ECONTRACT)
             ->where('worker_employment.transfer_flag', self::TRANSFER_FLAG_0)
             ->whereNull('worker_employment.remove_date')
@@ -194,7 +194,7 @@ class EContractPayrollServices
 
     /**
      * Returns a paginated list of workers based on the given search request.
-     * 
+     *
      * @param array $request The search request parameters.
      * @return mixed Returns a paginated list of workers with related visa and employment and bank details and payroll and project.
      */
@@ -209,10 +209,10 @@ class EContractPayrollServices
 
     /**
      * Returns a export list of workers based on the given search request.
-     * 
+     *
      * @param array $request The search request parameters.
      * @return mixed Returns a export list of workers with related visa and employment and bank details and payroll and project.
-     */ 
+     */
     public function export($request): mixed
     {
         $user = $this->getJwtUserAuthenticate();
@@ -224,10 +224,10 @@ class EContractPayrollServices
 
     /**
      * Show the worker with related visa and employment and bank details and payroll and project.
-     * 
+     *
      * @param array $request The request data containing payroll id, company id
      * @return mixed Returns the worker with related visa and employment and bank details and payroll and project.
-     */ 
+     */
     public function show($request): mixed
     {
         $user = $this->getJwtUserAuthenticate();
@@ -239,8 +239,13 @@ class EContractPayrollServices
 
     /**
      * Importing a new e-contract payroll from the given request data.
-     * 
-     * @param $request The request data containing e-contract project id and file.
+     *
+     * @param $request The request data containing e-contract payroll data.
+     *                 The array should have the following keys:
+     *                 - project_id: The project id of the payroll.
+     *                 - company_id: The company id of the payroll.
+     *                 - created_by: The ID of the user who created the payroll.
+     *                 - modified_by: The updated payroll modified by.
      * @return mixed Returns an array with the following keys:
      * - "unauthorizedError": A array returns unauthorized if e-contract project is null.
      * - "validate": An array of validation errors, if any.
@@ -262,11 +267,11 @@ class EContractPayrollServices
         if (is_array($validationResult)) {
             return $validationResult;
         }
-        
+
         $eContractPayrollBulkUpload = $this->createEContractPayrollBulkUpload($request);
 
         $rows = Excel::toArray(new EContractPayrollImport($request, $eContractPayrollBulkUpload), $file);
-        
+
         $this->eContractPayrollBulkUpload->where('id', $eContractPayrollBulkUpload->id)
         ->update(['actual_row_count' => count($rows[0])]);
 
@@ -277,7 +282,7 @@ class EContractPayrollServices
 
     /**
      * Creates a new e-contract payroll from the given request data.
-     * 
+     *
      * @param array $request The array containing payroll data.
      *                      The array should have the following keys:
      *                      - worker_id: The worker id of the payroll.
@@ -308,7 +313,7 @@ class EContractPayrollServices
      *                      - sosco_contribution: The sosco contribution of the payroll.
      *                      - created_by: The ID of the user who created the payroll.
      *                      - modified_by: The updated payroll modified by.
-     * 
+     *
      * @return bool|array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
      * - "false": A boolean returns false if e-contract payroll is null.
@@ -332,7 +337,7 @@ class EContractPayrollServices
 
     /**
      * Updates the e-contract payroll from the given request data.
-     * 
+     *
      * @param object $eContractPayroll The payroll object to be updated.
      * @param array $request The array containing payroll data.
      *                      The array should have the following keys:
@@ -358,7 +363,7 @@ class EContractPayrollServices
      *                      - deduction_hostel: The updated deduction hostel.
      *                      - sosco_deduction: The updated sosco deduction.
      *                      - sosco_contribution: The updated sosco contribution.     *                      - modified_by: The updated payroll modified by.
-     * 
+     *
      * @return bool|array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
      * - "false": A boolean returns false if e-contract payroll is null.
@@ -390,10 +395,10 @@ class EContractPayrollServices
 
     /**
      * Returns a paginated list of timesheet based on the given project id.
-     * 
+     *
      * @param array $request The request array containing project id.
      * @return mixed Returns the paginated list of timesheet with related payroll and attachments.
-     */ 
+     */
     public function listTimesheet($request): mixed
     {
         $user = $this->getJwtUserAuthenticate();
@@ -412,10 +417,10 @@ class EContractPayrollServices
 
     /**
      * Show the timesheet with related attachment and payroll.
-     * 
+     *
      * @param array $request The request data containing attachment project id, month, year
      * @return mixed Returns the timesheet with related attachment and payroll.
-     */ 
+     */
     public function viewTimesheet($request): mixed
     {
         $user = $this->getJwtUserAuthenticate();
@@ -427,7 +432,7 @@ class EContractPayrollServices
 
     /**
      * Upload a new timesheet process from the given request data.
-     * 
+     *
      * @param array $request The array containing timesheet data.
      *                      The array should have the following keys:
      *                      - project_id: The project id of the timesheet.
@@ -448,7 +453,7 @@ class EContractPayrollServices
         if (is_null($checkProject)) {
             return self::ERROR_UNAUTHORIZED;
         }
-        
+
         $validationResult = $this->uploadTimesheetValidateRequest($request);
         if (is_array($validationResult)) {
             return $validationResult;
@@ -458,13 +463,13 @@ class EContractPayrollServices
         ->first(['e-contract_payroll_attachments.id', 'e-contract_payroll_attachments.month', 'e-contract_payroll_attachments.year', 'e-contract_payroll_attachments.file_id', 'e-contract_payroll_attachments.file_name', 'e-contract_payroll_attachments.file_type', 'e-contract_payroll_attachments.file_url', 'e-contract_payroll_attachments.created_at']);
 
         $this->uploadEContractPayrollAttachments($eContractPayrollAttachments, $request);
-        
+
         return false;
     }
 
     /**
      * Creates a new e-contract cost management from the given request data.
-     * 
+     *
      * @param array $request The array containing e-contract cost data.
      *                      The array should have the following keys:
      *                      - project_id: The project id of the cost.
@@ -481,7 +486,7 @@ class EContractPayrollServices
      *                      - year: The year of the cost.
      *                      - created_by: The ID of the user who created the cost.
      *                      - modified_by: The updated cost modified by.
-     * 
+     *
      * @return bool|array Returns an array with the following keys:
      * - "existsError": A array returns project exist if e-contract cost management is null.
      * - "noRecords": A array returns noRecords if payroll workers is null.
@@ -526,7 +531,7 @@ class EContractPayrollServices
 
     /**
      * Returns a paginated list of e-contract payroll bulk upload based on the given search request.
-     * 
+     *
      * @param array $request The search request parameters.
      * @return mixed Returns a paginated list of e-contract payroll bulk upload.
      */
@@ -546,7 +551,7 @@ class EContractPayrollServices
 
     /**
      * e-Contract payroll import failure excel download
-     * 
+     *
      * @param array $request The request data containing company id, bulk upload id
      * @return array Returns an array with the following keys:
      * - "InvalidUser": A array returns Invalid if check e-contract payroll bulk upload is null.
@@ -569,7 +574,7 @@ class EContractPayrollServices
 
     /**
      * e-Contract payroll import failure case excel file creation
-     * 
+     *
      * @return bool indicating if the prepare excel for failureCases.
      */
     public function prepareExcelForFailureCases(): bool
@@ -591,7 +596,7 @@ class EContractPayrollServices
 
     /**
      * Show the e-contract payroll bulk upload.
-     * 
+     *
      * @return mixed Returns the e-contract payroll bulk upload.
      */
     private function getPayrollBulkUploadRows(): mixed
@@ -607,9 +612,9 @@ class EContractPayrollServices
 
     /**
      * Updates the payroll status from the given request data.
-     * 
-     * @param array $request The array containing array of payroll id and status.
-     * 
+     *
+     * @param array $ids The array containing array of payroll ids.
+     *
      * @return void
      */
     private function updatePayrollBulkUploadStatus($ids)
@@ -619,27 +624,27 @@ class EContractPayrollServices
 
     /**
      * Creates a new payroll failure cases document.
-     * 
+     *
      * @param array $ids The id data containing failure of payroll.
-     * 
+     *
      * @return void
      */
     private function createPayrollFailureCasesDocument($ids): void
     {
         foreach($ids as $id) {
             $fileName = "FailureCases" . $id . ".xlsx";
-            $filePath = '/FailureCases/eContract/' . $fileName; 
+            $filePath = '/FailureCases/eContract/' . $fileName;
             Excel::store(new EContractPayrollFailureExport($id), $filePath, 'linode');
             $fileUrl = $this->storage::disk('linode')->url($filePath);
             $this->eContractPayrollBulkUpload->where('id', $id)->update(['failure_case_url' => $fileUrl]);
         }
     }
-    
+
     /**
-     * Returns a paginated list of workers based on the given search request.
-     * 
+     * Returns a list of workers based on the given search request.
+     *
      * @param array $request The search request parameters.
-     * @return mixed Returns a paginated list of workers with related visa and employment and bank details and payroll and project.
+     * @return mixed Returns a list of workers with related visa and employment and bank details and payroll and project.
      */
     public function getListWorkersQuery($request): mixed
     {
@@ -664,10 +669,10 @@ class EContractPayrollServices
             ->distinct('workers.id')
             ->orderBy('workers.created_at','DESC');
     }
-    
+
     /**
      * Show the e-contract project with related applications.
-     * 
+     *
      * @param array $request The request data containing project id, company id
      * @return mixed Returns the e-contract project with related applications.
      */
@@ -681,10 +686,10 @@ class EContractPayrollServices
         ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
         ->find($request['project_id']);
     }
-    
+
     /**
      * Creates a new e-contract payroll from the given request data.
-     * 
+     *
      * @param array $request The array containing payroll data.
      *                      The array should have the following keys:
      *                      - worker_id: The worker id of the payroll.
@@ -715,7 +720,7 @@ class EContractPayrollServices
      *                      - sosco_contribution: The sosco contribution of the payroll.
      *                      - created_by: The ID of the user who created the payroll.
      *                      - modified_by: The updated payroll modified by.
-     * 
+     *
      * @return void
      */
     public function createEContractPayroll($request): void
@@ -754,7 +759,7 @@ class EContractPayrollServices
 
     /**
      * Updates the e-contract payroll from the given request data.
-     * 
+     *
      * @param object $eContractPayroll The payroll object to be updated.
      * @param array $request The array containing payroll data.
      *                      The array should have the following keys:
@@ -780,7 +785,7 @@ class EContractPayrollServices
      *                      - deduction_hostel: The updated deduction hostel.
      *                      - sosco_deduction: The updated sosco deduction.
      *                      - sosco_contribution: The updated sosco contribution.     *                      - modified_by: The updated payroll modified by.
-     * 
+     *
      * @return void
      */
     public function updateEContractPayroll($eContractPayroll, $request): void
@@ -810,10 +815,10 @@ class EContractPayrollServices
         $eContractPayroll->modified_by =  $request['modified_by'] ?? $eContractPayroll->modified_by;
         $eContractPayroll->save();
     }
-    
+
     /**
      * Creates a new e-contract cost management from the given request data.
-     * 
+     *
      * @param array $request The array containing e-contract cost data.
      *                      The array should have the following keys:
      *                      - project_id: The project id of the cost.
@@ -830,7 +835,7 @@ class EContractPayrollServices
      *                      - year: The year of the cost.
      *                      - created_by: The ID of the user who created the cost.
      *                      - modified_by: The updated cost modified by.
-     * 
+     *
      * @return void
      */
     public function createEContractCostManagement($payrollWorkers, $request): void
@@ -847,7 +852,6 @@ class EContractPayrollServices
                 'quantity' => self::DEFAULT_INTEGER_VALUE_ONE,
                 'amount' => $result['amount'],
                 'remarks' => $result['name'],
-                'is_payroll' => self::DEFAULT_INTEGER_VALUE_ONE,
                 'payroll_id' => $result['payroll_id'],
                 'month' => $request['month'],
                 'year' => $request['year'],
@@ -856,56 +860,47 @@ class EContractPayrollServices
             ];
 
             $this->eContractCostManagement->create($processData);
-            
+
             $processData['title'] = self::SOCSO_CONTRIBUTION . " (" . $result['name'] . " )";
             $processData['remarks'] = self::SOCSO_CONTRIBUTION . " (" . $result['name'] . " )";
             $this->eContractCostManagement->create($processData);
         }
     }
-    
+
     /**
      * Upload attachment of e-contract payroll attachments.
      *
      * @param object $eContractPayrollAttachments The payroll object to be updated.
      * @param array $request The request data containing e-contract payroll attachments.
-     * @return - "existsError": A array returns exists if e-contract payroll attachments is null.
+     * @return bool|array "existsError": A array returns exists if e-contract payroll attachments is null.
      */
     public function uploadEContractPayrollAttachments($eContractPayrollAttachments, $request)
     {
         if (request()->hasFile('attachment')) {
             foreach($request->file('attachment') as $file){
-                
+
                 if (is_null($eContractPayrollAttachments)) {
 
-                    $fileName = $file->getClientOriginalName();
-                    $filePath = '/eContract/payroll/timesheet/' . $fileName; 
+                    $request['fileName'] = $file->getClientOriginalName();
+                    $filePath = '/eContract/payroll/timesheet/' . $request['fileName'];
                     $linode = $this->storage::disk('linode');
                     $linode->put($filePath, file_get_contents($file));
-                    $fileUrl = $this->storage::disk('linode')->url($filePath);
+                    $request['fileUrl'] = $linode->url($filePath);
 
-                    $this->eContractPayrollAttachments::create([
-                        'file_id' => $request['project_id'],
-                        "month" => $request['month'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
-                        "year" => $request['year'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
-                        "file_name" => $fileName,
-                        "file_type" => self::FILE_TYPE_TIMESHEET,
-                        "file_url" =>  $fileUrl,
-                        "created_by" =>  $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
-                        "modified_by" =>  $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO
-                    ]);
+                    $this->createEContractPayrollAttachments($request);
 
                     return true;
-                    
+
                 } else {
                     return self::ERROR_EXISTS;
                 }
             }
         }
     }
-    
+
     /**
      * Returns a workers based on the given search request.
-     * 
+     *
      * @param array $request The request data containing payroll id, company id
      * @return mixed Returns a workers with related visa and employment and bank details and payroll and project.
      */
@@ -925,11 +920,11 @@ class EContractPayrollServices
                 $this->applySearchFilter($query, $request);
             });
     }
-    
+
     /**
      * Apply the "worker employment" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      *
      * @return void
      */
@@ -937,11 +932,11 @@ class EContractPayrollServices
     {
         $query->on('worker_employment.worker_id','=','workers.id');
     }
-    
+
     /**
      * Apply the "worker bank details" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      *
      * @return void
      */
@@ -950,13 +945,13 @@ class EContractPayrollServices
         $query->on('worker_bank_details.worker_id','=','workers.id')
             ->whereRaw('worker_bank_details.id IN (select MIN(WORKER_BANK.id) from worker_bank_details as WORKER_BANK JOIN workers as WORKER ON WORKER.id = WORKER_BANK.worker_id group by WORKER.id)');
     }
-    
+
     /**
      * Apply search filter to the query.
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
-     * @param array $request The request data containing the search keyword.
-     * 
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing company id, payroll id.
+     *
      * @return void
      */
     private function applySearchFilter($query, $request)
@@ -982,18 +977,18 @@ class EContractPayrollServices
 
         return true;
     }
-    
+
     /**
      * Creates a new e-contract payroll bulk upload from the given request data.
-     * 
+     *
      * @param array $request The array containing payroll bulk upload data.
      *                      The array should have the following keys:
      *                      - project_id: The project id of the payroll.
      *                      - company_id: The company id of the payroll.
      *                      - created_by: The ID of the user who created the payroll.
      *                      - modified_by: The updated payroll modified by.
-     * 
-     * @return Object e-contract payroll The newly created payroll object.
+     *
+     * @return Object eContractPayrollBulkUpload The newly created eContract payroll bulk upload object.
      */
     private function createEContractPayrollBulkUpload($request)
     {
@@ -1024,10 +1019,10 @@ class EContractPayrollServices
 
         return true;
     }
-    
+
     /**
      * Show the e-contract payroll.
-     * 
+     *
      * @param array $request The request data containing worker id, project id, month, year
      * @return mixed Returns the e-contract payroll.
      */
@@ -1076,10 +1071,10 @@ class EContractPayrollServices
 
         return true;
     }
-    
+
     /**
      * Returns a e-contract payroll attachments based on the given search request.
-     * 
+     *
      * @param array $request The request data containing company id, project id, month, year
      * @return mixed Returns a e-contract payroll attachments with related payroll and workers.
      */
@@ -1100,7 +1095,7 @@ class EContractPayrollServices
 
     /**
      * Show the e-contract cost management.
-     * 
+     *
      * @param array $request The request data containing project id, month, year
      * @return mixed Returns the e-contract cost management.
      */
@@ -1108,11 +1103,11 @@ class EContractPayrollServices
     {
         return $this->eContractCostManagement->where('project_id',$request['project_id'])->where('month',$request['month'])->where('year',$request['year'])->count();
     }
-    
+
     /**
      * Apply the "e-contract payroll" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the project id, month, year
      *
      * @return void
@@ -1124,13 +1119,13 @@ class EContractPayrollServices
         $query->whereRaw('e-contract_payroll.id IN (select MAX(TMPAY.id) from e-contract_payroll as TMPAY JOIN workers as WORKER ON WORKER.id = TMPAY.worker_id group by WORKER.id)');
         }
     }
-    
+
     /**
      * Apply search filter to the query.
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
-     * @param array $request The request data containing the search keyword.
-     * 
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing month, year, project id, work end date, remove date.
+     *
      * @return void
      */
     private function applyAuthorizePayrollSearchFilter($query, $request)
@@ -1146,11 +1141,11 @@ class EContractPayrollServices
             $query->whereNull('worker_employment.remove_date');
         }
     }
-    
+
     /**
      * Apply the "e-contract payroll" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      *
      * @return void
      */
@@ -1158,10 +1153,10 @@ class EContractPayrollServices
     {
         $query->on('e-contract_payroll.project_id','=','e-contract_project.id');
     }
-    
+
     /**
      * Show the e-contract payroll bulk upload.
-     * 
+     *
      * @param array $request The request data containing company id, bulk upload id
      * @return mixed Returns the e-contract payroll bulk upload.
      */
@@ -1172,11 +1167,11 @@ class EContractPayrollServices
             ->where('id', $request['bulk_upload_id'])
             ->first();
     }
-    
+
     /**
      * Apply the "e-contract payroll with worker employment" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      *
      * @return void
      */
@@ -1187,13 +1182,13 @@ class EContractPayrollServices
         $query->whereRaw("`e-contract_payroll`.`id` IN (select MAX(PAY.id) from `e-contract_payroll` as PAY JOIN workers as WORKER ON WORKER.id = PAY.worker_id group by WORKER.id)");
         }
     }
-    
+
     /**
      * Apply worker employment filter to the query.
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the project id, company id.
-     * 
+     *
      * @return void
      */
     private function applyWorkerEmploymentFilter($query, $request)
@@ -1202,13 +1197,13 @@ class EContractPayrollServices
             ->where('worker_employment.service_type', self::SERVICE_TYPE_ECONTRACT)
             ->where('workers.company_id', $request['company_id']);
     }
-    
+
     /**
      * Apply search filter to the query.
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
-     * @param array $request The request data containing the search keyword.
-     * 
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the search keyword and month, year, work end date, remove date.
+     *
      * @return void
      */
     private function applyWorkerSearchFilter($query, $request)
@@ -1232,6 +1227,36 @@ class EContractPayrollServices
     }
 
     /**
+     * Creates a new eContract payroll attachments from the given request data.
+     *
+     * @param array $request The array containing eContract payroll attachments data.
+     *                       The array should have the following keys:
+     *                       - project_id: The application of the payroll attachments.
+     *                       - month: The month of the payroll attachments.
+     *                       - year: The year of the payroll attachments.
+     *                       - file_name: The file name of the payroll attachments.
+     *                       - file_type: The file type of the payroll attachments.
+     *                       - file_url: The file url of the payroll attachments.
+     *                       - created_by: The ID of the user who created the payroll attachments.
+     *                       - modified_by: The ID of the user who updated the payroll attachments.
+     *
+     * @return void.
+     */
+    private  function createEContractPayrollAttachments($request)
+    {
+        $this->eContractPayrollAttachments::create([
+            'file_id' => $request['project_id'],
+            "month" => $request['month'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            "year" => $request['year'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            "file_name" => $request['fileName'],
+            "file_type" => self::FILE_TYPE_TIMESHEET,
+            "file_url" =>  $request['fileUrl'],
+            "created_by" =>  $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO,
+            "modified_by" =>  $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO
+        ]);
+    }
+
+    /**
      * get the user of jwt authenticate.
      *
      * @return mixed Returns the user data.
@@ -1244,7 +1269,7 @@ class EContractPayrollServices
     /**
      * get the auth user of company ids.
      * @param array $user The user data containing the user details
-     * 
+     *
      * @return mixed Returns the user company ids.
      */
     private function getAuthUserCompanyIds($user): mixed

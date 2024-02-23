@@ -17,7 +17,7 @@ use App\Models\TotalManagementApplications;
 use App\Models\CRMProspectService;
 
 class EContractTransferServices
-{   
+{
     public const PROSPECT_SERVICES_ID = 1;
     public const PROSPECT_STATUS = 1;
     public const SERVICE_FROM_EXISTING_0 = 0;
@@ -33,13 +33,13 @@ class EContractTransferServices
     public const STATUS_ONBENCH = 'On-Bench';
     public const STATUS_COUNSELLING = 'Counselling';
     public const UNAUTHORIZED_ERROR = 'Unauthorized';
-    
+
     public const ERROR_UNAUTHORIZED = ['unauthorizedError' => self::UNAUTHORIZED_ERROR];
     public const ERROR_QUOTA_FROM_EXISTING = ['quotaFromExistingError' => true];
     public const ERROR_FOMNEXT_QUOTA = ['fomnextQuotaError' => true];
     public const ERROR_OTHER_COMPANY = ['otherCompanyError' => true];
     public const ERROR_PROJECT_EXIST = ['projectExist' => true];
-    public const ERROR_QUOTA = ['quotaError' => true];  
+    public const ERROR_QUOTA = ['quotaError' => true];
 
     /**
      * @var Workers
@@ -88,7 +88,7 @@ class EContractTransferServices
 
     /**
      * Constructor method.
-     * 
+     *
      * @param Workers $workers Instance of the Workers class.
      * @param WorkerEmployment $workerEmployment Instance of the WorkerEmployment employment class.
      * @param CRMProspect $crmProspect Instance of the CRMProspect class.
@@ -98,18 +98,18 @@ class EContractTransferServices
      * @param EContractApplications $eContractApplications Instance of the EContractApplications class.
      * @param TotalManagementApplications $totalManagementApplications Instance of the TotalManagementApplications class.
      * @param CRMProspectService $crmProspectService Instance of the CRMProspectService class.
-     * 
+     *
      * @return void
      */
     public function __construct(
-        Workers                        $workers, 
-        WorkerEmployment               $workerEmployment, 
-        CRMProspect                    $crmProspect, 
-        EContractProject               $eContractProject, 
-        AuthServices                   $authServices, 
-        TotalManagementProject         $totalManagementProject, 
-        EContractApplications          $eContractApplications, 
-        TotalManagementApplications    $totalManagementApplications, 
+        Workers                        $workers,
+        WorkerEmployment               $workerEmployment,
+        CRMProspect                    $crmProspect,
+        EContractProject               $eContractProject,
+        AuthServices                   $authServices,
+        TotalManagementProject         $totalManagementProject,
+        EContractApplications          $eContractApplications,
+        TotalManagementApplications    $totalManagementApplications,
         CRMProspectService             $crmProspectService
     )
     {
@@ -146,7 +146,7 @@ class EContractTransferServices
 
     /**
      * Returns a paginated list of crm prospect based on the given search request.
-     * 
+     *
      * @param array $request The search request parameters.
      * @return mixed Returns a paginated list of crm prospect.
      */
@@ -179,11 +179,11 @@ class EContractTransferServices
 
     /**
      * Returns a paginated list of e-contract project based on the given search request.
-     * 
+     *
      * @param array $request The search request parameters.
      * @return mixed Returns a paginated list of e-contract project.
      */
-    public function projectList($request): mixed 
+    public function projectList($request): mixed
     {
         $user = $this->getJwtUserAuthenticate();
         $request['company_id'] = $user['company_id'];
@@ -197,7 +197,7 @@ class EContractTransferServices
 
     /**
      * Show the worker with related prospect and employment.
-     * 
+     *
      * @param array $request The request data containing worker id
      * @return mixed Returns the worker with related prospect and employment.
      */
@@ -216,7 +216,7 @@ class EContractTransferServices
 
     /**
      * Transferring a new worker from the given request data.
-     * 
+     *
      * @param $request The request data containing worker details.
      * @return bool|array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -265,12 +265,12 @@ class EContractTransferServices
 
     /**
      * Returns a count of fomnext workers based on the given application id and prospect id.
-     * 
+     *
      * @param int $applicationId and $prospectId
      * @return array Returns a count of fomnext workers.
      */
     public function getWorkerCount($applicationId, $prospectId): array
-    {   
+    {
         $projectIds = $this->totalManagementProjectApplication($applicationId);
 
         $projectIds = array_column($projectIds, 'id');
@@ -288,10 +288,10 @@ class EContractTransferServices
             'fomnextWorkersCount' => $fomnextWorkersCount
         ];
     }
-    
+
     /**
      * Creates a new e-contract process from the given request data.
-     * 
+     *
      * @param $request The request data containing e-contract details.
      * @return array Returns an array with the following keys:
      * - "unauthorizedError": A array returns unauthorized if project details is null.
@@ -303,7 +303,7 @@ class EContractTransferServices
         if (is_null($projectDetails)) {
             return self::ERROR_UNAUTHORIZED;
         }
-        
+
         $applicationDetails = $this->showEContractApplications($projectDetails->application_id);
         $projectIds = $this->showEContractProjectApplication($projectDetails->application_id);
 
@@ -315,10 +315,10 @@ class EContractTransferServices
             return self::ERROR_QUOTA;
         }
     }
-    
+
     /**
      * Show the e-contract project with related application.
-     * 
+     *
      * @param array $request The request data containing project id, company id
      * @return mixed Returns the e-contract project with related application.
      */
@@ -331,10 +331,10 @@ class EContractTransferServices
             ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
             ->find($request['new_project_id']);
     }
-    
+
     /**
      * Creates a new total management process from the given request data.
-     * 
+     *
      * @param $request The request data containing total management details.
      * @return array Returns an array with the following keys:
      * - "quotaFromExistingError": A array returns quotaFromExistingError if service details fromExisting is equal to 1.
@@ -366,22 +366,23 @@ class EContractTransferServices
             }
         }
     }
-    
+
     /**
      * Updates the workers from the given request data.
-     * 
+     *
      * @param array $request The array containing worker data.
      *                      The array should have the following keys:
      *                      - worker_id: The updated worker id.
      *                      - service_type: The updated service type.
      *                      - econtract_status: The updated econtract status.
      *                      - total_management_status: The updated total management status.
+     *                      - updated_at: The updated worker updated date.
      *                      - modified_by: The updated worker modified by.
-     * 
+     *
      * @return void
      */
     public function updateWorkers($request): void
-    {   
+    {
         $worker = $this->showWorkers($request['worker_id']);
 
         if (isset($request['service_type']) && $request['service_type'] == Config::get('services.WORKER_MODULE_TYPE')[2]) {
@@ -402,18 +403,19 @@ class EContractTransferServices
         $worker->module_type = $request['service_type'];
         $worker->save();
     }
-    
+
     /**
      * Updates the worker employment from the given request data.
-     * 
+     *
      * @param array $request The array containing worker employment data.
      *                      The array should have the following keys:
      *                      - project_id: The updated employment project id.
      *                      - worker_id: The updated employment worker id.
      *                      - work_end_date: The updated employment work end date.
      *                      - transfer_flag: The updated employment transfer flag.
+     *                      - updated_at: The updated employment updated date.
      *                      - modified_by: The updated employment modified by.
-     * 
+     *
      * @return void
      */
     public function updateWorkerEmployment($request): void
@@ -424,11 +426,11 @@ class EContractTransferServices
         ])->update([
             'work_end_date' => $request['last_working_day'],
             'transfer_flag' => self::TRANSFER_FLAG_1,
-            'updated_at' => Carbon::now(), 
+            'updated_at' => Carbon::now(),
             'modified_by' => $request['modified_by']
         ]);
     }
-    
+
     /**
      * Validate the given request data.
      *
@@ -446,10 +448,10 @@ class EContractTransferServices
 
         return true;
     }
-    
+
     /**
      * Show the worker company.
-     * 
+     *
      * @param int $company_id to fetch the details of the worker company
      * @return mixed Returns the worker company.
      */
@@ -457,7 +459,7 @@ class EContractTransferServices
     {
         return $this->workers->where('company_id', $company_id)->first();
     }
-    
+
     /**
      * Get the count of worker employment.
      *
@@ -475,7 +477,7 @@ class EContractTransferServices
 
     /**
      * Show the e-contract application.
-     * 
+     *
      * @param int $application_id to fetch the details of the application.
      * @return Model Returns the application details as an instance of the application model.
      * @throws ModelNotFoundException Throws an exception if the application with the specified application_id is not found.
@@ -484,10 +486,10 @@ class EContractTransferServices
     {
         return $this->eContractApplications->findOrFail($application_id);
     }
-    
+
     /**
      * Show the e-contract project.
-     * 
+     *
      * @param int $application_id to fetch the details of the e-contract project.
      * @return mixed Returns the e-contract project.
      */
@@ -497,7 +499,7 @@ class EContractTransferServices
             ->select('id')
             ->get()->toArray();
     }
-    
+
     /**
      * Get the count of assigned worker.
      *
@@ -520,7 +522,7 @@ class EContractTransferServices
 
     /**
      * Show the total management project.
-     * 
+     *
      * @param int $new_project_id to fetch the details of the total management project.
      * @return Model Returns the project details as an instance of the project model.
      * @throws ModelNotFoundException Throws an exception if the project with the specified new_project_id is not found.
@@ -529,10 +531,10 @@ class EContractTransferServices
     {
         return $this->totalManagementProject->findOrFail($new_project_id);
     }
-    
+
     /**
      * Show the total management application.
-     * 
+     *
      * @param int $application_id to fetch the details of the total management application.
      * @return Model Returns the application details as an instance of the application model.
      * @throws ModelNotFoundException Throws an exception if the application with the specified application_id is not found.
@@ -541,10 +543,10 @@ class EContractTransferServices
     {
         return $this->totalManagementApplications->findOrFail($application_id);
     }
-    
+
     /**
      * Show the crm prospect service.
-     * 
+     *
      * @param int $service_id to fetch the details of the crm prospect service.
      * @return Model Returns the service details as an instance of the service model.
      * @throws ModelNotFoundException Throws an exception if the service with the specified service_id is not found.
@@ -553,10 +555,10 @@ class EContractTransferServices
     {
         return $this->crmProspectService->findOrFail($service_id);
     }
-    
+
     /**
      * Show the worker.
-     * 
+     *
      * @param int $worker_id to fetch the details of the worker.
      * @return Model Returns the worker details as an instance of the worker model.
      * @throws ModelNotFoundException Throws an exception if the worker with the specified worker_id is not found.
@@ -565,10 +567,10 @@ class EContractTransferServices
     {
         return $this->workers->findOrFail($worker_id);
     }
-    
+
     /**
      * Returns a list of e-contract project based on the given search request.
-     * 
+     *
      * @param array $request The request data containing the crm_prospect_id, prospect_service_id and company_id.
      * @return mixed Returns the list of e-contract project.
      */
@@ -585,10 +587,10 @@ class EContractTransferServices
             ->orderBy('e-contract_project.id', 'desc')
             ->get();
     }
-    
+
     /**
      * Returns a list of total management project based on the given search request.
-     * 
+     *
      * @param array $request The request data containing the crm_prospect_id, prospect_service_id and company_id.
      * @return mixed Returns the list of total management project.
      */
@@ -606,10 +608,10 @@ class EContractTransferServices
             ->orderBy('total_management_project.id', 'desc')
             ->get();
     }
-    
+
     /**
      * Creates a new worker employment from the given request data.
-     * 
+     *
      * @param array $request The array containing worker employment data.
      *                      The array should have the following keys:
      *                      - project_id: The project id of the employment.
@@ -623,7 +625,7 @@ class EContractTransferServices
      *                      - transfer_flag: The transfer flag of the employment.
      *                      - created_by: The ID of the user who created the employment.
      *                      - modified_by: The updated employment modified by.
-     * 
+     *
      * @return void
      */
     private function createWorkerEmployment($request)
@@ -631,10 +633,10 @@ class EContractTransferServices
         $this->workerEmployment->create([
             'worker_id' => $request['worker_id'],
             'project_id' => $request['new_project_id'],
-            'accommodation_provider_id' => (!empty($request['accommodation_provider_id'])) ? $request['accommodation_provider_id'] : null,
-            'accommodation_unit_id' => (!empty($request['accommodation_unit_id'])) ? $request['accommodation_unit_id'] : null,
-            'department' => (!empty($request['department'])) ? $request['department'] : null,
-            'sub_department' => (!empty($request['sub_department'])) ? $request['sub_department'] : null,
+            'accommodation_provider_id' => (!empty($request['accommodation_provider_id'])) ?? null,
+            'accommodation_unit_id' => (!empty($request['accommodation_unit_id'])) ?? null,
+            'department' => (!empty($request['department'])) ?? null,
+            'sub_department' => (!empty($request['sub_department'])) ?? null,
             'work_start_date' => $request['new_joining_date'],
             'service_type' => $request['service_type'],
             'transfer_flag' => self::TRANSFER_FLAG_0,
@@ -642,10 +644,10 @@ class EContractTransferServices
             'modified_by' => $request['modified_by']
         ]);
     }
-    
+
     /**
      * Show the total management project.
-     * 
+     *
      * @param int $application_id to fetch the details of the total management project.
      * @return mixed Returns the total management project.
      */
@@ -656,11 +658,11 @@ class EContractTransferServices
             ->get()
             ->toArray();
     }
-    
+
     /**
      * Apply the "worker employment" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      *
      * @return void
      */
@@ -673,12 +675,12 @@ class EContractTransferServices
             ->whereNull('worker_employment.work_end_date')
             ->whereNull('worker_employment.event_type');
     }
-    
+
     /**
      * Apply the "worker" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
-     * @param array|int $query|$projectIds The worker employment to filter by.
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $projectIds The worker employment to filter by.
      *
      * @return void
      */
@@ -688,11 +690,11 @@ class EContractTransferServices
             ->whereIn('workers.total_management_status', Config::get('services.TOTAL_MANAGEMENT_WORKER_STATUS'))
             ->where('worker_employment.project_id', $projectIds);
     }
-    
+
     /**
      * Apply the "crm prospect service" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the company id
      *
      * @return void
@@ -703,11 +705,11 @@ class EContractTransferServices
             ->where('crm_prospect_services.service_id', '!=', self::PROSPECT_SERVICES_ID)
             ->whereIn('crm_prospects.company_id', $request['company_id']);
     }
-    
+
     /**
      * Apply the "user" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $user The user data containing the user reference id
      *
      * @return void
@@ -718,13 +720,13 @@ class EContractTransferServices
             $query->where('crm_prospects.id', '=', $user['reference_id']);
         }
     }
-    
+
     /**
      * Apply search filter to the query.
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the search keyword.
-     * 
+     *
      * @return void
      */
     private function applySearchFilter($query, $request)
@@ -733,13 +735,13 @@ class EContractTransferServices
             $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
         }
     }
-    
+
     /**
      * Apply search service filter to the query.
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the search service keyword.
-     * 
+     *
      * @return void
      */
     private function applyServiceSearchFilter($query, $request)
@@ -763,7 +765,7 @@ class EContractTransferServices
     /**
      * get the auth user of company ids.
      * @param array $user The user data containing the user details
-     * 
+     *
      * @return mixed Returns the user company ids.
      */
     private function getAuthUserCompanyIds($user): mixed

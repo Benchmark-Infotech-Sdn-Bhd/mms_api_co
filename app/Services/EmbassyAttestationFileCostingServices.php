@@ -47,6 +47,8 @@ class EmbassyAttestationFileCostingServices
      * @param ValidationServices $validationServices Instance of the ValidationServices class.
      * @param CountriesServices $countriesServices Instance of the CountriesServices class.
      * @param Countries $countries Instance of the Countries class.
+     *
+     * @return void.
      */
     public function __construct(
         EmbassyAttestationFileCosting     $embassyAttestationFileCosting,
@@ -265,7 +267,7 @@ class EmbassyAttestationFileCostingServices
      *                      - created_by: The created fileCosting created by.
      *                      - modified_by: (int) The updated fileCosting modified by.
      *
-     * @return fileCosting The newly created fileCosting object.
+     * @return array EmbassyAttestationFileCosting The newly created embassy attestation file costing array.
      */
     private function createEmbassyAttestationFileCosting($request)
     {
@@ -295,7 +297,7 @@ class EmbassyAttestationFileCostingServices
      *
      * @param array $request The array containing country id.
      * @param string $status The status of the countries.
-     * @return array country The updated country array.
+     * @return array country The updated countries array.
      */
     private function updateCostingStatus($request, $status)
     {
