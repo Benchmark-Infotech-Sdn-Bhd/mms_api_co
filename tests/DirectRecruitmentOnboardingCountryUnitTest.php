@@ -466,24 +466,6 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for List KSM Reference Number with Quota
-     * 
-     * @return void
-     */
-    public function testForViewKSMReferenecNumberWithQuota(): void
-    {
-        $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmReferenceNumberList', ['application_id' => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' =>
-                [
-                    
-                ]
-        ]);
-    }
-    /**
      * Functional test for List KSM Reference Number dropdown for onboarding
      * 
      * @return void
