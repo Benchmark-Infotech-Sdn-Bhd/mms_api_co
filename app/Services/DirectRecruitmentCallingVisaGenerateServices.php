@@ -92,7 +92,7 @@ class DirectRecruitmentCallingVisaGenerateServices
      * @return bool|array Returns true if the status is updated; otherwise, returns an array with 'InvalidUser' key set to true.
      */
 
-    public function updateStatusAndValidateWorkers(array $request): bool|array
+    public function generatedStatusUpdate(array $request): bool|array
     {
         $workers = $request['workers'];
         $companyId = $request['company_id'];

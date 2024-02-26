@@ -20,6 +20,7 @@ class DirectRecruitmentPostponedServices
 
     public const USER_TYPE = 'Customer';
     public const REQUEST_COMPANY_ID = 'company_id';
+    public const REQUEST_APPLICATION_ID = 'application_id';
     public const REQUEST_ONBOARDING_COUNTRY_ID = 'onboarding_country_id';
     public const REQUEST_KSM_REFERENCE_NUMBER = 'ksm_reference_number';
 
@@ -154,7 +155,7 @@ class DirectRecruitmentPostponedServices
                 }
             })
             ->where([
-                'directrecruitment_workers.application_id' => $request[self::REQUEST_COMPANY_ID],
+                'directrecruitment_workers.application_id' => $request[self::REQUEST_APPLICATION_ID],
                 'directrecruitment_workers.onboarding_country_id' => $request[self::REQUEST_ONBOARDING_COUNTRY_ID],
                 'worker_arrival.arrival_status' => self::ARRIVAL_STATUS_POSTPONED
             ])

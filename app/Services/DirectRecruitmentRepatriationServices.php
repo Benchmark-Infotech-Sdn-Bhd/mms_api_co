@@ -372,11 +372,11 @@ class DirectRecruitmentRepatriationServices
     /**
      * Create a worker repatriation record.
      *
-     * @param array $request The request data containing the worker's information.
+     * @param Request $request The request data containing the worker's information.
      * @param int $workerId The ID of the worker.
      * @return void
      */
-    public function createWorkerRepatriation(array $request, int $workerId): void
+    public function createWorkerRepatriation($request, int $workerId): void
     {
         $this->workerRepatriation->create([
             'worker_id' => $workerId,
@@ -422,7 +422,7 @@ class DirectRecruitmentRepatriationServices
     /**
      * Adds expenses to the application.
      *
-     * @param array $request The request data containing expenses information.
+     * @param Request $request The request data containing expenses information.
      *                      The array structure should include the following keys:
      *                      - expenses_application_id (optional): The ID of the application.
      *                                                             If not provided, it will be set to DEFAULT_INT_VALUE.
@@ -440,7 +440,7 @@ class DirectRecruitmentRepatriationServices
      *
      * @return void
      */
-    public function addExpenses(array $request): void
+    public function addExpenses($request): void
     {
         $request['expenses_application_id'] = $request[self::REQUEST_APPLICATION_ID] ?? self::DEFAULT_INT_VALUE;
         $request['expenses_title'] = Config::get('services.OTHER_EXPENSES_TITLE')[7];

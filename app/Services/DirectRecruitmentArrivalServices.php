@@ -27,6 +27,8 @@ use App\Events\KSMQuotaUpdated;
 
 class DirectRecruitmentArrivalServices
 {
+    const CANCELLATION_TYPE = ['Arrival Cancellation Letter', 'Cancellation Letter'];
+
     /**
      * @var workers
      */
@@ -803,8 +805,7 @@ class DirectRecruitmentArrivalServices
             ->join('workers', 'workers.id', 'cancellation_attachment.file_id')
             ->where('workers.company_id', $request['company_id'])
             ->where('cancellation_attachment.file_id', $request['worker_id'])
-            ->where('cancellation_attachment.file_type', 'Arrival Cancellation Letter')
-            ->orWhere('cancellation_attachment.file_type', 'Cancellation Letter')
+            ->whereIn('cancellation_attachment.file_type', self::CANCELLATION_TYPE)
             ->select('cancellation_attachment.file_id', 'cancellation_attachment.file_name', 'cancellation_attachment.file_url', 'cancellation_attachment.remarks')
             ->get();
     }
