@@ -63,15 +63,19 @@ class CompanyServices
 
     /**
      * CompanyServices constructor
-     * @param Company $company
-     * @param CompanyAttachments $companyAttachments
-     * @param UserCompany $userCompany
-     * @param User $user
-     * @param FeeRegistration $feeRegistration
-     * @param CompanyModulePermission $companyModulePermission
-     * @param Storage $storage
-     * @param RolePermission $rolePermission
-     * @param XeroSettings $xeroSettings
+     *
+     * @param Company $company Instance of the Company class
+     * @param CompanyAttachments $companyAttachments Instance of the CompanyAttachments class
+     * @param UserCompany $userCompany Instance of the UserCompany class
+     * @param User $user Instance of the User class
+     * @param FeeRegistration $feeRegistration Instance of the FeeRegistration class
+     * @param CompanyModulePermission $companyModulePermission Instance of the CompanyModulePermission class
+     * @param Storage $storage Instance of the Storage class
+     * @param RolePermission $rolePermission Instance of the RolePermission class
+     * @param XeroSettings $xeroSettings Instance of the XeroSettings class
+     *
+     * @return void
+     *
      */
     public function __construct(
         Company $company,
@@ -83,7 +87,7 @@ class CompanyServices
         CompanyModulePermission $companyModulePermission,
         RolePermission $rolePermission,
         XeroSettings $xeroSettings
-    ) 
+    )
     {
         $this->company = $company;
         $this->companyAttachments = $companyAttachments;
@@ -97,7 +101,9 @@ class CompanyServices
     }
 
     /**
-     * @return array
+     * validate the assign module request data
+     *
+     * @return array The validation rules for the input data.
      */
     public function assignModuleValidation(): array
     {
@@ -108,7 +114,9 @@ class CompanyServices
     }
 
     /**
-     * @return array
+     * validate the assign feature request data
+     *
+     * @return array The validation rules for the input data.
      */
     public function assignFeatureValidation(): array
     {
@@ -118,6 +126,11 @@ class CompanyServices
         ];
     }
 
+    /**
+     * validate the account system update request data
+     *
+     * @return array The validation rules for the input data.
+     */
     public function accountSystemUpdateValidation(): array
     {
         return [
@@ -127,7 +140,9 @@ class CompanyServices
     }
 
     /**
-     * @return array
+     * validate the account system delete request data
+     *
+     * @return array The validation rules for the input data.
      */
     public function accountSystemDeleteValidation(): array
     {
@@ -177,8 +192,49 @@ class CompanyServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Validate the given request data.
+     *
+     * @param $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateCreateRequest($request): array|bool
+    {
+	    $validator = Validator::make($request->toArray(), $this->company->rules);
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the given request data.
+     *
+     * @param $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateUpdateRequest($request): array|bool
+    {
+	    $validator = Validator::make($request->toArray(), $this->company->updationRules($request['id']));
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * List the company
+     *
+     * @param $request The request data containing the 'search' key
+     *
+     * @return mixed Returns the paginated list of company.
      */
     public function list($request): mixed
     {
@@ -194,8 +250,11 @@ class CompanyServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Show the company detail
+     *
+     * @param $request The request data containing the 'id' key
+     *
+     * @return mixed Returns the company data
      */
     public function show($request): mixed
     {
@@ -203,19 +262,15 @@ class CompanyServices
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * create the company
+     *
+     * @param array $request The request data containing the create company data
+     *
+     * @return mixed Returns the created company data
      */
-    public function create($request): bool|array
+    private function createCompany($request)
     {
-        $validator = Validator::make($request->toArray(), $this->company->rules);
-        if ($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
-        }
-
-        $companyDetails = $this->company->create([
+        return $this->company->create([
             'company_name' => $request['company_name'] ?? '',
             'register_number' => $request['register_number'] ?? '',
             'country' => $request['country'] ?? '',
@@ -228,32 +283,31 @@ class CompanyServices
             'created_by' => $request['created_by'] ?? 0,
             'modified_by' => $request['created_by'] ?? 0
         ]);
+    }
 
-        if (isset($request['parent_id']) && !empty($request['parent_id'])) {
-            $this->company->where('id', $request['parent_id'])->update(['parent_flag' => 1]);
-        }
-
-        foreach(Config::get('services.STANDARD_FEE_NAMES') as $index => $fee ) {
-            $this->feeRegistration::create([
-                'item_name' => $fee, 
-                'cost' => Config::get('services.STANDARD_FEE_COST')[$index], 
-                'fee_type' => 'Standard', 
-                'created_by' => $request["created_by"], 
-                'company_id' => $companyDetails->id
-            ]);
-        }
-
-        if (request()->hasFile('attachment') && isset($companyDetails->id)) {
+    /**
+     * Upload attachment of dispatch.
+     *
+     * @param array $request
+     *              attachment (file
+     *
+     * @param int $companyDetailsId
+     *
+     * @return void
+     */
+    private function uploadAttachment($request, $companyDetailsId): void
+    {
+        if (request()->hasFile('attachment') && isset($companyDetailsId)) {
             foreach($request->file('attachment') as $file) {                
                 $fileName = $file->getClientOriginalName();                 
-                $filePath = '/company/logo/' . $companyDetails->id. '/'. $fileName; 
+                $filePath = '/company/logo/' . $companyDetailsId. '/'. $fileName; 
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
 
                 $this->companyAttachments->updateOrCreate(
                     [
-                        "file_id" => $companyDetails->id
+                        "file_id" => $companyDetailsId
                     ],
                     [
                     "file_name" => $fileName,
@@ -264,23 +318,50 @@ class CompanyServices
                 ]);
             }
         }
+    }
+
+    /**
+     * Create the company
+     *
+     * @param $request The request data containing the create company details
+     *
+     * @return bool|array Returns An array of validation errors or boolean based on the processing result
+     */
+    public function create($request): bool|array
+    {
+        $validationResult = $this->validateCreateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
+        $companyDetails = $this->createCompany($request);
+
+        $parentId = $request['parent_id'] ?? '';
+        if(!empty($parentId)) {
+            $this->company->where('id', $parentId)->update(['parent_flag' => 1]);
+        }
+        foreach(Config::get('services.STANDARD_FEE_NAMES') as $index => $fee ) {
+            $this->feeRegistration::create([
+                'item_name' => $fee,
+                'cost' => Config::get('services.STANDARD_FEE_COST')[$index],
+                'fee_type' => 'Standard',
+                'created_by' => $request["created_by"],
+                'company_id' => $companyDetails->id
+            ]);
+        }
+        $this->uploadAttachment($request, $companyDetails->id);
         return true;
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * update the company
+     *
+     * @param array $request The request data containing the update company data
+     *
+     * @return void
      */
-    public function update($request): bool|array
+    private function updateCompany($request, $company)
     {
-        $validator = Validator::make($request->toArray(), $this->company->updationRules($request['id']));
-        if ($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
-        }
-
-        $company = $this->company->findOrFail($request['id']);
         $company->company_name = $request['company_name'] ?? $company->company_name;
         $company->register_number = $request['register_number'] ?? $company->register_number;
         $company->country = $request['country'] ?? $company->country;
@@ -290,34 +371,33 @@ class CompanyServices
         $company->system_color = $request['system_color'] ?? $company->system_color;
         $company->modified_by = $request['modified_by'] ?? $company->modified_by;
         $company->save();
+    }
 
-        if (request()->hasFile('attachment') && isset($company->id)) {
-            foreach($request->file('attachment') as $file) {                
-                $fileName = $file->getClientOriginalName();                 
-                $filePath = '/company/logo/' . $company->id. '/'. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-
-                $this->companyAttachments->updateOrCreate(
-                    [
-                        "file_id" => $company->id
-                    ],
-                    [
-                    "file_name" => $fileName,
-                    "file_type" => 'Logo',
-                    "file_url" =>  $fileUrl,
-                    'modified_by' => $request['modified_by'] ?? 0
-                ]);
-            }
+    /**
+     * Update the company details
+     *
+     * @param $request The request data containing the company update details
+     *
+     * @return bool|array Returns An array of validation errors or boolean based on the processing result
+     */
+    public function update($request): bool|array
+    {
+        $validationResult = $this->validateUpdateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
-
+        $company = $this->company->findOrFail($request['id']);
+        $this->updateCompany($request, $company);
+        $this->uploadAttachment($request, $company->id);
         return true;
     }
 
     /**
+     * Update company status
+     *
      * @param $request
-     * @return bool
+     *
+     * @return bool Returns true if the update status is successfully, otherwise false.
      */
     public function updateStatus($request): bool
     {
@@ -329,8 +409,11 @@ class CompanyServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * List the subsidiary company
+     *
+     * @param $request The request data containing the current_company_id key
+     *
+     * @return mixed Returns the subsidiary company
      */
     public function subsidiaryDropDown($request): mixed
     {
@@ -343,8 +426,11 @@ class CompanyServices
     }
 
     /**
-     * @param $request
-     * @return bool
+     * Assign Subsidiary company
+     *
+     * @param $request The request data containing the subsidiary_company, parent_company_id, modified_by key
+     *
+     * @return bool Returns true if the assign subsidiary is successfully, otherwise false.
      */
     public function assignSubsidiary($request): bool
     {
@@ -360,8 +446,11 @@ class CompanyServices
     }
 
     /**
+     * List the parent company
+     *
      * @param $request
-     * @return mixed
+     *
+     * @return mixed Returns the parent company list
      */
     public function parentDropDown($request): mixed
     {
@@ -372,8 +461,11 @@ class CompanyServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * List user company
+     *
+     * @param $request The request data containing the user_id key
+     *
+     * @return mixed Returns the list of user company
      */
     public function listUserCompany($request): mixed
     {
@@ -387,8 +479,11 @@ class CompanyServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Update user company id based on the request data
+     *
+     * @param $request The request data containing the update company id details
+     *
+     * @return mixed Return an array of validation errors or boolean based on the processing result
      */
     public function updateCompanyId($request): mixed
     {
@@ -425,8 +520,11 @@ class CompanyServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * list subsidiary company based on given request data
+     *
+     * @param $request The request data containing the company_id key
+     *
+     * @return mixed Returns the subsidiary company list
      */
     public function subsidiaryDropdownBasedOnParent($request): mixed
     {
@@ -437,8 +535,11 @@ class CompanyServices
     }
 
     /**
+     * List the active company
+     *
      * @param $request
-     * @return mixed
+     *
+     * @return mixed Returns the active company list
      */
     public function dropdown($request): mixed
     {
@@ -449,12 +550,14 @@ class CompanyServices
     }
 
     /**
+     * Delete attachment
      *
-     * @param $request
-     * @return bool
-     */    
+     * @param $request The request data containing the attachment_id
+     *
+     * @return bool Returns true if the deletion is successfully, otherwise false.
+     */
     public function deleteAttachment($request): bool
-    {   
+    {
         $data = $this->companyAttachments->find($request['attachment_id']);
         if (is_null($data)) {
             return false;
@@ -465,10 +568,13 @@ class CompanyServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * List the company module
+     *
+     * @param $request The request data containing the company_id key
+     *
+     * @return mixed Returns the company module list
      */
-    public function moduleList($request) 
+    public function moduleList($request)
     {
         return $this->companyModulePermission->leftJoin('modules', 'modules.id', 'company_module_permission.module_id')
             ->where('company_module_permission.company_id', $request['company_id'])
@@ -478,8 +584,11 @@ class CompanyServices
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * Assign Module
+     *
+     * @param $request The request data containing the assign module details
+     *
+     * @return bool|array Return an array of validation errors or boolean based on the processing result
      */
     public function assignModule($request): bool|array
     {
@@ -517,7 +626,7 @@ class CompanyServices
                 'module_id'     => $moduleId,
                 'created_by'    => $request['created_by'] ?? 0,
                 'modified_by'   => $request['created_by'] ?? 0
-            ]);   
+            ]);
         }
 
         $this->rolePermission->join('roles', 'roles.id', 'role_permission.role_id')
@@ -530,7 +639,7 @@ class CompanyServices
 
     /**
      * returns the features owned by a particular company
-     * 
+     *
      * @param $request
      * @return mixed
      */
@@ -544,8 +653,11 @@ class CompanyServices
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * Assign Feature
+     *
+     * @param $request The request data containing the assign feature details
+     *
+     * @return bool|array Return an array of validation errors or boolean based on the processing result
      */
     public function assignFeature($request): bool|array
     {
@@ -568,7 +680,7 @@ class CompanyServices
                 'module_id'     => $featureId,
                 'created_by'    => $request['created_by'] ?? 0,
                 'modified_by'   => $request['created_by'] ?? 0
-            ]);   
+            ]);
         }
 
         return true;
@@ -599,7 +711,7 @@ class CompanyServices
     }
 
     /**
-     * updte a account system.
+     * update a account system.
      *
      * @param array $request The request data containing account system details.
      * @return mixed Returns true if the system is updated successfully.
@@ -639,10 +751,10 @@ class CompanyServices
             ],
             [
                 'url' => $request['url'] ?? null,
-                'client_id' => $request['client_id'] ?? null, 
-                'client_secret' => $request['client_secret'] ?? null, 
-                'tenant_id' => $request['tenant_id'] ?? null, 
-                'access_token' => $request['access_token'] ?? null, 
+                'client_id' => $request['client_id'] ?? null,
+                'client_secret' => $request['client_secret'] ?? null,
+                'tenant_id' => $request['tenant_id'] ?? null,
+                'access_token' => $request['access_token'] ?? null,
                 'refresh_token' => $request['refresh_token'] ?? null,
                 'redirect_url' => $request['redirect_url'] ?? null,
                 'remarks' => $request['remarks'] ?? null,
@@ -659,9 +771,9 @@ class CompanyServices
      *
      * @param array $request The request data containing account system details.
      * @return bool
-     */    
+     */
     public function accountSystemDelete($request): bool|array
-    {   
+    {
         $validator = Validator::make($request, $this->accountSystemDeleteValidation());
         if ($validator->fails()) {
             return [

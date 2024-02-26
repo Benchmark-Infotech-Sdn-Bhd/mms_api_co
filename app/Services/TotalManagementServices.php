@@ -153,7 +153,7 @@ class TotalManagementServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the List service request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -174,7 +174,7 @@ class TotalManagementServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the add service request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -193,7 +193,7 @@ class TotalManagementServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the submit proposal request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -212,7 +212,7 @@ class TotalManagementServices
     }
 
     /**
-     * Returns a paginated list of list based on the given search request.
+     * Returns a paginated list of application based on the given search request.
      *
      * @param $request
      *        company_id (array) ID of the user company
@@ -617,6 +617,8 @@ class TotalManagementServices
      *              fomnext_quota (int) fomnext quota
      *              initial_quota (int) initial quota
      *              service_quota (int) service quota
+     * 
+     * @return void
      */
     private function updateProspectService($prospectService, array $request)
     {
@@ -648,6 +650,8 @@ class TotalManagementServices
      * @param mixed $applicationDetails
      * @param mixed $prospectService
      * @param array $request
+     * 
+     * @return void
      */
     private function updateApplicationQuota($applicationDetails, $prospectService, array $request)
     {

@@ -135,7 +135,7 @@ class TotalManagementExpensesServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the list expense request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -156,7 +156,7 @@ class TotalManagementExpensesServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the create expense request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -175,7 +175,7 @@ class TotalManagementExpensesServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the update expense request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -194,7 +194,7 @@ class TotalManagementExpensesServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the payback expense request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -279,7 +279,7 @@ class TotalManagementExpensesServices
     }
 
     /**
-     * Select data from the query.
+     * Select the expense columns from the list expense query.
      *
      * @return $data The modified instance of the class.
      */
@@ -595,7 +595,7 @@ class TotalManagementExpensesServices
 
         $request = $this->enrichRequestWithUserDetails($request);
 
-        $expense = $this->getExpense($request['id'], $$request['company_id']);
+        $expense = $this->getExpense($request['id'], $request['company_id']);
 
         $totalPayBack = $expense->deduction + $request['amount_paid'];
         $remainingAmount = $expense->amount - $totalPayBack;

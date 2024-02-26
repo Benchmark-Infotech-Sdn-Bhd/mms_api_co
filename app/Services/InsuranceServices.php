@@ -10,6 +10,11 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class InsuranceServices
 {
+    public const ERROR_UNAUTHORIZED = ['unauthorizedError' => 'Unauthorized'];
+    public const MESSAGE_DATA_NOT_FOUND = 'Data not found';
+    public const MESSAGE_DELETED_SUCCESSFULLY = 'Deleted Successfully';
+    public const MESSAGE_UPDATED_SUCCESSFULLY = 'Updated Successfully';
+
     /**
      * @var Insurance
      */
@@ -20,6 +25,14 @@ class InsuranceServices
      */
     private Vendor $vendor;
 
+    /**
+     * InsuranceServices Constructor
+     *
+     * @param Insurance $insurance Instance of the Insurance class
+     * @param Vendor $vendor Instance of the Vendor class
+     *
+     * @return void
+     */
     public function __construct(
         Insurance     $insurance,
         Vendor        $vendor
@@ -30,8 +43,11 @@ class InsuranceServices
     }
 
     /**
+     * validate the create insurance request data
+     * 
      * @param $request
-     * @return mixed | void
+     * 
+     * @return mixed | void Returns the validation error messages if validation fails, otherwise false.
      */
     public function inputValidation($request)
     {
@@ -41,8 +57,11 @@ class InsuranceServices
     }
 
     /**
+     * validate the update insurance request data
+     * 
      * @param $request
-     * @return mixed | void
+     * 
+     * @return mixed | void Returns the validation error messages if validation fails, otherwise false.
      */
     public function updateValidation($request)
     {
@@ -51,25 +70,29 @@ class InsuranceServices
         }
     }
 
-	/**
+    /**
+     * Enriches the given request data with user details.
      *
-     * @param $request
-     * @return mixed
+     * @param array $request The request data to be enriched.
+     * @return mixed Returns the enriched request data.
      */
-    public function create($request): mixed
-    {   
+    private function enrichRequestWithUserDetails($request): mixed
+    {
         $user = JWTAuth::parseToken()->authenticate();
-        $vendor = $this->vendor
-        ->where('company_id', $request['company_id'])
-        ->find($request['vendor_id']);
-
-        if (is_null($vendor)) {
-            return [
-                'unauthorizedError' => 'Unauthorized'
-            ];
-        }
-
         $request['created_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
+        return $request;
+    }
+
+    /**
+     * create insurance record
+     *
+     * @param array $request The request data containing the create data params no_of_worker_from,no_of_worker_to,fee_per_pax,vendor_id,created_by
+     *
+     * @return mixed Returns the created insurance record
+     */
+    private function createInsurance($request)
+    {
         return $this->insurance::create([
             'no_of_worker_from' => $request["no_of_worker_from"],
             'no_of_worker_to' => $request["no_of_worker_to"],
@@ -79,9 +102,33 @@ class InsuranceServices
         ]);
     }
 
+	 /**
+     * Create the Insurance
+     *
+     * @param $request The request data containing the create Insurance data
+     *
+     * @return mixed Returns the created Insurance data or an array with error messages otherwise.
+     */
+    public function create($request): mixed
+    {
+        $vendor = $this->vendor
+        ->where('company_id', $request['company_id'])
+        ->find($request['vendor_id']);
+
+        if(is_null($vendor)){
+            return self::ERROR_UNAUTHORIZED;
+        }
+        $request = $this->enrichRequestWithUserDetails($request);
+
+        return $this->createInsurance($request);
+    }
+
     /**
-     * @param $request
-     * @return mixed
+     * List the Insurance
+     *
+     * @param $request The request data containing the company_id, vendor_id,  search_param key
+     *
+     * @return mixed Returns the paginated list of insurance.
      */
     public function list($request): mixed
     {
@@ -91,25 +138,41 @@ class InsuranceServices
             ->where('vendors.company_id', $request['company_id']);
         })
         ->where(function ($query) use ($request) {
-            if (isset($request['vendor_id']) && !empty($request['vendor_id'])) {
-                $query->where('vendor_id', '=', $request['vendor_id']);
-            }
-            if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('vendor_id', '=', $request['vendor_id'])
-                ->where('no_of_worker_from', 'like', '%' . $request['search_param'] . '%')
-                ->orWhere('no_of_worker_to', 'like', '%' . $request['search_param'] . '%')
-                ->orWhere('fee_per_pax', 'like', '%' . $request['search_param'] . '%');
-            }
+            $this->applyCondition($query,$request);
         })
         ->select('insurance.*')
         ->orderBy('insurance.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
-	
+
     /**
+     * Apply the vendor filter and search filter condition to the query.
      *
-     * @param $request
-     * @return mixed
+     * @param object $query
+     * @param array $request The request data containing the vendor_id, search_param
+     *
+     * @return void
+     */
+    private function applyCondition($query, $request)
+    {
+        $vendorId = $request['vendor_id'] ?? '';
+        $search = $request['search_param'] ?? '';
+        if (!empty($vendorId)) {
+            $query->where('vendor_id', '=', $vendorId);
+        }
+        if (!empty($search)) {
+            $query->where('no_of_worker_from', 'like', '%' . $search . '%')
+            ->orWhere('no_of_worker_to', 'like', '%' . $search . '%')
+            ->orWhere('fee_per_pax', 'like', '%' . $search . '%');
+        }
+    }
+
+	 /**
+     * Show the insurance detail
+     *
+     * @param $request The request data containing the company_id, and id key
+     *
+     * @return mixed Returns the insurance data
      */
     public function show($request) : mixed
     {
@@ -121,14 +184,16 @@ class InsuranceServices
         ->select('insurance.id', 'insurance.no_of_worker_from', 'insurance.no_of_worker_to', 'insurance.fee_per_pax', 'insurance.vendor_id', 'insurance.created_by', 'insurance.modified_by', 'insurance.created_at', 'insurance.updated_at', 'insurance.deleted_at')
         ->find($request['id']);
     }
-	
-    /**
+
+	 /**
+     * Update the insurance
      *
-     * @param $request
-     * @return mixed
+     * @param $request $request The request data containing the update data
+     *
+     * @return mixed Returns an array with two keys: 'isUpdated' and 'message'
      */
     public function update($request): mixed
-    {           
+    {
         $data = $this->insurance
         ->join('vendors', function($query) use($request) {
             $query->on('vendors.id','=','insurance.vendor_id')
@@ -138,26 +203,28 @@ class InsuranceServices
         ->find($request['id']);
         if (is_null($data)) {
             return [
-                "isDeleted" => false,
-                "message" => "Data not found"
+                "isUpdated" => false,
+                "message" => self::MESSAGE_DATA_NOT_FOUND
             ];
         }
 
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['modified_by'] = $user['id'];
+        $request = $this->enrichRequestWithUserDetails($request);
+
         return  [
             "isUpdated" => $data->update($request->all()),
-            "message" => "Updated Successfully"
+            "message" => self::MESSAGE_UPDATED_SUCCESSFULLY
         ];
     }
-	
-    /**
+
+	 /**
+     * Delete the insurance
      *
-     * @param $request
-     * @return mixed
-     */    
+     * @param $request $request The request data containing the company_id, and id key
+     *
+     * @return mixed Returns an array with two keys: 'isDeleted' and 'message'
+     */
     public function delete($request) : mixed
-    {     
+    {
         $data = $this->insurance
         ->join('vendors', function($query) use($request) {
             $query->on('vendors.id','=','insurance.vendor_id')
@@ -168,13 +235,13 @@ class InsuranceServices
         if (is_null($data)) {
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_DATA_NOT_FOUND
             ];
         }
 
         return [
             "isDeleted" => $data->delete(),
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
     }
 }

@@ -82,7 +82,7 @@ class TotalManagementCostManagementServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the create cost management request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -100,7 +100,7 @@ class TotalManagementCostManagementServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the update cost management request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -118,7 +118,7 @@ class TotalManagementCostManagementServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the show cost management request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -136,7 +136,7 @@ class TotalManagementCostManagementServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the list cost management request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -160,7 +160,8 @@ class TotalManagementCostManagementServices
      *
      * @param mixed $request The request data.
      *
-     * @return mixed Returns the created cost management record.
+     * @return mixed Returns the created cost management record
+     *               otherwise Returns an error array if validation fails 
      * 
      * @see enrichRequestWithUserDetails()
      * @see validateCreateRequest()
@@ -330,6 +331,8 @@ class TotalManagementCostManagementServices
      *        remarks (text) remarks of payment
      *        created_by The ID of the user who created the cost mangment.
      *        modified_by The ID of the user who modified the cost mangment.
+     * 
+     * @return void
      */
     private function updateTotalManagementCostManagement($costManagement, $request)
     {
@@ -419,6 +422,7 @@ class TotalManagementCostManagementServices
      *
      * @param array $request The user data
      *        project_id (int) ID of the project
+     * @param object $data
      *
      * @return $data Returns the query builder object with the applied condition
      */
@@ -432,6 +436,7 @@ class TotalManagementCostManagementServices
      *
      * @param array $request The user data
      *        search_param (string) search parameter
+     * @param object $data
      *
      * @return $data Returns the query builder object with the applied search filter
      */
@@ -447,7 +452,7 @@ class TotalManagementCostManagementServices
     }
 
     /**
-     * Select data from the query.
+     * Select the cost management columns from the list cost management query.
      *
      * @return $data The modified instance of the class.
      */
