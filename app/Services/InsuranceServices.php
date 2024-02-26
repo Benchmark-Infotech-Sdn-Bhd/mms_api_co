@@ -1,7 +1,6 @@
 <?php
 
-
-namespace App\Services;
+namespace App\Services; 
 
 use App\Models\Insurance;
 use App\Models\Vendor;
@@ -34,11 +33,15 @@ class InsuranceServices
      *
      * @return void
      */
-    public function __construct(Insurance $insurance, Vendor $vendor)
+    public function __construct(
+        Insurance     $insurance,
+        Vendor        $vendor
+    )
     {
         $this->insurance = $insurance;
         $this->vendor = $vendor;
     }
+
     /**
      * validate the create insurance request data
      * 
@@ -48,10 +51,11 @@ class InsuranceServices
      */
     public function inputValidation($request)
     {
-        if(!($this->insurance->validate($request->all()))){
+        if (!($this->insurance->validate($request->all()))) {
             return $this->insurance->errors();
         }
     }
+
     /**
      * validate the update insurance request data
      * 
@@ -61,7 +65,7 @@ class InsuranceServices
      */
     public function updateValidation($request)
     {
-        if(!($this->insurance->validateUpdation($request->all()))){
+        if (!($this->insurance->validateUpdation($request->all()))) {
             return $this->insurance->errors();
         }
     }
@@ -77,7 +81,6 @@ class InsuranceServices
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
         $request['modified_by'] = $user['id'];
-
         return $request;
     }
 
@@ -119,6 +122,7 @@ class InsuranceServices
 
         return $this->createInsurance($request);
     }
+
     /**
      * List the Insurance
      *
@@ -180,6 +184,7 @@ class InsuranceServices
         ->select('insurance.id', 'insurance.no_of_worker_from', 'insurance.no_of_worker_to', 'insurance.fee_per_pax', 'insurance.vendor_id', 'insurance.created_by', 'insurance.modified_by', 'insurance.created_at', 'insurance.updated_at', 'insurance.deleted_at')
         ->find($request['id']);
     }
+
 	 /**
      * Update the insurance
      *
@@ -196,7 +201,7 @@ class InsuranceServices
         })
         ->select('insurance.id', 'insurance.no_of_worker_from', 'insurance.no_of_worker_to', 'insurance.fee_per_pax', 'insurance.vendor_id', 'insurance.created_by', 'insurance.modified_by', 'insurance.created_at', 'insurance.updated_at', 'insurance.deleted_at')
         ->find($request['id']);
-        if(is_null($data)){
+        if (is_null($data)) {
             return [
                 "isUpdated" => false,
                 "message" => self::MESSAGE_DATA_NOT_FOUND
@@ -210,6 +215,7 @@ class InsuranceServices
             "message" => self::MESSAGE_UPDATED_SUCCESSFULLY
         ];
     }
+
 	 /**
      * Delete the insurance
      *
@@ -226,12 +232,13 @@ class InsuranceServices
         })
         ->select('insurance.id', 'insurance.no_of_worker_from', 'insurance.no_of_worker_to', 'insurance.fee_per_pax', 'insurance.vendor_id', 'insurance.created_by', 'insurance.modified_by', 'insurance.created_at', 'insurance.updated_at', 'insurance.deleted_at')
         ->find($request['id']);
-        if(is_null($data)){
+        if (is_null($data)) {
             return [
                 "isDeleted" => false,
                 "message" => self::MESSAGE_DATA_NOT_FOUND
             ];
         }
+
         return [
             "isDeleted" => $data->delete(),
             "message" => self::MESSAGE_DELETED_SUCCESSFULLY

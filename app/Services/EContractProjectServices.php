@@ -52,13 +52,13 @@ class EContractProjectServices
 
     /**
      * Constructor method.
-     * 
+     *
      * @param EContractProject $eContractProject Instance of the EContractProject class.
      * @param EContractProjectAttachments $eContractProjectAttachments Instance of the EContractProjectAttachments class.
      * @param Storage $storage Instance of the Storage class.
      * @param EContractApplications $eContractApplications Instance of the EContractApplications class.
      * @param AuthServices $authServices Instance of the AuthServices class.
-     * 
+     *
      * @return void
      */
     public function __construct(
@@ -118,7 +118,7 @@ class EContractProjectServices
 
     /**
      * Returns a paginated list of e-contract project based on the given search request.
-     * 
+     *
      * @param array $request The search request parameters.
      * @return mixed Returns a paginated list of e-contract project.
      */
@@ -150,7 +150,7 @@ class EContractProjectServices
 
     /**
      * Show the e-contract project with related project attachments.
-     * 
+     *
      * @param array $request The request data containing e-contract project id,  company_id
      * @return mixed Returns the e-contract project details with related project attachments.
      */
@@ -161,7 +161,7 @@ class EContractProjectServices
 
     /**
      * Creates a new Project from the given request data.
-     * 
+     *
      * @param $request The request data containing project details.
      * @return bool|array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -177,7 +177,7 @@ class EContractProjectServices
 
         $user = $this->getJwtUserAuthenticate();
         $request['created_by'] = $user['id'];
-        
+
         $applicationDetails = $this->showEContractApplications($request);
         if (is_null($applicationDetails)) {
             return self::ERROR_UNAUTHORIZED;
@@ -185,14 +185,14 @@ class EContractProjectServices
 
         $eContractProject = $this->createEContractProject($request);
 
-        $this->updateEContractProjectAttachments(self::ATTACHMENT_ACTION_CREATE, $request, $eContractProject['id']);
+        $this->updateEContractProjectAttachments(self::ATTACHMENT_ACTION_CREATE, $request, $eContractProject->id);
 
         return true;
     }
 
     /**
      * Updates the project data with the given request.
-     * 
+     *
      * @param $request The request data containing project details.
      * @return bool|array Returns an array with the following keys:
      * - "validate": An array of validation errors, if any.
@@ -224,10 +224,10 @@ class EContractProjectServices
 
     /**
      * Delete the e-contract project attachment
-     * 
+     *
      * @param array $request The request data containing the attachment id and company id.
      * @return array The result of the delete operation containing the deletion status and message.
-     */    
+     */
     public function deleteAttachment($request): array
     {
         $data = $this->eContractProjectAttachments
@@ -268,7 +268,7 @@ class EContractProjectServices
      *                      - valid_until: The valid until of the project.
      *                      - created_by: The ID of the user who created the project.
      *
-     * @return Project The newly created project object.
+     * @return mixed EContractProject The newly created eContract project.
      */
     public function createEContractProject($request): mixed
     {
@@ -301,7 +301,7 @@ class EContractProjectServices
      *               - hospitalization_leave: (int) The updated project hospitalization leave.
      *               - valid_until: (int) The updated project valid until.
      *               - modified_by: (int) The updated project modified by.
-     * 
+     *
      * @return void
      */
     public function updateEContractProject($eContractProject, $request): void
@@ -322,17 +322,17 @@ class EContractProjectServices
      * Upload attachment of e-contract project.
      *
      * @param string $action The action value find the [create or update] functionality
-     * @param array $request The request data containing e-contract project attachments
+     * @param array $request The request data containing valid until, e-contract project attachments, created by, modified by
      * @param int $eContractProjectId The attachments was upload against the application Id
-     * 
+     *
      * @return void
      */
     public function updateEContractProjectAttachments($action, $request, $eContractProjectId): void
     {
         if (request()->hasFile('attachment') && isset($eContractProjectId) && !empty($request['valid_until'])) {
-            foreach($request->file('attachment') as $file) {                
-                $fileName = $file->getClientOriginalName();                 
-                $filePath = '/eContract/project/'. $fileName; 
+            foreach($request->file('attachment') as $file) {
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/eContract/project/'. $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
@@ -357,7 +357,7 @@ class EContractProjectServices
 
     /**
      * Show the e-contract project with related attachment and application.
-     * 
+     *
      * @param array $request The request data containing e-contract project id, company id
      * @return mixed Returns the e-contract project with related attachment and application.
      */
@@ -370,11 +370,11 @@ class EContractProjectServices
         ->select('e-contract_project.id', 'e-contract_project.application_id', 'e-contract_project.name', 'e-contract_project.state', 'e-contract_project.city', 'e-contract_project.address', 'e-contract_project.annual_leave', 'e-contract_project.medical_leave', 'e-contract_project.hospitalization_leave', 'e-contract_project.created_by', 'e-contract_project.modified_by', 'e-contract_project.valid_until', 'e-contract_project.created_at', 'e-contract_project.updated_at', 'e-contract_project.deleted_at')
         ->find($request['id']);
     }
-    
+
     /**
      * Apply the "worker employment" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      *
      * @return void
      */
@@ -385,11 +385,11 @@ class EContractProjectServices
             ->where('worker_employment.transfer_flag', self::EMPLOYMENT_TRANSFER_FLAG)
             ->whereNull('worker_employment.remove_date');
     }
-    
+
     /**
      * Apply the "worker" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      *
      * @return void
      */
@@ -398,11 +398,11 @@ class EContractProjectServices
         $query->on('workers.id','=','worker_employment.worker_id')
             ->whereIN('workers.econtract_status', Config::get('services.ECONTRACT_WORKER_STATUS'));
     }
-    
+
     /**
      * Apply the "e-contract applications" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the company id
      *
      * @return void
@@ -412,11 +412,11 @@ class EContractProjectServices
         $query->on('e-contract_applications.id','=','e-contract_project.application_id')
             ->whereIn('e-contract_applications.company_id', $request['company_id']);
     }
-    
+
     /**
      * Apply the "e-contract project" filter to the query
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the application id
      *
      * @return void
@@ -425,13 +425,13 @@ class EContractProjectServices
     {
         $query->where('e-contract_project.application_id', $request['application_id']);
     }
-    
+
     /**
      * Apply search filter to the query.
      *
-     * @param Illuminate\Database\Query\Builder $query The query builder instance
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
      * @param array $request The request data containing the search keyword.
-     * 
+     *
      * @return void
      */
     private function applySearchFilter($query, $request)
@@ -478,10 +478,10 @@ class EContractProjectServices
 
         return true;
     }
-    
+
     /**
      * Show the e-contract application.
-     * 
+     *
      * @param array $request The request data containing application id, company id
      * @return mixed Returns the e-contract application.
      */
@@ -503,7 +503,7 @@ class EContractProjectServices
     /**
      * get the auth user of company ids.
      * @param array $user The user data containing the user details
-     * 
+     *
      * @return mixed Returns the user company ids.
      */
     private function getAuthUserCompanyIds($user): mixed

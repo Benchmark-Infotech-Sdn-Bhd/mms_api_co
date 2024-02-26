@@ -7,22 +7,22 @@ use App\Models\CRMProspectService;
 use App\Models\CRMProspectAttachment;
 use App\Models\LoginCredential;
 use App\Models\Sectors;
-use App\Models\SystemType;
 use App\Models\DirectrecruitmentApplications;
+use App\Models\SystemType;
 use App\Models\TotalManagementApplications;
 use App\Models\EContractApplications;
 use App\Models\User;
 use App\Models\CompanyModulePermission;
 use App\Models\RolePermission;
+use App\Models\Role;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use App\Services\InvoiceServices;
 use App\Services\AuthServices;
-use Illuminate\Support\Str;
-use App\Models\Role;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\CrmImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CRMServices
 {
@@ -30,62 +30,77 @@ class CRMServices
      * @var CRMProspect
      */
     private CRMProspect $crmProspect;
+
     /**
      * @var CRMProspectService
      */
     private CRMProspectService $crmProspectService;
+
     /**
      * @var CRMProspectAttachment
      */
     private CRMProspectAttachment $crmProspectAttachment;
+
     /**
      * @var LoginCredential
      */
     private LoginCredential $loginCredential;
+
     /**
      * @var Storage
      */
     private Storage $storage;
+
     /**
      * @var Sectors
      */
     private Sectors $sectors;
+
     /**
      * @var DirectrecruitmentApplications
      */
     private DirectrecruitmentApplications $directrecruitmentApplications;
+
     /**
      * @var SystemType
      */
     private SystemType $systemType;
+
     /**
      * @var TotalManagementApplications
      */
     private TotalManagementApplications $totalManagementApplications;
+
     /**
      * @var EContractApplications
      */
     private EContractApplications $eContractApplications;
+
     /**
      * @var InvoiceServices
      */
     private InvoiceServices $invoiceServices;
+
     /**
      * @var AuthServices
      */
     private AuthServices $authServices;
+
     /**
      * @var User
      */
     private User $user;
+
     /**
      * @var Role
      */
     private Role $role;
+
     /**
      * @var companyModulePermission
      */
     private CompanyModulePermission $companyModulePermission;
+
     /**
      * @var RolePermission
      */
@@ -150,6 +165,7 @@ class CRMServices
         $this->companyModulePermission = $companyModulePermission;
         $this->rolePermission = $rolePermission;
     }
+
     /**
      * validate the update create request data
      *
@@ -178,6 +194,7 @@ class CRMServices
             'attachment.*' => 'mimes:jpeg,pdf,png|max:2048'
         ];
     }
+
     /**
      * validate the update update request data
      *
@@ -207,6 +224,7 @@ class CRMServices
             'attachment.*' => 'mimes:jpeg,pdf,png'
         ];
     }
+
     /**
      * custom message
      *
@@ -222,6 +240,7 @@ class CRMServices
             'pic_contact_number.digits_between' => 'The PIC contact number must be within 11 digits.'
         ];
     }
+
     /**
      * validate the update search request data
      *
@@ -246,13 +265,12 @@ class CRMServices
 	    $search = $request['search'] ?? '';
         if(!empty($search)){
             $validator = Validator::make($request, $this->searchValidation());
-            if($validator->fails()) {
+            if ($validator->fails()) {
                 return [
                     'error' => $validator->errors()
                 ];
             }
         }
-
         return true;
     }
 
@@ -307,7 +325,6 @@ class CRMServices
         if (is_array($validationResult)) {
             return $validationResult;
         }
-
         return $this->crmProspect
             ->leftJoin('employee', 'employee.id', 'crm_prospects.registered_by')
             ->leftJoin('crm_prospect_services', 'crm_prospect_services.crm_prospect_id', 'crm_prospects.id')
@@ -587,7 +604,7 @@ class CRMServices
 
         $prospect  = $this->createCrmProspect($request);
 
-        if($this->hasCustomerLogin($request['company_id'])) {
+        if ($this->hasCustomerLogin($request['company_id'])) {
             $role = $this->checkCustomerRole($request['company_id']);
             if(is_null($role)) {
                 $role = $this->createRole($request);
@@ -609,12 +626,12 @@ class CRMServices
         }
 
         $sector = $this->sectors->findOrFail($request['sector_type']);
-        if(isset($request['prospect_service']) && !empty($request['prospect_service'])) {
+        if (isset($request['prospect_service']) && !empty($request['prospect_service'])) {
             $services = json_decode($request['prospect_service']);
             $this->createService($services, $prospect, $sector, $request);
         }
 
-        if(isset($request['login_credential']) && !empty($request['login_credential'])) {
+        if (isset($request['login_credential']) && !empty($request['login_credential'])) {
             $credentials = json_decode($request['login_credential']);
             foreach ($credentials as $credential) {
                 $this->loginCredential->create([
@@ -629,7 +646,7 @@ class CRMServices
 
         if (\DB::getDriverName() !== 'sqlite') {
             $request['prospect_id'] = $prospect['id'];
-            //$createContactXero = $this->invoiceServices->createContacts($request);
+            $createContactXero = $this->invoiceServices->createContacts($request);
         }
         return true;
     }
@@ -686,7 +703,7 @@ class CRMServices
 
         $this->updateCrmProspect($request, $prospect);
 
-        if(isset($request['login_credential']) && !empty($request['login_credential'])) {
+        if (isset($request['login_credential']) && !empty($request['login_credential'])) {
             $prospect->prospectLoginCredentials()->delete();
             $credentials = json_decode($request['login_credential']);
             foreach ($credentials as $credential) {
@@ -700,18 +717,19 @@ class CRMServices
             }
         }
 
-        if(isset($request['pic_name']) && !empty($request['pic_name'])) {
+        if (isset($request['pic_name']) && !empty($request['pic_name'])) {
             $this->user->where('user_type', 'Customer')
                 ->where('reference_id', $request['id'])
                 ->update([
                     'name' => $request['pic_name']
                 ]);
         }
+
         if (\DB::getDriverName() !== 'sqlite') {
             $request['prospect_id'] = $prospect['id'];
             $request['ContactID'] = $prospect['xero_contact_id'];
             $createContactXero = $this->invoiceServices->createContacts($request);
-            if(isset($createContactXero->original['Contacts'][0]['ContactID']) && !empty($createContactXero->original['Contacts'][0]['ContactID'])){
+            if (isset($createContactXero->original['Contacts'][0]['ContactID']) && !empty($createContactXero->original['Contacts'][0]['ContactID'])) {
                 $prospect->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
                 $prospect->save();
             } else if (isset($createContactXero->original['contact']['contact_id']) && !empty($createContactXero->original['contact']['contact_id'])) {
@@ -720,8 +738,10 @@ class CRMServices
                 $prospectData->save();
             }
         }
+
         return true;
     }
+
     /**
      * Delete the Attachment
      *
@@ -736,6 +756,7 @@ class CRMServices
                  ->whereIn('crm_prospects.company_id', $request['company_id']);
         })->where('crm_prospect_attachments.id', $request['id'])->delete();
     }
+
     /**
      * List the CRM dropdown
      *
@@ -759,6 +780,7 @@ class CRMServices
         ->distinct('crm_prospects.id', 'crm_prospects.company_name')
         ->get();
     }
+
     /**
      * Get the Prospect Details
      *
@@ -772,6 +794,7 @@ class CRMServices
             ->select('id', 'company_name', 'contact_number', 'email', 'pic_name')
             ->get();
     }
+
     /**
      * List the system type
      *
@@ -802,6 +825,7 @@ class CRMServices
         return true;
 
     }
+
     /**
      * Checks if the company has customer login feature.
      *
@@ -816,6 +840,7 @@ class CRMServices
 
         return $featureCheck > 0;
     }
+
     /**
      * Checks if the company has customer role.
      *
@@ -830,6 +855,7 @@ class CRMServices
         ->where('status',1)
         ->first('id');
     }
+
     /**
      * Assigning access to the customer role.
      *
