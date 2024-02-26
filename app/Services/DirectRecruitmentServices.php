@@ -25,6 +25,21 @@ class DirectRecruitmentServices
 	public const CONTRACT_TYPE_DEFAULT = 'No Contract';
 	public const CUSTOMER = 'Customer';
 
+    public const MESSAGE_DATA_NOT_FOUND = 'Data not found';
+    public const MESSAGE_DELETED_SUCCESSFULLY = 'Deleted Successfully';
+    public const MESSAGE_UPDATED_SUCCESSFULLY = 'Updated Successfully';
+
+    public const ATTACHMENT_FILE_TYPE_PROSPECT = 'prospect';
+    public const ATTACHMENT_FILE_TYPE_PROPOSAL = 'proposal';
+    public const TEXT_DOCUMENT_CHECKLIST = 'Document Checklist';
+    public const TEXT_TOTAL_MANAGEMENT = 'Total Management';
+    public const STATUS_ACTIVE = 1;
+    public const STATUS_PENDING = 'Pending';
+    public const STATUS_SUBMITTED = 'Submitted';
+    public const DIRECT_RECRUITMENT_SERVICE_ID = 1;
+    public const TOTAL_MANAGEMENT_SERVICE_ID = 3;
+    public const FROM_EXISTING = 1;
+
     /**
      * @var DirectrecruitmentApplications
      */
@@ -174,7 +189,7 @@ class DirectRecruitmentServices
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
      *                   Returns true if validation passes.
      */
-    private function validateAddRequest($request): array|bool
+    private function validateAddServicehRequest($request): array|bool
     {
         $validator = Validator::make($request->toArray(), $this->addServiceValidation());
         if($validator->fails()) {
@@ -262,8 +277,8 @@ class DirectRecruitmentServices
     private function getActiveServiceCount($crmProspectId)
     {
         return $this->crmProspectService->where('crm_prospect_id', $crmProspectId)
-        ->where('status', 1)
-        ->where('service_id', 1)
+        ->where('status', self::STATUS_ACTIVE)
+        ->where('service_id', self::DIRECT_RECRUITMENT_SERVICE_ID)
         ->count('id');
     }                          
 
@@ -319,7 +334,7 @@ class DirectRecruitmentServices
                     "file_id" => $request['id'],
                     "prospect_service_id" => $prospectServiceId,
                     "file_name" => $fileName,
-                    "file_type" => 'prospect',
+                    "file_type" => self::ATTACHMENT_FILE_TYPE_PROSPECT,
                     "file_url" =>  $fileUrl          
                 ]);  
             }
@@ -342,13 +357,13 @@ class DirectRecruitmentServices
         $this->directrecruitmentApplications::create([
             'crm_prospect_id' => $request['id'],
             'service_id' => $prospectServiceId,
-            'quota_applied' => 0,
+            'quota_applied' => self::DEFAULT_VALUE,
             'person_incharge' => '',
-            'cost_quoted' => 0,
+            'cost_quoted' => self::DEFAULT_VALUE,
             'status' => Config::get('services.PENDING_PROPOSAL'),
             'remarks' => '',
-            'created_by' => $request["created_by"] ?? 0,
-            'company_id' => $request['company_id'] ?? 0
+            'created_by' => $request["created_by"] ?? self::DEFAULT_VALUE,
+            'company_id' => $request['company_id'] ?? self::DEFAULT_VALUE
         ]);
     }
 
@@ -431,7 +446,7 @@ class DirectRecruitmentServices
                 $this->directrecruitmentApplicationAttachments::create([
                         "file_id" => $request['id'],
                         "file_name" => $fileName,
-                        "file_type" => 'proposal',
+                        "file_type" => self::ATTACHMENT_FILE_TYPE_PROPOSAL,
                         "file_url" =>  $fileUrl         
                     ]);  
             }
@@ -453,8 +468,8 @@ class DirectRecruitmentServices
     {
         $this->directRecruitmentApplicationChecklistServices->create(
                 ['application_id' => $request['id'],
-                'item_name' => 'Document Checklist',
-                'application_checklist_status' => 'Pending',
+                'item_name' => self::TEXT_DOCUMENT_CHECKLIST,
+                'application_checklist_status' => self::STATUS_PENDING,
                 'created_by' => $user['id']]
             );
     }
@@ -469,7 +484,7 @@ class DirectRecruitmentServices
     private function updateCrmProspectService($serviceId)
 	{
 	    $serviceData = $this->crmProspectService->findOrFail($serviceId);
-        $serviceData->status = 1;
+        $serviceData->status = self::STATUS_ACTIVE;
         $serviceData->save();
     }
 	
@@ -481,12 +496,12 @@ class DirectRecruitmentServices
 	 *
      * @return void
      */
-    private function UpdateApplicationSummaryStatus($request,$user)
+    private function updateApplicationSummaryStatus($request,$user)
 	{
 	    $input['application_id'] = $request['id'];
         $input['created_by'] = $user['id'];
         $input['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[1];
-        $input['status'] = 'Submitted';
+        $input['status'] = self::STATUS_SUBMITTED;
         $this->applicationSummaryServices->updateStatus($input);
     }
 
@@ -501,8 +516,8 @@ class DirectRecruitmentServices
     private function applyConditionTotalManagementListFilter($query, $request)
     {
 	    $query->whereIn('crm_prospects.company_id', $request['company_id'])
-		    ->where('crm_prospect_services.service_id', 3)
-			->where('crm_prospect_services.from_existing', 1)
+		    ->where('crm_prospect_services.service_id', self::TOTAL_MANAGEMENT_SERVICE_ID)
+			->where('crm_prospect_services.from_existing', self::FROM_EXISTING)
 			->where('crm_prospect_services.deleted_at', NULL);
     }
 	
@@ -516,13 +531,36 @@ class DirectRecruitmentServices
      */
     private function applySearchTotalManagementListFilter($query, $request)
     {
-	    if ($request['user']['user_type'] == 'Customer') {
+	    if ($request['user']['user_type'] == self::CUSTOMER) {
             $query->where(`e-contract_applications`.`crm_prospect_id`, '=', $request['user']['reference_id']);
         }
 	    if(!empty($request['search'])) {
             $query->where('crm_prospects.company_name', 'like', '%'.$request['search'].'%');
         }
     }
+
+    /**
+     * Validate the total management list request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateTotalManagementListRequest($request): array|bool
+    {
+	    $search = $request['search'] ?? '';
+        if(!empty($search)){
+            $validator = Validator::make($request, $this->searchValidation());
+            if($validator->fails()) {
+                return [
+                    'error' => $validator->errors()
+                ];
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Create a new service
      * 
@@ -572,7 +610,7 @@ class DirectRecruitmentServices
         return $this->directrecruitmentApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'directrecruitment_applications.crm_prospect_id')
         ->leftJoin('crm_prospect_services', 'crm_prospect_services.id', 'directrecruitment_applications.service_id')
         ->leftJoin('direct_recruitment_application_status', 'direct_recruitment_application_status.id', 'directrecruitment_applications.status')
-        ->where('crm_prospect_services.service_id', 1)
+        ->where('crm_prospect_services.service_id', self::DIRECT_RECRUITMENT_SERVICE_ID)
         ->where('crm_prospect_services.deleted_at', NULL)
         ->whereIn('directrecruitment_applications.company_id', $request['company_id'])
         ->where(function ($query) use ($request) {
@@ -641,7 +679,7 @@ class DirectRecruitmentServices
         }
 
         $activeServiceCount = $this->getActiveServiceCount($data->crm_prospect_id);
-        if($activeServiceCount > 0) {
+        if($activeServiceCount > self::DEFAULT_VALUE) {
             return [
                 'activeServiceerror' => true
             ];
@@ -659,11 +697,11 @@ class DirectRecruitmentServices
         }
 
         $this->updateCrmProspectService($data->service_id);
-        $this->UpdateApplicationSummaryStatus($request,$user);
+        $this->updateApplicationSummaryStatus($request,$user);
 
         return  [
             "isUpdated" => $res,
-            "message" => "Updated Successfully"
+            "message" => self::MESSAGE_UPDATED_SUCCESSFULLY
         ];
     }
 
@@ -692,12 +730,12 @@ class DirectRecruitmentServices
         if(is_null($data)){
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_DATA_NOT_FOUND
             ];
         }
         return [
             "isDeleted" => $data->delete(),
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
     }
     /**
@@ -713,7 +751,7 @@ class DirectRecruitmentServices
         if(is_null($directrecruitmentApplications)){
             return [
                 "isUpdated" => false,
-                "message"=> "Data not found"
+                "message"=> self::MESSAGE_DATA_NOT_FOUND
             ];
         }
         if($directrecruitmentApplications->status != Config::get('services.APPROVAL_COMPLETED')){
@@ -721,7 +759,7 @@ class DirectRecruitmentServices
         }
         return [
             "isUpdated" => $directrecruitmentApplications->save() == 1,
-            "message" => "Updated Successfully"
+            "message" => self::MESSAGE_UPDATED_SUCCESSFULLY
         ];
     }
     /**
@@ -731,7 +769,7 @@ class DirectRecruitmentServices
      */
     public function dropDownFilter() : mixed
     {
-        return $this->directRecruitmentApplicationStatus->where('status', 1)
+        return $this->directRecruitmentApplicationStatus->where('status', self::STATUS_ACTIVE)
                     ->select('id', 'status_name')
                     ->get();
     }
@@ -744,13 +782,9 @@ class DirectRecruitmentServices
      */
     public function totalManagementListing($request): mixed
     {
-        if(isset($request['search']) && !empty($request['search'])){
-            $validator = Validator::make($request, $this->searchValidation());
-            if($validator->fails()) {
-                return [
-                    'error' => $validator->errors()
-                ];
-            }
+        $validationResult = $this->validateTotalManagementListRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
 
         return $this->totalManagementApplications->leftJoin('crm_prospects', 'crm_prospects.id', 'total_management_applications.crm_prospect_id')
@@ -758,8 +792,8 @@ class DirectRecruitmentServices
         ->leftJoin('total_management_project', 'total_management_project.application_id', 'total_management_applications.id')
         ->leftJoin('worker_employment', function($query) {
             $query->on('worker_employment.project_id','=','total_management_project.id')
-            ->where('worker_employment.service_type', 'Total Management')
-            ->where('worker_employment.transfer_flag', 0)
+            ->where('worker_employment.service_type', self::TEXT_TOTAL_MANAGEMENT)
+            ->where('worker_employment.transfer_flag', self::DEFAULT_VALUE)
             ->whereNull('worker_employment.remove_date');
         })
         ->leftJoin('workers', function($query) {

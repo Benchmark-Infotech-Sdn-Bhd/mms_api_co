@@ -115,7 +115,7 @@ class TotalManagementWorkerServices
     /**
      * validate the search request data
      * 
-     * @return array The validation error messages if validation fails, otherwise false.
+     * @return array The array containing the validation rules.
      */
     public function searchValidation(): array
     {
@@ -126,7 +126,7 @@ class TotalManagementWorkerServices
     /**
      * validate the create request data
      * 
-     * @return array The validation error messages if validation fails, otherwise false.
+     * @return array The array containing the validation rules.
      */
     public function createValidation(): array
     {
@@ -142,7 +142,7 @@ class TotalManagementWorkerServices
     /**
      * validate the remove request data
      * 
-     * @return array The validation error messages if validation fails, otherwise false.
+     * @return array The array containing the validation rules.
      */
     public function removeValidation(): array
     {
@@ -201,7 +201,7 @@ class TotalManagementWorkerServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the worker list request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -596,7 +596,7 @@ class TotalManagementWorkerServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the assign worker request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -928,7 +928,7 @@ class TotalManagementWorkerServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the remove worker request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.

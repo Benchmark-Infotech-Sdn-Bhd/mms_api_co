@@ -271,7 +271,7 @@ class WorkersServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the create worker request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -289,7 +289,7 @@ class WorkersServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the update worker request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -307,7 +307,7 @@ class WorkersServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the worker show request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -325,7 +325,7 @@ class WorkersServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the worker list request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -345,7 +345,7 @@ class WorkersServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the worker bank list request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -365,7 +365,7 @@ class WorkersServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the worker bank show details request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -383,7 +383,7 @@ class WorkersServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the worker add attachment request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -402,7 +402,7 @@ class WorkersServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the assign worker request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -421,7 +421,7 @@ class WorkersServices
     }
 
     /**
-     * Validate the given request data.
+     * Validate the worker export request data.
      *
      * @param array $request The request data to be validated.
      * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
@@ -890,6 +890,7 @@ class WorkersServices
      * @param $request  The request data containing update worker details
      *
      * @return bool|array Returns true if the worker is updated successfully, otherwise returns an array with error details
+     *                    Returns ERROR_UNAUTHORIZED if the worker company is not mapped with current user company
      */
     public function update($request): bool|array
     {
@@ -987,7 +988,10 @@ class WorkersServices
      * update the Worker kin.
      *
 	 * @param object $worker The worker object
-     * @param array $request
+     * @param array $request the request data cotaining the below params
+     *              kin_name (string) name of the kin
+     *              kin_relationship_id (int) ID of the kin
+     *              kin_contact_number (int) contact number of the kin
 	 *
      *
      * @return void
@@ -1014,7 +1018,12 @@ class WorkersServices
      * update the Worker Visa.
      *
 	 * @param object $worker The worker object
-     * @param array $request
+     * @param array $request the request data cotaining the below params
+     *              ksm_reference_number (string) KSM reference number of the worker
+     *              calling_visa_reference_number (string) calling visa reference number of the worker
+     *              calling_visa_valid_until (date) calling visa valid until date of the worker
+     *              entry_visa_valid_until (date) entry visa valid unitil date of the worker
+     *              work_permit_valid_until (date) work permit valid until date of the worker
 	 *
      *
      * @return void
@@ -1045,9 +1054,10 @@ class WorkersServices
      * update the Worker BioMedical.
      *
 	 * @param object $worker The worker object
-     * @param array $request
-	 *
-     *
+     * @param array $request request data containing the below params
+	 *              bio_medical_reference_number (int) bio medical reference number of the worker
+     *              bio_medical_valid_until (date) bio medical valid until date of the worker
+     * 
      * @return void
      */
     private function updateWorkerBioMedical($worker, $request)
@@ -1070,8 +1080,12 @@ class WorkersServices
      * update the Worker Fomema.
      *
 	 * @param object $worker The worker object
-     * @param array $request
-	 *
+     * @param array $request request data containing the below params
+     *              purchase_date (date) date of the purchase
+	 *              clinic_name (string) clinic name
+     *              doctor_code (string) doctor code
+     *              allocated_xray (string) allocated xray
+     *              xray_code (string) xray code
      *
      * @return void
      */
@@ -1101,8 +1115,12 @@ class WorkersServices
      * update the Worker InsuranceDetails.
      *
 	 * @param object $worker The worker object
-     * @param array $request
-	 *
+     * @param array $request request data containing the below params
+     *              ig_policy_number (int) ig policy number of the worker
+	 *              ig_policy_number_valid_until (date) ig policy number valid until date
+     *              hospitalization_policy_number (int) hospitalization policy number of the worker
+     *              hospitalization_policy_number_valid_until (date) hospitalization policy number valid until date
+     *              insurance_expiry_date (date) insurance expiry date
      *
      * @return void
      */
@@ -1132,8 +1150,10 @@ class WorkersServices
      * update the Worker BankDetails.
      *
 	 * @param object $worker The worker object
-     * @param array $request
-	 *
+     * @param array $request request data containing the below params
+	 *              bank_name (string) name of the bank
+     *              account_number (int) bank account number
+     *              socso_number (int) socso number
      *
      * @return void
      */
@@ -1483,7 +1503,7 @@ class WorkersServices
     /**
      * List the kinRelationship
      *
-     * @return mixed
+     * @return mixed Returns the Kin relationship data
      */
     public function kinRelationship() : mixed
     {
@@ -1499,7 +1519,7 @@ class WorkersServices
      *        application_id (int) ID of the application
      *        onboarding_country_id (int) ID of the onboarding country
      *
-     * @return mixed Returns and onboarding agent
+     * @return mixed Returns an onboarding agent
      */
     public function onboardingAgent($request) : mixed
     {
@@ -1693,9 +1713,15 @@ class WorkersServices
     /**
      * Create a Bank detail for worker
      *
-     * @param $request
+     * @param array $request request data containing the below params
+     *              worker_id (int) ID of the worker
+     *              bank_name (string) worker bank name
+     *              account_number (int) bank account number
+     *              socso_number (int) socso number
      *
-     * @return mixed Returns the created bank detail record.
+     * @return mixed Returns the created bank detail record. otherwise returns an array with error details
+     *               Returns ERROR_UNAUTHORIZED  - if worker company id is not mapped with user company id
+     *               Returns ERROR_WORKER_COUNT - if the no.of bank account exceed the limit
      */
     public function createBankDetails($request) : mixed
     {
@@ -1728,9 +1754,16 @@ class WorkersServices
     /**
      * Update the bank detail for worker
      *
-     * @param $request
+     * @param array $request
+     *              id (int) ID of the update bank account record
+     *              worker_id (int) ID of the worker
+     *              bank_name (string) worker bank name
+     *              account_number (int) bank account number
+     *              socso_number (int) socso number
      *
      * @return bool|array Returns true if the bank detail is updated successfully, otherwise returns an array with error details
+     *                    Returns ERROR_UNAUTHORIZED  - if worker company id is not mapped with user company id
+     *                    Returns ERROR_WORKER_COUNT - if the no.of bank account exceed the limit
      */
     public function updateBankDetails($request): bool|array
     {
@@ -2033,7 +2066,7 @@ class WorkersServices
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
-     * Shows import failure export file
+     * Shows the worker import failure export file
      *
      * @param $request
      *
@@ -2073,7 +2106,7 @@ class WorkersServices
     /**
      * Get the worker bulk upload rows.
      *
-     * @return mixed
+     * @return mixed Retruns the worker bulk upload record rows
      */
     private function getWorkerBulkUploadRows(): mixed
     {
@@ -2089,7 +2122,7 @@ class WorkersServices
     /**
      * Update the status of worker bulk upload rows.
      *
-     * @param $ids
+     * @param array $ids - Id of the worker bulk upload record
      * @return void
      */
     private function updateWorkerBulkUploadStatus($ids)
@@ -2100,8 +2133,8 @@ class WorkersServices
     /**
      * create worker failure cases document.
      *
-     * @param $ids
-     * @param $data
+     * @param array $ids Id of the worker bulk upload record
+     * @param array $data worker module type
      * @return void
      */
     private function createWorkerFailureCasesDocument($ids,$data)

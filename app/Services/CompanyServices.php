@@ -56,15 +56,15 @@ class CompanyServices
     /**
      * CompanyServices constructor
      *
-     * @param Company $company
-     * @param CompanyAttachments $companyAttachments
-     * @param UserCompany $userCompany
-     * @param User $user
-     * @param FeeRegistration $feeRegistration
-     * @param CompanyModulePermission $companyModulePermission
-     * @param Storage $storage
-     * @param RolePermission $rolePermission
-     * @param XeroSettings $xeroSettings
+     * @param Company $company Instance of the Company class
+     * @param CompanyAttachments $companyAttachments Instance of the CompanyAttachments class
+     * @param UserCompany $userCompany Instance of the UserCompany class
+     * @param User $user Instance of the User class
+     * @param FeeRegistration $feeRegistration Instance of the FeeRegistration class
+     * @param CompanyModulePermission $companyModulePermission Instance of the CompanyModulePermission class
+     * @param Storage $storage Instance of the Storage class
+     * @param RolePermission $rolePermission Instance of the RolePermission class
+     * @param XeroSettings $xeroSettings Instance of the XeroSettings class
      *
      * @return void
      *
@@ -312,8 +312,9 @@ class CompanyServices
 
         $companyDetails = $this->createCompany($request);
 
-        if(isset($request['parent_id']) && !empty($request['parent_id'])) {
-            $this->company->where('id', $request['parent_id'])->update(['parent_flag' => 1]);
+        $parentId = $request['parent_id'] ?? '';
+        if(!empty($parentId)) {
+            $this->company->where('id', $parentId)->update(['parent_flag' => 1]);
         }
         foreach(Config::get('services.STANDARD_FEE_NAMES') as $index => $fee ) {
             $this->feeRegistration::create([
