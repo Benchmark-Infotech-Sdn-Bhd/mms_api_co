@@ -165,7 +165,7 @@ class EContractExpensesController extends Controller
             } else if(isset($data['payBackError'])) {
                 return $this->validationError(['message' => 'Payback Amount Should not Exceed to Actual Amount'], 422); 
             } else if(isset($data['unauthorizedError'])) {
-                return $this->sendError(['message' => 'Unauthorized']); 
+                return $this->sendError(['message' => $data['unauthorizedError']]); 
             }
             return $this->sendSuccess(['message' => 'PayBack Added Successfully']);
         } catch (Exception $e) {

@@ -3,10 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-
+use Illuminate\Support\Facades\Log;
 use App\Services\InvoiceServices;
 use App\Services\DatabaseConnectionServices;
-use Illuminate\Support\Facades\Log;
 
 class InvoiceFailureResubmit extends Command
 {
@@ -27,7 +26,7 @@ class InvoiceFailureResubmit extends Command
     /**
      * @var InvoiceServices $invoiceServices
      */
-    private $invoiceServices;
+    private InvoiceServices $invoiceServices;
 
     /**
      * @var DatabaseConnectionServices $databaseConnectionServices
@@ -35,7 +34,9 @@ class InvoiceFailureResubmit extends Command
     private $databaseConnectionServices;
 
     /**
-     * Create a new command instance.
+     * Class constructor.
+     *
+     * @param InvoiceServices $invoiceServices The invoice services instance.
      *
      * @return void
      */
@@ -49,9 +50,9 @@ class InvoiceFailureResubmit extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
         Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Failure Invoices Resubmit for Tenant DB - '.$this->argument('database'));

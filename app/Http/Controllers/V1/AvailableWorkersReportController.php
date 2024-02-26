@@ -16,28 +16,34 @@ class AvailableWorkersReportController extends Controller
     /**
      * @var AvailableWorkersReportServices
      */
-    private $availableWorkersReportServices;
+    private AvailableWorkersReportServices $availableWorkersReportServices;
     /**
      * @var AuthServices
      */
     private AuthServices $authServices;
 
     /**
-     * AvailableWorkersReportController constructor.
-     * @param AvailableWorkersReportServices $availableWorkersReportServices
-     * @param AuthServices $authServices
+     * Class constructor.
+     *
+     * @param AvailableWorkersReportServices $availableWorkersReportServices The available workers report services.
+     * @param AuthServices $authServices The authentication services.
+     *
+     * @return void
      */
     public function __construct(AvailableWorkersReportServices $availableWorkersReportServices, AuthServices $authServices)
     {
         $this->availableWorkersReportServices = $availableWorkersReportServices;
         $this->authServices = $authServices;
     }
-    
+
     /**
-     * list
-     * 
-     * @param Request $request
-     * @return JsonResponse
+     * List available workers report.
+     *
+     * @param Request $request The request object.
+     *
+     * @return JsonResponse The response object.
+     *
+     * @throws Exception If an error occurs.
      */
     public function list(Request $request): JsonResponse
     {
@@ -46,8 +52,8 @@ class AvailableWorkersReportController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $response = $this->availableWorkersReportServices->list($params);
-            if(isset($response['validate'])){
-                return $this->validationError($response['validate']); 
+            if (isset($response['validate'])) {
+                return $this->validationError($response['validate']);
             }
             return $this->sendSuccess($response);
         } catch (Exception $e) {

@@ -15,29 +15,35 @@ class AccommodationController extends Controller
      * @var accommodationServices
      */
     private AccommodationServices $accommodationServices;
+
     /**
-     * AccommodationServices constructor.
-     * @param AccommodationServices $accommodationServices
+     * Class constructor.
+     *
+     * @param AccommodationServices $accommodationServices The accommodation services object.
+     *
+     * @return void
      */
     public function __construct(AccommodationServices $accommodationServices)
     {
         $this->accommodationServices = $accommodationServices;
     }
+
     /**
-     * Show the form for creating a new Accommodation.
+     * Create a new accommodation.
      *
-     * @param Request $request 
-     * @return JsonResponse
+     * @param Request $request The HTTP request object.
+     *
+     * @return JsonResponse The JSON response object.
      */
     public function create(Request $request): JsonResponse
     {
         try {
-            
+
             $validation = $this->accommodationServices->inputValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $response = $this->accommodationServices->create($request); 
+            $response = $this->accommodationServices->create($request);
             if (isset($response['unauthorizedError'])) {
                 return $this->sendError(['message' => $response['unauthorizedError']]);
             }
@@ -47,17 +53,19 @@ class AccommodationController extends Controller
             return $this->sendError(['message' => 'Accommodation creation was failed']);
         }
     }
-    
+
     /**
-     * Display a listing of the Accommodation.
-     * @param Request $request
-     * @return JsonResponse
+     * Lists the accommodations based on the request parameters.
+     *
+     * @param Request $request The HTTP request object.
+     *
+     * @return JsonResponse The JSON response with the list of accommodations.
      */
     public function list(Request $request): JsonResponse
-    {        
+    {
         try {
             $params = $this->getRequest($request);
-            $response = $this->accommodationServices->list($params); 
+            $response = $this->accommodationServices->list($params);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
@@ -66,17 +74,18 @@ class AccommodationController extends Controller
     }
 
     /**
-     * Display the data for edit form by using accommodation id.
+     * Show method.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The request object.
+     *
+     * @return JsonResponse The JSON response with success or error message.
      */
     public function show(Request $request): JsonResponse
-    {     
+    {
         try {
             $params = $this->getRequest($request);
-            $response = $this->accommodationServices->show($params); 
-            if(is_null($response)) {
+            $response = $this->accommodationServices->show($params);
+            if (is_null($response)) {
                 return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess($response);
@@ -84,58 +93,64 @@ class AccommodationController extends Controller
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Retrieve accommodation data was failed']);
         }
-    } 
+    }
+
     /**
-     * Update the specified Accommodation data.
+     * Update the accommodation.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The request object containing the accommodation data.
+     *
+     * @return JsonResponse The JSON response containing the result of the update operation.
      */
     public function update(Request $request): JsonResponse
-    {  
+    {
         try {
             $validation = $this->accommodationServices->updateValidation($request);
             if ($validation) {
                 return $this->validationError($validation);
             }
-            $response = $this->accommodationServices->update($request); 
+            $response = $this->accommodationServices->update($request);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Accommodation update was failed']);
         }
     }
+
     /**
-     * delete the specified Accommodation data.
+     * Deletes accommodation.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The request object.
+     *
+     * @return JsonResponse The JSON response.
      */
     public function delete(Request $request): JsonResponse
-    {   
+    {
         try {
             $response = $this->accommodationServices->delete($request);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Delete accommodation was failed']);
-        }        
+        }
     }
+
     /**
-     * delete the specified Attachment data.
+     * Delete attachment.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The request object.
+     *
+     * @return JsonResponse The JSON response.
      */
     public function deleteAttachment(Request $request): JsonResponse
-    {   
+    {
         try {
             $response = $this->accommodationServices->deleteAttachment($request);
             return $this->sendSuccess($response);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Delete attachments was failed']);
-        }        
+        }
     }
 
 }

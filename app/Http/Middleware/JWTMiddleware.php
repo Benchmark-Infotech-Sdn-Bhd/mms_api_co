@@ -13,11 +13,16 @@ use Exception;
 class JWTMiddleware
 {
     /**
-     * Handle an incoming request.
+     * Handle the incoming request and authenticate the token.
      *
-     * @param  Request  $request
-     * @param  Closure  $next
-     * @return mixed
+     * @param Request $request The incoming request object.
+     * @param Closure $next The closure representing the next middleware or endpoint.
+     *
+     * @return mixed The result of the next middleware or endpoint.
+     *
+     * @throws TokenInvalidException If the token is invalid.
+     * @throws TokenExpiredException If the token is expired.
+     * @throws Exception             If an exception occurs during authentication.
      */
     public function handle(Request $request, Closure $next)
     {
@@ -37,8 +42,16 @@ class JWTMiddleware
     }
 
     /**
-     * @param array|object $data
-     * @return array
+     * Frame the response with error details, status code, status message, data, and response time.
+     *
+     * @param mixed $data The data to be included in the response.
+     *
+     * @return array The framed response as an associative array with the following keys:
+     *               - 'error'         : A boolean indicating if an error occurred.
+     *               - 'statusCode'    : The HTTP status code of the response.
+     *               - 'statusMessage' : The status message of the response.
+     *               - 'data'          : The data included in the response.
+     *               - 'responseTime'  : The timestamp indicating the response time.
      */
     protected function frameResponse($data): array
     {

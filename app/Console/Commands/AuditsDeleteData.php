@@ -3,10 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-
+use Illuminate\Support\Facades\Log;
 use App\Services\AuditsServices;
 use App\Services\DatabaseConnectionServices;
-use Illuminate\Support\Facades\Log;
 
 class AuditsDeleteData extends Command
 {
@@ -27,7 +26,7 @@ class AuditsDeleteData extends Command
     /**
      * @var AuditsServices $auditsServices
      */
-    private $auditsServices;
+    private AuditsServices $auditsServices;
 
     /**
      * @var DatabaseConnectionServices $databaseConnectionServices
@@ -35,8 +34,9 @@ class AuditsDeleteData extends Command
     private $databaseConnectionServices;
 
     /**
-     * Create a new command instance.
+     * Initializes a new instance of the class.
      *
+     * @param AuditsServices $auditsServices The audits services object.
      * @return void
      */
     public function __construct(AuditsServices $auditsServices, DatabaseConnectionServices $databaseConnectionServices)
@@ -47,11 +47,11 @@ class AuditsDeleteData extends Command
     }
 
     /**
-     * Execute the console command.
+     * Handle the command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
         Log::channel('cron_activity_logs')->info('Cron Job Started - Audits Delete Data for Tenant DB - '.$this->argument('database'));

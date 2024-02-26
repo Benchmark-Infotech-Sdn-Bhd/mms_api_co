@@ -16,29 +16,31 @@ class AuditsController extends Controller
     /**
      * @var AuditsServices
      */
-    private $auditsServices;
+    private AuditsServices $auditsServices;
 
     /**
-     * AuditsController constructor.
-     * @param AuditsServices $auditsServices
+     * Constructor method for the class.
+     *
+     * @param AuditsServices $auditsServices The audits services instance.
      */
-    public function __construct(AuditsServices $auditsServices) 
+    public function __construct(AuditsServices $auditsServices)
     {
         $this->auditsServices = $auditsServices;
     }
 
     /**
-     * Display a listing of the resource.
+     * List method for the class.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The request instance.
+     *
+     * @return JsonResponse The JSON response containing the audit list or error message.
      */
-    public function list(Request $request) : JsonResponse
+    public function list(Request $request): JsonResponse
     {
         try {
             $params = $this->getRequest($request);
             $response = $this->auditsServices->list($params);
-            if(isset($response['error']) && !empty($response['error'])) {
+            if (!empty($response['error'])) {
                 return $this->validationError($response['error']);
             }
             return $this->sendSuccess($response);
@@ -47,5 +49,4 @@ class AuditsController extends Controller
             return $this->sendError(['message' => 'Failed to List Audits']);
         }
     }
-
 }

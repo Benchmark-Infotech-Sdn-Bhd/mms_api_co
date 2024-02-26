@@ -7,57 +7,62 @@ use Illuminate\Support\Facades\Config;
 
 class ModulesServices
 {
+    public const DEFAULT_INTEGER_VALUE_ZERO = 0;
+    public const DEFAULT_INTEGER_VALUE_ONE = 1;
+    public const USER_TYPE_SUPER_ADMIN = 'Super Admin';
+
     /**
      * @var Module
      */
     private Module $module;
 
     /**
-     * ModulesServices constructor.
-     * @param Module $module
+     * Constructor method.
+     * 
+     * @param Module $module Instance of the Module class.
+     * 
+     * @return void
      */
-    public function __construct(Module $module)
+    public function __construct(
+        Module     $module
+    )
     {
         $this->module = $module;
     }
 
     /**
-     * @return mixed
+     * Returns a list of super admin module | company module permission based on the given search request.
+     * 
+     * @param array $request The search request parameters.
+     * @return mixed Returns an array list of super admin module | company module permission based on the given search request.
      */
     public function dropDown($request): mixed
     {
-        if(isset($request['user_type']) && $request['user_type'] == 'Super Admin'){
-            return $this->module->where('status', 1)
-            ->whereNotIn('id', Config::get('services.SUPER_ADMIN_MODULES'))
-            ->where('feature_flag', 0)
-            ->select('id', 'module_name')
-            ->get();
-        }else{
-            return $this->module::join('company_module_permission', function ($join) use ($request) {
-                $join->on('company_module_permission.module_id', '=', 'modules.id')
-                     ->where('company_module_permission.company_id', $request['company_id'])
-                     ->whereNull('company_module_permission.deleted_at');
-            })->where('modules.status', 1)
-            ->whereNotIn('modules.id', Config::get('services.SUPER_ADMIN_MODULES'))
-            ->where('modules.feature_flag', 0)
-            ->select('modules.id', 'modules.module_name')
-            ->get();
+        if (isset($request['user_type']) && $request['user_type'] == self::USER_TYPE_SUPER_ADMIN) {
+            return $this->showSuperAdminModule();
+        } else {
+            return $this->showCompanyModulePermission($request);
         }
     }
+
     /**
-     * @return mixed
+     * Returns a list of module based on the given search request.
+     * 
+     * @param array $request The array containing user type.
+     * @return mixed Returns an array is "empty" user type has not allowed. Otherwise, returns a list of module.
      */
     public function featureDropDown($request): mixed
     {
         if($this->isSuperAdminUser($request)) {
-            return $this->module->where('status', 1)
-            ->whereNotIn('id', Config::get('services.SUPER_ADMIN_MODULES'))
-            ->where('feature_flag', 1)
-            ->select('id', 'module_name')
-            ->get();
+            return $this->module->where('status', self::DEFAULT_INTEGER_VALUE_ONE)
+                ->whereNotIn('id', Config::get('services.SUPER_ADMIN_MODULES'))
+                ->where('feature_flag', self::DEFAULT_INTEGER_VALUE_ONE)
+                ->select('id', 'module_name')
+                ->get();
         } 
         return [];
     }
+
     /**
      * Checks if the user is a super admin.
      *
@@ -66,6 +71,38 @@ class ModulesServices
      */
     private function isSuperAdminUser($user): bool
     {
-        return $user['user_type'] == 'Super Admin';
+        return $user['user_type'] == self::USER_TYPE_SUPER_ADMIN;
+    }
+    
+    /**
+     * Show the super admin module.
+     * 
+     * @return mixed Returns the module.
+     */
+    private function showSuperAdminModule()
+    {
+        return $this->module->where('status', self::DEFAULT_INTEGER_VALUE_ONE)
+            ->whereNotIn('id', Config::get('services.SUPER_ADMIN_MODULES'))
+            ->where('feature_flag', self::DEFAULT_INTEGER_VALUE_ZERO)
+            ->select('id', 'module_name')
+            ->get();
+    }
+    
+    /**
+     * Show the company module permission.
+     * 
+     * @param array $request The request data containing company id
+     * @return mixed Returns the company module permission.
+     */
+    private function showCompanyModulePermission($request)
+    {
+        return $this->module::join('company_module_permission', function ($join) use ($request) {
+                $join->on('company_module_permission.module_id', '=', 'modules.id')->where('company_module_permission.company_id', $request['company_id'])->whereNull('company_module_permission.deleted_at');
+            })
+            ->where('modules.status', self::DEFAULT_INTEGER_VALUE_ONE)
+            ->whereNotIn('modules.id', Config::get('services.SUPER_ADMIN_MODULES'))
+            ->where('modules.feature_flag', self::DEFAULT_INTEGER_VALUE_ZERO)
+            ->select('modules.id', 'modules.module_name')
+            ->get();
     }
 }

@@ -14,29 +14,35 @@ use Exception;
 class DirectRecruitmentRepatriationController extends Controller
 {
     /**
-     * @var DirectRecruitmentRepatriationServices
+     * @var DirectRecruitmentRepatriationServices $directRecruitmentRepatriationServices
      */
-    private $directRecruitmentRepatriationServices;
+    private DirectRecruitmentRepatriationServices $directRecruitmentRepatriationServices;
     /**
-     * @var AuthServices
+     * @var AuthServices $authServices
      */
     private AuthServices $authServices;
 
     /**
-     * DirectRecruitmentRepatriationController constructor.
-     * @param DirectRecruitmentRepatriationServices $directRecruitmentRepatriationServices
-     * @param AuthServices $authServices
-     */
-    public function __construct(DirectRecruitmentRepatriationServices $directRecruitmentRepatriationServices, AuthServices $authServices) 
+     * DirectRecruitmentOnboardingCountryController constructor method.
+     * 
+     * @param DirectRecruitmentRepatriationServices $directRecruitmentRepatriationServices The instance of Direct Recruitment repatriation services class
+     * @param AuthServices $authServices The instance of Authservices class
+     */ 
+    public function __construct(
+        DirectRecruitmentRepatriationServices $directRecruitmentRepatriationServices, 
+        AuthServices $authServices
+    ) 
     {
         $this->directRecruitmentRepatriationServices = $directRecruitmentRepatriationServices;
         $this->authServices = $authServices;
     }
+    
     /**
-     * Dispaly list of workers for Repatriation.
+     * Retrieves and returns the list of workers for Repatriation.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The HTTP request object.
+     *
+     * @return JsonResponse The JSON response containing the list of direct recruitment repatriation workers.
      */
     public function workersList(Request $request) : JsonResponse
     {
@@ -46,7 +52,7 @@ class DirectRecruitmentRepatriationController extends Controller
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $params['user'] = $user;
             $response = $this->directRecruitmentRepatriationServices->workersList($params);
-            if(isset($response['error']) && !empty($response['error'])) {
+            if(!empty($response['error'])) {
                 return $this->validationError($response['error']);
             }
             return $this->sendSuccess($response);
@@ -56,10 +62,11 @@ class DirectRecruitmentRepatriationController extends Controller
         }
     }
     /**
-     * Update Purchase Details.
+     * Update the direct recruitment repatriation.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The request object containing the direct recruitment repatriation data.
+     *
+     * @return JsonResponse The JSON response containing the result of the update operation.
      */
     public function updateRepatriation(Request $request) : JsonResponse
     {
@@ -80,10 +87,11 @@ class DirectRecruitmentRepatriationController extends Controller
         }
     }
     /**
-     * Dispaly list of workers for Repatriation export.
+     * Retrieves and returns the list of direct recruitment repatriation workers for export.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The HTTP request object.
+     *
+     * @return JsonResponse The JSON response containing the list of direct recruitment repatriation workers for export.
      */
     public function workersListExport(Request $request) : JsonResponse
     {

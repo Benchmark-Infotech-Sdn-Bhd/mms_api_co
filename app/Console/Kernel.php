@@ -29,12 +29,15 @@ class Kernel extends ConsoleKernel
     ];
 
     /**
-     * Define the application's command schedule.
+     * Schedule the commands to run.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+     * This method is used to schedule various commands to run at specific intervals using the given `$schedule` object.
+     *
+     * @param Schedule $schedule The scheduler object used to schedule commands.
+     *
      * @return void
      */
-    protected function schedule(Schedule $schedule)
+    protected function schedule(Schedule $schedule): void
     {
         $schedule->command('command:XeroRefreshToken '.Config::get('services.SUB_DOMAIN_DB_NAME_ONE'))->everyFifteenMinutes()->withoutOverlapping();
         $schedule->command('command:XeroGetTaxRates '.Config::get('services.SUB_DOMAIN_DB_NAME_ONE'))->everySixHours();

@@ -16,7 +16,10 @@ class ServiceServices
 
     /**
      * ServiceServices constructor.
+     * 
      * @param Services $services
+     * 
+     * @return void
      */
     public function __construct(Services $services)
     {
@@ -24,15 +27,19 @@ class ServiceServices
     }
 
     /**
+     * List the service
+     * 
      * @param $request
-     * @return mixed
+     * 
+     * @return mixed Returns the paginated list of service.
      */
     public function list($request): mixed
     {
-        return $this->services->where('status', 1)
+        return $this->services->where('status', self::ACTIVE_STATUS)
                 ->where(function ($query) use ($request) {
-                    if(isset($request['search']) && !empty($request['search'])) {
-                        $query->where('service_name', 'like', '%'.$request['search'].'%');
+                    $search = $request['search'] ?? '';
+                    if(!empty($search)) {
+                        $query->where('service_name', 'like', '%'.$search.'%');
                     }
                 })
                 ->select('id', 'service_name', 'status')
