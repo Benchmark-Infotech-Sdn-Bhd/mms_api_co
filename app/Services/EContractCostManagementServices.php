@@ -83,6 +83,12 @@ class EContractCostManagementServices
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];
 
+        if(!($this->validationServices->validate($request->toArray(),$this->CreateValidation()))){
+            return [
+              'validate' => $this->validationServices->errors()
+            ];
+        }
+        
         $projectData = $this->eContractProject
         ->join('e-contract_applications', function($query) use($user) {
             $query->on('e-contract_applications.id','=','e-contract_project.application_id')
@@ -94,12 +100,6 @@ class EContractCostManagementServices
         if(is_null($projectData)){
             return [
                 'unauthorizedError' => 'Unauthorized'
-            ];
-        }
-
-        if(!($this->validationServices->validate($request->toArray(),$this->CreateValidation()))){
-            return [
-              'validate' => $this->validationServices->errors()
             ];
         }
 

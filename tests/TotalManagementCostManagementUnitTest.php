@@ -83,7 +83,7 @@ class TotalManagementCostManagementUnitTest extends TestCase
     public function testFortotalManagementCostManagementDelete(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/totalManagement/costManagement/create', $this->creationData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/totalManagement/costManagement/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/totalManagement/costManagement/delete', ['id' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
@@ -155,10 +155,38 @@ class TotalManagementCostManagementUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
+        $payload =  [
+            'name' => 'VendorOne',
+            'type' => 'Transportation',
+            'email_address' => 'vendorone@gmail.com',
+            'contact_number' => 1234567890,
+            'person_in_charge' => 'test',
+            'pic_contact_number' => 1232134234,
+            'address' => 'test',
+            'state' => 'test',
+            'city' => 'test',
+            'postcode' => 45353,
+            'remarks' => 'test'
+        ];  
+        $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
+
+        $payload =  [
+            'driver_name' => 'TransOne',
+            'driver_contact_number' => 1234567899,
+            'vehicle_type' => 'test',
+            'number_plate' => '1234',
+            'vehicle_capacity' => 4,
+            'vendor_id' => 1,
+            "driver_email" => 'testdrive@gmail.com',
+            'file_url' => 'test'
+        ];  
+        $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
+
         $payload = [
             'employee_name' => 'Test', 
             'gender' => 'Female', 
@@ -175,7 +203,8 @@ class TotalManagementCostManagementUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -211,19 +240,15 @@ class TotalManagementCostManagementUnitTest extends TestCase
 
         $payload = [
             'id' => 1, 
-            'company_name' => 'ABC Firm', 
-            'contact_number' => '768456948', 
-            'email' => 'testcrm@gmail.com', 
-            'pic_name' => 'PICTest', 
-            'sector' => 1, 
+            'prospect_service_id' => 1, 
             'from_existing' => 0, 
             'client_quota' => 10, 
-            'fomnext_quota' => 10, 
-            'initial_quota' => 1, 
-            'service_quota' => 1
+            'fomnext_quota' => 10,
+            'initial_quota' => NULL,
+            'service_quota' => NULL
         ];
-        $this->json('POST', 'api/v1/totalManagement/addService', $payload, $this->getHeader(false));
-
+        $this->json('POST', 'api/v1/totalManagement/allocateQuota', $payload, $this->getHeader(false));
+        
         $payload = [
             "application_id" => 1,
             "name" => "test name",
@@ -231,6 +256,8 @@ class TotalManagementCostManagementUnitTest extends TestCase
             "city" => "city test",
             "address" => "test address",
             "employee_id" => 1,
+            "supervisor_id" => 1,
+            "supervisor_type" => "employee",
             "transportation_provider_id" => 1,
             "driver_id" => 1,
             "assign_as_supervisor" => 0,

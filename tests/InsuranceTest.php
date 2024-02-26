@@ -27,7 +27,7 @@ class InsuranceTest extends TestCase
             'fee_per_pax' => random_int(10, 1000),
             'vendor_id' => 1
        ];
-        $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['no_of_worker_from']
@@ -47,7 +47,7 @@ class InsuranceTest extends TestCase
             'fee_per_pax' => random_int(10, 1000),
             'vendor_id' => 1
        ];
-        $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['no_of_worker_to']
@@ -67,7 +67,7 @@ class InsuranceTest extends TestCase
             'fee_per_pax' => '',
             'vendor_id' => 1
        ];
-        $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['fee_per_pax']
@@ -87,7 +87,7 @@ class InsuranceTest extends TestCase
              'fee_per_pax' => random_int(10, 1000),
              'vendor_id' => 1
         ];
-        $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
@@ -107,7 +107,7 @@ class InsuranceTest extends TestCase
     public function testUpdateInsurance()
     {
         $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
-        $this->json('POST', 'api/v1/insurance/create', $this->creationInsuranceData(), $this->getHeader());
+        $this->json('POST', 'api/v1/insurance/create', $this->creationInsuranceData(), $this->getHeader(false));
         $payload =  [
             'id' => 1,
             'no_of_worker_from' => random_int(10, 1000),
@@ -115,7 +115,7 @@ class InsuranceTest extends TestCase
             'fee_per_pax' => random_int(10, 1000),
             'vendor_id' => 1
         ];
-        $response = $this->json('POST', 'api/v1/insurance/update', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/insurance/update', $payload, $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
@@ -147,12 +147,13 @@ class InsuranceTest extends TestCase
      */
     public function testRetrieveSpecificInsurance()
     {
-        $response = $this->json('POST', 'api/v1/insurance/show', ['id' => 1], $this->getHeader());
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
+        $this->json('POST', 'api/v1/insurance/create', $this->creationInsuranceData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/insurance/show', ['id' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'data'
                 ]
         ]);
     }

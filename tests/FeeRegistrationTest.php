@@ -109,13 +109,18 @@ class FeeRegistrationTest extends TestCase
     public function testCreateFeeRegistration()
     {
         $payload =  [
+            'sector_name' => 'Agriculture',
+            'sub_sector_name' => 'Agriculture'
+        ];  
+        $this->json('POST', 'api/v1/sector/create', $payload, $this->getHeader());
+        $payload =  [
              'item_name' => 'Uplabs',
              'cost' => '15',
              'fee_type' => 'Proposal',
              'applicable_for' => [1,2,3],
-             'sectors' => [1,2,3],
+             'sectors' => [1],
         ];
-        $response = $this->json('POST', 'api/v1/feeRegistration/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/feeRegistration/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>

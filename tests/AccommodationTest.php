@@ -31,7 +31,7 @@ class AccommodationTest extends TestCase
             'tnb_bill_account_Number' => random_int(10, 1000),
             'water_bill_account_Number' => random_int(10, 1000),
        ];
-        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['name']
@@ -55,7 +55,7 @@ class AccommodationTest extends TestCase
             'tnb_bill_account_Number' => random_int(10, 1000),
             'water_bill_account_Number' => random_int(10, 1000),
        ];
-        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['location']
@@ -79,7 +79,7 @@ class AccommodationTest extends TestCase
             'tnb_bill_account_Number' => random_int(10, 1000),
             'water_bill_account_Number' => random_int(10, 1000),
        ];
-        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['maximum_pax_per_unit']
@@ -103,7 +103,7 @@ class AccommodationTest extends TestCase
             'tnb_bill_account_Number' => random_int(10, 1000),
             'water_bill_account_Number' => random_int(10, 1000),
        ];
-        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['deposit']
@@ -127,7 +127,7 @@ class AccommodationTest extends TestCase
             'tnb_bill_account_Number' => random_int(10, 1000),
             'water_bill_account_Number' => random_int(10, 1000),
        ];
-        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['rent_per_month']
@@ -151,7 +151,7 @@ class AccommodationTest extends TestCase
             'tnb_bill_account_Number' => '',
             'water_bill_account_Number' => random_int(10, 1000),
        ];
-        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['tnb_bill_account_Number']
@@ -175,7 +175,7 @@ class AccommodationTest extends TestCase
             'tnb_bill_account_Number' => random_int(10, 1000),
             'water_bill_account_Number' => '',
        ];
-        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
         $this->response->assertJsonStructure([
             'data' => ['water_bill_account_Number']
@@ -199,7 +199,7 @@ class AccommodationTest extends TestCase
              'tnb_bill_account_Number' => random_int(10, 1000),
              'water_bill_account_Number' => random_int(10, 1000),
         ];
-        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/accommodation/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
@@ -223,7 +223,7 @@ class AccommodationTest extends TestCase
     public function testUpdateAccommodation()
     {
         $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
-        $this->json('POST', 'api/v1/accommodation/create',  $this->creationAccommodationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/accommodation/create',  $this->creationAccommodationData(), $this->getHeader(false));
         $payload =  [
             'id' => 1,
             'name' => 'test',
@@ -235,7 +235,7 @@ class AccommodationTest extends TestCase
             'tnb_bill_account_Number' => random_int(10, 1000),
             'water_bill_account_Number' => random_int(10, 1000),
         ];
-        $response = $this->json('POST', 'api/v1/accommodation/update', $payload, $this->getHeader());
+        $response = $this->json('POST', 'api/v1/accommodation/update', $payload, $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>
@@ -272,7 +272,6 @@ class AccommodationTest extends TestCase
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'data'
                 ],
         ]);
     }

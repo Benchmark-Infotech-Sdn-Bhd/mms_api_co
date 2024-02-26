@@ -268,7 +268,7 @@ class CRMServices
                 'error' => $validator->errors()
             ];
         }
-       
+
         $prospect  = $this->crmProspect->create([
             'company_name'                  => $request['company_name'] ?? '',
             'roc_number'                    => $request['roc_number'] ?? '',

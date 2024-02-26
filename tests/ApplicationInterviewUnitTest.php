@@ -25,7 +25,7 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewCreationApplicationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -42,7 +42,7 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewCreationKsmReferenceNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['ksm_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['ksm_reference_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -59,7 +59,7 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewCreationScheduleDateRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['schedule_date' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['schedule_date' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -76,7 +76,7 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewCreationStatusRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['status' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['status' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -93,7 +93,7 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewCreationScheduleDateFormatTypeValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['schedule_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['schedule_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -110,7 +110,7 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewCreationSchedulePastDateTypeValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['schedule_date' => Carbon::now()->subDays(1)->format('Y-m-d')]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationInterview/create', array_merge($this->creationData(), ['schedule_date' => Carbon::now()->subDays(1)->format('Y-m-d')]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -127,7 +127,7 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewCreation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Application Interview Details Created Successfully']
@@ -142,8 +142,8 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewCreationKsmReferenceNumberUniqueValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -160,7 +160,7 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewUpdationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -177,8 +177,8 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewUpdationApplicationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['application_id' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['application_id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -195,8 +195,8 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewUpdationKsmReferenceNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['ksm_reference_number' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['ksm_reference_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -213,8 +213,8 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewUpdationScheduleDateRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['schedule_date' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['schedule_date' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -231,8 +231,8 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewUpdationStatusRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['status' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['status' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -249,8 +249,8 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewUpdationScheduleDateFormatTypeValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['schedule_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader());
+        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['schedule_date' => Carbon::now()->format('d-m-Y')]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -267,8 +267,8 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewUpdationSchedulePastDateTypeValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['schedule_date' => Carbon::now()->subDays(1)->format('Y-m-d')]), $this->getHeader());
+        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['schedule_date' => Carbon::now()->subDays(1)->format('Y-m-d')]), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -285,8 +285,8 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewUpdationQuotaValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['approved_quota' => 100]), $this->getHeader());
+        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/applicationInterview/update', array_merge($this->updationData(), ['approved_quota' => 100]), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'The number of quota cannot exceed the FWCMS Quota']
@@ -301,8 +301,8 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testForApplicationInterviewUpdation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/update', $this->updationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/applicationInterview/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Application Interview Details Updated Successfully']
@@ -317,8 +317,8 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testToDisplayApplicationInterviewDetails(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/show', ['id' => 1], $this->getHeader());
+        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/applicationInterview/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' => [
@@ -342,8 +342,8 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testToListApplicationInterviewDetails(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/applicationInterview/list', ['application_id' => 1], $this->getHeader());
+        $this->json('POST', 'api/v1/applicationInterview/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/applicationInterview/list', ['application_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -373,7 +373,7 @@ class ApplicationInterviewUnitTest extends TestCase
     public function testToListApplicationInterviewDropdownKsmReferenceNumber(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationInterview/dropdownKsmReferenceNumber', ['id' => 1, 'application_type' => 'INTERVIEW'], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationInterview/dropdownKsmReferenceNumber', ['id' => 1, 'application_type' => 'INTERVIEW'], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data'

@@ -180,7 +180,7 @@ class InvoiceItemsTempTest extends TestCase
     public function testForListingInvoiceItemsTempWithSearch(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/invoiceItemsTemp/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/invoiceItemsTemp/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/invoiceItemsTemp/list', ['search_param' => ''], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
@@ -210,7 +210,7 @@ class InvoiceItemsTempTest extends TestCase
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/invoiceItemsTemp/create', $this->creationData(), $this->getHeader(false)); 
 
-        $response = $this->json('POST', 'api/v1/invoiceItemsTemp/show', ['id' => ''], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/invoiceItemsTemp/show', ['id' => ''], $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [
