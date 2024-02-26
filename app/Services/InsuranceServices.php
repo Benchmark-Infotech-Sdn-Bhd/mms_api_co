@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Services; 
 
 use App\Models\Insurance;
@@ -21,32 +20,38 @@ class InsuranceServices
      */
     private Vendor $vendor;
 
-    public function __construct(Insurance $insurance, Vendor $vendor)
+    public function __construct(
+        Insurance     $insurance,
+        Vendor        $vendor
+    )
     {
         $this->insurance = $insurance;
         $this->vendor = $vendor;
     }
+
     /**
      * @param $request
      * @return mixed | void
      */
     public function inputValidation($request)
     {
-        if(!($this->insurance->validate($request->all()))){
+        if (!($this->insurance->validate($request->all()))) {
             return $this->insurance->errors();
         }
     }
+
     /**
      * @param $request
      * @return mixed | void
      */
     public function updateValidation($request)
     {
-        if(!($this->insurance->validateUpdation($request->all()))){
+        if (!($this->insurance->validateUpdation($request->all()))) {
             return $this->insurance->errors();
         }
     }
-	 /**
+
+	/**
      *
      * @param $request
      * @return mixed
@@ -58,7 +63,7 @@ class InsuranceServices
         ->where('company_id', $request['company_id'])
         ->find($request['vendor_id']);
 
-        if(is_null($vendor)){
+        if (is_null($vendor)) {
             return [
                 'unauthorizedError' => 'Unauthorized'
             ];
@@ -73,6 +78,7 @@ class InsuranceServices
             'created_by' => $request["created_by"],
         ]);
     }
+
     /**
      * @param $request
      * @return mixed
@@ -99,7 +105,8 @@ class InsuranceServices
         ->orderBy('insurance.created_at','DESC')
         ->paginate(Config::get('services.paginate_row'));
     }
-	 /**
+	
+    /**
      *
      * @param $request
      * @return mixed
@@ -114,7 +121,8 @@ class InsuranceServices
         ->select('insurance.id', 'insurance.no_of_worker_from', 'insurance.no_of_worker_to', 'insurance.fee_per_pax', 'insurance.vendor_id', 'insurance.created_by', 'insurance.modified_by', 'insurance.created_at', 'insurance.updated_at', 'insurance.deleted_at')
         ->find($request['id']);
     }
-	 /**
+	
+    /**
      *
      * @param $request
      * @return mixed
@@ -128,7 +136,7 @@ class InsuranceServices
         })
         ->select('insurance.id', 'insurance.no_of_worker_from', 'insurance.no_of_worker_to', 'insurance.fee_per_pax', 'insurance.vendor_id', 'insurance.created_by', 'insurance.modified_by', 'insurance.created_at', 'insurance.updated_at', 'insurance.deleted_at')
         ->find($request['id']);
-        if(is_null($data)){
+        if (is_null($data)) {
             return [
                 "isDeleted" => false,
                 "message" => "Data not found"
@@ -142,7 +150,8 @@ class InsuranceServices
             "message" => "Updated Successfully"
         ];
     }
-	 /**
+	
+    /**
      *
      * @param $request
      * @return mixed
@@ -156,12 +165,13 @@ class InsuranceServices
         })
         ->select('insurance.id', 'insurance.no_of_worker_from', 'insurance.no_of_worker_to', 'insurance.fee_per_pax', 'insurance.vendor_id', 'insurance.created_by', 'insurance.modified_by', 'insurance.created_at', 'insurance.updated_at', 'insurance.deleted_at')
         ->find($request['id']);
-        if(is_null($data)){
+        if (is_null($data)) {
             return [
                 "isDeleted" => false,
                 "message" => "Data not found"
             ];
         }
+
         return [
             "isDeleted" => $data->delete(),
             "message" => "Deleted Successfully"

@@ -20,34 +20,42 @@ class CompanyServices
      * @var Company
      */
     private Company $company;
+
     /**
      * @var CompanyAttachments
      */
     private CompanyAttachments $companyAttachments;
+
     /**
      * @var UserCompany
      */
     private $userCompany;
+
     /**
      * @var User
      */
     private User $user;
+
     /**
      * @var feeRegistration
      */
     private FeeRegistration $feeRegistration;
+
     /**
      * @var companyModulePermission
      */
     private CompanyModulePermission $companyModulePermission;
+
     /**
      * @var Storage
      */
     private Storage $storage;
+
     /**
      * @var RolePermission
      */
     private RolePermission $rolePermission;
+
     /**
      * @var XeroSettings
      */
@@ -65,7 +73,17 @@ class CompanyServices
      * @param RolePermission $rolePermission
      * @param XeroSettings $xeroSettings
      */
-    public function __construct(Company $company, CompanyAttachments $companyAttachments, UserCompany $userCompany, User $user, FeeRegistration $feeRegistration, Storage $storage, CompanyModulePermission $companyModulePermission, RolePermission $rolePermission, XeroSettings $xeroSettings) 
+    public function __construct(
+        Company $company,
+        CompanyAttachments $companyAttachments,
+        UserCompany $userCompany,
+        User $user,
+        FeeRegistration $feeRegistration,
+        Storage $storage,
+        CompanyModulePermission $companyModulePermission,
+        RolePermission $rolePermission,
+        XeroSettings $xeroSettings
+    ) 
     {
         $this->company = $company;
         $this->companyAttachments = $companyAttachments;
@@ -77,6 +95,7 @@ class CompanyServices
         $this->rolePermission = $rolePermission;
         $this->xeroSettings = $xeroSettings;
     }
+
     /**
      * @return array
      */
@@ -87,6 +106,7 @@ class CompanyServices
             'modules' => 'required'
         ];
     }
+
     /**
      * @return array
      */
@@ -97,6 +117,7 @@ class CompanyServices
             'features' => 'required'
         ];
     }
+
     public function accountSystemUpdateValidation(): array
     {
         return [
@@ -104,6 +125,7 @@ class CompanyServices
             'title' => 'required'
         ];
     }
+
     /**
      * @return array
      */
@@ -114,6 +136,7 @@ class CompanyServices
             'title' => 'required'
         ];
     }
+
     /**
      * Creates the validation rules for updating the ZOHO Account of a company.
      *
@@ -133,6 +156,7 @@ class CompanyServices
             'redirect_url' => 'required'
         ];
     }
+
     /**
      * Creates the validation rules for updating the XERO Account of a company.
      *
@@ -151,6 +175,7 @@ class CompanyServices
             'refresh_token' => 'required'
         ];
     }
+
     /**
      * @param $request
      * @return mixed
@@ -167,6 +192,7 @@ class CompanyServices
             ->orderBy('id', 'desc')
             ->paginate(Config::get('services.paginate_row'));
     }
+
     /**
      * @param $request
      * @return mixed
@@ -175,6 +201,7 @@ class CompanyServices
     {
         return $this->company->with('attachments')->findOrFail($request['id']);
     }
+
     /**
      * @param $request
      * @return bool|array
@@ -182,11 +209,12 @@ class CompanyServices
     public function create($request): bool|array
     {
         $validator = Validator::make($request->toArray(), $this->company->rules);
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
         $companyDetails = $this->company->create([
             'company_name' => $request['company_name'] ?? '',
             'register_number' => $request['register_number'] ?? '',
@@ -200,9 +228,11 @@ class CompanyServices
             'created_by' => $request['created_by'] ?? 0,
             'modified_by' => $request['created_by'] ?? 0
         ]);
-        if(isset($request['parent_id']) && !empty($request['parent_id'])) {
+
+        if (isset($request['parent_id']) && !empty($request['parent_id'])) {
             $this->company->where('id', $request['parent_id'])->update(['parent_flag' => 1]);
         }
+
         foreach(Config::get('services.STANDARD_FEE_NAMES') as $index => $fee ) {
             $this->feeRegistration::create([
                 'item_name' => $fee, 
@@ -212,6 +242,7 @@ class CompanyServices
                 'company_id' => $companyDetails->id
             ]);
         }
+
         if (request()->hasFile('attachment') && isset($companyDetails->id)) {
             foreach($request->file('attachment') as $file) {                
                 $fileName = $file->getClientOriginalName();                 
@@ -235,6 +266,7 @@ class CompanyServices
         }
         return true;
     }
+
     /**
      * @param $request
      * @return bool|array
@@ -242,11 +274,12 @@ class CompanyServices
     public function update($request): bool|array
     {
         $validator = Validator::make($request->toArray(), $this->company->updationRules($request['id']));
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
         $company = $this->company->findOrFail($request['id']);
         $company->company_name = $request['company_name'] ?? $company->company_name;
         $company->register_number = $request['register_number'] ?? $company->register_number;
@@ -281,6 +314,7 @@ class CompanyServices
 
         return true;
     }
+
     /**
      * @param $request
      * @return bool
@@ -293,6 +327,7 @@ class CompanyServices
         $company->save();
         return true;
     }
+
     /**
      * @param $request
      * @return mixed
@@ -306,6 +341,7 @@ class CompanyServices
             ->select('id', 'company_name')
             ->get();
     }
+
     /**
      * @param $request
      * @return bool
@@ -313,13 +349,16 @@ class CompanyServices
     public function assignSubsidiary($request): bool
     {
         $this->company->whereIn('id', $request['subsidiary_company'])
-        ->update([
-            'parent_id' => $request['parent_company_id'],
-            'modified_by' => $request['modified_by']
-        ]);
+            ->update([
+                'parent_id' => $request['parent_company_id'],
+                'modified_by' => $request['modified_by']
+            ]);
+
         $this->company->where('id', $request['parent_company_id'])->update(['parent_flag' => 1]);
+
         return true;
     }
+
     /**
      * @param $request
      * @return mixed
@@ -331,6 +370,7 @@ class CompanyServices
             ->select('id', 'company_name')
             ->get();
     }
+
     /**
      * @param $request
      * @return mixed
@@ -338,13 +378,14 @@ class CompanyServices
     public function listUserCompany($request): mixed
     {
         return $this->userCompany
-                ->with(['company' => function ($query) {
-                    $query->select(['id', 'company_name']);
-                }])
-                ->where('user_id', $request['user_id'])
-                ->select('company_id')
-                ->get();
+            ->with(['company' => function ($query) {
+                $query->select(['id', 'company_name']);
+            }])
+            ->where('user_id', $request['user_id'])
+            ->select('company_id')
+            ->get();
     }
+
     /**
      * @param $request
      * @return mixed
@@ -353,34 +394,36 @@ class CompanyServices
     {
         $companyDetail = $this->company->find($request['current_company_id']);
         $newCompanyDetail = $this->company->find($request['company_id']);
-        if($companyDetail->parent_flag == 1) {
+        if ($companyDetail->parent_flag == 1) {
             $subsidiaryCompanyIds = $this->company->where('parent_id', $request['current_company_id'])
                                 ->select('id')
                                 ->get()->toArray();
             $subsidiaryCompanyIds = array_column($subsidiaryCompanyIds, 'id');
-            if(!in_array($request['company_id'], $subsidiaryCompanyIds)) {
+            if (!in_array($request['company_id'], $subsidiaryCompanyIds)) {
                 return [
                     'InvalidUser' => true
                 ];
             }
-        } else if($companyDetail->parent_flag == 0 && $newCompanyDetail->parent_flag == 0) {
-            if(is_null($newCompanyDetail) || $newCompanyDetail->parent_id != $companyDetail->parent_id) {
+        } else if ($companyDetail->parent_flag == 0 && $newCompanyDetail->parent_flag == 0) {
+            if (is_null($newCompanyDetail) || $newCompanyDetail->parent_id != $companyDetail->parent_id) {
                 return [
                     'InvalidUser' => true
                 ];
             }
-        } else if($companyDetail->parent_flag == 0 && $newCompanyDetail->parent_flag == 1) {
-            if(is_null($newCompanyDetail) || $request['company_id'] != $companyDetail->parent_id) {
+        } else if ($companyDetail->parent_flag == 0 && $newCompanyDetail->parent_flag == 1) {
+            if (is_null($newCompanyDetail) || $request['company_id'] != $companyDetail->parent_id) {
                 return [
                     'InvalidUser' => true
                 ];
             }
         }
+
         $userDetails = $this->user->findOrFail($request['user_id']);
         $userDetails->company_id = $request['company_id'] ?? $userDetails->company_id;
         $userDetails->save();
         return true;
     }
+
     /**
      * @param $request
      * @return mixed
@@ -392,6 +435,7 @@ class CompanyServices
             ->select('id', 'company_name')
             ->get();
     }
+
     /**
      * @param $request
      * @return mixed
@@ -403,6 +447,7 @@ class CompanyServices
             ->select('id', 'company_name')
             ->get();
     }
+
     /**
      *
      * @param $request
@@ -411,12 +456,14 @@ class CompanyServices
     public function deleteAttachment($request): bool
     {   
         $data = $this->companyAttachments->find($request['attachment_id']);
-        if(is_null($data)) {
+        if (is_null($data)) {
             return false;
         }
         $data->delete();
+
         return true;
     }
+
     /**
      * @param $request
      * @return mixed
@@ -429,6 +476,7 @@ class CompanyServices
             ->select('modules.id', 'modules.module_name', 'company_module_permission.id as company_module_permission_id')
             ->get();
     }
+
     /**
      * @param $request
      * @return bool|array
@@ -436,30 +484,33 @@ class CompanyServices
     public function assignModule($request): bool|array
     {
         $validator = Validator::make($request, $this->assignModuleValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
         $serviceCheck = $this->checkForServiceModules($request['modules']);
         $invoiceCheck = $this->checkForInvoiceModule($request['modules']);
-        if($serviceCheck != $invoiceCheck) {
+        if ($serviceCheck != $invoiceCheck) {
             return [
                 'invoiceError' => true
             ];
         }
+
         $existingModules = $this->companyModulePermission->where('company_id', $request['company_id'])
-                            ->select('module_id')
-                            ->get()
-                            ->toArray();
+            ->select('module_id')
+            ->get()
+            ->toArray();
         $existingModules = array_column($existingModules, 'module_id');
         $diffModules = array_diff($existingModules,$request['modules']);
 
         $this->companyModulePermission
-        ->join('modules', 'modules.id', 'company_module_permission.module_id')
-        ->where('company_module_permission.company_id', $request['company_id'])
-        ->where('modules.feature_flag', 0)
-        ->delete();
+            ->join('modules', 'modules.id', 'company_module_permission.module_id')
+            ->where('company_module_permission.company_id', $request['company_id'])
+            ->where('modules.feature_flag', 0)
+            ->delete();
+
         foreach ($request['modules'] as $moduleId) {
             $this->companyModulePermission->create([
                 'company_id'    => $request['company_id'],
@@ -470,11 +521,13 @@ class CompanyServices
         }
 
         $this->rolePermission->join('roles', 'roles.id', 'role_permission.role_id')
-        ->where('roles.company_id', $request['company_id'])
-        ->whereIn('role_permission.module_id', $diffModules)
-        ->delete();
+            ->where('roles.company_id', $request['company_id'])
+            ->whereIn('role_permission.module_id', $diffModules)
+            ->delete();
+
         return true;
     }
+
     /**
      * returns the features owned by a particular company
      * 
@@ -489,6 +542,7 @@ class CompanyServices
             ->select('modules.id', 'modules.module_name as feature_name', 'company_module_permission.id as company_feature_permission_id')
             ->get();
     }
+
     /**
      * @param $request
      * @return bool|array
@@ -496,16 +550,17 @@ class CompanyServices
     public function assignFeature($request): bool|array
     {
         $validator = Validator::make($request, $this->assignFeatureValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
         $this->companyModulePermission
-        ->join('modules', 'modules.id', 'company_module_permission.module_id')
-        ->where('company_module_permission.company_id', $request['company_id'])
-        ->where('modules.feature_flag', 1)
-        ->delete();
+            ->join('modules', 'modules.id', 'company_module_permission.module_id')
+            ->where('company_module_permission.company_id', $request['company_id'])
+            ->where('modules.feature_flag', 1)
+            ->delete();
 
         foreach ($request['features'] as $featureId) {
             $this->companyModulePermission->create([
@@ -515,8 +570,10 @@ class CompanyServices
                 'modified_by'   => $request['created_by'] ?? 0
             ]);   
         }
+
         return true;
     }
+
     /*
      * list the account system title list.
      *
@@ -526,6 +583,7 @@ class CompanyServices
     {
         return Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE');
     }
+
     /**
      * show a account system.
      *
@@ -539,6 +597,7 @@ class CompanyServices
             ->select('id', 'title', 'url', 'client_id', 'client_secret', 'tenant_id', 'access_token', 'refresh_token', 'redirect_url', 'remarks')
             ->get();
     }
+
     /**
      * updte a account system.
      *
@@ -550,25 +609,29 @@ class CompanyServices
     public function accountSystemUpdate($request): mixed
     {
         $validator = Validator::make($request, $this->accountSystemUpdateValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
         $settingsTitle = Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE');
         if (!in_array($request['title'], $settingsTitle)) {
             return [
                 'InvalidTitle' => true
             ];
         }
-        if($request['title'] == Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE')[0]) {
+
+        if ($request['title'] == Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE')[0]) {
             $validationResult = $this->validateXEROAccountRequest($request);
-        } else if($request['title'] == Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE')[1]) {
+        } else if ($request['title'] == Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE')[1]) {
             $validationResult = $this->validateZOHOAccountRequest($request);
         }
+
         if (is_array($validationResult)) {
             return $validationResult;
         }
+
         $this->xeroSettings->updateOrCreate(
             [
                 'company_id' => $request['company_id'],
@@ -587,8 +650,10 @@ class CompanyServices
                 'modified_by'   => $request['created_by'] ?? 0
             ]
         );
+
         return true;
     }
+
     /**
      * delete a account system.
      *
@@ -598,13 +663,15 @@ class CompanyServices
     public function accountSystemDelete($request): bool|array
     {   
         $validator = Validator::make($request, $this->accountSystemDeleteValidation());
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
         return $this->xeroSettings->where('company_id', $request['company_id'])->where('title', $request['title'])->delete();
     }
+
     /**
      * Checks if the modules array contains any of the service modules
      *
@@ -616,6 +683,7 @@ class CompanyServices
     {
         return !empty(array_intersect($modules, Config::get('services.SERVICES_MODULES')));
     }
+
     /**
      * Checks if the modules array contains invoice module
      *
@@ -627,6 +695,7 @@ class CompanyServices
     {
         return in_array(Config::get('services.INVOICE_MODULE_ID'), $modules);
     }
+
     /**
      * Validate the given request data for updating ZOHO Account.
      *
@@ -641,8 +710,10 @@ class CompanyServices
                 'error' => $validator->errors()
             ];
         }
+
         return true;
     }
+
     /**
      * Validate the given request data for updating ZOHO Account.
      *
@@ -657,6 +728,7 @@ class CompanyServices
                 'error' => $validator->errors()
             ];
         }
+
         return true;
     }
 }
