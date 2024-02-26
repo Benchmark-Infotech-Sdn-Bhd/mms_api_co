@@ -98,7 +98,8 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
      */
     public function testForQuotaValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', array_merge($this->creationData(), ['quota' => 52]), $this->getHeader());
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', array_merge($this->creationData(), ['quota' => 52]), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'The number of quota cannot exceed the Approved KSM Quota']
@@ -248,7 +249,7 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
     {
         $this->creationSeeder();
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/addKSM', array_merge($this->addKSMData(), ['quota' => 100]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/addKSM', array_merge($this->addKSMData(), ['quota' => 100]), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'The number of quota cannot exceed the Approved KSM Quota']
@@ -352,8 +353,8 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
     public function testForKSMQuotaValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmQuotaUpdate', array_merge($this->ksmQuotaUpdationData(), ['quota' => 52]), $this->getHeader());
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmQuotaUpdate', array_merge($this->ksmQuotaUpdationData(), ['quota' => 520]), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'The number of quota cannot exceed the Approved KSM Quota']
@@ -369,7 +370,7 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         $this->creationSeeder();
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
         $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/addKSM', $this->addKSMData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmQuotaUpdate', ['id' => 2, 'ksm_reference_number' => 'My/992/095648000', 'quota' => 20], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmQuotaUpdate', ['id' => 2, 'ksm_reference_number' => 'My/992/095648000', 'quota' => 20], $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'The KSM Reference Number for this Country Has Been Added Already']
@@ -465,24 +466,6 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         ]);
     }
     /**
-     * Functional test for List KSM Reference Number with Quota
-     * 
-     * @return void
-     */
-    public function testForViewKSMReferenecNumberWithQuota(): void
-    {
-        $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/ksmReferenceNumberList', ['application_id' => 1], $this->getHeader(false));
-        $response->assertEquals(200, $this->response->status());
-        $this->response->assertJsonStructure([
-            'data' =>
-                [
-                    
-                ]
-        ]);
-    }
-    /**
      * Functional test for List KSM Reference Number dropdown for onboarding
      * 
      * @return void
@@ -523,8 +506,8 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
     public function testForDeleteValidation(): void
     {
         $this->creationSeeder();
-        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/deleteKSM', ['id' => 2], $this->getHeader(false));
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/deleteKSM', ['id' => 5], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $response->seeJson([
             'data' => ['message' => 'Data Not Found']

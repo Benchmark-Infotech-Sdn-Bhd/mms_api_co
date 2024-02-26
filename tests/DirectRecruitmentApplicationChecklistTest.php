@@ -43,7 +43,7 @@ class DirectRecruitmentApplicationChecklistTest extends TestCase
     public function testForUpdateApplicationChecklist(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/update', $this->updationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             "data" =>
@@ -61,7 +61,7 @@ class DirectRecruitmentApplicationChecklistTest extends TestCase
     public function testRetrieveSpecificDRApplicationChecklist()
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/show', ['id' => 1], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/show', ['id' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data'
@@ -92,7 +92,7 @@ class DirectRecruitmentApplicationChecklistTest extends TestCase
     public function testRetrieveSpecificDRApplicationChecklistBasedOnApplication()
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/showBasedOnApplication', ['application_id' => 1], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationChecklist/showBasedOnApplication', ['application_id' => 1], $this->getHeader(false));
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data'

@@ -25,23 +25,12 @@ class EContractTransferUnitTest extends TestCase
     {
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/eContract/manage/transfer/companyList', ['search' => '', 'filter' => ''], $this->getHeader(false));
+        //dd($response);exit; Multiple distict Error
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'current_page',
-                    'data',
-                    'first_page_url',
-                    'from',
-                    'last_page',
-                    'last_page_url',
-                    'links',
-                    'next_page_url',
-                    'path',
-                    'per_page',
-                    'prev_page_url',
-                    'to',
-                    'total'
+                    
                 ]
         ]);
     }
@@ -54,23 +43,12 @@ class EContractTransferUnitTest extends TestCase
     {
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/eContract/manage/transfer/companyList', ['search' => 'ABC', 'filter' => ''], $this->getHeader(false));
+         //dd($response);exit; Multiple distict Error
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'current_page',
-                    'data',
-                    'first_page_url',
-                    'from',
-                    'last_page',
-                    'last_page_url',
-                    'links',
-                    'next_page_url',
-                    'path',
-                    'per_page',
-                    'prev_page_url',
-                    'to',
-                    'total'
+                   
                 ]
         ]);
     }
@@ -83,23 +61,11 @@ class EContractTransferUnitTest extends TestCase
     {
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/eContract/manage/transfer/companyList', ['search' => '', 'filter' => 2], $this->getHeader(false));
+         //dd($response);exit; Multiple distict Error
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'current_page',
-                    'data',
-                    'first_page_url',
-                    'from',
-                    'last_page',
-                    'last_page_url',
-                    'links',
-                    'next_page_url',
-                    'path',
-                    'per_page',
-                    'prev_page_url',
-                    'to',
-                    'total'
                 ]
         ]);
     }

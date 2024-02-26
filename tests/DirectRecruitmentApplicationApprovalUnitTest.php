@@ -24,7 +24,7 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalCreationApplicationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -40,7 +40,7 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalCreationReceivedDateRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['received_date' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['received_date' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -56,7 +56,7 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalCreationValidUntilDateRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['valid_until' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['valid_until' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -72,7 +72,7 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalCreationKMSReferenceNumberRequiredValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['ksm_reference_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['ksm_reference_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -88,7 +88,7 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalCreationReceivedDateFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['received_date' => '05-05-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['received_date' => '05-05-2023']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -104,7 +104,7 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalCreationValidUntilDateFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['valid_until' => '05-05-2023']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', array_merge($this->creationData(), ['valid_until' => '05-05-2023']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -120,7 +120,7 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalCreation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Approval Details Added Successfully']
@@ -134,8 +134,8 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalUpdationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -152,8 +152,8 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalUpdationApplicationIdRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['application_id' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['application_id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -169,8 +169,8 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalUpdationReceivedDateRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['received_date' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['received_date' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -186,8 +186,8 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalUpdationValidUntilDateRequiredValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['valid_until' => '']), $this->getHeader());
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['valid_until' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -203,8 +203,8 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalUpdationReceivedDateFormatValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['received_date' => '05-05-2023']), $this->getHeader());
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['received_date' => '05-05-2023']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -220,8 +220,8 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalUpdationValidUntilDateFormatValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['valid_until' => '05-05-2023']), $this->getHeader());
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', array_merge($this->updationData(), ['valid_until' => '05-05-2023']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -237,8 +237,8 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testForApprovalUpdation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', $this->updationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/update', $this->updationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Approval Details Updated Successfully']
@@ -252,8 +252,8 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testToDisplayApprovalDetails(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/show', ['id' => 1], $this->getHeader());
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/show', ['id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' => [
@@ -278,8 +278,8 @@ class DirectRecruitmentApplicationApprovalUnitTest extends TestCase
     public function testToListApprovalDetails(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/list', ['application_id' => 1], $this->getHeader());
+        $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitmentApplicationApproval/list', ['application_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>

@@ -265,7 +265,7 @@ class DirectRecruitmentExpensesTest extends TestCase
     public function testForListingExpensesWithSearch(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/directRecrutmentExpenses/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/directRecrutmentExpenses/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/directRecrutmentExpenses/list', ['search_param' => ''], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
@@ -283,7 +283,7 @@ class DirectRecruitmentExpensesTest extends TestCase
         $this->creationSeeder();
         $response = $this->json('POST', 'api/v1/directRecrutmentExpenses/create', $this->creationData(), $this->getHeader(false)); 
 
-        $response = $this->json('POST', 'api/v1/directRecrutmentExpenses/show', ['id' => ''], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecrutmentExpenses/show', ['id' => ''], $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             "data" => [

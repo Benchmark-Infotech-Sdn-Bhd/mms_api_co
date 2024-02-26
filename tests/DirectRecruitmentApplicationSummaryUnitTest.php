@@ -24,7 +24,7 @@ class DirectRecruitmentApplicationSummaryUnitTest extends TestCase
     public function testToListApplicationSummary(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationSummary/list', ['application_id' => 1], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationSummary/list', ['application_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -53,7 +53,7 @@ class DirectRecruitmentApplicationSummaryUnitTest extends TestCase
     public function testToListApplicationSummarybyksm(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationSummary/list', ['application_id' => 1, 'ksm_reference_number' => 'My/643/7684548'], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationSummary/list', ['application_id' => 1, 'ksm_reference_number' => 'My/643/7684548'], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -82,7 +82,7 @@ class DirectRecruitmentApplicationSummaryUnitTest extends TestCase
     public function testToListApplicationSummaryKsmReferenceNumber(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/applicationSummary/listKsmReferenceNumber', ['application_id' => 1], $this->getHeader());
+        $response = $this->json('POST', 'api/v1/applicationSummary/listKsmReferenceNumber', ['application_id' => 1], $this->getHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data'

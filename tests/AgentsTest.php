@@ -395,7 +395,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['id' => '','agent_name' => '', 'country_id' => '', 'city' => '', 'person_in_charge' => '',
         'pic_contact_number' => '', 'email_address' => '', 'company_address' => '']), $this->getHeader(false));
@@ -450,7 +450,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationAgentNameValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['agent_name' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -470,7 +470,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationCountryIdValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['country_id' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -490,7 +490,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationPICValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['person_in_charge' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -510,7 +510,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationPicContactValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['pic_contact_number' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -530,7 +530,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationEmailValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['email_address' => '']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -550,8 +550,8 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationEmailDuplicationValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationDuplicateEmailData(), $this->getHeader());
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationDuplicateEmailData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['id' => 2,'email_address' => 'testduplicate@gmail.com']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -571,7 +571,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationAgentNameMinMaxFieldValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['agent_name' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiuery sdjrkwiherihwijerhtwrt ']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -591,7 +591,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationCityMinMaxFieldValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['city' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -611,7 +611,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationPICMinMaxFieldValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['person_in_charge' => 'ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiueryhui iueygriueyiuyieruyhiu ieuhyriueywhiu iueyiruyeiwutyiurw iuyeriu ASGUYGY uiayegrieiriue aiuytweitywiuerytiy AHIUGIUFGRIU igsritgitgirgthsdnvidjshfiuery sdrter retyeyt etyuetesardkejjrkererrrrre']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -631,7 +631,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationPICContactMinMaxFieldValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['pic_contact_number' => '9834736453465']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -651,7 +651,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationAgentNameFieldFormatValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['agent_name' => '12323Aer r4']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -671,7 +671,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationCityFieldFormatValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['city' => '12334@34fg r']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -691,7 +691,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationPICContactNumberFieldFormatValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['pic_contact_number' => 'ABC']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -711,7 +711,7 @@ class AgentsTest extends TestCase
     public function testForAgentUpdationEmailFieldFormatValidation(): void
     {
         $this->creationSeeder();
-        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader());
+        $this->json('POST', 'api/v1/agent/create', $this->creationData(), $this->getHeader(false));
         $response = $this->json('POST', 'api/v1/agent/update', array_merge($this->updationData(),
         ['email_address' => 'test']), $this->getHeader(false));
         $response->seeStatusCode(422);
@@ -924,7 +924,7 @@ class AgentsTest extends TestCase
      */
     public function creationSeeder(): void
     {
-        $this->artisan("db:seed --class=unit_testing_company");
+        // $this->artisan("db:seed --class=unit_testing_company");
         $payload = [
             "country_name" => "India",
             "system_type" => "Embassy",

@@ -132,7 +132,7 @@ class TotalManagementWorkerEventUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'departure_date' => ["The departure date does not match the format Y-m-d.","The departure date is not a valid date.","The departure date must be a date after yesterday."]
+                'departure_date' => ["The departure date does not match the format Y-m-d.","The departure date is not a valid date."]
             ]
         ]);
     }
@@ -266,7 +266,7 @@ class TotalManagementWorkerEventUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'departure_date' => ["The departure date does not match the format Y-m-d.","The departure date is not a valid date.","The departure date must be a date after yesterday."]
+                'departure_date' => ["The departure date does not match the format Y-m-d.","The departure date is not a valid date."]
             ]
         ]);
     }
@@ -410,7 +410,7 @@ class TotalManagementWorkerEventUnitTest extends TestCase
             'name' => 'HR',
             'special_permission' => 0
         ];
-        $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
+        $res = $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
         $payload = [
             'employee_name' => 'Test', 

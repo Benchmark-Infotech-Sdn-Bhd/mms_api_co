@@ -173,6 +173,13 @@ class EContractExpensesServices
      */
     public function create($request): bool|array
     {
+        $validator = Validator::make($request->toArray(), $this->createValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        
         $user = JWTAuth::parseToken()->authenticate();
         $applicationData = $this->eContractApplications->where('e-contract_applications.company_id', $user['company_id'])
         ->select('e-contract_applications.id')
@@ -197,12 +204,6 @@ class EContractExpensesServices
             ];
         }
 
-        $validator = Validator::make($request->toArray(), $this->createValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
-        }
         $params = $request->all();
         $user = JWTAuth::parseToken()->authenticate();
         $params['created_by'] = $user['id'];

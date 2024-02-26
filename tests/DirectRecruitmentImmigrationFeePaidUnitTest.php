@@ -100,7 +100,8 @@ class DirectRecruitmentImmigrationFeePaidUnitTest extends TestCase
         $this->json('POST', 'api/v1/branch/create', $payload, $this->getHeader());
 
         $payload =  [
-            'name' => 'HR'
+            'name' => 'HR',
+            'special_permission' => 0
         ];
         $this->json('POST', 'api/v1/role/create', $payload, $this->getHeader(false));
        
@@ -120,7 +121,8 @@ class DirectRecruitmentImmigrationFeePaidUnitTest extends TestCase
             'salary' => 67.00, 
             'status' => 1, 
             'city' => 'ABC', 
-            'state' => 'Malaysia'
+            'state' => 'Malaysia',
+            'subsidiary_companies' => []
         ];
         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
 
@@ -342,7 +344,7 @@ class DirectRecruitmentImmigrationFeePaidUnitTest extends TestCase
             "immigration_reference_number" => 123456789,
             "payment_date" => Carbon::now()->format('Y-m-d'),
             "attachment[]" => "/C:/Users/admin/Desktop/Accounting.png",
-            "workers"=> '1'
+            "workers"=> "1"
         ];
     }
 }

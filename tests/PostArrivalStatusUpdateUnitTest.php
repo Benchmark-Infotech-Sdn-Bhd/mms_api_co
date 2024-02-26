@@ -279,7 +279,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
     public function testForPostArrivalDetailsUpdate(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', $this->arrivedData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostArrival', $this->arrivedData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Post Arrival Details Updated Successfully']
@@ -293,7 +293,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
     public function testForJTKSubmissionDateUpdate(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateJTKSubmission', $this->jtkSubmissionData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateJTKSubmission', $this->jtkSubmissionData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'JDK Submission Updated Successfully']
@@ -307,7 +307,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
     public function testForPostArrivalCancellation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateCancellation', $this->cancellationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updateCancellation', $this->cancellationData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Cancellation Updated Successfully']
@@ -321,7 +321,7 @@ class PostArrivalStatusUpdateUnitTest extends TestCase
     public function testForPostponedDetailsUpdate(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostponed', $this->postponedData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/postArrival/arrival/updatePostponed', $this->postponedData(), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Postponed Status Updated Successfully']

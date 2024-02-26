@@ -168,7 +168,7 @@ class UserProfileUnitTest extends TestCase
     public function testForEmployeeUserProfileUpdateCityFormatValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['city' => 'City6456&&']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/user/updateUser', array_merge($this->employeeUpdationData(), ['city' => 'City6456&&']), $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
