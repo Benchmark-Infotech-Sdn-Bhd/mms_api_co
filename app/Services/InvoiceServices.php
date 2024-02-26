@@ -90,7 +90,7 @@ class InvoiceServices
         $this->authServices = $authServices;
         $this->services = [
             'XERO' => $this->xeroServices,
-            'ZOHO' => new $this->zohoServices,
+            'ZOHO' => $this->zohoServices,
         ];
     }
 
