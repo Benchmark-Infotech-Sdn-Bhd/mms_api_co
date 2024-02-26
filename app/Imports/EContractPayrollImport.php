@@ -15,13 +15,13 @@ class EContractPayrollImport implements ToModel, WithChunkReading, WithHeadingRo
 {
     protected const CHUNK_ROW = 250;
     private mixed $parameters;
-    private string $bulkUpload;
+    private mixed $bulkUpload;
 
     /**
      * Create a new job instance.
      *
      * @param $parameters
-     * @param string $bulkUpload
+     * @param mixed $bulkUpload
      */
     public function __construct($parameters, $bulkUpload = '')
     {

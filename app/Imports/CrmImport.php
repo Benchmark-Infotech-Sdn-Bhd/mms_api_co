@@ -64,6 +64,23 @@ class CrmImport implements ToModel, WithChunkReading, WithHeadingRow
     }
 
     /**
+     * Create a credential object.
+     *
+     * @param mixed $id The ID of the service.
+     * @param string $name The type of the service.
+     *
+     * @return stdClass The created credential object.
+     */
+    private function createProspectServiceObject($id, $name)
+    {
+        $credential = new stdClass();
+        $credential->service_id = $id;
+        $credential->service_name = $name;
+
+        return $credential;
+    }
+
+    /**
      * Models a row of data and creates a CRM object.
      *
      * @param array $row The array containing the row data.
@@ -76,7 +93,7 @@ class CrmImport implements ToModel, WithChunkReading, WithHeadingRow
             Log::info('Row Data', $row);
 
             // Create prospectService
-            $prospectService[0] = $this->createCredentialObject(0, Config::get('services.CRM_MODULE_TYPE')[$row['service_type'] - 1], $row['service_type'], null);
+            $prospectService[0] = $this->createProspectServiceObject($row['service_type'], Config::get('services.CRM_MODULE_TYPE')[$row['service_type'] - 1]);
 
             // Create loginCredential using loop
             for ($i = 0; $i < 7; $i++) {
@@ -84,9 +101,30 @@ class CrmImport implements ToModel, WithChunkReading, WithHeadingRow
             }
 
             // Desired keys from $row
-            $desiredKeys = ['company_name', 'contract_type', 'roc_number', 'director_name', 'contact_number', 'email', 'address', 'pic_name', 'pic_contact_number', 'designation', 'registered_by', 'sector_type', 'bank_acc_name', 'bank_acc_number', 'tax_id_number', 'created_by', 'modified_by', 'fomnext_company_name'];
+            //$desiredKeys = ['company_name', 'contract_type', 'roc_number', 'director_name', 'contact_number', 'email', 'address', 'pic_name', 'pic_contact_number', 'designation', 'registered_by', 'sector_type', 'bank_acc_name', 'bank_acc_number', 'tax_id_number', 'created_by', 'modified_by', 'fomnext_company_name'];
             // Required parameters for Request object
-            $parameters = array_intersect_key($row, array_flip($desiredKeys));
+            //$parameters = array_intersect_key($row, array_flip($desiredKeys));
+            $parameters['company_name'] = $row['company_name'];
+            $parameters['contract_type'] = $row['contract_type'];
+            $parameters['roc_number'] = $row['roc_number'];
+            $parameters['director_or_owner'] = $row['director_name'];
+            $parameters['contact_number'] = $row['contact_number'];
+            $parameters['email'] = $row['email'];                        
+            $parameters['address'] = $row['address'];
+            $parameters['pic_name'] = $row['pic_name'];
+            $parameters['pic_contact_number'] = $row['pic_contact_number'];
+            $parameters['pic_designation'] = $row['designation'];
+            $parameters['registered_by'] = $row['registered_by'];
+            $parameters['sector_type'] = $row['sector_type'];
+
+            $parameters['bank_account_name'] = $row['bank_acc_name'];
+            $parameters['bank_account_number'] = $row['bank_acc_number'];
+            $parameters['tax_id'] = $row['tax_id_number'];
+
+            $parameters['created_by'] = $row['created_by'] ?? 0;
+            $parameters['modified_by'] = $row['modified_by'] ?? 0;
+            $parameters['company_id'] = $row['fomnext_company_name'];
+
             $parameters['prospect_service'] = json_encode($prospectService);
             $parameters['login_credential'] = json_encode($loginCredential);
 
@@ -94,7 +132,7 @@ class CrmImport implements ToModel, WithChunkReading, WithHeadingRow
 
             Log::info('data', $crmParameter->toArray());
             $return = $this->crmServices->create($crmParameter);
-            Log::info('data', $return);
+            //Log::info('data', $return);
         } catch (Exception $exception) {
             Log::error('Error', ['message' => $exception->getMessage()]);
         }

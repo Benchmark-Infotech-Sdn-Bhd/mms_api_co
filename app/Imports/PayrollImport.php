@@ -15,13 +15,13 @@ class PayrollImport implements ToModel, WithChunkReading, WithHeadingRow
 {
     protected const CHUNK_ROW = 250;
     private mixed $parameters;
-    private string $bulkUpload;
+    private mixed $bulkUpload;
 
     /**
      * Create a new job instance.
      *
      * @param $parameters
-     * @param string $bulkUpload
+     * @param mixed $bulkUpload
      */
     public function __construct($parameters, $bulkUpload = '')
     {
@@ -59,12 +59,13 @@ class PayrollImport implements ToModel, WithChunkReading, WithHeadingRow
     {
         return [
             'project_id' => $this->parameters['project_id'],
+            'company_id' => $this->parameters['company_id'],
             'name' => $row['name'] ?? '',
             'passport_number' => $row['passport_number'] ?? '',
             'department' => $row['department'] ?? '',
             'bank_account' => $row['bank_account'] ?? '',
-            'month' => $row['month'] ?? 0,
-            'year' => $row['year'] ?? 0,
+            'month' => $row['month'] ?? '',
+            'year' => $row['year'] ?? '',
             'basic_salary' => $row['basic_salary'] ?? 0,
             'ot_1_5' => $row['ot_at_15'] ?? 0,
             'ot_2_0' => $row['ot_at_20'] ?? 0,

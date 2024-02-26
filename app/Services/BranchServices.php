@@ -99,8 +99,10 @@ class BranchServices
      */
     public function create($request): mixed
     {
+        
         $user = JWTAuth::parseToken()->authenticate();
         $request['created_by'] = $user['id'];
+        $request['company_id'] = $user['company_id'];
 
         $branchData = $this->createBranch($request);
         $this->attachServicesToBranch($request['service_type'], $branchData->id);
@@ -124,7 +126,7 @@ class BranchServices
      *
      * @return Branch The newly created branch object.
      */
-    private function createBranch(array $request): Branch
+    private function createBranch($request): Branch
     {
         $branchData = [
             'branch_name' => $request["branch_name"],
@@ -231,7 +233,7 @@ class BranchServices
         }
 
         return [
-            "isUpdated" => $branchData->update($requestData),
+            "isUpdated" => $branchData->update($requestData->toArray()),
             "message" => "Updated Successfully"
         ];
     }
