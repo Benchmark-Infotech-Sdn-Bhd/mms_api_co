@@ -12,10 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('services', function (Blueprint $table) {
+            if (DB::getDriverName() !== 'sqlite') {
+                // Column for module id
+                $table->bigInteger('module_id')->unsigned()->after('status');
+                // Foreign key from module table
+                $table->foreign('module_id')->references('id')->on('modules')->onDelete('cascade');
+            }
             // Column for module id
-            $table->bigInteger('module_id')->unsigned()->after('status');
-            // Foreign key from module table
-            $table->foreign('module_id')->references('id')->on('modules')->onDelete('cascade');
+            $table->bigInteger('module_id')->default(0)->unsigned()->after('status');
         });
     }
 
