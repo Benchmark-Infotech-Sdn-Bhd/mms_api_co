@@ -115,6 +115,43 @@ class CompanyServices
         ];
     }
     /**
+     * Creates the validation rules for updating the ZOHO Account of a company.
+     *
+     * @return array The array containing the validation rules.
+     */
+    public function zohoAccountUpdateValidation(): array
+    {
+        return [
+            'company_id' => 'required',
+            'title' => 'required',
+            'url' => 'required',
+            'client_id' => 'required',
+            'client_secret' => 'required',
+            'tenant_id' => 'required',
+            'access_token' => 'required',
+            'refresh_token' => 'required',
+            'redirect_url' => 'required'
+        ];
+    }
+    /**
+     * Creates the validation rules for updating the XERO Account of a company.
+     *
+     * @return array The array containing the validation rules.
+     */
+    public function xeroAccountUpdateValidation(): array
+    {
+        return [
+            'company_id' => 'required',
+            'title' => 'required',
+            'url' => 'required',
+            'client_id' => 'required',
+            'client_secret' => 'required',
+            'tenant_id' => 'required',
+            'access_token' => 'required',
+            'refresh_token' => 'required'
+        ];
+    }
+    /**
      * @param $request
      * @return mixed
      */
@@ -404,6 +441,13 @@ class CompanyServices
                 'error' => $validator->errors()
             ];
         }
+        $serviceCheck = $this->checkForServiceModules($request['modules']);
+        $invoiceCheck = $this->checkForInvoiceModule($request['modules']);
+        if($serviceCheck != $invoiceCheck) {
+            return [
+                'invoiceError' => true
+            ];
+        }
         $existingModules = $this->companyModulePermission->where('company_id', $request['company_id'])
                             ->select('module_id')
                             ->get()
@@ -492,7 +536,6 @@ class CompanyServices
     {
         return $this->xeroSettings
             ->where('company_id', $request['company_id'])
-            ->where('title', $request['title'])
             ->select('id', 'title', 'url', 'client_id', 'client_secret', 'tenant_id', 'access_token', 'refresh_token', 'redirect_url', 'remarks')
             ->get();
     }
@@ -518,7 +561,14 @@ class CompanyServices
                 'InvalidTitle' => true
             ];
         }
-
+        if($request['title'] == Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE')[0]) {
+            $validationResult = $this->validateXEROAccountRequest($request);
+        } else if($request['title'] == Config::get('services.COMPANY_ACCOUNT_SYSTEM_TITLE')[1]) {
+            $validationResult = $this->validateZOHOAccountRequest($request);
+        }
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
         $this->xeroSettings->updateOrCreate(
             [
                 'company_id' => $request['company_id'],
@@ -554,5 +604,59 @@ class CompanyServices
             ];
         }
         return $this->xeroSettings->where('company_id', $request['company_id'])->where('title', $request['title'])->delete();
+    }
+    /**
+     * Checks if the modules array contains any of the service modules
+     *
+     * @param array $modules array of modules which are assigned to the Company
+     *
+     * @return boolean Returns true if the modules array contains service modules, otherwise false
+     */
+    private function checkForServiceModules($modules)
+    {
+        return !empty(array_intersect($modules, Config::get('services.SERVICES_MODULES')));
+    }
+    /**
+     * Checks if the modules array contains invoice module
+     *
+     * @param array $modules array of modules which are assigned to the Company
+     *
+     * @return boolean Returns true if the modules array contains invoice module, otherwise false
+     */
+    private function checkForInvoiceModule($modules)
+    {
+        return in_array(Config::get('services.INVOICE_MODULE_ID'), $modules);
+    }
+    /**
+     * Validate the given request data for updating ZOHO Account.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
+    private function validateZOHOAccountRequest($request): array|bool
+    {
+        $validator = Validator::make($request, $this->zohoAccountUpdateValidation());
+        if ($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        return true;
+    }
+    /**
+     * Validate the given request data for updating ZOHO Account.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails. | Returns true if validation passes.
+     */
+    private function validateXEROAccountRequest($request): array|bool
+    {
+        $validator = Validator::make($request, $this->xeroAccountUpdateValidation());
+        if ($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+        return true;
     }
 }

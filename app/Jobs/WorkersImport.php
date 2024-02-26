@@ -19,6 +19,7 @@ use App\Models\WorkerStatus;
 use App\Models\OnboardingCountriesKSMReferenceNumber;
 use App\Models\Levy;
 use App\Services\ManageWorkersServices;
+use App\Services\DatabaseConnectionServices;
 use App\Models\Agent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -26,9 +27,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 
-
 class WorkersImport extends Job
 {
+    private $dbName;
     private $parameters;
     private $bulkUpload;
     private $workerParameter;
@@ -37,13 +38,15 @@ class WorkersImport extends Job
     /**
      * Create a new job instance.
      *
+     * @param $dbName
      * @param $workerParameter
      * @param $parameters
      * @param $bulkUpload
      * @param $workerNonMandatory
      */
-    public function __construct($workerParameter, $bulkUpload, $workerNonMandatory)
+    public function __construct($dbName, $workerParameter, $bulkUpload, $workerNonMandatory)
     {
+        $this->dbName = $dbName;
         $this->workerParameter = $workerParameter;
         $this->bulkUpload = $bulkUpload;
         $this->workerNonMandatory = $workerNonMandatory;
@@ -78,13 +81,15 @@ class WorkersImport extends Job
     /**
      * Execute the job.
      *
-     * @param ManageWorkersServices $manageWorkersServices
+     * @param DatabaseConnectionServices $databaseConnectionServices
      * @return void
      * @throws \JsonException
      */
-    public function handle(ManageWorkersServices $manageWorkersServices): void
+    public function handle(DatabaseConnectionServices $databaseConnectionServices): void
     { 
 
+        Log::info('Worker insert - started '.$this->dbName);
+        $databaseConnectionServices->dbConnectQueue($this->dbName);
         Log::info('Worker insert - started ');
 
         $comments = '';
@@ -147,7 +152,7 @@ class WorkersImport extends Job
             $ksmError = 0; 
             if(isset($ksmReferenceNumbers) && !empty($ksmReferenceNumbers)){
                 if(!in_array($this->workerParameter['ksm_reference_number'], $ksmReferenceNumbers)){
-                    Log::info('Row Data - KSM Reference Number Error - ' . print_r($workerRelationship->id, true));   
+                    Log::info('Row Data - KSM Reference Number Error - ');   
                     $ksmError = 1; 
                     $comments .= 'ERROR - KSM Reference Number is mis-matched.';
                 }

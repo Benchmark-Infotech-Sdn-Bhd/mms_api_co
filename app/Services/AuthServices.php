@@ -165,14 +165,15 @@ class AuthServices extends Controller
                 $subRole = $this->role->where('parent_role_id', $request['role_id'])
                         ->where('company_id', $subsidiaryCompany)
                         ->first(['id']);
-
-                    $this->uesrRoleType->create([
-                        'user_id' => $response->id,
-                        'role_id' => $subRole->id,
-                        'status'  => $request['status'] ?? 1,
-                        'created_by' => $request['user_id'] ?? 0,
-                        'modified_by' => $request['user_id'] ?? 0
-                    ]);
+                        if($subRole){
+                            $this->uesrRoleType->create([
+                                'user_id' => $response->id,
+                                'role_id' => $subRole->id,
+                                'status'  => $request['status'] ?? 1,
+                                'created_by' => $request['user_id'] ?? 0,
+                                'modified_by' => $request['user_id'] ?? 0
+                            ]);
+                        }
                 }
             }
             array_push($request['subsidiary_companies'], $request['company_id']);

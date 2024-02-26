@@ -466,6 +466,7 @@ class DirectRecruitmentWorkersServices
         ->where('directrecruitment_workers.agent_id', $request['agent_id'])
         ->where('worker_visa.status', 'Pending')
         ->whereIn('workers.company_id', $request['company_id'])
+        ->whereNull('replaced_for')
         ->where(function ($query) use ($user) {
             if ($user['user_type'] == 'Customer') {
                 $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
@@ -607,11 +608,36 @@ class DirectRecruitmentWorkersServices
             'replace_by' => $user['id'],
             'replace_at' => Carbon::now()->format('Y-m-d H:i:s')
         ]);
+
+        if ($worker) {
+            $this->updateWorkerReplaceDetails($request);
+        }
+
         return  [
             "isUpdated" => $worker,
             "message" => "Updated Successfully"
         ];
     }
+
+    /**
+     * Update the worker replace details
+     *
+     * @param array $request
+     *              worker_id (int) ID of the worker
+     *              replace_worker_id (int) Replaced worker ID
+     *
+     * @return void
+     * 
+     */
+    private function updateWorkerReplaceDetails($request)
+    {
+        $this->workers
+            ->where('id', $request['replace_worker_id'])
+        ->update([
+            'replaced_for' => $request['id']
+        ]);
+    }
+
     /**
      * @param $request
      * @return mixed

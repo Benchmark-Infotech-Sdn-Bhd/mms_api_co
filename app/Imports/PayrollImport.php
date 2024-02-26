@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Illuminate\Support\Facades\Config;
 
 class PayrollImport implements ToModel, WithChunkReading, WithHeadingRow
 {
@@ -42,12 +43,13 @@ class PayrollImport implements ToModel, WithChunkReading, WithHeadingRow
 
                 $payrollParameter = [
                     'project_id' => $this->parameters['project_id'],
+                    'company_id' => $this->parameters['company_id'],
                     'name' => $row['name'] ?? '',
                     'passport_number' => $row['passport_number'] ?? '',
                     'department' => $row['department'] ?? '',
                     'bank_account' => $row['bank_account'] ?? '',
-                    'month' => $row['month'] ?? 0,
-                    'year' => $row['year'] ?? 0,
+                    'month' => $row['month'] ?? '',
+                    'year' => $row['year'] ?? '',
                     'basic_salary' => $row['basic_salary'] ?? 0,
                     'ot_1_5' => $row['ot_at_15'] ?? 0,
                     'ot_2_0' => $row['ot_at_20'] ?? 0,
@@ -75,7 +77,7 @@ class PayrollImport implements ToModel, WithChunkReading, WithHeadingRow
                 ];
                 
                 DB::table('payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-                dispatch(new PayrollsImport($payrollParameter, $this->bulkUpload))->onQueue('payrolls_import')->onConnection('database');
+                dispatch(new PayrollsImport(Config::get('database.connections.mysql.database'), $payrollParameter, $this->bulkUpload))->onQueue(Config::get('services.PAYROLL_IMPORT'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
 
         } catch (\Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));
