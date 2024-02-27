@@ -25,6 +25,7 @@ class unit_testing_user_company_modules extends Seeder
         CompanyModulePermission::create(['id' => 11, 'company_id' => 1, 'module_id' => 11]);  
         CompanyModulePermission::create(['id' => 12, 'company_id' => 1, 'module_id' => 12]);  
         CompanyModulePermission::create(['id' => 13, 'company_id' => 1, 'module_id' => 13]);  
-        CompanyModulePermission::create(['id' => 14, 'company_id' => 1, 'module_id' => 16]);  
+        CompanyModulePermission::create(['id' => 14, 'company_id' => 1, 'module_id' => 16]);
+        CompanyModulePermission::create(['id' => 15, 'company_id' => 1, 'module_id' => 15]);   
     }
 }
