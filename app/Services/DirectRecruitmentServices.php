@@ -570,6 +570,11 @@ class DirectRecruitmentServices
      */
     public function addService($request): bool|array
     {
+        $validationResult = $this->validateAddServicehRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
         $crmCompany = $this->getCrmProspect($request);
         if($crmCompany['company_id'] != $request['company_id']) {
             return [
@@ -577,11 +582,6 @@ class DirectRecruitmentServices
             ];
         }
 
-        $validationResult = $this->validateAddServicehRequest($request);
-        if (is_array($validationResult)) {
-            return $validationResult;
-        }
-        
         $prospectService = $this->createProspectService($request);
 
         $prospectServiceId = $prospectService->id ?? '';

@@ -54,21 +54,33 @@ class AuthController extends Controller
     {
         $credentials = $this->getCredentials($request);
 
-        $this->validateCredentials($credentials);
-
-        if (!$token = Auth::attempt($credentials)) {
-            $this->errorInvalidCredentials();
+        $validationResult = $this->validateCredentials($credentials);
+        if (!empty($validationResult)) {
+            return $validationResult;
         }
 
-        $user = $this->getAuthenticatedUser();
+        if (!$token = Auth::attempt($credentials)) {
+            return $this->errorInvalidCredentials();
+        }
+
+        $user = Auth::user();
+        if(is_null($user)){
+            return $this->sendError(['message' => 'User not found'], 400);
+        }
+        $user = $this->authServices->show(['id' => $user['id']]);
 
         switch (Str::lower($user['user_type'])) {
             case 'employee':
-                $this->validateEmployeeUser($user);
+                $validateUser = $this->validateEmployeeUser($user);
+
                 break;
             case Config::get('services.ROLE_TYPE_ADMIN'):
-                $this->validateAdminUser($user);
+                $validateUser = $this->validateAdminUser($user);
                 break;
+        }
+
+        if (!empty($validateUser)) {
+            return $validateUser;
         }
 
         return $this->respondWithToken($token, $user);
@@ -94,15 +106,16 @@ class AuthController extends Controller
      * Validate user credentials
      * @param array $credentials The user credentials to be validated
      *
-     * @return void
+     * @return array|bool
      */
     private function validateCredentials(array &$credentials)
     {
         $validator = Validator::make($credentials, $this->authServices->loginValidation());
 
         if ($validator->fails()) {
-            $this->validationError($validator->errors());
+            return $this->validationError($validator->errors());
         }
+        return false;
     }
 
     /**
@@ -110,11 +123,11 @@ class AuthController extends Controller
      *
      * Sends a JSON response with the message "Invalid Credentials" and a status code of 400.
      *
-     * @return void
+     * @return array
      */
     private function errorInvalidCredentials()
     {
-        $this->sendError(['message' => 'Invalid Credentials'], 400);
+        return $this->sendError(['message' => 'Invalid Credentials'], 400);
     }
 
     /**
@@ -130,7 +143,7 @@ class AuthController extends Controller
     {
         $user = Auth::user();
         if (is_null($user)) {
-            $this->sendError(['message' => 'User not found'], 400);
+            return $this->sendError(['message' => 'User not found'], 400);
         }
         return $this->authServices->show(['id' => $user['id']]);
     }
@@ -141,16 +154,17 @@ class AuthController extends Controller
      * This method retrieves an employee using the reference ID from the user array, and then checks if the employee is null or inactive. If the employee is null or inactive, it throws an
      * error.
      *
-     * @param array &$user The user array to validate. The reference_id key must be present.
+     * @param object $user The user array to validate. The reference_id key must be present.
      *
-     * @return void
+     * @return array|void
      */
-    private function validateEmployeeUser(array &$user)
+    private function validateEmployeeUser($user)
     {
         $employee = $this->employeeServices->show(['id' => $user['reference_id']]);
         if (is_null($employee) || $this->isEmployeeInactive($employee)) {
-            $this->errorInactiveUser();
+            return $this->errorInactiveUser();
         }
+        return false;
     }
 
     /**
@@ -180,13 +194,14 @@ class AuthController extends Controller
      *
      * @param array &$user The user array to validate. The status key must be present.
      *
-     * @return void
+     * @return array|void
      */
     private function validateAdminUser(array &$user)
     {
         if ($user['status'] == 0) {
-            $this->errorInactiveUser();
+            return $this->errorInactiveUser();
         }
+        return false;
     }
 
     /**
@@ -198,7 +213,7 @@ class AuthController extends Controller
      */
     private function errorInactiveUser()
     {
-        $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
+        return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
     }
 
     /**
