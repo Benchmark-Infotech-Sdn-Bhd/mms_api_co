@@ -5,7 +5,7 @@ namespace Tests;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
-class AdminUserUnitTest extends TestCase
+class UsersUnitTest extends TestCase
 {
     use DatabaseMigrations;
     
