@@ -413,7 +413,7 @@ class DirectRecruitmentPostArrivalFomemaServices
                 'error' => $validator->errors()
             ];
         }
-        $workersIds = explode(',', $request['workers']);
+        $request['workers'] = $workersIds = explode(',', $request['workers']);
 
         if (!empty($workersIds)) {
             $this->validateWorkersAndApplication($request);
