@@ -23,7 +23,7 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyCreationCompanyNameRequiredFieldValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['company_name' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['company_name' => '']), $this->getSuperHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -38,7 +38,7 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyCreationRegisterNumberRequiredFieldValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['register_number' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['register_number' => '']), $this->getSuperHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -53,7 +53,7 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyCreationCountryRequiredFieldValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['country' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['country' => '']), $this->getSuperHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -68,7 +68,7 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyCreationStateRequiredFieldValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['state' => '']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['state' => '']), $this->getSuperHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -83,7 +83,7 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyCreationCompanyNameFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['company_name' => 'TestCompany4683746']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['company_name' => 'TestCompany4683746']), $this->getSuperHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -98,7 +98,7 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyCreationRegisterNumberFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['register_number' => 'SGT748&%&*']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['register_number' => 'SGT748&%&*']), $this->getSuperHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -113,7 +113,7 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyCreationCountryFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['country' => 'India7487']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['country' => 'India7487']), $this->getSuperHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -128,7 +128,7 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyCreationStateFormatValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['state' => 'TamilNadu643874']), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/create', array_merge($this->creationData(), ['state' => 'TamilNadu643874']), $this->getSuperHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -143,7 +143,7 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyCreation(): void
     {
-        $response = $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Company Created Successfully']
@@ -156,8 +156,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyUpdationIdRequiredFieldValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['id' => '']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['id' => '']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -172,8 +172,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyUpdationCompanyNameRequiredFieldValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['company_name' => '']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['company_name' => '']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -188,8 +188,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyUpdationRegisterNumberRequiredFieldValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['register_number' => '']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['register_number' => '']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -204,8 +204,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyUpdationCountryRequiredFieldValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['country' => '']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['country' => '']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -220,8 +220,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyUpdationStateRequiredFieldValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['state' => '']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['state' => '']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -236,8 +236,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyUpdationCompanyNameFormatValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['company_name' => 'TestCompany468374']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['company_name' => 'TestCompany468374']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -252,8 +252,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyUpdationRegisterNumberFormatValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['register_number' => 'SGT748&%&*']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['register_number' => 'SGT748&%&*']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -268,8 +268,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyUpdationCountryFormatValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['country' => 'India7487']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['country' => 'India7487']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -284,8 +284,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyUpdationStateFormatValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['state' => 'TamilNadu643874']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/update', array_merge($this->updationData(), ['state' => 'TamilNadu643874']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -300,8 +300,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyUpdation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/update', $this->updationData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/update', $this->updationData(), $this->getSuperHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Company Updated Successfully']
@@ -314,8 +314,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyStatusUpdation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/updateStatus', ['id' => 1, 'status' => 0], $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/updateStatus', ['id' => 1, 'status' => 0], $this->getSuperHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Company Status Updated Successfully']
@@ -328,8 +328,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompaniesListWithSearch(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/list', ['search' => ''], $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/list', ['search' => ''], $this->getSuperHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -357,8 +357,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyShow(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/show', ['id' => 1], $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/show', ['id' => 1], $this->getSuperHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -386,8 +386,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForSubsidiaryDropdown(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/subsidiaryDropDown', ['current_company_id' => 2], $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/subsidiaryDropDown', ['current_company_id' => 2], $this->getSuperHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -402,8 +402,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForParentDropDown(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/subsidiaryDropDown', [], $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/subsidiaryDropDown', [], $this->getSuperHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -418,8 +418,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForAssignSubsidiary(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/assignSubsidiary', ['subsidiary_company' => [2], 'parent_company_id' => 1], $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/assignSubsidiary', ['subsidiary_company' => [2], 'parent_company_id' => 1], $this->getSuperHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Subsidiary Updated Successfully']
@@ -494,8 +494,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyAssignModuleCompanyIdFieldValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/assignModule', array_merge($this->assignModuleData(), ['company_id' => '']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/assignModule', array_merge($this->assignModuleData(), ['company_id' => '']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -510,8 +510,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyAssignModuleModulesFieldValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/assignModule', array_merge($this->assignModuleData(), ['modules' => '']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/assignModule', array_merge($this->assignModuleData(), ['modules' => '']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -526,8 +526,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyAssignModule(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/assignModule', $this->assignModuleData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/assignModule', $this->assignModuleData(), $this->getSuperHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Module Assigned Successfully']
@@ -540,9 +540,9 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyAssignModuleList(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $this->json('POST', 'api/v1/company/assignModule', $this->assignModuleData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/company/moduleList', ['company_id' => 1], $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $this->json('POST', 'api/v1/company/assignModule', $this->assignModuleData(), $this->getSuperHeader(false));
+        $response = $this->json('POST', 'api/v1/company/moduleList', ['company_id' => 1], $this->getSuperHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
@@ -557,8 +557,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyAssignFeaturesCompanyIdFieldValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/assignFeature', array_merge($this->assignFeatureData(), ['company_id' => '']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/assignFeature', array_merge($this->assignFeatureData(), ['company_id' => '']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -573,8 +573,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyAssignFeaturesFeaturesFieldValidation(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/assignFeature', array_merge($this->assignFeatureData(), ['features' => '']), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/assignFeature', array_merge($this->assignFeatureData(), ['features' => '']), $this->getSuperHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -589,8 +589,8 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyAssignFeature(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $response = $this->json('POST', 'api/v1/company/assignFeature', $this->assignFeatureData(), $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/assignFeature', $this->assignFeatureData(), $this->getSuperHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Feature Assigned Successfully']
@@ -603,9 +603,9 @@ class CompanyUnitTest extends TestCase
      */
     public function testForCompanyAssignFeatureList(): void
     {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
-        $this->json('POST', 'api/v1/company/assignFeature', $this->assignFeatureData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/company/moduleList', ['company_id' => 1], $this->getHeader(false));
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $this->json('POST', 'api/v1/company/assignFeature', $this->assignFeatureData(), $this->getSuperHeader(false));
+        $response = $this->json('POST', 'api/v1/company/moduleList', ['company_id' => 1], $this->getSuperHeader(false));
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data' =>
