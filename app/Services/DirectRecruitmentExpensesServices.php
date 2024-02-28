@@ -224,9 +224,9 @@ class DirectRecruitmentExpensesServices
     public function show($request)
     {
         $user = $this->authenticateUser();
-        $companyIds = $this->getCompanyIdsFromUser($user);
+        $request['company_id'] = $this->getCompanyIdsFromUser($user);
 
-        if (!$this->isValidRequestId($request, $companyIds)) {
+        if (!$this->isValidRequestId($request)) {
             return $this->handleValidationError();
         }
 
@@ -261,9 +261,8 @@ class DirectRecruitmentExpensesServices
      * @param array $companyIds The company IDs.
      * @return bool Returns true if the request ID is valid, false otherwise.
      */
-    private function isValidRequestId($request, $companyIds): bool
+    private function isValidRequestId($request): bool
     {
-        $request['company_id'] = $companyIds;
         return $this->validationServices->validate($request, ['id' => 'required']);
     }
 

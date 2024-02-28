@@ -622,12 +622,14 @@ class NotificationServices
      * @return void
      */
     private function handleAdminUsers($params): void
-    {
-        $adminUsers = $this->getAdminUsers($params['company_id']);
-        foreach ($adminUsers as $user) {
-            $params['user_id'] = $user['id'];
-            $this->insertNotification($params);
-            $this->dispatchNotifications($user, $params['message']);
+    {   
+        if (DB::getDriverName() !== 'sqlite') {
+            $adminUsers = $this->getAdminUsers($params['company_id']);
+            foreach ($adminUsers as $user) {
+                $params['user_id'] = $user['id'];
+                $this->insertNotification($params);
+                $this->dispatchNotifications($user, $params['message']);
+            }
         }
     }
 

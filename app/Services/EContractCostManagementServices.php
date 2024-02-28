@@ -128,16 +128,16 @@ class EContractCostManagementServices
         $request['company_id'] = $user['company_id'];
         $request['created_by'] = $user['id'];
 
+        $validationResult = $this->createValidateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
         $projectData = $this->showEContractProject($request);
         if (is_null($projectData)) {
             return [
                 'unauthorizedError' => self::UNAUTHORIZED_ERROR
             ];
-        }
-
-        $validationResult = $this->createValidateRequest($request);
-        if (is_array($validationResult)) {
-            return $validationResult;
         }
 
         $eContractCostManagement = $this->createEContractCostManagement($request);

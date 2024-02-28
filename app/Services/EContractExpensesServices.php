@@ -214,6 +214,11 @@ class EContractExpensesServices
         $request['company_id'] = $user['company_id'];
         $request['created_by'] = $user['id'];
 
+        $validationResult = $this->createValidateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
         $applicationData = $this->showEContractApplications($request);
         if (is_null($applicationData)) {
             return self::ERROR_UNAUTHORIZED;
@@ -222,11 +227,6 @@ class EContractExpensesServices
         $projectData = $this->showEContractProject($request);
         if (is_null($projectData)) {
             return self::ERROR_UNAUTHORIZED;
-        }
-
-        $validationResult = $this->createValidateRequest($request);
-        if (is_array($validationResult)) {
-            return $validationResult;
         }
 
         $expenses = $this->createEContractExpenses($request);

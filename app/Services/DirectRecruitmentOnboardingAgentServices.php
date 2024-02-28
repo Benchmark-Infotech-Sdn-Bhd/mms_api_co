@@ -253,9 +253,9 @@ class DirectRecruitmentOnboardingAgentServices
     public function updateOnboardingStatus(int $applicationId, int $onboardingCountryId): void
     {
         $onBoardingStatus = [
-            'applicationId' => $applicationId,
-            'countryId' => $onboardingCountryId,
-            'onboardingStatus' => self::ONBOARDING_STATUS //Agent Added
+            'application_id' => $applicationId,
+            'country_id' => $onboardingCountryId,
+            'onboarding_status' => self::ONBOARDING_STATUS //Agent Added
         ];
         $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
     }
@@ -303,7 +303,7 @@ class DirectRecruitmentOnboardingAgentServices
         $onboardingDetails = $this->createDirectRecruitmentOnboardingAgent($request);
         $request['onboarding_agent_id'] = $onboardingDetails['id'];
         $this->directRecruitmentOnboardingAttestationServices->create($request);
-        $this->onboardingStatusUpdate($request[self::REQUEST_APPLICATION_ID], $request[self::REQUEST_ONBOARDING_COUNTRY_ID]);
+        $this->updateOnboardingStatus($request[self::REQUEST_APPLICATION_ID], $request[self::REQUEST_ONBOARDING_COUNTRY_ID]);
         return true;
     }
 
