@@ -54,33 +54,30 @@ class AuthController extends Controller
     {
         $credentials = $this->getCredentials($request);
 
-        $validationResult = $this->validateCredentials($credentials);
-        if (!empty($validationResult)) {
-            return $validationResult;
+        $validator = $this->validateCredentials($credentials);
+        if (!empty($validator)) {
+            return $validator;
         }
 
         if (!$token = Auth::attempt($credentials)) {
-            return $this->errorInvalidCredentials();
+            $isInvalidUser = $this->errorInvalidCredentials();
+            if(!empty($isInvalidUser)) {
+                return $isInvalidUser;
+            }
         }
 
-        $user = Auth::user();
-        if(is_null($user)){
+        $user = $this->getAuthenticatedUser();
+        if(!empty($user['error'])) {
             return $this->sendError(['message' => 'User not found'], 400);
         }
-        $user = $this->authServices->show(['id' => $user['id']]);
-
+        
         switch (Str::lower($user['user_type'])) {
             case 'employee':
-                $validateUser = $this->validateEmployeeUser($user);
-
+                $this->validateEmployeeUser($user);
                 break;
             case Config::get('services.ROLE_TYPE_ADMIN'):
-                $validateUser = $this->validateAdminUser($user);
+                $this->validateAdminUser($user);
                 break;
-        }
-
-        if (!empty($validateUser)) {
-            return $validateUser;
         }
 
         return $this->respondWithToken($token, $user);
@@ -106,16 +103,14 @@ class AuthController extends Controller
      * Validate user credentials
      * @param array $credentials The user credentials to be validated
      *
-     * @return array|bool
+     * @return array|bool if validator fails return validator errors, otherwise true
      */
-    private function validateCredentials(array &$credentials)
+    private function validateCredentials(array $credentials)
     {
         $validator = Validator::make($credentials, $this->authServices->loginValidation());
-
         if ($validator->fails()) {
             return $this->validationError($validator->errors());
         }
-        return false;
     }
 
     /**
@@ -123,7 +118,7 @@ class AuthController extends Controller
      *
      * Sends a JSON response with the message "Invalid Credentials" and a status code of 400.
      *
-     * @return array
+     * @return void
      */
     private function errorInvalidCredentials()
     {
@@ -134,16 +129,18 @@ class AuthController extends Controller
      * Retrieves the authenticated user.
      *
      * This method retrieves the authenticated user by calling the `Auth::user()` function.
-     * If the user is null, it sends an error response with a message indicating that the user was not found.
+     * If the user is null, it sends an error response.
      * Otherwise, it calls the `show` method of the `authServices` object to fetch the details of the user.
      *
-     * @return array The details of the authenticated user.
+     * @return array The details of the authenticated user. otherwise return array containing error
      */
     private function getAuthenticatedUser()
     {
         $user = Auth::user();
         if (is_null($user)) {
-            return $this->sendError(['message' => 'User not found'], 400);
+            return [
+                "error" => true
+            ];
         }
         return $this->authServices->show(['id' => $user['id']]);
     }
@@ -154,17 +151,16 @@ class AuthController extends Controller
      * This method retrieves an employee using the reference ID from the user array, and then checks if the employee is null or inactive. If the employee is null or inactive, it throws an
      * error.
      *
-     * @param object $user The user array to validate. The reference_id key must be present.
+     * @param array &$user The user array to validate. The reference_id key must be present.
      *
-     * @return array|void
+     * @return void
      */
-    private function validateEmployeeUser($user)
+    private function validateEmployeeUser(array &$user)
     {
         $employee = $this->employeeServices->show(['id' => $user['reference_id']]);
         if (is_null($employee) || $this->isEmployeeInactive($employee)) {
-            return $this->errorInactiveUser();
+            $this->errorInactiveUser();
         }
-        return false;
     }
 
     /**
@@ -194,14 +190,13 @@ class AuthController extends Controller
      *
      * @param array &$user The user array to validate. The status key must be present.
      *
-     * @return array|void
+     * @return void
      */
     private function validateAdminUser(array &$user)
     {
         if ($user['status'] == 0) {
-            return $this->errorInactiveUser();
+            $this->errorInactiveUser();
         }
-        return false;
     }
 
     /**
@@ -213,7 +208,7 @@ class AuthController extends Controller
      */
     private function errorInactiveUser()
     {
-        return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
+        $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
     }
 
     /**

@@ -409,7 +409,7 @@ class DirectRecruitmentInsurancePurchaseServices
             if (count($processedVisa) == 1) {
                 $visaCount = $this->workerVisa->where([
                     'status' => 'Processed',
-                    'calling_visa_reference_number' => $workerVisaProcessed[0]['calling_visa_reference_number'] ?? ''
+                    'calling_visa_reference_number' => $processedVisa[0]['calling_visa_reference_number'] ?? ''
                 ])->count('worker_id');
                 if (count($workers) <> $visaCount) {
                     return ['workerCountError' => true];

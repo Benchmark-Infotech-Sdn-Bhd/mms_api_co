@@ -84,7 +84,7 @@ class AccommodationController extends Controller
     {
         try {
             $params = $this->getRequest($request);
-            $response = $this->accommodationServices->show($params);
+            $response = $this->accommodationServices->show($params['id']);
             if (is_null($response)) {
                 return $this->sendError(['message' => 'Unauthorized.']);
             }

@@ -186,10 +186,16 @@ class DirectRecruitmentCallingVisaGenerateServices
      *                      ]
      *
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|Collection The fetched data based on the calling Visa.
+     *              otherwise return array contains validation errors
      */
     public function listBasedOnCallingVisa($request)
     {
-        $this->validateSearch($request);
+        $validator = $this->validateSearch($request);
+            if(!empty($validator['error'])) {
+                return [
+                    'error' => $validator['error']
+                ];
+            }
         $query = $this->buildWorkerDataQuery($request);
         return $this->fetchData($request, $query);
     }
