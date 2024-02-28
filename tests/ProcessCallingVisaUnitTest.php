@@ -230,7 +230,7 @@ class ProcessCallingVisaUnitTest extends TestCase
     public function testForCancellationWorkersListSearchValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/workerListForCancellation', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wo' , 'calling_visa_reference_number' => ''], $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/workerListForCancellation', ['application_id' => 1, 'onboarding_country_id' => 1, 'search' => 'Wo' , 'calling_visa_reference_number' => 'AGTF/7637'], $this->getHeader(false));
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [

@@ -204,6 +204,24 @@ class DirectRecruitmentCallingVisaServices
     }
 
     /**
+     * Validate the given request for search.
+     *
+     * @param array $request [The request data to be validated]
+     *
+     * @return array | void  - An array with the error messages if validation fails,
+     *               otherwise, it returns nothing
+     */
+    private function validateSearchRequest(array $request)
+    {
+        $validator = Validator::make($request, $this->searchValidation());
+        if ($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+    }
+
+    /**
      * Verify if all given workers belong to the specified company.
      *
      * @param array $workers The list of worker IDs
@@ -523,12 +541,18 @@ class DirectRecruitmentCallingVisaServices
      * @param array $request The request parameters.
      *                      - search: The search term for filtering workers list (optional).
      *
-     * @return \Illuminate\Support\Collection|LengthAwarePaginator The list of workers for cancellation.
+     * @return \Illuminate\Support\Collection|LengthAwarePaginator The list of workers for cancellation,
+     *          otherwise return array contains validation errors
      */
     public function workerListForCancellation($request)
     {
         if (!empty($request['search'])) {
-            $this->validateRequest($request);
+            $validator = $this->validateSearchRequest($request);
+            if(!empty($validator['error'])) {
+                return [
+                    'error' => $validator['error']
+                ];
+            }
         }
         $data = $this->getQueryForWorkers($request);
         return $this->applyPaginationOrGet($request, $data);
