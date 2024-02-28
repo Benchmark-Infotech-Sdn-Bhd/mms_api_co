@@ -236,9 +236,9 @@ class AccommodationServices
     /**
      * Get the authenticated user with company ID.
      *
-     * @return array The authenticated user with company ID.
+     * @return object The authenticated user with company ID.
      */
-    private function getAuthenticatedUserWithCompanyId(): array
+    private function getAuthenticatedUserWithCompanyId(): object
     {
         $user = $this->getAuthenticatedUser();
         $user['company_id'] = $this->authServices->getCompanyIds($user);
@@ -248,13 +248,13 @@ class AccommodationServices
     /**
      * Get accommodation with its attachments.
      *
-     * @param array $userWithCompanyId The user with company ID. The array should contain the following keys:
+     * @param object $userWithCompanyId The user with company ID. The object should contain the following keys:
      *                                - company_id: The ID of the company.
      * @param int $id The ID of the accommodation to retrieve.
      *
      * @return mixed The accommodation with attachments.
      */
-    private function getAccommodationWithAttachments(array $userWithCompanyId, int $id): mixed
+    private function getAccommodationWithAttachments(object $userWithCompanyId, int $id): mixed
     {
         return $this->accommodation::with([
             'accommodationAttachments' => function ($query) {
@@ -265,7 +265,7 @@ class AccommodationServices
                 $query->on('vendors.id', '=', 'accommodation.vendor_id')
                     ->whereIn('vendors.company_id', $userWithCompanyId['company_id']);
             })
-            ->select('accommodation.*')
+            ->select('accommodation.id', 'accommodation.name', 'accommodation.location', 'accommodation.maximum_pax_per_unit', 'accommodation.deposit', 'accommodation.rent_per_month', 'accommodation.vendor_id', 'accommodation.tnb_bill_account_Number', 'accommodation.water_bill_account_Number', 'accommodation.created_by', 'accommodation.modified_by', 'accommodation.created_at', 'accommodation.updated_at')
             ->find($id);
     }
 
@@ -298,7 +298,7 @@ class AccommodationServices
         }
 
         return [
-            "isUpdated" => $accommodationData->update($accommodationData),
+            "isUpdated" => $accommodationData->update($request->toArray()),
             "message" => "Updated Successfully"
         ];
     }
@@ -389,9 +389,9 @@ class AccommodationServices
     /**
      * Get the authenticated user.
      *
-     * @return array The authenticated user.
+     * @return object The authenticated user.
      */
-    private function getAuthenticatedUser(): array
+    private function getAuthenticatedUser(): object
     {
         return JWTAuth::parseToken()->authenticate();
     }

@@ -303,7 +303,7 @@ class DirectRecruitmentOnboardingAgentServices
         $onboardingDetails = $this->createDirectRecruitmentOnboardingAgent($request);
         $request['onboarding_agent_id'] = $onboardingDetails['id'];
         $this->directRecruitmentOnboardingAttestationServices->create($request);
-        $this->onboardingStatusUpdate($request[self::REQUEST_APPLICATION_ID], $request[self::REQUEST_ONBOARDING_COUNTRY_ID]);
+        $this->onboardingStatusUpdate($request[self::REQUEST_ONBOARDING_COUNTRY_ID], $request[self::ONBOARDING_STATUS]);
         return true;
     }
 
@@ -546,5 +546,21 @@ class DirectRecruitmentOnboardingAgentServices
                     ->where('directrecruitment_applications.company_id', $companyId);
             })->select('directrecruitment_onboarding_agent.id', 'directrecruitment_onboarding_agent.application_id', 'directrecruitment_onboarding_agent.onboarding_country_id', 'directrecruitment_onboarding_agent.agent_id', 'directrecruitment_onboarding_agent.ksm_reference_number', 'directrecruitment_onboarding_agent.quota', 'directrecruitment_onboarding_agent.status', 'directrecruitment_onboarding_agent.created_by', 'directrecruitment_onboarding_agent.modified_by', 'directrecruitment_onboarding_agent.created_at', 'directrecruitment_onboarding_agent.updated_at', 'directrecruitment_onboarding_agent.deleted_at')
             ->find($onboardingAgentId);
+    }
+
+    /**
+     * updates the onboarding status 
+     * 
+     * @param int $onboardingCountryId - refers the onboarding country id
+     * @param int $onboardingStatus - onboarding status of the particular onboarding country
+     * 
+     * @return bool
+     */
+    public function onboardingStatusUpdate(int $onboardingCountryId, int $onboardingStatus): bool
+    {
+        $onboardingCountry = $this->directRecruitmentOnboardingCountry->find($onboardingCountryId);
+        $onboardingCountry->onboarding_status =  $onboardingStatus;
+        $onboardingCountry->save();
+        return true;
     }
 }

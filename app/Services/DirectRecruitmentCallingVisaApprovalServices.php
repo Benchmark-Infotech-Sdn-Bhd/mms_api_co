@@ -366,7 +366,7 @@ class DirectRecruitmentCallingVisaApprovalServices
     public function workersList($request)
     {
         if (!empty($request['search'])) {
-            $validator = Validator::make($request, ['required|min:3']);
+            $validator = Validator::make($request, ['search' => 'required|min:3']);
             if ($validator->fails()) {
                 return [
                     'error' => $validator->errors()
