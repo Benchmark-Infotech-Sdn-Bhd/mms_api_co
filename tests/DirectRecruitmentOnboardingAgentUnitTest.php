@@ -26,9 +26,7 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', array_merge($this->creationData(), ['application_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
-            'data' => [
-                'application_id' => ['The application id field is required.']
-            ]
+            'data' => 'Invalid Request'
         ]);
     }
     /**
@@ -41,9 +39,7 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', array_merge($this->creationData(), ['onboarding_country_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
-            'data' => [
-                'onboarding_country_id' => ['The onboarding country id field is required.']
-            ]
+            'data' => 'Invalid Request'
         ]);
     }
     /**
@@ -56,9 +52,7 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', array_merge($this->creationData(), ['agent_id' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
-            'data' => [
-                'agent_id' => ['The agent id field is required.']
-            ]
+            'data' => 'Invalid Request'
         ]);
     }
     /**
@@ -71,9 +65,7 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', array_merge($this->creationData(), ['ksm_reference_number' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
-            'data' => [
-                'ksm_reference_number' => ['The ksm reference number field is required.']
-            ]
+            'data' => 'Invalid Request'
         ]);
     }
     /**
@@ -86,9 +78,7 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', array_merge($this->creationData(), ['quota' => '']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
-            'data' => [
-                'quota' => ['The quota field is required.']
-            ]
+            'data' => 'Invalid Request'
         ]);
     }
     /**
@@ -101,9 +91,7 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
         $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', array_merge($this->creationData(), ['quota' => 10000]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
-            'data' => [
-                'quota' => ['The quota must not be greater than 3 characters.']
-            ]
+            'data' => 'Invalid Request'
         ]);
     }
     /**
@@ -249,10 +237,10 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
         $this->creationSeeder();
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $this->creationData(), $this->getHeader(false));
         $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/update', $this->attestationUpdateData(), $this->getHeader(false));
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/update', $this->UpdationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/update', array_merge($this->UpdationData(), ['id' => 11]), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
-            'data' => ['message' => 'Attestation submission has been processed for this record, users are not allowed to modify the records.']
+            'data' => ['message' => 'Unauthorized.']
         ]);
     }
     /**

@@ -10,6 +10,7 @@ use App\Models\OnboardingAttestation;
 use App\Models\OnboardingDispatch;
 use App\Models\OnboardingEmbassy;
 use App\Models\EmbassyAttestationFileCosting;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Carbon\Carbon;
@@ -381,7 +382,7 @@ class DirectRecruitmentOnboardingAttestationServices
             $onboardingAttestation->collection_date = $request['collection_date'];
             $attestationCount = $this->getOnboardingAttestationCollectedCount($onboardingAttestation->application_id, $onboardingAttestation->onboarding_country_id);
             if ($attestationCount == 0) {
-                $this->onboardingStatusUpdate($request[self::REQUEST_APPLICATION_ID], $request[self::REQUEST_ONBOARDING_COUNTRY_ID]);
+                $this->onboardingStatusUpdate($onboardingAttestation->application_id, $onboardingAttestation->onboarding_country_id);
             }
         }
     }
@@ -500,10 +501,12 @@ class DirectRecruitmentOnboardingAttestationServices
         $DatabaseName = Config::get('database.connections.mysql.database');
         $QueueServiceRunnerMail = Config::get('services.RUNNER_NOTIFICATION_MAIL');
         $QueueServiceConnection = Config::get('services.QUEUE_CONNECTION');
-
-        dispatch(new RunnerNotificationMail($DatabaseName, $getUser, $NotificationParams['message']))
-            ->onQueue($QueueServiceRunnerMail)
-            ->onConnection($QueueServiceConnection);
+        
+        if (DB::getDriverName() !== 'sqlite') {
+            dispatch(new RunnerNotificationMail($DatabaseName, $getUser, $NotificationParams['message']))
+                ->onQueue($QueueServiceRunnerMail)
+                ->onConnection($QueueServiceConnection);
+        }
     }
 
     /**
@@ -530,25 +533,26 @@ class DirectRecruitmentOnboardingAttestationServices
      *
      */
     public function updateDispatch($request): bool|array
-    {
-        $attestationCheck = $this->getOnboardingAttestationData($request);
-        if (is_null($attestationCheck)) {
-            return [
-                'InvalidUser' => true
-            ];
-        }
-        $onboardingDispatch = $this->onboardingDispatch->where(
-            'onboarding_attestation_id', $request['onboarding_attestation_id']
-        )->first(['id', 'onboarding_attestation_id', 'date', 'time', 'reference_number', 'employee_id', 'from', 'calltime', 'area', 'employer_name', 'phone_number', 'remarks']);
-
-        $request['reference_number'] = self::REFERENCE_NUMBER_PREFIX . $this->onboardingDispatch->count() + 1;
-
+    {   
         $validator = Validator::make($request, $this->updateDispatchValidation());
         if ($validator->fails()) {
             return [
                 'error' => $validator->errors()
             ];
         }
+
+        $attestationCheck = $this->getOnboardingAttestationData($request);
+        if (is_null($attestationCheck)) {
+            return [
+                'InvalidUser' => true
+            ];
+        }
+        
+        $onboardingDispatch = $this->onboardingDispatch->where(
+            'onboarding_attestation_id', $request['onboarding_attestation_id']
+        )->first(['id', 'onboarding_attestation_id', 'date', 'time', 'reference_number', 'employee_id', 'from', 'calltime', 'area', 'employer_name', 'phone_number', 'remarks']);
+
+        $request['reference_number'] = self::REFERENCE_NUMBER_PREFIX . $this->onboardingDispatch->count() + 1;
 
         if (is_null($onboardingDispatch)) {
             $this->onBoardingDispatchCreate($request);

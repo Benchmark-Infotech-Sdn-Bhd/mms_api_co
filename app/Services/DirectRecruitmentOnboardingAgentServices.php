@@ -303,7 +303,7 @@ class DirectRecruitmentOnboardingAgentServices
         $onboardingDetails = $this->createDirectRecruitmentOnboardingAgent($request);
         $request['onboarding_agent_id'] = $onboardingDetails['id'];
         $this->directRecruitmentOnboardingAttestationServices->create($request);
-        $this->onboardingStatusUpdate($request[self::REQUEST_ONBOARDING_COUNTRY_ID], $request[self::ONBOARDING_STATUS]);
+        $this->onboardingStatusUpdate($request[self::REQUEST_ONBOARDING_COUNTRY_ID], self::ONBOARDING_STATUS);
         return true;
     }
 
