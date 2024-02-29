@@ -132,7 +132,7 @@ class TotalManagementWorkerEventUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'departure_date' => ["The departure date does not match the format Y-m-d.","The departure date is not a valid date."]
+                'departure_date' => ["The departure date must be a date after yesterday."]
             ]
         ]);
     }
@@ -266,7 +266,7 @@ class TotalManagementWorkerEventUnitTest extends TestCase
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
-                'departure_date' => ["The departure date does not match the format Y-m-d.","The departure date is not a valid date."]
+                'departure_date' => ["The departure date must be a date after yesterday."]
             ]
         ]);
     }
