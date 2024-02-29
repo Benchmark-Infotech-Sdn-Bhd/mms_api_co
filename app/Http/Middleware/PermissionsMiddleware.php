@@ -29,7 +29,7 @@ class PermissionsMiddleware
             $user = JWTAuth::parseToken()->authenticate();
             if ($user['user_type'] != 'Admin') {
                 if ($user['user_type'] === 'Super Admin') {
-                    return $this->handleSuperAdmin($module, $request);
+                    return $this->handleSuperAdmin($module, $request, $next);
                 }
                 return $this->handleUser($user, $module, $permissionName, $request);
             }
@@ -45,12 +45,13 @@ class PermissionsMiddleware
      *
      * @param int $module The module ID.
      * @param Request $request The request object.
+     * @param object $next The next object.
      * @return JsonResponse|Request The response as a JSON object or an empty array.
      */
-    private function handleSuperAdmin($module, $request)
+    private function handleSuperAdmin($module, $request, $next)
     {
         if (in_array($module, [14, 15])) {
-            return $request;
+            return $next($request);
         }
         return response()->json($this->emptyFrameResponse());
     }

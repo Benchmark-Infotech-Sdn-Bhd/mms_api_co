@@ -54,14 +54,23 @@ class AuthController extends Controller
     {
         $credentials = $this->getCredentials($request);
 
-        $this->validateCredentials($credentials);
+        $validator = $this->validateCredentials($credentials);
+        if (!empty($validator)) {
+            return $validator;
+        }
 
         if (!$token = Auth::attempt($credentials)) {
-            $this->errorInvalidCredentials();
+            $isInvalidUser = $this->errorInvalidCredentials();
+            if(!empty($isInvalidUser)) {
+                return $isInvalidUser;
+            }
         }
 
         $user = $this->getAuthenticatedUser();
-
+        if(!empty($user['error'])) {
+            return $this->sendError(['message' => 'User not found'], 400);
+        }
+        
         switch (Str::lower($user['user_type'])) {
             case 'employee':
                 $this->validateEmployeeUser($user);
@@ -94,14 +103,13 @@ class AuthController extends Controller
      * Validate user credentials
      * @param array $credentials The user credentials to be validated
      *
-     * @return void
+     * @return array|bool if validator fails return validator errors, otherwise true
      */
-    private function validateCredentials(array &$credentials)
+    private function validateCredentials(array $credentials)
     {
         $validator = Validator::make($credentials, $this->authServices->loginValidation());
-
         if ($validator->fails()) {
-            $this->validationError($validator->errors());
+            return $this->validationError($validator->errors());
         }
     }
 
@@ -114,23 +122,25 @@ class AuthController extends Controller
      */
     private function errorInvalidCredentials()
     {
-        $this->sendError(['message' => 'Invalid Credentials'], 400);
+        return $this->sendError(['message' => 'Invalid Credentials'], 400);
     }
 
     /**
      * Retrieves the authenticated user.
      *
      * This method retrieves the authenticated user by calling the `Auth::user()` function.
-     * If the user is null, it sends an error response with a message indicating that the user was not found.
+     * If the user is null, it sends an error response.
      * Otherwise, it calls the `show` method of the `authServices` object to fetch the details of the user.
      *
-     * @return array The details of the authenticated user.
+     * @return array The details of the authenticated user. otherwise return array containing error
      */
     private function getAuthenticatedUser()
     {
         $user = Auth::user();
         if (is_null($user)) {
-            $this->sendError(['message' => 'User not found'], 400);
+            return [
+                "error" => true
+            ];
         }
         return $this->authServices->show(['id' => $user['id']]);
     }

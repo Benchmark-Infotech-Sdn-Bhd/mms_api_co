@@ -104,7 +104,7 @@ class CallingVisaApprovalUnitTest extends TestCase
     public function testForCallingVisaApprovalCallingVisaValidation(): void
     {
         $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/approvalStatusUpdate', array_merge($this->creationData(), ['workers' => [1,2]]), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/approval/approvalStatusUpdate', array_merge($this->creationData(), ['workers' => [1]]), $this->getHeader(false));
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Please select workers from same calling visa reference number']
@@ -427,7 +427,7 @@ class CallingVisaApprovalUnitTest extends TestCase
             'agent_id' => 1, 
             'calling_visa_reference_number' => 'AGTF/7637', 
             'submitted_on' => Carbon::now()->format('Y-m-d'), 
-            'workers' => [1]
+            'workers' => [2]
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/process/submitCallingVisa', $payload, $this->getHeader(false));
 
@@ -441,7 +441,7 @@ class CallingVisaApprovalUnitTest extends TestCase
             'hospitalization_amount' => 20.99,
             'insurance_submitted_on' => Carbon::now()->format('Y-m-d'),
             'insurance_expiry_date' => Carbon::now()->addYear()->format('Y-m-d'),
-            'workers' => '1',
+            'workers' => '2',
             'calling_visa_reference_number' => 'AGTF/7637'
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/insurancePurchase/submit', $payload, $this->getHeader(false));
@@ -506,6 +506,6 @@ class CallingVisaApprovalUnitTest extends TestCase
      */
     public function creationData(): array
     {
-        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'calling_visa_generated' => '2023-06-13', 'calling_visa_valid_until' => '2025-07-25', 'status' => 'Approved', 'workers' => [1], 'remarks' => 'test'];
+        return ['application_id' => 1, 'onboarding_country_id' => 1, 'agent_id' => 1, 'calling_visa_generated' => '2023-06-13', 'calling_visa_valid_until' => '2025-07-25', 'status' => 'Approved', 'workers' => [2], 'remarks' => 'test'];
     }
 }
