@@ -95,6 +95,20 @@ class AccessManagementUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test to update role already existed has role permission.
+     *
+     * @return void
+     */
+    public function testToAlreadyExistedRolePermission(): void
+    {
+        $this->json('POST', 'api/v1/accessManagement/create', $this->accessCreationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/accessManagement/create', $this->accessUpdationData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Role Permission Already Exists.']
+        ]);
+    }
+    /**
      * Functional test to list modules based on role.
      *
      * @return void

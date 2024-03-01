@@ -78,6 +78,62 @@ class RolesUnitTest extends TestCase
             'data' => ['message' => 'Role Created Successfully']
         ]);
     }
+//     /**
+//      * Functional test to validate admin permission to create special permission role
+//      */
+//     public function testToValidateAdminPErmissionToCreateSpecialPermissionRole(): void
+//     {
+//         // dd($this->getHeader());exit;
+//         $this->json('POST', 'api/v1/role/create', array_merge($this->creationData(), ['name' => 'CEO']), $this->getHeader());
+
+//         $payload = ['role_id' => 1, 'modules' => json_encode([["module_id" => 9, "permission_id" => 1], ["module_id" => 9, "permission_id" => 2], ["module_id" => 9, "permission_id" => 3], ["module_id" => 9, "permission_id" => 4], ["module_id" => 9, "permission_id" => 5]])];
+//         $response = $this->json('POST', 'api/v1/accessManagement/create', $payload, $this->getHeader(false));
+        
+//         $payload = ['employee_name' => 'Test', 'gender' => 'Female', 'date_of_birth' => '1998-11-02', 
+//         'ic_number' => 222223434, 'passport_number' => 'ADI', 'email' => 'employeeceo@gmail.com', 'contact_number' => 238467,
+//         'address' => 'Addres', 'postcode' => 2344, 'position' => 'Position', 'branch_id' => 1,
+//         'role_id' => 1, 'salary' => 67.00, 'status' => 1, 'city' => 'ABC', 'state' => 'Malaysia', 'subsidiary_companies' => []];
+//         $this->json('POST', 'api/v1/branch/create', ['branch_name' => 'Test', 'state' => 'state',
+//         'city' => 'city', 'branch_address' => 'address', 'postcode' => 9876, 'service_type' => [1,2,3],
+//         'remarks' => 'test'], $this->getHeader(false));
+//         // $this->artisan("db:seed --class=ServiceSeeder");
+//         // $this->artisan("db:seed --class=ServiceSeeder");
+//         $this->json('POST', 'api/v1/employee/create', $payload, $this->getHeader(false));
+//         $response = $this->call('POST', 'api/v1/login', ['email' => 'employeeceo@gmail.com', 'password' => 'Welcome@123']);
+
+//         $header = [];
+//         $header['Accept'] = 'application/json';
+//         $header['Authorization'] = 'Bearer '.$response['data']['token'];
+// // dd($header);exit;
+//         $result = $this->json('POST', 'api/v1/role/create', ['name' => 'Manager', 'special_permission' => 1, 'system_role' => 0, 'status' => 1, 'company_id' => 1], $header);
+//         dd($result);exit;
+
+//         $response->seeStatusCode(200);
+//         $response->seeJson([
+//             'data' => ['message' => 'Only Admin can Create Role with Speacial Permission']
+//         ]);
+//     }
+//     /**
+//      * Functional test to validate company
+//      */
+//     public function testToValidateSubsidiaryCompany(): void
+//     {
+//         // dd($this->getHeader());exit;
+//         $payload = ['company_name' => 'Test Company', 'register_number' => 'APS646-46877', 'country' => 'India', 'state' => 'TamilNadu', 'pic_name' => '', 'role' => 'Admin', 'parent_id' => 0, 'system_color' => '#cesser', 'file_url' => 'test.png'];
+//         $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getHeader());
+//         $res = $this->json('POST', 'api/v1/company/assignSubsidiary', ['parent_company_id' => 1, 'subsidiary_company' => [2]], $this->getHeader(false));
+
+//         $response = $this->json('POST', 'api/v1/user/register', $this->registrationData(), $this->getHeader(false));
+
+// // dd($header);exit;
+//         $result = $this->json('POST', 'api/v1/role/create', ['name' => 'Manager', 'special_permission' => 1, 'system_role' => 0, 'status' => 1, 'company_id' => 1], $header);
+//         dd($result);exit;
+
+//         $response->seeStatusCode(200);
+//         $response->seeJson([
+//             'data' => ['message' => 'Only Admin can Create Role with Speacial Permission']
+//         ]);
+//     }
     /**
      * Functional test for update Role
      */

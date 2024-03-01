@@ -151,11 +151,11 @@ class AuthController extends Controller
      * This method retrieves an employee using the reference ID from the user array, and then checks if the employee is null or inactive. If the employee is null or inactive, it throws an
      * error.
      *
-     * @param array &$user The user array to validate. The reference_id key must be present.
+     * @param object $user The user array to validate. The reference_id key must be present.
      *
      * @return void
      */
-    private function validateEmployeeUser(array &$user)
+    private function validateEmployeeUser(object $user)
     {
         $employee = $this->employeeServices->show(['id' => $user['reference_id']]);
         if (is_null($employee) || $this->isEmployeeInactive($employee)) {

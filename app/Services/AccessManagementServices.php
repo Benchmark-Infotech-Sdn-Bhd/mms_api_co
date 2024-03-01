@@ -12,6 +12,7 @@ class AccessManagementServices
 {
     const ERROR_ROLE_EXISTS = ['roleError' => true];
     const ERROR_MODULE_EXISTS = ['moduleError' => true];
+    const ERROR_USER_ROLE_EXISTS = ['moduleError' => true];
 
     /**
      * @var RolePermission
@@ -155,11 +156,16 @@ class AccessManagementServices
      * @return mixed Returns true if the role is created successfully.
      *              Returns self::ERROR_ROLE_EXISTS if the role already exists.
      *              Returns self::ERROR_MODULE_EXISTS if there are different modules in the request than in the company.
+     *              Returns self::ERROR_USER_ROLE_EXISTS if the role is not from the company.
      */
     public function create($request): mixed
     {
         $modules = json_decode($request['modules']);
         $moduleIds = array_unique(array_column($modules, 'module_id'));
+
+        if(!$this->isValidRole($request)) {
+            return self::ERROR_USER_ROLE_EXISTS;
+        }
 
         if ($this->doesRoleExist($request)) {
             return self::ERROR_ROLE_EXISTS;
