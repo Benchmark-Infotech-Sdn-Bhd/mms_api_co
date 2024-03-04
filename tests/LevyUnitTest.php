@@ -273,6 +273,20 @@ class LevyUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for Create Levy quota validation 
+     * 
+     * @return void
+     */
+    public function testForLevyCreationQuotaValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/levy/create', array_merge($this->creationData(), ['approved_quota' => 100]), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'The number of quota cannot exceed the Interview Quota']
+        ]);
+    }
+    /**
      * Functional test for Create Levy Details 
      * 
      * @return void
@@ -556,6 +570,21 @@ class LevyUnitTest extends TestCase
             'data' => [
                 'new_ksm_reference_number' => ['The new ksm reference number format is invalid.']
             ]
+        ]);
+    }
+    /**
+     * Functional test for Update Levy quota validation 
+     * 
+     * @return void
+     */
+    public function testForLevyUpdationQuotaValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/levy/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/levy/update', array_merge($this->updationData(), ['approved_quota' => 100]), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'The number of quota cannot exceed the Interview Quota']
         ]);
     }
     /**

@@ -22,6 +22,19 @@ class RolesUnitTest extends TestCase
      */
     public function testForRoleCreationNameValidation(): void
     {
+        $response = $this->json('POST', 'api/v1/role/create', array_merge($this->creationData(), ['name' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['name' => ['The name field is required.']]
+        ]);
+    }
+    /**
+     * Functional test to validate name format in Role creation
+     * 
+     * @return void
+     */
+    public function testForRoleCreationNameFormatValidation(): void
+    {
         $response = $this->json('POST', 'api/v1/role/create', array_merge($this->creationData(), ['name' => 'HR123']), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
@@ -47,6 +60,19 @@ class RolesUnitTest extends TestCase
      * @return void
      */
     public function testForRoleUpdationNameValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/role/update', array_merge($this->updationData(), ['name' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['name' => ['The name field is required.']]
+        ]);
+    }
+    /**
+     * Functional test to validate Role format Updation
+     * 
+     * @return void
+     */
+    public function testForRoleUpdationNameFormatValidation(): void
     {
         $response = $this->json('POST', 'api/v1/role/update', array_merge($this->updationData(), ['name' => 'HR$']), $this->getHeader());
         $response->seeStatusCode(422);
