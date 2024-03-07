@@ -110,6 +110,23 @@ class DirectRecruitmentInsurancePurchaseUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for show Unauthorized validation
+     * 
+     * @return void
+     */
+    public function testForShowUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/insurancePurchase/submit', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/callingVisa/insurancePurchase/show', ['id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
+        ]);
+    }
+    /**
      * Functional test for show 
      * 
      * @return void
