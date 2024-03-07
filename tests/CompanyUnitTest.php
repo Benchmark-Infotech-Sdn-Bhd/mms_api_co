@@ -614,6 +614,180 @@ class CompanyUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for Company account system create company id validation
+     * 
+     * @return void
+     */
+    public function testForCompanyAccountSystemCreateCompanyIDValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/accountSystem/update', array_merge($this->accountSystemCreateData(), ['company_id' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'company_id' => ['The company id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Company account system create title validation
+     * 
+     * @return void
+     */
+    public function testForCompanyAccountSystemCreateTitleValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/accountSystem/update', array_merge($this->accountSystemCreateData(), ['title' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'title' => ['The title field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Company account system create url validation
+     * 
+     * @return void
+     */
+    public function testForCompanyAccountSystemCreateURLValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/accountSystem/update', array_merge($this->accountSystemCreateData(), ['url' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'url' => ['The url field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Company account system create client id validation
+     * 
+     * @return void
+     */
+    public function testForCompanyAccountSystemCreateClientIdValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/accountSystem/update', array_merge($this->accountSystemCreateData(), ['client_id' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'client_id' => ['The client id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Company account system create client secret validation
+     * 
+     * @return void
+     */
+    public function testForCompanyAccountSystemCreateClientSecretValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/accountSystem/update', array_merge($this->accountSystemCreateData(), ['client_secret' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'client_secret' => ['The client secret field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Company account system create tenant id validation
+     * 
+     * @return void
+     */
+    public function testForCompanyAccountSystemCreatetenantIdValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/accountSystem/update', array_merge($this->accountSystemCreateData(), ['tenant_id' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'tenant_id' => ['The tenant id field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Company account system create access token validation
+     * 
+     * @return void
+     */
+    public function testForCompanyAccountSystemCreateAccessTokenValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/accountSystem/update', array_merge($this->accountSystemCreateData(), ['access_token' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'access_token' => ['The access token field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Company account system create refresh token validation
+     * 
+     * @return void
+     */
+    public function testForCompanyAccountSystemCreateRefreshTokenValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/accountSystem/update', array_merge($this->accountSystemCreateData(), ['refresh_token' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'refresh_token' => ['The refresh token field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Company account system create
+     * 
+     * @return void
+     */
+    public function testForCompanyAccountSystemCreate(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/accountSystem/update', $this->accountSystemCreateData(), $this->getSuperHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Account System Updated Successfully']
+        ]);
+    }
+    /**
+     * Functional test for Company account system show
+     * 
+     * @return void
+     */
+    public function testForCompanyAccountSystemShow(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $this->json('POST', 'api/v1/company/accountSystem/update', $this->accountSystemCreateData(), $this->getSuperHeader(false));
+        $response = $this->json('POST', 'api/v1/company/accountSystem/show', ['company_id' => 1], $this->getSuperHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+    /**
+     * Functional test for Company account system delete
+     * 
+     * @return void
+     */
+    public function testForCompanyAccountSystemDelete(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $this->json('POST', 'api/v1/company/accountSystem/update', $this->accountSystemCreateData(), $this->getSuperHeader(false));
+        $response = $this->json('POST', 'api/v1/company/accountSystem/delete', ['company_id' => 1, 'title' => 'XERO'], $this->getSuperHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Account System Deleted Successfully']
+        ]);
+    }
+    /**
      * @return array
      */
     public function creationData(): array
@@ -640,5 +814,23 @@ class CompanyUnitTest extends TestCase
     public function assignFeatureData(): array
     {
         return ['company_id' => 1, 'features' => [16]];
+    }
+    /**
+     * @return array
+     */
+    public function accountSystemCreateData(): array
+    {
+        return [
+            "company_id"  =>  1,
+            "title" =>  "XERO",
+            "url" =>  "https => //api.xero.com/api.xro/2.0/",
+            "client_id" => "0868F1CE1BAA46BA8EC8F178DAB75B2B",
+            "client_secret" => "rrdE8qWO1EBFftigkjD_Skhs-8y5QWmUlq6z0IqmJgiUpPiW",
+            "tenant_id" =>  "164b8ba4-e867-480b-9d64-2b801cfe99d4",
+            "access_token" => "eyJhbGciOiJSUzI1NiIsImtpZCI6IjFDQUY4RTY2NzcyRDZEQzAyOEQ2NzI2RkQwMjYxNTgxNTcwRUZDMTkiLCJ0eXAiOiJKV1QiLCJ4NXQiOiJISy1PWm5jdGJjQW8xbkp2MENZVmdWY09fQmsifQ.eyJuYmYiOjE2OTg4NDgxMDEsImV4cCI6MTY5ODg0OTkwMSwiaXNzIjoiaHR0cHM6Ly9pZGVudGl0eS54ZXJvLmNvbSIsImF1ZCI6Imh0dHBzOi8vaWRlbnRpdHkueGVyby5jb20vcmVzb3VyY2VzIiwiY2xpZW50X2lkIjoiMDg2OEYxQ0UxQkFBNDZCQThFQzhGMTc4REFCNzVCMkIiLCJzdWIiOiI3ZGI2MTM2OWE5MTQ1YjJmODBiOWQxYWE3MmI4ZThjNCIsImF1dGhfdGltZSI6MTY5NzA3OTIwNCwieGVyb191c2VyaWQiOiI2ODI0NGEwMS0zY2JjLTQxYjAtODE0Ni1mYzM4NTQzN2RhZWQiLCJnbG9iYWxfc2Vzc2lvbl9pZCI6ImYwNzFlMGE2NGY2YTRjNWVhYzhiYTlkM2UzNjMyZGYxIiwic2lkIjoiZjA3MWUwYTY0ZjZhNGM1ZWFjOGJhOWQzZTM2MzJkZjEiLCJqdGkiOiJBMzMxQzc3NDMzMTVFMEY5NjFFNUQxQUFGQTEwQ0MxQiIsImF1dGhlbnRpY2F0aW9uX2V2ZW50X2lkIjoiZmQyZDhjMWEtYWQ5Zi00MmRhLWJiNGEtNmVkOTM1YzEzZjU0Iiwic2NvcGUiOlsiYWNjb3VudGluZy5zZXR0aW5ncyIsImFjY291bnRpbmcudHJhbnNhY3Rpb25zIiwiYWNjb3VudGluZy5jb250YWN0cyIsIm9mZmxpbmVfYWNjZXNzIl0sImFtciI6WyJwd2QiXX0.rZ-9Wv5qsEHIh6HkCABoVWvJ-nT0V8ek_knCG3p2_ygdhi7SyTtUNZ4MHB04W5n17ZjzAGhFX5grc5goUDQn5yf-czuhhm4tqq_42HfryMZIoKaVK-y7vHLskSgLpmsVRpgzGxcoINCnMGrWq8P2B8vkaqmo0xuyqX4Xz6f6FGfluPcMFc5AzXST0MI6R18CItK3_d0v2xcaMEb5PJQ1EQDvqgv9HfB-Viroqb8g6kQlY68jr9yWMlaIyonV5BSFuV-I5Q_iksqm0nrYY8MO2AizmxT6Vgs3aIGylFaNbOfZ92N21ei-c4qoPHvCkfme67ESZ4NxRKG_n_gaDg4hAg",
+            "refresh_token" => "3ODPNZS07IutHX1itXx_tHSVFB4P_454pS6rhhAs7sg",
+            "redirect_url" => "testredreictups.com",
+            "remarks" => "test remarkups"
+        ];
     }
 }
