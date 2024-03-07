@@ -17,6 +17,20 @@ class EContractExpensesUnitTest extends TestCase
         parent::setUp();
     }
     /**
+     * Functional test for e-Contract expense create Unauthorized validation
+     * 
+     * @return void
+     */
+    public function testForEContractExpenseCreationUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/eContract/manage/expense/create', array_merge($this->creationData(), ['project_id' => 0]), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => "Unauthorized"
+        ]);
+    }
+    /**
      * Functional test for e-Contract create expense, worker_id required field validation
      * 
      * @return void
@@ -163,6 +177,19 @@ class EContractExpensesUnitTest extends TestCase
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Expense Added Successfully']
+        ]);
+    }
+    /**
+     * Functional test for e-Contract update expense, Unauthorized validation
+     * 
+     * @return void
+     */
+    public function testForEContractExpenseUpdateUnauthorizedValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/manage/expense/update',  array_merge($this->updationData(), ['id' => 0]), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => "Unauthorized"
         ]);
     }
     /**
@@ -421,6 +448,22 @@ class EContractExpensesUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for e-Contract expense show Unauthorized validation
+     * 
+     * @return void
+     */
+    public function testForEContractExpenseShowUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/eContract/manage/expense/show', ['id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized"
+            ]
+        ]);
+    }
+    /**
      * Functional test for e-Contract expense show
      * 
      * @return void
@@ -477,6 +520,22 @@ class EContractExpensesUnitTest extends TestCase
                     'to',
                     'total'
                 ]
+        ]);
+    }
+    /**
+     * Functional test for e-Contract expense delete Unauthorized validation
+     * 
+     * @return void
+     */
+    public function testForEContractExpenseDeleteUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/eContract/manage/expense/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/manage/expense/delete', ['id' => 0], $this->getHeader(false));
+        $response->seeJson([
+            'data' => [
+                "message" => "No data found"
+            ]
         ]);
     }
     /**

@@ -152,6 +152,19 @@ class EContractServiceUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for e-contract, add service unauthorized validation 
+     * 
+     * @return void
+     */
+    public function testForEContractAddServiceUnauthorizedValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/addService', array_merge($this->creationData(), ['prospect_id' => 0]), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => "Unauthorized"
+        ]);
+    }
+    /**
      * Functional test for e-contract add service
      * 
      * @return void
@@ -253,6 +266,19 @@ class EContractServiceUnitTest extends TestCase
             'data' => [
                 'fomnext_quota' => ['The fomnext quota must not be greater than 3 characters.']
             ]
+        ]);
+    }
+    /**
+     * Functional test for e-contract,  get quota unauthorized validation 
+     * 
+     * @return void
+     */
+    public function testForEContractGetQuotaUnauthorizedValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/allocateQuota', array_merge($this->getQuotaData(), ['prospect_service_id' => 0]), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => "Unauthorized"
         ]);
     }
      /**
@@ -372,6 +398,19 @@ class EContractServiceUnitTest extends TestCase
             'data' => [
                 'cost_quoted' => ['The cost quoted format is invalid.']
             ]
+        ]);
+    }
+    /**
+     * Functional test for e-contract, submit proposal unauthorized validation 
+     * 
+     * @return void
+     */
+    public function testForEContractSubmitProposalUnauthorizedValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/proposalSubmit', array_merge($this->proposalData(), ['id' => 0]), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => "Unauthorized"
         ]);
     }
     /**

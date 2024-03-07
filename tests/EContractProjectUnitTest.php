@@ -211,6 +211,23 @@ class EContractProjectUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for EContract project show Unauthorized validation
+     * 
+     * @return void
+     */
+    public function testForEContractProjectShowUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/eContract/project/add', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/project/show', ['id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized"
+            ]
+        ]);
+    }
+    /**
      * Functional test for EContract project show
      * 
      * @return void
