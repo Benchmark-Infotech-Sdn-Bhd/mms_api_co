@@ -20,11 +20,13 @@ use App\Exports\CallingVisaRenewalExport;
 use App\Exports\SpecialPassRenewalExport;
 use App\Exports\EntryVisaRenewalExport;
 use App\Exports\ServiceAgreementExport;
+use App\Services\DatabaseConnectionServices; 
 
 class AdminNotificationMail implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
+    private $dbName;
     public $timeout = 7200; // 2 hours
     public $maxExceptions = 2;
     private mixed $user;
