@@ -211,6 +211,11 @@ class DirectRecruitmentWorkersServices
             ];
         } else if (isset($data['id'])) {
 
+            $this->workers->where('id', $data['id'])
+                ->update([
+                    'module_type' => Config::get('services.WORKER_MODULE_TYPE')[0]
+                ]);
+
             $commonKeysData = [
                 "application_id" => $request['application_id'],
                 'onboarding_country_id' => $request['onboarding_country_id'],
@@ -253,6 +258,8 @@ class DirectRecruitmentWorkersServices
                 'country_id' => $request['onboarding_country_id']
             ]; //Agent Added
             $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+
+            return true;
 
         }
         return false;

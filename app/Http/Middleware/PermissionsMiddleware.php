@@ -31,7 +31,7 @@ class PermissionsMiddleware
                 if ($user['user_type'] === 'Super Admin') {
                     return $this->handleSuperAdmin($module, $request, $next);
                 }
-                return $this->handleUser($user, $module, $permissionName, $request);
+                return $this->handleUser($user, $module, $permissionName, $request, $next);
             }
         } catch (Exception $e) {
             Log::error('Exception - ' . print_r($e->getMessage(), true));
@@ -65,7 +65,7 @@ class PermissionsMiddleware
      * @param mixed $request The request object or data
      * @return JsonResponse The response object or data, or the original request data
      */
-    private function handleUser($user, $module, $permissionName, $request)
+    private function handleUser($user, $module, $permissionName, $request, $next)
     {
         $userRole = $this->getUserRole($user);
 
@@ -80,7 +80,7 @@ class PermissionsMiddleware
         if ($rolePermission == 0) {
             return response()->json($this->frameResponse($this->sendResponse(['message' => 'Unauthorized to perform this action!'])), 400);
         }
-        return $request;
+        return $next($request);
     }
 
     /**

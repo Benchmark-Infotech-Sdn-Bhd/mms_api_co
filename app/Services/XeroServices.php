@@ -154,7 +154,7 @@ class XeroServices
     /**
      * Builds the request options for making API requests.
      *
-     * @param array $clients The array of clients data.
+     * @param $clients The array of clients data.
      *                       - 'access_token' (string): The access token of the client.
      *                       - 'tenant_id' (string): The tenant ID of the client.
      * @return array The built request options.
@@ -164,7 +164,7 @@ class XeroServices
      *                                   - 'Accept' (string): The accept header.
      *               - 'form_params' (array): The form parameters for the API request.
      */
-    private function buildRequestOptions(array $clients): array
+    private function buildRequestOptions($clients): array
     {
         return [
             'headers' => [
@@ -180,10 +180,10 @@ class XeroServices
      * Handle the response from Xero API and update/create tax rates
      *
      * @param ResponseInterface $response The response object from Xero API
-     * @param array $clients The array of clients' information
+     * @param $clients The array of clients' information
      * @return bool Returns true if tax rates are updated or created, otherwise returns false
      */
-    private function handleResponse(ResponseInterface $response, array $clients): bool
+    private function handleResponse(ResponseInterface $response, $clients): bool
     {
         $result = json_decode((string)$response->getBody(), true);
         if (isset($result['TaxRates'])) {
@@ -202,10 +202,10 @@ class XeroServices
      * Build the conditions for updating or creating a row.
      *
      * @param array $row The row data.
-     * @param array $companyId The company ID.
+     * @param int $companyId The company ID.
      * @return array The conditions.
      */
-    private function buildUpdateOrCreateConditions(array $row, array $companyId): array
+    private function buildUpdateOrCreateConditions(array $row, $companyId): array
     {
         return [
             'company_id' => $companyId,
@@ -314,11 +314,11 @@ class XeroServices
     /**
      * Save the accounts for the given clients.
      *
-     * @param array $clients The array of clients.
+     * @param object $clients The array of clients.
      * @return bool Returns true if the accounts were saved successfully, false otherwise.
      * @throws GuzzleException
      */
-    public function saveAccounts(array $clients): bool
+    public function saveAccounts($clients): bool
     {
         try {
             $data = $this->fetchAccountData($clients);
@@ -332,7 +332,7 @@ class XeroServices
     /**
      * Fetches account data from Xero API based on client information.
      *
-     * @param array $clients The array containing the client information.
+     * @param object $clients The object containing the client information.
      *                      The array must have the following keys:
      *                      - url: The base URL of the Xero API.
      *                      - access_token: The access token to authenticate the API request.
@@ -340,7 +340,7 @@ class XeroServices
      * @return array An array containing the account data.
      * @throws GuzzleException
      */
-    private function fetchAccountData(array $clients): array
+    private function fetchAccountData($clients): array
     {
         $http = new Client();
         $response = $http->request('GET', $clients['url'] . Config::get('services.XERO_ACCOUNTS_URL'), [
@@ -360,10 +360,10 @@ class XeroServices
      * Save fetched data.
      *
      * @param array $data The fetched data.
-     * @param array $clients The clients data.
+     * @param object $clients The clients data.
      * @return bool Returns true if the data is successfully saved, false otherwise.
      */
-    private function saveFetchedData(array $data, array $clients): bool
+    private function saveFetchedData(array $data, $clients): bool
     {
         foreach ($data as $row) {
             $this->xeroAccounts->updateOrCreate(
@@ -675,6 +675,7 @@ class XeroServices
         $generateInvoice['LineAmountTypes'] = 'Exclusive';
         $generateInvoice['Contact']['ContactID'] = $crmProspect->xero_contact_id;
         $this->addLineItems($request, $generateInvoice);
+
         return $generateInvoice;
     }
 
@@ -857,9 +858,9 @@ class XeroServices
      * @param array $xeroConfig The Xero configuration array.
      * @param array $data The data for the request.
      *
-     * @return array The result of the generate invoices HTTP request.
+     * @return mixed The result of the generate invoices HTTP request.
      */
-    private function createGenerateInvoicesHTTPRequest($http, $xeroConfig, $data): array
+    private function createGenerateInvoicesHTTPRequest($http, $xeroConfig, $data): mixed
     {
         return $http->request('POST', $xeroConfig['url'] . Config::get('services.XERO_INVOICES_URL'), [
             'headers' => [
@@ -912,6 +913,7 @@ class XeroServices
         $invoiceData->resubmit_count = $invoiceData->resubmit_count + 1;
         $invoiceData->save();
         $crmProspect = $this->crmProspect->findOrFail($invoice['crm_prospect_id']);
+
 
         $invoiceToGenerate = $this->generateInvoiceBase($invoice, $crmProspect);
 

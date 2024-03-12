@@ -601,15 +601,15 @@ class NotificationServices
         return User::join('user_role_type', 'users.id', '=', 'user_role_type.user_id')
             ->join('role_permission', 'user_role_type.role_id', '=', 'role_permission.role_id')
             ->join('modules', 'role_permission.module_id', '=', 'modules.id')
-            ->where('company_id', $companyId)
-            ->where('user_type', '!=', 'Admin')
-            ->where('id', '!=', $employeeId)
-            ->where('status', 1)
-            ->whereNull('deleted_at')
+            ->where('users.company_id', $companyId)
+            ->where('users.user_type', '!=', 'Admin')
+            ->where('users.id', '!=', $employeeId)
+            ->where('users.status', 1)
+            ->whereNull('users.deleted_at')
             ->where('modules.module_name', Config::get('services.ACCESS_MODULE_TYPE')[10])
-            ->select('id', 'name', 'email', 'user_type', 'company_id', 'reference_id', DB::raw('GROUP_CONCAT(modules.module_name SEPARATOR ",") AS module_name'))
-            ->groupBy('id', 'name', 'email', 'user_type', 'company_id', 'reference_id')
-            ->distinct()
+            ->select('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id', DB::raw('GROUP_CONCAT(modules.module_name SEPARATOR ",") AS module_name'))
+            ->groupBy('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')
+            ->distinct('users.id','users.name', 'users.email', 'users.user_type', 'users.company_id', 'users.reference_id')
             ->get();
     }
 
