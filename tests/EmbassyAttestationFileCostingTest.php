@@ -39,6 +39,22 @@ class EmbassyAttestationFileCostingTest extends TestCase
         ]);
     }
     /**
+     * Functional test to validate Required fields for EmbassyAttestationFileCosting creation
+     * 
+     * @return void
+     */
+    public function testForEmbassyAttestationFileCostingCreationUserValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/create', array_merge($this->creationData(), 
+        ['country_id' => 0]), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            "data" => [ 
+                "message" => "Unauthorized."
+            ]
+        ]);
+    }
+    /**
      * Functional test to validate Required fields for Country Id
      * 
      * @return void
@@ -191,6 +207,21 @@ class EmbassyAttestationFileCostingTest extends TestCase
                 "country_id" => [
                     "The country id field is required."
                 ]
+            ]
+        ]);
+    }
+    /**
+     * Functional test to list EmbassyAttestationFileCosting user validation
+     */
+    public function testForListingEmbassyAttestationFileCostingUserValidation(): void
+    {
+        $this->json('POST', 'api/v1/country/create', ['country_name' => 'Malaysia', 'system_type' => 'Embassy', 'fee' => 350, 'bond' => 10], $this->getHeader());
+        $this->json('POST', 'api/v1/embassyAttestationFile/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/embassyAttestationFile/list', ['country_id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
             ]
         ]);
     }

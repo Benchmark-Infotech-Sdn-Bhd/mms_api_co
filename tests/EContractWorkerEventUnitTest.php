@@ -91,6 +91,23 @@ class EContractWorkerEventUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for EContract worker event update max id validation 
+     * 
+     * @return void
+     */
+    public function testForEContractWorkerEventUpdateMaxIdValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerEvent/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerEvent/update', array_merge($this->UpdationData(), ['worker_id' => 0]), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Sorry! Cannot Update the Past Events"
+            ]
+        ]);
+    }
+    /**
      * Functional test for EContract worker event update 
      * 
      * @return void
@@ -178,6 +195,23 @@ class EContractWorkerEventUnitTest extends TestCase
                     'to',
                     'total'
                 ]
+        ]);
+    }
+    /**
+     * Functional test for attachment delete id validation 
+     * 
+     * @return void
+     */
+    public function testForEContractWorkerEventattachmentDeleteIdvalidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerEvent/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerEvent/deleteAttachment', ["id" => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Data Not Found"
+            ]
         ]);
     }
     /**

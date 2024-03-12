@@ -827,6 +827,19 @@ class AgentsTest extends TestCase
         ]);
     }
     /**
+     * Functional test to view Agent Id Validation
+     */
+    public function testForViewAgentIdValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/agent/show', ['id' => 0], $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized"
+            ]
+        ]);
+    }
+    /**
      * Functional test to view Agent
      */
     public function testForViewAgent(): void

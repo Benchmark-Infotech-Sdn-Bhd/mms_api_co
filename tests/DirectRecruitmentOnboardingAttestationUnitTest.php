@@ -46,6 +46,22 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
     ]);
     }
     /**
+     * Functional test to show onboarding attestation Unauthorized Validation
+     * 
+     * @return void
+     */
+    public function testToShowOnboardingAttestationUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/show', ['id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
+        ]);
+    }
+    /**
      * Functional test to show onboarding attestation
      * 
      * @return void
@@ -119,6 +135,22 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test to Update dispatch onboarding attestation Unauthorized validation
+     * 
+     * @return void
+     */
+    public function testToUpdateDispatchOnboardingAttestationUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/updateDispatch', array_merge($this->dipatchUpdateData(), ['onboarding_attestation_id' => 0]), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
+        ]);
+    }
+    /**
      * Functional test to Update dispatch onboarding attestation
      * 
      * @return void
@@ -133,6 +165,22 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test to show embassy onboarding attestation validation
+     * 
+     * @return void
+     */
+    public function testToShowEmbassyOnboardingAttestationValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/showEmbassyFile', ['onboarding_attestation_id' => 0, 'embassy_attestation_id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
+        ]);
+    }
+    /**
      * Functional test to show embassy onboarding attestation
      * 
      * @return void
@@ -144,6 +192,23 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
         $response->assertEquals(200, $this->response->status());
         $this->response->assertJsonStructure([
             'data'
+        ]);
+    }
+    /**
+     * Functional test to list embassy onboarding attestation Unauthorized validation
+     * 
+     * @return void
+     */
+    public function testToListEmbassyOnboardingAttestationUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/create', $this->attestationCreateData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/attestation/listEmbassy', ['onboarding_attestation_id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
         ]);
     }
     /**
