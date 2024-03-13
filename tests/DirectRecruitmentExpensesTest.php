@@ -294,6 +294,21 @@ class DirectRecruitmentExpensesTest extends TestCase
         ]);
     }
     /**
+     * Functional test to view Expense Unauthorized validation
+     */
+    public function testForViewExpensesUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecrutmentExpenses/create', $this->creationData(), $this->getHeader(false)); 
+        $response = $this->json('POST', 'api/v1/directRecrutmentExpenses/show', ['id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized"
+            ]
+        ]);
+    }
+    /**
      * Functional test to view Expense
      */
     public function testForViewExpenses(): void
@@ -323,7 +338,21 @@ class DirectRecruitmentExpensesTest extends TestCase
                 ]
         ]);
     }
-
+    /**
+     * Functional test to Delete Attachment Unauthorized Validation
+     * 
+     * @return void
+     */
+    public function testForDeleteAttachmentUnauthorizedValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/directRecrutmentExpenses/deleteAttachment', ['id' => 0], $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Data Not Found"
+            ]
+        ]);
+    }
     /**
      * @return void
      */

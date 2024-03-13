@@ -244,6 +244,21 @@ class FomemaClinicsTest extends TestCase
         ]);
     }
     /**
+     * A test method for retrieve specific Fomema Clinics Unauthorized validation
+     *
+     * @return void
+     */
+    public function testRetrieveSpecificFomemaClinicsUnauthorizedValidation()
+    {
+        $response = $this->json('POST', 'api/v1/fomemaClinics/show', ['id' => 0], $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
+        ]);
+    }
+    /**
      * A test method for retrieve specific Fomema Clinics.
      *
      * @return void

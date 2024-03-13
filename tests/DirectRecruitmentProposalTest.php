@@ -189,6 +189,23 @@ class DirectRecruitmentProposalTest extends TestCase
      *
      * @return void
      */
+    public function testRetrieveSpecificProposalIdValidation()
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecrutment/submitProposal', $this->addProposalData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecrutment/showProposal', ['id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
+        ]);
+    }
+    /**
+     * A test method for retrieve specific proposal.
+     *
+     * @return void
+     */
     public function testRetrieveSpecificProposal()
     {
         $this->creationSeeder();

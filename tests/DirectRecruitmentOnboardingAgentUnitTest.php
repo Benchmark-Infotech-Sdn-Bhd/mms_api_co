@@ -259,6 +259,23 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for View Onboarding Agent Unauthorized validation
+     * 
+     * @return void
+     */
+    public function testForViewOnboardingAgentUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/show', ['id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
+        ]);
+    }
+    /**
      * Functional test for View Onboarding Agent
      * 
      * @return void
@@ -314,6 +331,23 @@ class DirectRecruitmentOnboardingAgentUnitTest extends TestCase
                     'to',
                     'total'
                 ]
+        ]);
+    }
+    /**
+     * Functional test for ksm refernce number dropdown based on onboarding country Unauthorized validation
+     * 
+     * @return void
+     */
+    public function testForDropDownKSMUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/ksmDropDownBasedOnOnboarding', ['onboarding_country_id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
         ]);
     }
     /**

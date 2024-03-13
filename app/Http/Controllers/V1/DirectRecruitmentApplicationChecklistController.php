@@ -69,8 +69,8 @@ class DirectRecruitmentApplicationChecklistController extends Controller
             $user = JWTAuth::parseToken()->authenticate();
             $params['company_id'] = $this->authServices->getCompanyIds($user);
             $data = $this->directRecruitmentApplicationChecklistServices->show($params);
-            if(isset($data['validate'])){
-                return $this->validationError($data['validate']); 
+            if(isset($data['validationErrors'])){
+                return $this->validationError($data['validationErrors']); 
             } else if(is_null($data)) {
                 return $this->sendError(['message' => 'Unauthorized.']);
             }

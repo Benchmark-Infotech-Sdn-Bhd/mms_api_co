@@ -62,6 +62,135 @@ class DirectRecruitmentWorkersUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentWorkersCreateNameValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->creationData(), ['name' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'name' => ['The name field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentWorkersCreateDOBValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->creationData(), ['date_of_birth' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'date_of_birth' => ['The date of birth field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentWorkersCreateDOBFormatValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->creationData(), ['date_of_birth' => Carbon::now()->subYear(25)->format('Y/m/d')]), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'date_of_birth' => ['The date of birth does not match the format Y-m-d.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentWorkersCreateGenderValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->creationData(), ['gender' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'gender' => ['The gender field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentWorkersCreatePassportNumberValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->creationData(), ['passport_number' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'passport_number' => ['The passport number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentWorkersCreatePassportValidUntilValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->creationData(), ['passport_valid_until' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'passport_valid_until' => ['The passport valid until field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentWorkersCreateAddressValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->creationData(), ['address' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'address' => ['The address field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForDirectRecruitmentWorkersCreateStateValidation(): void
+    {
+        $this->creationSeeder();
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/workers/create', array_merge($this->creationData(), ['state' => '']), $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'state' => ['The state field is required.']
+            ]
+        ]);
+    }
+    
+    /**
      * Functional test for worker create 
      * 
      * @return void
@@ -578,6 +707,7 @@ class DirectRecruitmentWorkersUnitTest extends TestCase
             'application_id' => 1, 
             'onboarding_country_id' => 1, 
             'agent_id' => 1, 
+            'ksm_reference_number' => 'My/992/095648000',
             'quota' => 20
         ];
         $this->json('POST', 'api/v1/directRecruitment/onboarding/agent/create', $payload, $this->getHeader(false));

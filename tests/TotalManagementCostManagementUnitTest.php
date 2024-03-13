@@ -32,6 +32,51 @@ class TotalManagementCostManagementUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for Total Management cost management create  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementCostManagementCreateApplicationTitleValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/costManagement/create', array_merge($this->creationData(), ['title' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'title' => ['The title field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Total Management cost management create  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementCostManagementCreateApplicationPaymentReferenceValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/costManagement/create', array_merge($this->creationData(), ['payment_reference_number' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'payment_reference_number' => ['The payment reference number field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for Total Management cost management create  mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForTotalManagementCostManagementCreateApplicationPaymentDateValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/totalManagement/costManagement/create', array_merge($this->creationData(), ['payment_date' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'payment_date' => ['The payment date field is required.']
+            ]
+        ]);
+    }
+    /**
      * Functional test for total Management cost management create 
      * 
      * @return void

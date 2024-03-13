@@ -73,11 +73,15 @@ class AuthController extends Controller
         
         switch (Str::lower($user['user_type'])) {
             case 'employee':
-                $this->validateEmployeeUser($user);
+                $userValidation = $this->validateEmployeeUser($user);
                 break;
             case Config::get('services.ROLE_TYPE_ADMIN'):
-                $this->validateAdminUser($user);
+                $userValidation = $this->validateAdminUser($user);
                 break;
+        }
+
+        if(!empty($userValidation)) {
+            return $userValidation;
         }
 
         return $this->respondWithToken($token, $user);
@@ -151,15 +155,15 @@ class AuthController extends Controller
      * This method retrieves an employee using the reference ID from the user array, and then checks if the employee is null or inactive. If the employee is null or inactive, it throws an
      * error.
      *
-     * @param object $user The user array to validate. The reference_id key must be present.
+     * @param object $user The user object to validate. The reference_id key must be present.
      *
-     * @return void
+     * @return array|void
      */
     private function validateEmployeeUser(object $user)
     {
         $employee = $this->employeeServices->show(['id' => $user['reference_id']]);
         if (is_null($employee) || $this->isEmployeeInactive($employee)) {
-            $this->errorInactiveUser();
+            return $this->errorInactiveUser();
         }
     }
 
@@ -190,12 +194,12 @@ class AuthController extends Controller
      *
      * @param array &$user The user array to validate. The status key must be present.
      *
-     * @return void
+     * @return array|void
      */
     private function validateAdminUser(array &$user)
     {
         if ($user['status'] == 0) {
-            $this->errorInactiveUser();
+            return $this->errorInactiveUser();
         }
     }
 
@@ -208,7 +212,7 @@ class AuthController extends Controller
      */
     private function errorInactiveUser()
     {
-        $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
+        return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
     }
 
     /**

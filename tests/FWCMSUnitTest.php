@@ -377,6 +377,23 @@ class FWCMSUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test to Show FWCMS Unauthorized validation
+     * 
+     * @return void
+     */
+    public function testToDisplayFWCMSDetailsUnauthorizedValidation(): void
+    {
+        $this->creationSeeder();
+        $this->json('POST', 'api/v1/fwcms/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/fwcms/show', ['id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
+        ]);
+    }
+    /**
      * Functional test to Show FWCMS
      * 
      * @return void

@@ -270,6 +270,20 @@ class CountriesTest extends TestCase
         ]);
     }
     /**
+     * Functional test to view Country id validate
+     */
+    public function testForViewCountryIdValidate(): void
+    {
+        $this->json('POST', 'api/v1/country/create', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/country/show', ['id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
+        ]);
+    }
+    /**
      * Functional test to view Country
      */
     public function testForViewCountry(): void

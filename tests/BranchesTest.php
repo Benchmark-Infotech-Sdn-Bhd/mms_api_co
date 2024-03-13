@@ -513,6 +513,21 @@ class BranchesTest extends TestCase
         ]);
     }
     /**
+     * A test method for retrieve specific Branch id validate
+     *
+     * @return void
+     */
+    public function testRetrieveSpecificBranchIdValidate()
+    {
+        $response = $this->json('POST', 'api/v1/branch/show', ['id' => 0], $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized"
+            ]
+        ]);
+    }
+    /**
      * A test method for retrieve specific Branch.
      *
      * @return void

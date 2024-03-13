@@ -239,7 +239,7 @@ class WorkersImport extends Job
         $agentId = $agentCodeCheck->id ?? 0;
         if(empty($agentCodeCheck)) {
             $agentCodeCheckError = 1;
-            $comments .= ' ERROR - agent code is is mis-matched';
+            $comments .= ' ERROR - agent code is mis-matched';
         }
         Log::info('Row Data - agent id - ' . print_r($agentId, true));
 
