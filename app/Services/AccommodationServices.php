@@ -191,7 +191,7 @@ class AccommodationServices
             ->where(function ($query) use ($request) {
                 $this->filterAccommodationsBasedOnInput($query, $request);
             })
-            ->select('accommodation.*')
+            ->select('accommodation.id', 'accommodation.name', 'accommodation.location', 'accommodation.maximum_pax_per_unit', 'accommodation.deposit', 'accommodation.rent_per_month', 'accommodation.vendor_id', 'accommodation.tnb_bill_account_Number', 'accommodation.water_bill_account_Number', 'accommodation.created_by', 'accommodation.modified_by', 'accommodation.created_at', 'accommodation.updated_at')
             ->orderBy('accommodation.created_at', 'DESC')
             ->paginate($paginateRowSize);
     }
@@ -211,12 +211,12 @@ class AccommodationServices
     protected function filterAccommodationsBasedOnInput($query, $request)
     {
         if (!empty($request['vendor_id'])) {
-            $query->where('vendor_id', '=', $request['vendor_id']);
+            $query->where('accommodation.vendor_id', '=', $request['vendor_id']);
         }
         if (!empty($request['search_param'])) {
-            $query->where('vendor_id', '=', $request['vendor_id'])
-                ->where('name', 'like', '%' . $request['search_param'] . '%')
-                ->orWhere('location', 'like', '%' . $request['search_param'] . '%');
+            $query->where('accommodation.vendor_id', '=', $request['vendor_id'])
+                ->where('accommodation.name', 'like', '%' . $request['search_param'] . '%')
+                ->orWhere('accommodation.location', 'like', '%' . $request['search_param'] . '%');
         }
     }
 

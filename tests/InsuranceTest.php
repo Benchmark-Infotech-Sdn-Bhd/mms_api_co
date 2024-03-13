@@ -29,8 +29,28 @@ class InsuranceTest extends TestCase
        ];
         $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
-        $this->response->assertJsonStructure([
-            'data' => ['no_of_worker_from']
+        $response->seeJson([
+            'data' => ['no_of_worker_from' => ['The no of worker from field is required.']]
+        ]);
+    }
+    /**
+     * A test method for validate no of worker from format
+     * 
+     * @return void
+     */
+    public function testNoOfWorkerFromFormatValidation(): void
+    {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
+        $payload =  [
+            'no_of_worker_from' => '10hg',
+            'no_of_worker_to' => random_int(10, 1000),
+            'fee_per_pax' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['no_of_worker_from' => ['The no of worker from format is invalid.']]
         ]);
     }
     /**
@@ -49,8 +69,28 @@ class InsuranceTest extends TestCase
        ];
         $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
-        $this->response->assertJsonStructure([
-            'data' => ['no_of_worker_to']
+        $response->seeJson([
+            'data' => ['no_of_worker_to' => ['The no of worker to field is required.']]
+        ]);
+    }
+    /**
+     * A test method for validate no of worker to format
+     * 
+     * @return void
+     */
+    public function testNoOfWorkerToFormatValidation(): void
+    {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
+        $payload =  [
+            'no_of_worker_from' => random_int(10, 1000),
+            'no_of_worker_to' => '1dsf',
+            'fee_per_pax' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['no_of_worker_to' => ['The no of worker to format is invalid.']]
         ]);
     }
     /**
@@ -69,8 +109,28 @@ class InsuranceTest extends TestCase
        ];
         $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
         $response->seeStatusCode(422);
-        $this->response->assertJsonStructure([
-            'data' => ['fee_per_pax']
+        $response->seeJson([
+            'data' => ['fee_per_pax' => ['The fee per pax field is required.']]
+        ]);
+    }
+     /**
+     * A test method for validate fee per pax format
+     * 
+     * @return void
+     */
+    public function testFeePerPaxFormatValidation(): void
+    {
+        $this->json('POST', 'api/v1/vendor/create', $this->creationVendorData(), $this->getHeader());
+        $payload =  [
+            'no_of_worker_from' => random_int(10, 1000),
+            'no_of_worker_to' => random_int(10, 1000),
+            'fee_per_pax' => '1dvf',
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/insurance/create', $payload, $this->getHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['fee_per_pax' => ['The fee per pax format is invalid.']]
         ]);
     }
     /**
@@ -97,6 +157,146 @@ class InsuranceTest extends TestCase
                     'fee_per_pax',
                     'vendor_id',
                 ]
+        ]);
+    }
+    /**
+     * A test method for validate id in update
+     * 
+     * @return void
+     */
+    public function testIDUpdateValidation(): void
+    {
+        $payload =  [
+            'id' => '',
+            'no_of_worker_from' => random_int(10, 1000),
+            'no_of_worker_to' => random_int(10, 1000),
+            'fee_per_pax' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/insurance/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['id' => ['The id field is required.']]
+        ]);
+    }
+    /**
+     * A test method for validate no of worker from in update
+     * 
+     * @return void
+     */
+    public function testNoOfWorkerFromUpdateValidation(): void
+    {
+        $payload =  [
+            'id' => 1,
+            'no_of_worker_from' => '',
+            'no_of_worker_to' => random_int(10, 1000),
+            'fee_per_pax' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/insurance/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['no_of_worker_from' => ['The no of worker from field is required.']]
+        ]);
+    }
+    /**
+     * A test method for validate no of worker from format in update
+     * 
+     * @return void
+     */
+    public function testNoOfWorkerFromFormatUpdateValidation(): void
+    {
+        $payload =  [
+            'id' => 1,
+            'no_of_worker_from' => '2sjk',
+            'no_of_worker_to' => random_int(10, 1000),
+            'fee_per_pax' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/insurance/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['no_of_worker_from' => ['The no of worker from format is invalid.']]
+        ]);
+    }
+    /**
+     * A test method for validate no of worker to in update
+     * 
+     * @return void
+     */
+    public function testNoOfWorkerToUpdateValidation(): void
+    {
+        $payload =  [
+            'id' => 1,
+            'no_of_worker_from' => random_int(10, 1000),
+            'no_of_worker_to' => '',
+            'fee_per_pax' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/insurance/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['no_of_worker_to' => ['The no of worker to field is required.']]
+        ]);
+    }
+    /**
+     * A test method for validate no of worker to format in update
+     * 
+     * @return void
+     */
+    public function testNoOfWorkerToFormatUpdateValidation(): void
+    {
+        $payload =  [
+            'id' => 1,
+            'no_of_worker_from' => random_int(10, 1000),
+            'no_of_worker_to' => '1dsf',
+            'fee_per_pax' => random_int(10, 1000),
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/insurance/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['no_of_worker_to' => ['The no of worker to format is invalid.']]
+        ]);
+    }
+    /**
+     * A test method for validate fee per pax in update
+     * 
+     * @return void
+     */
+    public function testFeePerPaxUpdateValidation(): void
+    {
+        $payload =  [
+            'id' => 1,
+            'no_of_worker_from' => random_int(10, 1000),
+            'no_of_worker_to' => random_int(10, 1000),
+            'fee_per_pax' => '',
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/insurance/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['fee_per_pax' => ['The fee per pax field is required.']]
+        ]);
+    }
+     /**
+     * A test method for validate fee per pax format in update
+     * 
+     * @return void
+     */
+    public function testFeePerPaxFormatUpdateValidation(): void
+    {
+        $payload =  [
+            'id' => 1,
+            'no_of_worker_from' => random_int(10, 1000),
+            'no_of_worker_to' => random_int(10, 1000),
+            'fee_per_pax' => '1dvf',
+            'vendor_id' => 1
+       ];
+        $response = $this->json('POST', 'api/v1/insurance/update', $payload, $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => ['fee_per_pax' => ['The fee per pax format is invalid.']]
         ]);
     }
     /**
@@ -132,6 +332,22 @@ class InsuranceTest extends TestCase
     public function testRetrieveallInsurance()
     {
         $response = $this->json('POST', 'api/v1/insurance/list', ['vendor_id' => 1], $this->getHeader());
+        $response->seeStatusCode(200);
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'data'
+                ]
+        ]);
+    }
+    /**
+     * A test method for retrieve all insurance with search.
+     *
+     * @return void
+     */
+    public function testRetrieveallInsuranceWithSearch()
+    {
+        $response = $this->json('POST', 'api/v1/insurance/list', ['vendor_id' => 1, 'search_param' => '10'], $this->getHeader());
         $response->seeStatusCode(200);
         $this->response->assertJsonStructure([
             'data' =>

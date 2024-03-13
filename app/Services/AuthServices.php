@@ -168,6 +168,9 @@ class AuthServices extends Controller
         if ($request['user_type'] == 'Admin' || $request['user_type'] == 'Super User') {
             $request['password'] = Str::random(8);
         }
+        // if (DB::getDriverName() === 'sqlite') {
+        //     $request['password'] = 'Welcome@123';
+        // }
         return $request;
     }
 

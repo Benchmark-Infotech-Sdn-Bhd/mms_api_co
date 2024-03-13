@@ -63,6 +63,7 @@ class PermissionsMiddleware
      * @param string $module The module name
      * @param string $permissionName The name of the permission
      * @param mixed $request The request object or data
+     * @param object $next The next object.
      * @return JsonResponse The response object or data, or the original request data
      */
     private function handleUser($user, $module, $permissionName, $request, $next)

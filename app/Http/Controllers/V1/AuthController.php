@@ -159,7 +159,7 @@ class AuthController extends Controller
      *
      * @return array|void
      */
-    private function validateEmployeeUser($user)
+    private function validateEmployeeUser(object $user)
     {
         $employee = $this->employeeServices->show(['id' => $user['reference_id']]);
         if (is_null($employee) || $this->isEmployeeInactive($employee)) {
