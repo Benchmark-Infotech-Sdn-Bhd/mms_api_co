@@ -31,6 +31,7 @@ class ModulesServices
             ->whereNotIn('id', Config::get('services.SUPER_ADMIN_MODULES'))
             ->where('feature_flag', 0)
             ->select('id', 'module_name')
+            ->orderBy('id','ASC')
             ->get();
         }else{
             return $this->module::join('company_module_permission', function ($join) use ($request) {
@@ -41,6 +42,7 @@ class ModulesServices
             ->whereNotIn('modules.id', Config::get('services.SUPER_ADMIN_MODULES'))
             ->where('modules.feature_flag', 0)
             ->select('modules.id', 'modules.module_name')
+            ->orderBy('modules.id','ASC')
             ->get();
         }
     }
