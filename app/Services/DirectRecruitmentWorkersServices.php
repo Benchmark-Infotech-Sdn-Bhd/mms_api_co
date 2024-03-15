@@ -520,7 +520,7 @@ class DirectRecruitmentWorkersServices
      *
      * @param array $user The authenticated user data.
      *
-     * @return Builder The built query to fetch worker data.
+     * @return \App\Models\Workers The built query to fetch worker data.
      *
      * @throws JWTException If an error occurs while authenticating the JWT token.
      *
@@ -547,7 +547,7 @@ class DirectRecruitmentWorkersServices
                 // So, the code becomes cleaner and easier to understand what's going on
                 $this->applyFiltering($query, $request);
             })
-            ->select('workers.id', 'workers.name', 'workers.date_of_birth', 'workers.gender', 'workers.passport_number', 'workers.passport_valid_until', 'workers.address', 'workers.state', 'worker_kin.kin_name', 'kin_relationship.name as kin_relationship_name', 'worker_kin.kin_contact_number', 'worker_visa.ksm_reference_number', 'worker_bio_medical.bio_medical_reference_number', 'worker_bio_medical.bio_medical_valid_until');
+            ->select('workers.id', 'workers.name', 'workers.date_of_birth', 'workers.gender', 'workers.passport_number', 'workers.passport_valid_until', 'workers.address', 'workers.state', 'worker_kin.kin_name', 'kin_relationship.name as kin_relationship_name', 'worker_kin.kin_contact_number', 'worker_visa.ksm_reference_number', 'worker_bio_medical.bio_medical_reference_number', 'worker_bio_medical.bio_medical_valid_until', 'workers.created_at');
     }
 
     /**
