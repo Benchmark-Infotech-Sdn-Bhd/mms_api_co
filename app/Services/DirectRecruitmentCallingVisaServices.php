@@ -345,7 +345,7 @@ class DirectRecruitmentCallingVisaServices
             });
 
         if (!empty($request['export'])) {
-            $data = $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'worker_visa.status')->distinct('workers.id')
+            $data = $data->select('workers.id','workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'worker_visa.status')->distinct('workers.id')
                 ->orderBy('workers.id', 'desc')
                 ->get();
         } else {

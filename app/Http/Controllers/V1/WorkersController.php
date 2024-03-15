@@ -468,7 +468,7 @@ class WorkersController extends Controller
             return $this->sendSuccess(['message' => "Successfully worker was imported"]);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
-            $data['error'] = 'Import failed. Please retry.';
+            $data['error'] = 'Import failed. Please retry.'; 
             return $this->sendError(['message' => $data['error']], 400);
         }
 

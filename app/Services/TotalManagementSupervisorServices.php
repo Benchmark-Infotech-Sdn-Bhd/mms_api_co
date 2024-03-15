@@ -94,10 +94,10 @@ class TotalManagementSupervisorServices
      */
     private function listSelectColumns($data)
     {
-        return $data->select('total_management_project.supervisor_id', 'total_management_project.supervisor_type')
+        return $data->select('total_management_project.id','total_management_project.supervisor_id', 'total_management_project.supervisor_type')
         ->selectRaw("(CASE WHEN (total_management_project.supervisor_type = 'employee') THEN employee.employee_name WHEN (total_management_project.supervisor_type = 'driver') THEN supervisorTransportation.driver_name ELSE null END) as supervisor_name, (CASE WHEN (total_management_project.supervisor_type = 'employee') THEN users.email WHEN (total_management_project.supervisor_type = 'driver') THEN supervisorTransportation.driver_email ELSE null END) as email, (CASE WHEN (total_management_project.supervisor_type = 'employee') THEN employee.contact_number WHEN (total_management_project.supervisor_type = 'driver') THEN supervisorTransportation.driver_contact_number ELSE null END) as contact_number")
         ->distinct('total_management_project.supervisor_id')
-        ->groupBy('total_management_project.supervisor_id', 'total_management_project.supervisor_type','employee.employee_name', 'supervisorTransportation.driver_name', 'users.email', 'employee.contact_number', 'supervisorTransportation.driver_email', 'supervisorTransportation.driver_contact_number');
+        ->groupBy('total_management_project.id','total_management_project.supervisor_id', 'total_management_project.supervisor_type','employee.employee_name', 'supervisorTransportation.driver_name', 'users.email', 'employee.contact_number', 'supervisorTransportation.driver_email', 'supervisorTransportation.driver_contact_number');
     }
 
     /**

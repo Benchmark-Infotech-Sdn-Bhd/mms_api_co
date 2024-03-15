@@ -16,7 +16,7 @@ class TotalManagementSupervisorController extends Controller
     /**
      * @var TotalManagementSupervisorServices
      */
-    private $TotalManagementSupervisorServices;
+    private $totalManagementSupervisorServices;
     /**
      * @var AuthServices
      */

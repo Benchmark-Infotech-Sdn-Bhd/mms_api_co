@@ -439,7 +439,7 @@ class DirectRecruitmentCallingVisaApprovalServices
      */
     private function selectForExport($data)
     {
-        return $data->select('workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'worker_visa.calling_visa_reference_number', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_visa.approval_status')->distinct('workers.id')
+        return $data->select('workers.id', 'workers.name', 'worker_visa.ksm_reference_number', 'workers.passport_number', 'worker_bio_medical.bio_medical_valid_until', 'worker_visa.calling_visa_reference_number', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_visa.approval_status')->distinct('workers.id')
             ->orderBy('workers.id', 'desc')
             ->get();
     }

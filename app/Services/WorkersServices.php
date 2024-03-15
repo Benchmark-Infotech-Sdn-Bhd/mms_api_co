@@ -1990,7 +1990,7 @@ class WorkersServices
         $data = $this->workerAttachments->join('workers', function ($join) use ($request) {
             $join->on('workers.id', '=', 'worker_attachments.file_id')
                  ->whereIn('workers.company_id', $request['company_id']);
-        })->select('worker_attachments.id')->find($request['attachment_id']);
+        })->select('worker_attachments.id')->find($request['id']);
         if(is_null($data)) {
             return false;
         }
@@ -2010,6 +2010,7 @@ class WorkersServices
         $user = $this->getAuthenticatedUser();
         $params['created_by'] = $user['id'];
         $params['company_id'] = $user['company_id'];
+        $params['user_type'] = $user['user_type'];
 
         $workerBulkUpload = $this->createworkerBulkUpload($params);
 
