@@ -3,10 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-
+use Illuminate\Support\Facades\Log;
 use App\Services\ThirdPartyLogServices;
 use App\Services\DatabaseConnectionServices;
-use Illuminate\Support\Facades\Log;
 
 class ThirdPartyDeleteData extends Command
 {
@@ -27,7 +26,7 @@ class ThirdPartyDeleteData extends Command
     /**
      * @var ThirdPartyLogServices $thirdPartyLogServices
      */
-    private $thirdPartyLogServices;
+    private ThirdPartyLogServices $thirdPartyLogServices;
 
     /**
      * @var DatabaseConnectionServices $databaseConnectionServices
@@ -35,8 +34,11 @@ class ThirdPartyDeleteData extends Command
     private $databaseConnectionServices;
 
     /**
-     * Create a new command instance.
+     * __construct method
      *
+     * This method is the constructor of the class.
+     *
+     * @param ThirdPartyLogServices $thirdPartyLogServices An instance of the ThirdPartyLogServices class.
      * @return void
      */
     public function __construct(ThirdPartyLogServices $thirdPartyLogServices, DatabaseConnectionServices $databaseConnectionServices)
@@ -49,9 +51,9 @@ class ThirdPartyDeleteData extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
         Log::channel('cron_activity_logs')->info('Cron Job Started - Third-Party Log Delete Data for Tenant DB - '.$this->argument('database'));

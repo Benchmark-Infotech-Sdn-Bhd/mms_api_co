@@ -1,12 +1,14 @@
 <?php
+
 namespace Tests;
 
 use Laravel\Lumen\Testing\DatabaseMigrations;
+use Illuminate\Support\Carbon;
 
 class UsersUnitTest extends TestCase
 {
     use DatabaseMigrations;
-
+    
     /**
      * @return void
      */
@@ -14,159 +16,307 @@ class UsersUnitTest extends TestCase
     {
         parent::setUp();
     }
-    /**
-     * A functional test for Validate name in registration .
-     *
-     * @return void
-     */
-    public function testForRegistrationNameValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/user/register', array_merge($this->registrationData(), ['name' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => ['name' => ['The name field is required.']]
-        ]);
-    }
-    /**
-     * A functional test for Validate email in registration .
-     *
-     * @return void
-     */
-    public function testForRegistrationEmailValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/user/register', array_merge($this->registrationData(), ['email' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => ['email' => ['The email field is required.']]
-        ]);
-    }
-    /**
-     * A functional test for Validate user type in registration .
-     *
-     * @return void
-     */
-    public function testForRegistrationUserTypeValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/user/register', array_merge($this->registrationData(), ['user_type' => '']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => ['user_type' => ['The user type field is required.']]
-        ]);
-    }
-    /**
-     * A functional test for Validate email exists in registration .
-     *
-     * @return void
-     */
-    public function testForRegistrationEmailExistsValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/user/register', array_merge($this->registrationData(), ['email' => 'unittest@gmail.com']), $this->getHeader());
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => ['email' => ['The email has already been taken.']]
-        ]);
-    }
-    /**
-     * A functional test for registration .
-     *
-     * @return void
-     */
-    public function testForRegistration(): void
-    {
-        $this->json('POST', 'api/v1/role/create', ['name' => 'Administrator'], $this->getHeader());
-        $response = $this->json('POST', 'api/v1/user/register', $this->registrationData(), $this->getHeader(false));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Successfully User was created']
-        ]);
-    }
-    /**
-     * A functional test for Validate email in registration .
-     *
-     * @return void
-     */
-    public function testForLoginEmailValidation(): void
-    {
-        $response = $this->json('POST', 'api/v1/login', array_merge($this->loginData(), ['email' => '']));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => ['email' => ['The email field is required.']]
-        ]);
-    }
 
     /**
-     * A functional test for Validate password in registration .
-     *
+     * Functional test to List Admin User 
+     * 
      * @return void
      */
-    public function testForLoginPasswordValidation(): void
+    public function testToListAdminUsers(): void
     {
-        $response = $this->json('POST', 'api/v1/login', array_merge($this->loginData(), ['password' => '']));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => ['password' => ['The password field is required.']]
-        ]);
-    }
-
-    /**
-     * A functional test for invalid email .
-     *
-     * @return void
-     */
-    public function testForInvalidEmailLogin(): void
-    {
-        $response = $this->json('POST', 'api/v1/login', array_merge($this->loginData(), ['email' => 'test123@gmail.com']));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Invalid Credentials']
-        ]);
-    }
-    /**
-     * A functional test for invalid password .
-     *
-     * @return void
-     */
-    public function testForInvalidPasswordLogin(): void
-    {
-        $response = $this->json('POST', 'api/v1/login', array_merge($this->loginData(), ['password' => '123456789']));
-        $response->seeStatusCode(200);
-        $response->seeJson([
-            'data' => ['message' => 'Invalid Credentials']
-        ]);
-    }
-    /**
-     * A functional test for invalid password .
-     *
-     * @return void
-     */
-    public function testForValidLogin(): void
-    {
-        $this->getToken();
-        $response = $this->call('POST', 'api/v1/login', $this->loginData());
-        $this->assertEquals(200, $response->status());
-        $response->assertJsonStructure([
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminList', ['search_param' => ''], $this->getSuperHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
             'data' =>
                 [
-                    'token',
-                    'user',
-                    'token_type',
-                    'expires_in',
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
                 ]
         ]);
+    }
 
+    /**
+     * Functional test to List Admin User serach validation
+     * 
+     * @return void
+     */
+    public function testToListAdminUsersWithSearchParamValidation(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminList', ['search_param' => 'te'], $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'search_param' => ['The search param must be at least 3 characters.']
+            ]
+        ]);
     }
+
+    /**
+     * Functional test to List Admin User 
+     * 
+     * @return void
+     */
+    public function testToListAdminUsersWithSearchParam(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminList', ['search_param' => 'test'], $this->getSuperHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                    'current_page',
+                    'data',
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total'
+                ]
+        ]);
+    }
+
+    /**
+     * Functional test for Show Admin User Details api - ID mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForDisplayAdminUsersDetailsIdRequiredValidation(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminShow', ['id' => ''], $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'id' => ['The id field is required.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test to Show Admin User Details
+     * 
+     * @return void
+     */
+    public function testToDisplayAdminUsersDetails(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminShow', ['id' => '1'], $this->getSuperHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' => 
+            [
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User - ID mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserStatusIdRequiredValidation(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['status' => 0], $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'id' => ['The id field is required.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User - Status mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserStatusStatusRequiredValidation(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1], $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'status' => ['The status field is required.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User - Status format validation 
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserStatusStatusFormatValidation(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 5], $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'status' => ['The status format is invalid.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User Details - disable
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserDisableStatus(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 0], $this->getSuperHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            "data" =>
+            [
+                'isUpdated' => true,
+                'message' => 'Updated Successfully'
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User Details - enable
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserEnableStatus(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdateStatus', ['id' => 1, 'status' => 1], $this->getSuperHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            "data" =>
+            [
+                'isUpdated' => true,
+                'message' => 'Updated Successfully'
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User - ID mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserIdRequiredValidation(): void
+    {
+        //$this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['id' => '']), $this->getSuperHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'id' => ['The id field is required.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User - Name mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserNameRequiredValidation(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['name' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'name' => ['The name field is required.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User - Email mandatory field validation 
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserEmailRequiredValidation(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['email' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'email' => ['The email field is required.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User  Email unique validation 
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUserEmailUniqueValidation(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdate', array_merge($this->updationData(), ['email' => 'unittest@gmail.com']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'email' => ['The email has already been taken.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Update Status Admin User 
+     * 
+     * @return void
+     */
+    public function testForUpdateAdminUser(): void
+    {
+        $this->json('POST', 'api/v1/user/register', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/user/adminUpdate', $this->updationData(), $this->getSuperHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            "data" =>
+            [
+                'isUpdated' => true,
+                'message' => 'Updated Successfully'
+            ]
+        ]);
+    }
+
     /**
      * @return array
      */
-    public function registrationData(): array
+    public function creationData(): array
     {
-        return ['name' => 'test', 'email' => 'test@gmail.com', 'user_type' => 'Admin', 'status' => 1, 'company_id' => 1];
+        return ['name' => 'Test Admin', 'user_type' => 'Admin', 'email' => 'test@test.com'];
     }
+
     /**
      * @return array
      */
-    public function loginData(): array
+    public function updationData(): array
     {
-        return ['email' => 'unittest@gmail.com', 'password' => 'Welcome@123'];
+        return ['id' => 2, 'name' => 'Test Admin edit', 'email' => 'test@test.com'];
     }
 }

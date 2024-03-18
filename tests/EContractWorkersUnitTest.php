@@ -77,6 +77,21 @@ class EContractWorkersUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for assign worker, Unauthorized validation 
+     * 
+     * @return void
+     */
+    public function testForAssignWorkerUnauthorizedValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerAssign/assignWorker', array_merge($this->creationData(), ['project_id' => 0]), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized"
+            ]
+        ]);
+    }
+    /**
      * Functional test for assign worker
      * 
      * @return void
@@ -88,6 +103,35 @@ class EContractWorkersUnitTest extends TestCase
         $response->seeStatusCode(200);
         $response->seeJson([
             'data' => ['message' => 'Workers are Assigned Successfully']
+        ]);
+    }
+    /**
+     * Functional test for remove worker, Unauthorized validation 
+     * 
+     * @return void
+     */
+    public function testForRemoveWorkerUnauthorizedValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerAssign/removeWorker', array_merge($this->removeWorkerData(), ['project_id' => 0]), $this->getHeader());
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized"
+            ]
+        ]);
+    }
+    /**
+     * Functional test for remove worker
+     * 
+     * @return void
+     */
+    public function testForRemoveWorker(): void
+    {
+        $this->testForAssignWorker();
+        $response = $this->json('POST', 'api/v1/eContract/manage/workerAssign/removeWorker', $this->removeWorkerData(), $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Worker Removed Successfully']
         ]);
     }
     /**
@@ -323,5 +367,12 @@ class EContractWorkersUnitTest extends TestCase
     public function creationData(): array
     {
         return ['project_id' => 1, 'department' => 'department', 'sub_department' => 'sub department', 'work_start_date' => Carbon::now()->format('Y-m-d'), 'workers' => [1]];
+    }
+    /**
+     * @return array
+     */
+    public function removeWorkerData(): array
+    {
+        return ['project_id' => 1, 'worker_id' => 1, 'remove_date' => Carbon::now()->format('Y-m-d'), 'remarks' => 'test', 'last_working_day' => Carbon::now()->format('Y-m-d')];
     }
 }

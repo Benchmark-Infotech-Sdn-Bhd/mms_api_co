@@ -49,4 +49,18 @@ class CRMProspect extends Model implements Auditable
     {
         return $this->hasOne(User::class, 'reference_id')->where('user_type', 'Customer');
     }
+    /**
+     * @return HasMany
+     */
+    public function totalManagemntApplications(): HasMany
+    {
+        return $this->hasMany(TotalManagementApplications::class, 'crm_prospect_id');
+    }
+    /**
+     * @return HasMany
+     */
+    public function eContractApplications(): HasMany
+    {
+        return $this->hasMany(EContractApplications::class, 'crm_prospect_id');
+    }
 }

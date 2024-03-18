@@ -408,6 +408,23 @@ class DirectRecruitmentOnboardingCountryUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for View Onboarding Country id validation
+     * 
+     * @return void
+     */
+    public function testForViewOnboardingCountryIdValidation(): void
+    {
+        $this->creationSeeder();
+        $res = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/create', $this->creationData(), $this->getHeader(false));
+        $response = $this->json('POST', 'api/v1/directRecruitment/onboarding/countries/show', ['id' => 0], $this->getHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => [
+                'message' => "Unauthorized."
+            ]
+        ]);
+    }
+    /**
      * Functional test for View Onboarding Country
      * 
      * @return void

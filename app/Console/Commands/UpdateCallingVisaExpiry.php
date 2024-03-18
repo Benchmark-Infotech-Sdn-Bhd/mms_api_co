@@ -4,8 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Services\DirectRecruitmentPostponedServices;
-use App\Services\DatabaseConnectionServices;
 use Illuminate\Support\Facades\Log;
+use App\Services\DatabaseConnectionServices;
 
 class UpdateCallingVisaExpiry extends Command
 {
@@ -26,7 +26,7 @@ class UpdateCallingVisaExpiry extends Command
     /**
      * @var DirectRecruitmentPostponedServices $directRecruitmentPostponedServices
      */
-    private $directRecruitmentPostponedServices;
+    private DirectRecruitmentPostponedServices $directRecruitmentPostponedServices;
 
     /**
      * @var DatabaseConnectionServices $databaseConnectionServices
@@ -34,9 +34,9 @@ class UpdateCallingVisaExpiry extends Command
     private $databaseConnectionServices;
 
     /**
-     * Create a new command instance.
+     * Class constructor.
      *
-     * @return void
+     * @param DirectRecruitmentPostponedServices $directRecruitmentPostponedServices The instance of DirectRecruitmentPostponedServices class.
      */
     public function __construct(DirectRecruitmentPostponedServices $directRecruitmentPostponedServices, DatabaseConnectionServices $databaseConnectionServices)
     {
@@ -48,9 +48,9 @@ class UpdateCallingVisaExpiry extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
         Log::channel('cron_activity_logs')->info('Cron Job Started - Update Expiry Status for Tenant DB - '.$this->argument('database'));

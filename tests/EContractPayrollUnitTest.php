@@ -210,15 +210,15 @@ class EContractPayrollUnitTest extends TestCase
        ];
        $response = $this->json('POST', 'api/v1/vendor/create', $payload, $this->getHeader(false));
 
-       $payload =  [
-        'driver_name' => 'name',
-        'driver_contact_number' => random_int(10, 1000),
-        'vehicle_type' => 'type',
-        'number_plate' => random_int(10, 1000),
-        'vehicle_capacity' => random_int(10, 1000),
-        'vendor_id' => 1
-   ];
-   $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
+        $payload =  [
+                'driver_name' => 'name',
+                'driver_contact_number' => random_int(10, 1000),
+                'vehicle_type' => 'type',
+                'number_plate' => random_int(10, 1000),
+                'vehicle_capacity' => random_int(10, 1000),
+                'vendor_id' => 1
+        ];
+        $response = $this->json('POST', 'api/v1/transportation/create', $payload, $this->getHeader(false));
 
         $payload =  [
             'sector_name' => 'Agriculture',

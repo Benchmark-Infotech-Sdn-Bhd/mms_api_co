@@ -41,6 +41,9 @@ class DirectRecruitmentImmigrationFeePaidController extends Controller
     public function update(Request $request): JsonResponse
     {
         try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_id'] = $user['company_id'];
+            $request['created_by'] = $user['id'];
             $response = $this->directRecruitmentImmigrationFeePaidServices->update($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);

@@ -16,22 +16,24 @@ class AccessManagementController extends Controller
     /**
      * @var AccessManagementServices
      */
-    private $accessManagementServices;
+    private AccessManagementServices $accessManagementServices;
 
     /**
-     * AccessManagementController constructor.
-     * @param AccessManagementServices $accessManagementServices
+     * Constructs a new instance of the class.
+     *
+     * @param AccessManagementServices $accessManagementServices An instance of the AccessManagementServices class.
      */
-    public function __construct(AccessManagementServices $accessManagementServices) 
+    public function __construct(AccessManagementServices $accessManagementServices)
     {
         $this->accessManagementServices = $accessManagementServices;
     }
 
     /**
-     * Display a listing of the resource.
+     * Retrieves and returns the list of modules.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The HTTP request object.
+     *
+     * @return JsonResponse The JSON response containing the list of modules.
      */
     public function list(Request $request) : JsonResponse
     {
@@ -49,10 +51,11 @@ class AccessManagementController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Create a new role permission.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The HTTP request object.
+     *
+     * @return JsonResponse The JSON response containing the result of the operation.
      */
     public function create(Request $request) : JsonResponse
     {
@@ -67,9 +70,9 @@ class AccessManagementController extends Controller
             }
             $response = $this->accessManagementServices->create($params);
             if(isset($response['roleError'])) {
-                return $this->sendError(['message' => 'Role Permission Already Exists.']); 
+                return $this->sendError(['message' => 'Role Permission Already Exists.']);
             } else if(isset($response['moduleError'])) {
-                return $this->sendError(['message' => 'Unauthorized.']); 
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'Role Permission Created Successfully']);
         } catch (Exception $e) {
@@ -79,10 +82,12 @@ class AccessManagementController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Updates the role permission.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param Request $request The request object.
+     *
+     * @return JsonResponse The JSON response containing the result of the update operation.
+     * @throws Exception If an error occurs during the update operation.
      */
     public function update(Request $request) : JsonResponse
     {
@@ -97,9 +102,9 @@ class AccessManagementController extends Controller
             }
             $response = $this->accessManagementServices->update($params);
             if(isset($response['moduleError'])) {
-                return $this->sendError(['message' => 'Unauthorized.']); 
+                return $this->sendError(['message' => 'Unauthorized.']);
             } else if(isset($response['InvalidUser'])) {
-                return $this->sendError(['message' => 'Unauthorized.']); 
+                return $this->sendError(['message' => 'Unauthorized.']);
             }
             return $this->sendSuccess(['message' => 'Role Permission Updated Successfully']);
         } catch (Exception $e) {

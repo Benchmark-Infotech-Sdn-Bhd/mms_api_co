@@ -4,8 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Services\WorkersServices;
-use App\Services\DatabaseConnectionServices;
 use Illuminate\Support\Facades\Log;
+use App\Services\DatabaseConnectionServices;
 
 class WorkerImportFailure extends Command
 {
@@ -26,7 +26,7 @@ class WorkerImportFailure extends Command
     /**
      * @var WorkersServices $workersServices
      */
-    private $workersServices;
+    private WorkersServices $workersServices;
 
     /**
      * @var DatabaseConnectionServices $databaseConnectionServices
@@ -34,9 +34,11 @@ class WorkerImportFailure extends Command
     private $databaseConnectionServices;
 
     /**
-     * Create a new command instance.
-     * @param Workers $workers
-     * 
+     * Constructor for the class.
+     *
+     * @param WorkersServices $workersServices An instance of the WorkersServices class that
+     *                                         provides worker-related services.
+     *
      * @return void
      */
     public function __construct(WorkersServices $workersServices, DatabaseConnectionServices $databaseConnectionServices)
@@ -49,9 +51,9 @@ class WorkerImportFailure extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
         Log::channel('cron_activity_logs')->info('Cron Job Started - Worker Import Failure Cases Excel Generation for Tenant DB - '.$this->argument('database'));

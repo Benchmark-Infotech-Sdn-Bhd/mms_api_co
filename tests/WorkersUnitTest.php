@@ -62,6 +62,36 @@ class WorkersUnitTest extends TestCase
             ]
         ]);
     }
+    /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForWorkersCreateAddressValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/worker/create', array_merge($this->creationData(), ['address' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'address' => ['The address field is required.']
+            ]
+        ]);
+    }
+    /**
+     * Functional test for worker create field validation 
+     * 
+     * @return void
+     */
+    public function testForWorkersCreateStateValidation(): void
+    {
+        $response = $this->json('POST', 'api/v1/worker/create', array_merge($this->creationData(), ['state' => '']), $this->getHeader());
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'state' => ['The state field is required.']
+            ]
+        ]);
+    }
 
     /**
      * Functional test for worker create 

@@ -20,8 +20,14 @@ class KSMQuotaUpdated extends Event
      * @var string
      */
     public $type;
+
     /**
-     * Create a new event instance.
+     * Constructor for the class.
+     *
+     * @param int $onBoardingCountryId The ID of the onboarding country.
+     * @param string $ksmReferenceNumber The reference number for KSM.
+     * @param int $workerCount The number of workers.
+     * @param string $type The type of the object.
      *
      * @return void
      */

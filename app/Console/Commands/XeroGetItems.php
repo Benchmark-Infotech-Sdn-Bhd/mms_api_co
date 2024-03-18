@@ -3,10 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-
+use Illuminate\Support\Facades\Log;
 use App\Services\InvoiceServices;
 use App\Services\DatabaseConnectionServices;
-use Illuminate\Support\Facades\Log;
 
 class XeroGetItems extends Command
 {
@@ -27,7 +26,7 @@ class XeroGetItems extends Command
     /**
      * @var InvoiceServices $invoiceServices
      */
-    private $invoiceServices;
+    private InvoiceServices $invoiceServices;
 
     /**
      * @var DatabaseConnectionServices $databaseConnectionServices
@@ -49,9 +48,9 @@ class XeroGetItems extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
         Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Save Items Generation for Tenant DB - '.$this->argument('database'));

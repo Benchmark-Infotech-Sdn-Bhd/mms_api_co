@@ -36,30 +36,116 @@ use App\Exports\WorkerBiodataFailureExport;
 
 class WorkersServices
 {
+    public const DEFAULT_VALUE = 0;
+    public const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
+    public const ERROR_QUEUE = ['queueError' => true];
+    public const ERROR_WORKER = ['workerError' => true];
+    public const ERROR_WORKER_COUNT = ['workerCountError' => true];
+
+    public const ATTACHMENT_FILE_TYPE_FOMEMA = 'FOMEMA';
+    public const ATTACHMENT_FILE_TYPE_PASSPORT = 'PASSPORT';
+    public const ATTACHMENT_FILE_TYPE_PROFILE = 'PROFILE';
+    public const ATTACHMENT_FILE_TYPE_WORKERATTACHMENT = 'WORKERATTACHMENT';
+    public const ATTACHMENT_FILE_TYPE_WORKPERMIT = 'WORKPERMIT';
+    public const ATTACHMENT_FILE_TYPE_BIOMEDICAL = 'BIOMEDICAL';
+    public const MODULE_TYPE_WORKERBIODATA = 'WorkerBioData';
+    public const MODULE_TYPE_WORKERS = 'Workers';
+    public const PROCESS_STATUS = 'Processed';
+    public const WORKER_BULK_UPLOAD = 'Worker Bulk Upload';
+    public const MESSAGE_DATA_NOT_FOUND = 'Data not found';
+    public const MESSAGE_DELETED_SUCCESSFULLY = 'Deleted Successfully';
+    public const MESSAGE_UPDATED_SUCCESSFULLY = 'Updated Successfully';
+    public const WORKER_BANK_ACCOUNT_LIMIT = 3;
+    public const USER_TYPE_CUSTOMER = 'Customer';
+
+    /**
+     * @var Workers
+     */
     private Workers $workers;
+    /**
+     * @var WorkerAttachments
+     */
     private WorkerAttachments $workerAttachments;
+    /**
+     * @var WorkerKin
+     */
     private WorkerKin $workerKin;
+    /**
+     * @var WorkerVisa
+     */
     private WorkerVisa $workerVisa;
+    /**
+     * @var WorkerVisaAttachments
+     */
     private WorkerVisaAttachments $workerVisaAttachments;
+    /**
+     * @var WorkerBioMedical
+     */
     private WorkerBioMedical $workerBioMedical;
+    /**
+     * @var WorkerBioMedicalAttachments
+     */
     private WorkerBioMedicalAttachments $workerBioMedicalAttachments;
+    /**
+     * @var WorkerFomema
+     */
     private WorkerFomema $workerFomema;
+    /**
+     * @var WorkerInsuranceDetails
+     */
     private WorkerInsuranceDetails $workerInsuranceDetails;
+    /**
+     * @var WorkerBankDetails
+     */
     private WorkerBankDetails $workerBankDetails;
+    /**
+     * @var KinRelationship
+     */
     private KinRelationship $kinRelationship;
+    /**
+     * @var DirectRecruitmentCallingVisaStatus
+     */
     private DirectRecruitmentCallingVisaStatus $directRecruitmentCallingVisaStatus;
+    /**
+     * @var DirectRecruitmentOnboardingAgent
+     */
     private DirectRecruitmentOnboardingAgent $directRecruitmentOnboardingAgent;
+    /**
+     * @var WorkerStatus
+     */
     private WorkerStatus $workerStatus;
+    /**
+     * @var DirectRecruitmentOnboardingCountryServices
+     */
     private DirectRecruitmentOnboardingCountryServices $directRecruitmentOnboardingCountryServices;
+    /**
+     * @var ValidationServices
+     */
     private ValidationServices $validationServices;
+    /**
+     * @var AuthServices
+     */
     private AuthServices $authServices;
+    /**
+     * @var Storage
+     */
     private Storage $storage;
+    /**
+     * @var DirectrecruitmentWorkers
+     */
     private DirectrecruitmentWorkers $directrecruitmentWorkers;
+    /**
+     * @var WorkerBulkUpload
+     */
     private WorkerBulkUpload $workerBulkUpload;
+    /**
+     * @var BulkUploadRecords
+     */
     private BulkUploadRecords $bulkUploadRecords;
 
     /**
-     * WorkersServices constructor.
+     * WorkersServices constructor method
+     *
      * @param Workers $workers
      * @param WorkerAttachments $workerAttachments
      * @param WorkerKin $workerKin
@@ -81,6 +167,9 @@ class WorkersServices
      * @param DirectrecruitmentWorkers $directrecruitmentWorkers;
      * @param WorkerBulkUpload $workerBulkUpload
      * @param BulkUploadRecords $bulkUploadRecords
+     *
+     * @return void
+     *
      */
     public function __construct(
             Workers                                     $workers,
@@ -97,7 +186,7 @@ class WorkersServices
             DirectRecruitmentCallingVisaStatus          $directRecruitmentCallingVisaStatus,
             DirectRecruitmentOnboardingAgent            $directRecruitmentOnboardingAgent,
             WorkerStatus                                $workerStatus,
-            DirectRecruitmentOnboardingCountryServices  $directRecruitmentOnboardingCountryServices, 
+            DirectRecruitmentOnboardingCountryServices  $directRecruitmentOnboardingCountryServices,
             ValidationServices                          $validationServices,
             AuthServices                                $authServices,
             Storage                                     $storage,
@@ -129,7 +218,9 @@ class WorkersServices
         $this->bulkUploadRecords = $bulkUploadRecords;
     }
     /**
-     * @return array
+     * validate the assign worker request data
+     *
+     * @return array The validation rules for the input data.
      */
     public function assignWorkerValidation(): array
     {
@@ -141,7 +232,9 @@ class WorkersServices
             ];
     }
     /**
-     * @return array
+     * validate the add attachment request data
+     *
+     * @return array The validation rules for the input data.
      */
     public function addAttachmentValidation(): array
     {
@@ -151,22 +244,278 @@ class WorkersServices
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Get the Authenticated User data
+     *
+     * @return mixed Returns the enriched request data.
+     *
      */
-    public function create($request) : mixed
+    private function getAuthenticatedUser(): mixed
     {
-        $params = $request->all();
+        return JWTAuth::parseToken()->authenticate();
+    }
+
+    /**
+     * Enriches the given request data with user details.
+     *
+     * @param array $request The request data to be enriched.
+     * @return mixed Returns the enriched request data.
+     */
+    private function enrichRequestWithUserDetails($request): mixed
+    {
         $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
-        $params['company_id'] = $user['company_id'];
+        $request['created_by'] = $user['id'];
+        $request['modified_by'] = $user['id'];
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        return $request;
+    }
+
+    /**
+     * Validate the create worker request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateCreateRequest($request): array|bool
+    {
         if(!($this->validationServices->validate($request->toArray(),$this->workers->rules))){
             return [
               'validate' => $this->validationServices->errors()
             ];
         }
 
-        $worker = $this->workers->create([
+        return true;
+    }
+
+    /**
+     * Validate the update worker request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateUpdateRequest($request): array|bool
+    {
+        if(!($this->validationServices->validate($request->toArray(),$this->workers->rulesForUpdation($request['id'])))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the worker show request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateShowRequest($request): array|bool
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the worker list request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateListRequest($request): array|bool
+    {
+        if(!empty($request['search_param'])){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+                return [
+                    'validate' => $this->validationServices->errors()
+                ];
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the worker bank list request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateListBankDetailsRequest($request): array|bool
+    {
+        if(!empty($request['search_param'])){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+                return [
+                    'validate' => $this->validationServices->errors()
+                ];
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the worker bank show details request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateShowBankDetailsRequest($request): array|bool
+    {
+        if(!($this->validationServices->validate($request,['id' => 'required']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the worker add attachment request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateAddAttachmentRequest($request): array|bool
+    {
+        $validator = Validator::make($request->toArray(), $this->addAttachmentValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the assign worker request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateAssignWorkerRequest($request): array|bool
+    {
+        $validator = Validator::make($request->toArray(), $this->assignWorkerValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    /**
+     * Validate the worker export request data.
+     *
+     * @param array $request The request data to be validated.
+     * @return array|bool Returns an array with 'error' as key and validation error messages as value if validation fails.
+     *                   Returns true if validation passes.
+     */
+    private function validateExportRequest($request): array|bool
+    {
+        if(!empty($request['search_param'])){
+            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
+                return [
+                    'validate' => $this->validationServices->errors()
+                ];
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * create a worker
+     *
+     * @param $request The request data containing create worker details
+     *
+     * @return mixed Returns true if the worker is created successfully, otherwise returns an array with error details
+     *
+     * @see validateCreateRequest()
+     * @see enrichRequestWithUserDetails()
+     * @see createWorker()
+     * @see uploadFomemaAttachment()
+     * @see uploadPassportAttachment()
+     * @see uploadProfilePicture()
+     * @see uploadWorkerAttachment()
+     * @see createWorkerKin()
+     * @see createWorkerVisa()
+     * @see uploadWorkerVisaAttachment()
+     * @see createWorkerBioMedical()
+     * @see uploadWorkerBioMedicalAttachment()
+     * @see createWorkerFomema()
+     * @see createWorkerInsuranceDetails()
+     * @see createWorkerBankDetails()
+     *
+     */
+    public function create($request) : mixed
+    {
+        $validationResult = $this->validateCreateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
+        $params = $request->all();
+        $user = $this->getAuthenticatedUser();
+        $params['created_by'] = $user['id'];
+        $params['company_id'] = $user['company_id'];
+
+        $worker = $this->createWorker($params);
+
+        $this->uploadFomemaAttachment($worker, $request);
+        $this->uploadPassportAttachment($worker, $request);
+        $this->uploadProfilePicture($worker, $request);
+        $this->uploadWorkerAttachment($worker, $request);
+        $this->createWorkerKin($worker, $request);
+        $workerVisa = $this->createWorkerVisa($worker, $request);
+        $this->uploadWorkerVisaAttachment($worker, $workerVisa, $request);
+        $workerBioMedical = $this->createWorkerBioMedical($worker, $request);
+        $this->uploadWorkerBioMedicalAttachment($worker, $workerBioMedical, $request);
+        $this->createWorkerFomema($worker, $request);
+        $this->createWorkerInsuranceDetails($worker, $request);
+        $this->createWorkerBankDetails($worker, $request);
+
+        return $worker;
+    }
+
+    /**
+     * create worker.
+     *
+     * @param array $request
+     *              crm_prospect_id (int) ID of the prospect
+     *              name (string) name of the worker
+     *              gender (string) gender of the worker
+     *              date_of_birth (date) DOB of the worker
+     *              passport_number (string) passport number the worker
+     *              passport_valid_until (date) passport valid date of the worker
+     *              fomema_valid_until (date) fomema valid date of the worker
+     *              address (string) address of the worker
+     *              city (string) city of the worker
+     *              state (string) state of the worker
+     *              created_by ID of the user who created the worker
+     *              company_id (int) user company id
+     *
+     * @return mixed  Returns the created worker data.
+     */
+    private function createWorker($request): mixed
+    {
+        return $this->workers->create([
             'crm_prospect_id' => $request['crm_prospect_id'] ?? 0,
             'name' => $request['name'] ?? '',
             'gender' => $request['gender'] ?? '',
@@ -178,185 +527,447 @@ class WorkersServices
             'address' => $request['address'] ?? '',
             'city' => $request['city'] ?? '',
             'state' => $request['state'] ?? '',
-            'crm_prospect_id' => $request['crm_prospect_id'] ?? NULL,
-            'created_by'    => $params['created_by'] ?? 0,
-            'modified_by'   => $params['created_by'] ?? 0,
-            'company_id' => $params['company_id']
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0,
+            'company_id' => $request['company_id']
         ]);
+    }
 
+    /**
+     * upload Fomema Attachment.
+     *
+	 * @param object $worker The worker object
+     * @param array $request
+     *              fomema_attachment (file) - the attachment file of fomema
+     *
+     * @return void
+     */
+    private function uploadFomemaAttachment($worker, $request): void
+    {
         if (request()->hasFile('fomema_attachment')){
             foreach($request->file('fomema_attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$worker['id'].'/fomema/'. $fileName; 
+                $filePath = '/workerbiodata/'.$worker['id'].'/fomema/'. $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
+                $this->workerAttachments->updateOrCreate(
+                    [
                         "file_id" => $worker['id'],
+                        "file_type" => self::ATTACHMENT_FILE_TYPE_FOMEMA,
+                    ],
+                    [
                         "file_name" => $fileName,
-                        "file_type" => 'FOMEMA',
                         "file_url" =>  $fileUrl
-                    ]);  
+                ]);
             }
         }
+    }
 
+    /**
+     * upload Passport Attachment.
+     *
+	 * @param object $worker The worker object
+     * @param array $request
+     *              passport_attachment (file) - The attachment file
+     *
+     * @return void
+     */
+    private function uploadPassportAttachment($worker, $request): void
+    {
         if (request()->hasFile('passport_attachment')){
             foreach($request->file('passport_attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$worker['id'].'/passport/' . $fileName; 
+                $filePath = '/workerbiodata/'.$worker['id'].'/passport/' . $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
+                $this->workerAttachments->updateOrCreate(
+                    [
                         "file_id" => $worker['id'],
+                        "file_type" => self::ATTACHMENT_FILE_TYPE_PASSPORT,
+                    ],
+                    [
                         "file_name" => $fileName,
-                        "file_type" => 'PASSPORT',
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                        "file_url" =>  $fileUrl
+                ]);
             }
         }
+    }
 
+    /**
+     * upload profile picture.
+     *
+	 * @param object $worker The worker object
+     * @param array $request
+     *              profile_picture (file) - The attachment file
+     *
+     * @return void
+     */
+    private function uploadProfilePicture($worker, $request): void
+    {
         if (request()->hasFile('profile_picture')){
             foreach($request->file('profile_picture') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$worker['id'].'/profile/' . $fileName; 
+                $filePath = '/workerbiodata/'.$worker['id'].'/profile/' . $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
+                $this->workerAttachments->updateOrCreate(
+                    [
                         "file_id" => $worker['id'],
+                        "file_type" => self::ATTACHMENT_FILE_TYPE_PROFILE,
+                    ],
+                    [
                         "file_name" => $fileName,
-                        "file_type" => 'PROFILE',
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                        "file_url" =>  $fileUrl
+                ]);
             }
         }
+    }
 
+    /**
+     * upload worker attachment.
+     *
+	 * @param object $worker The worker object
+     * @param array $request
+     *              worker_attachment (file) - The attachment file
+     *
+     * @return void
+     */
+    private function uploadWorkerAttachment($worker, $request): void
+    {
         if (request()->hasFile('worker_attachment')){
             foreach($request->file('worker_attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/workerAttachment/'.$worker['id'].'/attachment/' . $fileName; 
+                $filePath = '/workerAttachment/'.$worker['id'].'/attachment/' . $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
+                $this->workerAttachments->updateOrCreate(
+                    [
                         "file_id" => $worker['id'],
+                        "file_type" => self::ATTACHMENT_FILE_TYPE_WORKERATTACHMENT,
+                    ],
+                    [
                         "file_name" => $fileName,
-                        "file_type" => 'WORKERATTACHMENT',
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                        "file_url" =>  $fileUrl
+                ]);
             }
         }
+    }
 
+    /**
+     * Create the worker kin .
+     *
+	 * @param object $worker The worker object
+     * @param array $request
+     *              kin_name (string) Kin name
+     *              kin_relationship_id (int) kin relationship id
+     *              kin_contact_number (string) kin contact number
+     *
+     * @return void
+     */
+    private function createWorkerKin($worker, $request)
+    {
         $this->workerKin::create([
             "worker_id" => $worker['id'],
             "kin_name" => $request['kin_name'] ?? '',
             "kin_relationship_id" => $request['kin_relationship_id'] ?? '',
-            "kin_contact_number" =>  $request['kin_contact_number'] ?? ''         
+            "kin_contact_number" =>  $request['kin_contact_number'] ?? ''
         ]);
+    }
 
-        $workerVisa = $this->workerVisa::create([
+    /**
+     * Create the worker visa .
+     *
+	 * @param object $worker The worker object
+     * @param array $request
+     *              ksm_reference_number (int) ksm reference number
+     *              calling_visa_reference_number (int) calling visa reference number
+     *              calling_visa_valid_until (date) calling visa valid until date
+	 *              entry_visa_valid_until (date) entry visa valid until date
+	 *				work_permit_valid_until (date) work permit valid until date
+     *
+     * @return mixed Returns the created worker visa data.
+     */
+    private function createWorkerVisa($worker, $request): mixed
+    {
+        return $this->workerVisa::create([
             "worker_id" => $worker['id'],
             "ksm_reference_number" => $request['ksm_reference_number'],
             "calling_visa_reference_number" => $request['calling_visa_reference_number'] ?? '',
-            "calling_visa_valid_until" =>  ((isset($request['calling_visa_valid_until']) && !empty($request['calling_visa_valid_until'])) ? $request['calling_visa_valid_until'] : null),         
+            "calling_visa_valid_until" =>  ((isset($request['calling_visa_valid_until']) && !empty($request['calling_visa_valid_until'])) ? $request['calling_visa_valid_until'] : null),
             "entry_visa_valid_until" =>  ((isset($request['entry_visa_valid_until']) && !empty($request['entry_visa_valid_until'])) ? $request['entry_visa_valid_until'] : null),
             "work_permit_valid_until" =>  ((isset($request['work_permit_valid_until']) && !empty($request['work_permit_valid_until'])) ? $request['work_permit_valid_until'] : null)
         ]);
+    }
 
+    /**
+     * Upload Worker Visa Attachment
+     *
+	 * @param object $worker The worker object
+	 * @param object $workerVisa The worker visa object
+     * @param array $request
+     *              worker_visa_attachment (file) - The attachment file
+     *
+     * @return void
+     */
+    private function uploadWorkerVisaAttachment($worker, $workerVisa, $request): void
+    {
         if (request()->hasFile('worker_visa_attachment')){
             foreach($request->file('worker_visa_attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$worker['id'].'/workerVisa/' . $fileName; 
+                $filePath = '/workerbiodata/'.$worker['id'].'/workerVisa/' . $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerVisaAttachments::create([
-                        "file_id" => $workerVisa['id'],
-                        "file_name" => $fileName,
-                        "file_type" => 'WORKPERMIT',
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                    $this->workerVisaAttachments->updateOrCreate(
+                        [
+                            "file_id" => $workerVisa['id'],
+                            "file_type" => self::ATTACHMENT_FILE_TYPE_WORKPERMIT,
+                        ],
+                        [
+                            "file_name" => $fileName,
+                            "file_url" =>  $fileUrl
+                    ]);
             }
         }
+    }
 
-        $workerBioMedical = $this->workerBioMedical::create([
+    /**
+     * Create the Worker BioMedical Record.
+     *
+	 * @param object $worker The worker object
+     * @param array $request
+     *              bio_medical_reference_number (int) bio medical reference number
+     *              bio_medical_valid_until (date) bio medical valid until date
+     *
+     * @return mixed Returns the created worker biomedical data.
+     */
+    private function createWorkerBioMedical($worker, $request): mixed
+    {
+        return $this->workerBioMedical::create([
             "worker_id" => $worker['id'],
             "bio_medical_reference_number" => $request['bio_medical_reference_number'],
             "bio_medical_valid_until" => $request['bio_medical_valid_until'],
         ]);
+    }
 
+    /**
+     * upload Worker BioMedical Attachment
+     *
+	 * @param object $worker The worker object
+	 * @param object $workerBioMedical The workerBioMedical object
+     * @param array $request
+     *              worker_bio_medical_attachment (file) - The attachment file
+     *
+     * @return void
+     */
+    private function uploadWorkerBioMedicalAttachment($worker, $workerBioMedical, $request): void
+    {
         if (request()->hasFile('worker_bio_medical_attachment')){
             foreach($request->file('worker_bio_medical_attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$worker['id'].'/workerBioMedical/' . $fileName; 
+                $filePath = '/workerbiodata/'.$worker['id'].'/workerBioMedical/' . $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerBioMedicalAttachments::create([
-                        "file_id" => $workerBioMedical['id'],
-                        "file_name" => $fileName,
-                        "file_type" => 'BIOMEDICAL',
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                    $this->workerBioMedicalAttachments->updateOrCreate(
+                        [
+                            "file_id" => $workerBioMedical['id'],
+                            "file_type" => self::ATTACHMENT_FILE_TYPE_BIOMEDICAL,
+                        ],
+                        [
+                            "file_name" => $fileName,
+                            "file_url" =>  $fileUrl
+                    ]);
             }
         }
+    }
 
-        $workerFomema = $this->workerFomema::create([
+    /**
+     * Create the Worker Fomema Record.
+     *
+	 * @param object $worker The worker object
+     * @param array $request
+     *              purchase_date (date) purchase date
+     *              clinic_name (string) clinic name
+	 *              doctor_code (string) doctor_code
+	 *			    allocated_xray (string) allocated xray
+	 *			    xray_code (string) xray code
+
+     *
+     * @return void
+     */
+    private function createWorkerFomema($worker, $request)
+    {
+        $this->workerFomema::create([
             "worker_id" => $worker['id'],
             "purchase_date" => ((isset($request['purchase_date']) && !empty($request['purchase_date'])) ? $request['purchase_date'] : null),
             "clinic_name" => $request['clinic_name'] ?? '',
-            "doctor_code" =>  $request['doctor_code'] ?? '',         
+            "doctor_code" =>  $request['doctor_code'] ?? '',
             "allocated_xray" =>  $request['allocated_xray'] ?? '',
             "xray_code" =>  $request['xray_code'] ?? ''
         ]);
+    }
 
-        $workerInsuranceDetails = $this->workerInsuranceDetails::create([
+    /**
+     * Create the Worker InsuranceDetails Record.
+     *
+	 * @param object $worker The worker object
+     * @param array $request
+     *              ig_policy_number (int) ig policy number
+     *              ig_policy_number_valid_until (date) ig policy number valid until date
+	 *              hospitalization_policy_number (int) hospitalization policy number
+	 *			    hospitalization_policy_number_valid_until (date) hospitalization policy number valid until date
+	 *			    insurance_expiry_date (date) insurance expiry date
+
+     *
+     * @return void
+     */
+    private function createWorkerInsuranceDetails($worker, $request)
+    {
+        $this->workerInsuranceDetails::create([
             "worker_id" => $worker['id'],
             "ig_policy_number" => $request['ig_policy_number'] ?? '',
             "ig_policy_number_valid_until" => ((isset($request['ig_policy_number_valid_until']) && !empty($request['ig_policy_number_valid_until'])) ? $request['ig_policy_number_valid_until'] : null),
-            "hospitalization_policy_number" =>  $request['hospitalization_policy_number'] ?? '',         
+            "hospitalization_policy_number" =>  $request['hospitalization_policy_number'] ?? '',
             "hospitalization_policy_number_valid_until" =>  ((isset($request['hospitalization_policy_number_valid_until']) && !empty($request['hospitalization_policy_number_valid_until'])) ? $request['hospitalization_policy_number_valid_until'] : null),
             "insurance_expiry_date" => ((isset($request['insurance_expiry_date']) && !empty($request['insurance_expiry_date'])) ? $request['insurance_expiry_date'] : null)
         ]);
+    }
 
-            $workerBankDetails = $this->workerBankDetails::create([
+    /**
+     * Create the Worker BankDetails Record.
+     *
+	 * @param object $worker The worker object
+     * @param array $request
+     *              bank_name (string) bank name
+     *              account_number (int) account number
+	 *              socso_number (int) socso number
+	 *
+     *
+     * @return void
+     */
+    private function createWorkerBankDetails($worker, $request)
+    {
+        $this->workerBankDetails::create([
                 "worker_id" => $worker['id'],
                 "bank_name" => $request['bank_name'] ?? '',
                 "account_number" => $request['account_number'] ?? '',
                 "socso_number" =>  $request['socso_number'] ?? ''
-            ]);        
-
-        return $worker;
+            ]);
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * Get the worker based on the given request data.
+     *
+     * @param array $request The request data containing the company ID and id.
+     * @return mixed Returns the worker matching the given company ID and id,
+     *               or null if no matching worker is found.
+     */
+    private function getWorker($request)
+    {
+        return $this->workers::whereIn('company_id', $request['company_id'])->find($request['id']);
+    }
+
+    /**
+     * Get the worker based on the given request data.
+     *
+     * @param array $request The request data containing the worker id.
+     * @return mixed Returns the worker matching the given worker id,
+     *               or null if no matching worker is found.
+     */
+    private function getWorkerForUpdate($request)
+    {
+        return $this->workers->with('directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails')->findOrFail($request['id']);
+    }
+
+    /**
+     * Update the worker detail
+     *
+     * @param $request  The request data containing update worker details
+     *
+     * @return bool|array Returns true if the worker is updated successfully, otherwise returns an array with error details
+     *                    Returns ERROR_UNAUTHORIZED if the worker company is not mapped with current user company
      */
     public function update($request): bool|array
     {
 
+        $validationResult = $this->validateUpdateRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
         $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['modified_by'] = $user['id'];
-        $params['company_id'] = $user['company_id'];
+        $params = $this->enrichRequestWithUserDetails($params);
 
-        if(!($this->validationServices->validate($request->toArray(),$this->workers->rulesForUpdation($request['id'])))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
-        }
-
-        $workerData = $this->workers::where('company_id', $params['company_id'])->find($request['id']);
+        $workerData = $this->getWorker($params);
         if(is_null($workerData)){
-            return [
-                'unauthorizedError' => true
-            ];
+            return self::ERROR_UNAUTHORIZED;
         }
 
-        $worker = $this->workers->with('directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails')->findOrFail($request['id']);
+        $worker = $this->getWorkerForUpdate($params);
 
+        $this->updateWorkerData($worker,$params);
+
+        # Worker Kin details
+        $this->updateWorkerKin($worker,$params);
+
+        # Worker Visa details
+        $this->updateWorkerVisa($worker, $request);
+
+        # Worker Bio Medical details
+        $this->updateWorkerBioMedical($worker, $request);
+
+        # Worker Fomema details
+        $this->updateWorkerFomema($worker, $request);
+
+        # Worker Insurance details
+        $this->updateWorkerInsuranceDetails($worker, $request);
+
+        # Worker Bank details
+        $this->updateWorkerBankDetails($worker, $request);
+
+        $worker->save();
+
+        $this->uploadFomemaAttachment($worker, $request);
+        $this->uploadPassportAttachment($worker, $request);
+        $this->uploadProfilePicture($worker, $request);
+        $this->uploadWorkerAttachment($worker, $request);
+        $workerVisa = $worker->workerVisa;
+        $this->uploadWorkerVisaAttachment($worker, $workerVisa, $request);
+        $workerBioMedical = $worker->workerBioMedical;
+        $this->uploadWorkerBioMedicalAttachment($worker, $workerBioMedical, $request);
+
+        return true;
+    }
+
+    /**
+     * update the Worker data.
+     *
+	 * @param object $worker The worker object
+     * @param array $request
+     *              crm_prospect_id (int) ID of the prospect
+     *              name (string) name of the worker
+     *              gender (string) gender of the worker
+     *              date_of_birth (date) DOB of the worker
+     *              passport_number (string) passport number the worker
+     *              passport_valid_until (date) passport valid date of the worker
+     *              fomema_valid_until (date) fomema valid date of the worker
+     *              address (string) address of the worker
+     *              city (string) city of the worker
+     *              state (string) state of the worker
+     *              created_by (int) ID of the user who created the worker
+	 *              modified_by (int) ID of the user who modified the worker
+     *              company_id (int) user company id
+	 *
+     *
+     * @return void
+     */
+    private function updateWorkerData($worker, $request)
+    {
         $worker->crm_prospect_id = $request['crm_prospect_id'] ?? $worker->crm_prospect_id;
         $worker->name = $request['name'] ?? $worker->name;
         $worker->gender = $request['gender'] ?? $worker->gender;
@@ -370,10 +981,24 @@ class WorkersServices
         $worker->city = $request['city'] ?? $worker->city;
         $worker->state = $request['state'] ?? $worker->state;
         $worker->created_by = $request['created_by'] ?? $worker->created_by;
-        $worker->modified_by = $params['modified_by'];
+        $worker->modified_by = $request['modified_by'];
+    }
 
-        # Worker Kin details
-        if( isset($worker->workerKin) && !empty($worker->workerKin) ){
+    /**
+     * update the Worker kin.
+     *
+	 * @param object $worker The worker object
+     * @param array $request the request data cotaining the below params
+     *              kin_name (string) name of the kin
+     *              kin_relationship_id (int) ID of the kin
+     *              kin_contact_number (int) contact number of the kin
+	 *
+     *
+     * @return void
+     */
+    private function updateWorkerKin($worker, $request)
+    {
+        if ( isset($worker->workerKin) && !empty($worker->workerKin) ){
             $worker->workerKin->kin_name = $request['kin_name'] ?? $worker->workerKin->kin_name;
             $worker->workerKin->kin_relationship_id = $request['kin_relationship_id'] ?? $worker->workerKin->kin_relationship_id;
             $worker->workerKin->kin_contact_number = $request['kin_contact_number'] ?? $worker->workerKin->kin_contact_number;
@@ -384,11 +1009,27 @@ class WorkersServices
                 "worker_id" => $worker->id,
                 "kin_name" => $request['kin_name'] ?? '',
                 "kin_relationship_id" => $request['kin_relationship_id'] ?? '',
-                "kin_contact_number" =>  $request['kin_contact_number'] ?? ''         
+                "kin_contact_number" =>  $request['kin_contact_number'] ?? ''
             ]);
         }
+    }
 
-        # Worker Visa details
+    /**
+     * update the Worker Visa.
+     *
+	 * @param object $worker The worker object
+     * @param array $request the request data cotaining the below params
+     *              ksm_reference_number (string) KSM reference number of the worker
+     *              calling_visa_reference_number (string) calling visa reference number of the worker
+     *              calling_visa_valid_until (date) calling visa valid until date of the worker
+     *              entry_visa_valid_until (date) entry visa valid unitil date of the worker
+     *              work_permit_valid_until (date) work permit valid until date of the worker
+	 *
+     *
+     * @return void
+     */
+    private function updateWorkerVisa($worker, $request)
+    {
         if( isset($worker->workerVisa) && !empty($worker->workerVisa) ){
             $worker->workerVisa->ksm_reference_number = $request['ksm_reference_number'] ?? $worker->workerVisa->ksm_reference_number;
             $worker->workerVisa->calling_visa_reference_number = $request['calling_visa_reference_number'] ?? $worker->workerVisa->calling_visa_reference_number;
@@ -397,32 +1038,59 @@ class WorkersServices
             $worker->workerVisa->work_permit_valid_until = $request['work_permit_valid_until'] ?? $worker->workerVisa->work_permit_valid_until;
 
             $worker->workerVisa->save();
-        } else { 
-            $workerVisa = $this->workerVisa::create([
+        } else {
+            $this->workerVisa::create([
                 "worker_id" => $worker->id,
                 "ksm_reference_number" => $request['ksm_reference_number'],
                 "calling_visa_reference_number" => $request['calling_visa_reference_number'] ?? '',
-                "calling_visa_valid_until" =>  ((isset($request['calling_visa_valid_until']) && !empty($request['calling_visa_valid_until'])) ? $request['calling_visa_valid_until'] : null),         
+                "calling_visa_valid_until" =>  ((isset($request['calling_visa_valid_until']) && !empty($request['calling_visa_valid_until'])) ? $request['calling_visa_valid_until'] : null),
                 "entry_visa_valid_until" =>  ((isset($request['entry_visa_valid_until']) && !empty($request['entry_visa_valid_until'])) ? $request['entry_visa_valid_until'] : null),
                 "work_permit_valid_until" =>  ((isset($request['work_permit_valid_until']) && !empty($request['work_permit_valid_until'])) ? $request['work_permit_valid_until'] : null)
             ]);
         }
+    }
 
-        # Worker Bio Medical details
+    /**
+     * update the Worker BioMedical.
+     *
+	 * @param object $worker The worker object
+     * @param array $request request data containing the below params
+	 *              bio_medical_reference_number (int) bio medical reference number of the worker
+     *              bio_medical_valid_until (date) bio medical valid until date of the worker
+     * 
+     * @return void
+     */
+    private function updateWorkerBioMedical($worker, $request)
+    {
         if( isset($worker->workerBioMedical) && !empty($worker->workerBioMedical) ){
             $worker->workerBioMedical->bio_medical_reference_number = $request['bio_medical_reference_number'] ?? $worker->workerBioMedical->bio_medical_reference_number;
             $worker->workerBioMedical->bio_medical_valid_until = $request['bio_medical_valid_until'] ?? $worker->workerBioMedical->bio_medical_valid_until;
 
             $worker->workerBioMedical->save();
         } else {
-            $workerBioMedical = $this->workerBioMedical::create([
+            $this->workerBioMedical::create([
                 "worker_id" => $worker->id,
                 "bio_medical_reference_number" => $request['bio_medical_reference_number'],
                 "bio_medical_valid_until" => $request['bio_medical_valid_until'],
             ]);
         }
+    }
 
-        # Worker Fomema details
+    /**
+     * update the Worker Fomema.
+     *
+	 * @param object $worker The worker object
+     * @param array $request request data containing the below params
+     *              purchase_date (date) date of the purchase
+	 *              clinic_name (string) clinic name
+     *              doctor_code (string) doctor code
+     *              allocated_xray (string) allocated xray
+     *              xray_code (string) xray code
+     *
+     * @return void
+     */
+    private function updateWorkerFomema($worker, $request)
+    {
         if( isset($worker->workerFomema) && !empty($worker->workerFomema) ){
             $worker->workerFomema->purchase_date = $request['purchase_date'] ?? $worker->workerFomema->purchase_date;
             $worker->workerFomema->clinic_name = $request['clinic_name'] ?? $worker->workerFomema->clinic_name;
@@ -432,17 +1100,32 @@ class WorkersServices
 
             $worker->workerFomema->save();
         } else {
-            $workerFomema = $this->workerFomema::create([
+            $this->workerFomema::create([
                 "worker_id" => $worker->id,
                 "purchase_date" => ((isset($request['purchase_date']) && !empty($request['purchase_date'])) ? $request['purchase_date'] : null),
                 "clinic_name" => $request['clinic_name'] ?? '',
-                "doctor_code" =>  $request['doctor_code'] ?? '',         
+                "doctor_code" =>  $request['doctor_code'] ?? '',
                 "allocated_xray" =>  $request['allocated_xray'] ?? '',
                 "xray_code" =>  $request['xray_code'] ?? ''
             ]);
         }
+    }
 
-        # Worker Insurance details
+    /**
+     * update the Worker InsuranceDetails.
+     *
+	 * @param object $worker The worker object
+     * @param array $request request data containing the below params
+     *              ig_policy_number (int) ig policy number of the worker
+	 *              ig_policy_number_valid_until (date) ig policy number valid until date
+     *              hospitalization_policy_number (int) hospitalization policy number of the worker
+     *              hospitalization_policy_number_valid_until (date) hospitalization policy number valid until date
+     *              insurance_expiry_date (date) insurance expiry date
+     *
+     * @return void
+     */
+    private function updateWorkerInsuranceDetails($worker, $request)
+    {
         if( isset($worker->workerInsuranceDetails) && !empty($worker->workerInsuranceDetails) ){
             $worker->workerInsuranceDetails->ig_policy_number = $request['ig_policy_number'] ?? $worker->workerInsuranceDetails->ig_policy_number;
             $worker->workerInsuranceDetails->ig_policy_number_valid_until = $request['ig_policy_number_valid_until'] ?? $worker->workerInsuranceDetails->ig_policy_number_valid_until;
@@ -452,17 +1135,30 @@ class WorkersServices
 
             $worker->workerInsuranceDetails->save();
         } else {
-            $workerInsuranceDetails = $this->workerInsuranceDetails::create([
+            $this->workerInsuranceDetails::create([
                 "worker_id" => $worker['id'],
                 "ig_policy_number" => $request['ig_policy_number'] ?? '',
                 "ig_policy_number_valid_until" => ((isset($request['ig_policy_number_valid_until']) && !empty($request['ig_policy_number_valid_until'])) ? $request['ig_policy_number_valid_until'] : null),
-                "hospitalization_policy_number" =>  $request['hospitalization_policy_number'] ?? '',         
+                "hospitalization_policy_number" =>  $request['hospitalization_policy_number'] ?? '',
                 "hospitalization_policy_number_valid_until" =>  ((isset($request['hospitalization_policy_number_valid_until']) && !empty($request['hospitalization_policy_number_valid_until'])) ? $request['hospitalization_policy_number_valid_until'] : null),
                 "insurance_expiry_date" => ((isset($request['insurance_expiry_date']) && !empty($request['insurance_expiry_date'])) ? $request['insurance_expiry_date'] : null)
-            ]);            
+            ]);
         }
+    }
 
-        # Worker Bank details
+    /**
+     * update the Worker BankDetails.
+     *
+	 * @param object $worker The worker object
+     * @param array $request request data containing the below params
+	 *              bank_name (string) name of the bank
+     *              account_number (int) bank account number
+     *              socso_number (int) socso number
+     *
+     * @return void
+     */
+    private function updateWorkerBankDetails($worker, $request)
+    {
         if( isset($worker->workerBankDetails) && !empty($worker->workerBankDetails) ){
             $worker->workerBankDetails->bank_name = $request['bank_name'] ?? $worker->workerBankDetails->bank_name;
             $worker->workerBankDetails->account_number = $request['account_number'] ?? $worker->workerBankDetails->account_number;
@@ -470,201 +1166,103 @@ class WorkersServices
 
             $worker->workerBankDetails->save();
         } else {
-            $workerBankDetails = $this->workerBankDetails::create([
+            $this->workerBankDetails::create([
                 "worker_id" => $worker['id'],
                 "bank_name" => $request['bank_name'] ?? '',
                 "account_number" => $request['account_number'] ?? '',
                 "socso_number" =>  $request['socso_number'] ?? ''
             ]);
         }
-        
-        $worker->save();
-
-        if (request()->hasFile('fomema_attachment')){
-
-            $this->workerAttachments->where('file_id', $request['id'])->where('file_type', 'FOMEMA')->delete();
-
-            foreach($request->file('fomema_attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$request['id'].'/fomema/'. $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
-                    "file_id" => $request['id'],
-                    "file_name" => $fileName,
-                    "file_type" => 'FOMEMA',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
-
-        if (request()->hasFile('passport_attachment')){
-
-            $this->workerAttachments->where('file_id', $request['id'])->where('file_type', 'PASSPORT')->delete();
-
-            foreach($request->file('passport_attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$request['id'].'/passport/' . $fileName;
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
-                    "file_id" => $request['id'],
-                    "file_name" => $fileName,
-                    "file_type" => 'PASSPORT',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
-
-        if (request()->hasFile('profile_picture')){
-
-            $this->workerAttachments->where('file_id', $request['id'])->where('file_type', 'PROFILE')->delete();
-
-            foreach($request->file('profile_picture') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$request['id'].'/profile/' . $fileName;
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
-                    "file_id" => $request['id'],
-                    "file_name" => $fileName,
-                    "file_type" => 'PROFILE',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
-
-        if (request()->hasFile('worker_attachment')){
-
-            foreach($request->file('worker_attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerAttachment/'.$worker['id'].'/attachment/' . $fileName; 
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerAttachments::create([
-                        "file_id" => $request['id'],
-                        "file_name" => $fileName,
-                        "file_type" => 'WORKERATTACHMENT',
-                        "file_url" =>  $fileUrl         
-                    ]);  
-            }
-        }
-
-        if (request()->hasFile('worker_visa_attachment')){
-
-            $this->workerVisaAttachments->where('file_id', $worker->workerVisa->id)->where('file_type', 'WORKPERMIT')->delete();
-
-            foreach($request->file('worker_visa_attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$request['id'].'/workerVisa/' . $fileName;
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerVisaAttachments::create([
-                    "file_id" => $worker->workerVisa->id,
-                    "file_name" => $fileName,
-                    "file_type" => 'WORKPERMIT',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
-
-        if (request()->hasFile('worker_bio_medical_attachment')){
-
-            $this->workerBioMedicalAttachments->where('file_id', $worker->workerBioMedical->id)->where('file_type', 'BIOMEDICAL')->delete();
-
-            foreach($request->file('worker_bio_medical_attachment') as $file){
-                $fileName = $file->getClientOriginalName();
-                $filePath = '/workerbiodata/'.$request['id'].'/workerBioMedical/' . $fileName;
-                $linode = $this->storage::disk('linode');
-                $linode->put($filePath, file_get_contents($file));
-                $fileUrl = $this->storage::disk('linode')->url($filePath);
-                $this->workerBioMedicalAttachments::create([
-                    "file_id" => $worker->workerBioMedical->id,
-                    "file_name" => $fileName,
-                    "file_type" => 'BIOMEDICAL',
-                    "file_url" =>  $fileUrl         
-                ]);  
-            }
-        }
-
-        return true;
     }
-    
-    
+
     /**
+     * Show the work detail
+     *
      * @param $request
-     * @return mixed
+     *        id (int) ID of the worker
+     *
+     * @return mixed Returns the worker detail
      */
     public function show($request) : mixed
     {
-        if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
+        $validationResult = $this->validateShowRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['company_id'] = $this->authServices->getCompanyIds($user);
+
+        $request = $this->enrichRequestWithUserDetails($request);
 
         return $this->workers
         ->select('workers.id', 'workers.onboarding_country_id','workers.agent_id','workers.application_id','workers.name','workers.gender', 'workers.date_of_birth', 'workers.passport_number', 'workers.passport_valid_until', 'workers.fomema_valid_until','workers.address', 'workers.status', 'workers.cancel_status', 'workers.remarks','workers.city','workers.state', 'workers.special_pass', 'workers.special_pass_submission_date', 'workers.special_pass_valid_until', 'workers.plks_status', 'workers.plks_expiry_date', 'workers.directrecruitment_status', 'workers.created_by','workers.modified_by', 'workers.crm_prospect_id', 'workers.total_management_status', 'workers.econtract_status', 'workers.module_type')
         ->with(['directrecruitmentWorkers', 'workerAttachments', 'workerKin', 'workerVisa', 'workerBioMedical', 'workerFomema', 'workerInsuranceDetails', 'workerBankDetails', 'workerFomemaAttachments', 'workerEmployment' => function ($query) {
-            $query->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
-            ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
-            ->leftJoin('workers', 'workers.id', 'worker_employment.worker_id')
-            ->leftJoin('total_management_applications', 'total_management_applications.id', 'total_management_project.application_id')
-            ->leftJoin('e-contract_applications as econtrat_applications', 'econtrat_applications.id', 'econtract_project.application_id')
-            ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
-            ->leftjoin('directrecruitment_applications', 'directrecruitment_applications.id', '=', 'directrecruitment_workers.application_id')
-            ->leftJoin('crm_prospects as crm_prospects_tm', 'crm_prospects_tm.id', 'total_management_applications.crm_prospect_id')
-            ->leftJoin('crm_prospects as crm_prospects_econt', 'crm_prospects_econt.id', 'econtrat_applications.crm_prospect_id')
-            ->leftJoin('crm_prospects as crm_prospects_dr', 'crm_prospects_dr.id', 'directrecruitment_applications.crm_prospect_id')
-            ->leftJoin('crm_prospect_services as crm_prospect_services_tm', 'crm_prospect_services_tm.id', 'total_management_applications.service_id')
-            ->leftJoin('crm_prospect_services as crm_prospect_services_econt', 'crm_prospect_services_econt.id', 'econtrat_applications.service_id')
-            ->leftJoin('crm_prospect_services as crm_prospect_services_dr', 'crm_prospect_services_dr.id', 'directrecruitment_applications.service_id')
-            ->select('worker_employment.project_id', 'worker_employment.worker_id', 'worker_employment.work_start_date', 'worker_employment.work_end_date', 'worker_employment.remove_date', 'worker_employment.service_type')
-            ->selectRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospects_tm.company_name 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospects_econt.company_name 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.company_name 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' END) as assignment_company_name, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospects_tm.roc_number 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospects_econt.roc_number 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.roc_number 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['roc_number']."' END) as assigned_roc_number, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.name 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.name 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_project, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.city 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_city, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.state 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.state 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_state, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospect_services_tm.sector_name 
-        WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospect_services_econt.sector_name 
-        WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospect_services_dr.sector_name 
-        ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_sector")
-        ->distinct('worker_employment.worker_id', 'worker_employment.project_id');
+            $this->showSelectColumns($query);
         }])
         ->whereIn('workers.company_id', $request['company_id'])
         ->find($request['id']);
     }
-    
+
     /**
+     * Added the query
+     *
+     * @param object $query
+     *
+     * @return mixed Returns the query builder object
+     */
+    private function showSelectColumns($query)
+    {
+        $query->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
+        ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
+        ->leftJoin('workers', 'workers.id', 'worker_employment.worker_id')
+        ->leftJoin('total_management_applications', 'total_management_applications.id', 'total_management_project.application_id')
+        ->leftJoin('e-contract_applications as econtrat_applications', 'econtrat_applications.id', 'econtract_project.application_id')
+        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
+        ->leftjoin('directrecruitment_applications', 'directrecruitment_applications.id', '=', 'directrecruitment_workers.application_id')
+        ->leftJoin('crm_prospects as crm_prospects_tm', 'crm_prospects_tm.id', 'total_management_applications.crm_prospect_id')
+        ->leftJoin('crm_prospects as crm_prospects_econt', 'crm_prospects_econt.id', 'econtrat_applications.crm_prospect_id')
+        ->leftJoin('crm_prospects as crm_prospects_dr', 'crm_prospects_dr.id', 'directrecruitment_applications.crm_prospect_id')
+        ->leftJoin('crm_prospect_services as crm_prospect_services_tm', 'crm_prospect_services_tm.id', 'total_management_applications.service_id')
+        ->leftJoin('crm_prospect_services as crm_prospect_services_econt', 'crm_prospect_services_econt.id', 'econtrat_applications.service_id')
+        ->leftJoin('crm_prospect_services as crm_prospect_services_dr', 'crm_prospect_services_dr.id', 'directrecruitment_applications.service_id')
+        ->select('worker_employment.project_id', 'worker_employment.worker_id', 'worker_employment.work_start_date', 'worker_employment.work_end_date', 'worker_employment.remove_date', 'worker_employment.service_type')
+        ->selectRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospects_tm.company_name
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospects_econt.company_name
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.company_name
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' END) as assignment_company_name, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospects_tm.roc_number
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospects_econt.roc_number
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.roc_number
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['roc_number']."' END) as assigned_roc_number, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.name
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.name
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_project, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.city
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_city, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.state
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN econtract_project.state
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospects_dr.address
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_state, (CASE WHEN (worker_employment.service_type = 'Total Management') THEN crm_prospect_services_tm.sector_name
+    WHEN (BINARY worker_employment.service_type = 'e-Contract') THEN crm_prospect_services_econt.sector_name
+    WHEN (directrecruitment_workers.worker_id IS NOT NULL) THEN crm_prospect_services_dr.sector_name
+    ELSE '".Config::get('services.FOMNEXTS_DETAILS')['location']."' END) as assignment_sector")
+    ->distinct('worker_employment.worker_id', 'worker_employment.project_id');
+    }
+
+    /**
+     * List the workers
+     *
      * @param $request
-     * @return mixed
+     *        crm_prospect_id (int) ID of the prospect
+     *        search_param (string) search parameter
+     *        status (string) worker status filter
+     *
+     * @return mixed Returns The paginated list of workers
      */
     public function list($request) : mixed
     {
-        if(isset($request['search_param']) && !empty($request['search_param'])){
-            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
-                return [
-                    'validate' => $this->validationServices->errors()
-                ];
-            }
+        $validationResult = $this->validateListRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
+
         $user = JWTAuth::parseToken()->authenticate();
         $request['company_id'] = $this->authServices->getCompanyIds($user);
 
@@ -678,36 +1276,16 @@ class WorkersServices
         })
         ->leftJoin('total_management_project', 'total_management_project.id', '=', 'worker_employment.project_id')
         ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
-        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
-        ->where(function ($query) use ($request) {
-            if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
-                $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
-            }
-            if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('workers.name', 'like', "%{$request['search_param']}%")
-                ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
-                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
-            }
-            
-        })
-        ->whereIn('workers.company_id', $request['company_id'])
-        ->where(function ($query) use ($user) {
-            if ($user['user_type'] == 'Customer') {
-                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
-            }
-        })
-        ->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'worker_employment.service_type', 'worker_employment.id as worker_employment_id', 'worker_employment.project_id')
-        ->selectRaw("(CASE WHEN (workers.crm_prospect_id = 0) THEN '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' ELSE crm_prospects.company_name END) as company_name,  
-		(CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city 
-        WHEN (worker_employment.service_type = 'e-Contract') THEN econtract_project.city 
-        ELSE null END) as project_location,
-		(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
-		WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
-		ELSE 'On-Bench' END) as status");
-        if(isset($request['status']) && !empty($request['status'])) {
+        ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id');
+        $data = $this->listApplyCondition($request,$data);
+        $data = $this->listApplySearchFilter($request,$data);
+        $data = $this->listApplyReferenceFilter($user,$data);
+        $data = $this->listSelectColumns($data);
+        $status = $request['status'] ?? '';
+        if(!empty($status)) {
             $data = $data->whereRaw("(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
 		WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
-		ELSE 'On-Bench' END) = '".$request['status']."'");
+		ELSE 'On-Bench' END) = '".$status."'");
         }
         $data = $data->distinct('workers.id')
         ->orderBy('workers.id','DESC')
@@ -715,19 +1293,94 @@ class WorkersServices
         return $data;
     }
 
+     /**
+     * Apply condition to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        company_id (array) ID of the user company
+     *
+     * @return $data Returns the query builder object with the applied condition
+     */
+    private function listApplyCondition($request,$data)
+    {
+        return $data->whereIn('workers.company_id', $request['company_id']);
+    }
+
     /**
+     * Apply search filter to the query builder based on user data
+     *
+     * @param array $request The user data
+     *        search (string) search parameter
+     *
+     * @return mixed $data Returns the query builder object with the applied search filter
+     */
+    private function listApplySearchFilter($request,$data)
+    {
+        $search = $request['search_param'] ?? '';
+        return $data->where(function ($query) use ($request) {
+            if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
+                $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
+            }
+            if (!empty($search)) {
+                $query->where('workers.name', 'like', "%{$search}%")
+                ->orWhere('workers.passport_number', 'like', '%'.$search.'%')
+                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$search.'%');
+            }
+
+        });
+    }
+
+    /**
+     * Apply reference filter to the query builder based on user data
+     *
+     * @param object  $user The user object
+     *
+     * @return mixed $data Returns the query builder object with the applied search filter
+     */
+    private function listApplyReferenceFilter($user,$data)
+    {
+        return $data->where(function ($query) use ($user) {
+            if ($user['user_type'] == self::USER_TYPE_CUSTOMER) {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        });
+    }
+
+
+    /**
+     * Select data from the query.
+     *
+     * @return mixed $data The modified instance of the class.
+     */
+    private function listSelectColumns($data)
+    {
+        return $data->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'worker_employment.service_type', 'worker_employment.id as worker_employment_id', 'worker_employment.project_id')
+        ->selectRaw("(CASE WHEN (workers.crm_prospect_id = 0) THEN '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' ELSE crm_prospects.company_name END) as company_name,
+		(CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city
+        WHEN (worker_employment.service_type = 'e-Contract') THEN econtract_project.city
+        ELSE null END) as project_location,
+		(CASE WHEN (worker_employment.service_type = 'Total Management') THEN workers.total_management_status
+		WHEN (worker_employment.service_type = 'e-Contract') THEN workers.econtract_status
+		ELSE 'On-Bench' END) as status");
+    }
+
+    /**
+     * Export the workers
+     *
      * @param $request
-     * @return mixed
+     *        crm_prospect_id (int) ID of the prospect
+     *        search_param (string) search parameter
+     *        status (string) worker status filter
+     *
+     * @return mixed Returns the workers
      */
     public function export($request) : mixed
     {
-        if(isset($request['search_param']) && !empty($request['search_param'])){
-            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
-                return [
-                    'validate' => $this->validationServices->errors()
-                ];
-            }
+        $validationResult = $this->validateExportRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
+
         $user = JWTAuth::parseToken()->authenticate();
         $request['company_id'] = $this->authServices->getCompanyIds($user);
 
@@ -745,21 +1398,12 @@ class WorkersServices
         ->leftJoin('e-contract_project as econtract_project', 'econtract_project.id', '=', 'worker_employment.project_id')
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id')
         ->where(function ($query) use ($request) {
-            if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
-                $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
-            }
-            if (isset($request['search_param']) && !empty($request['search_param'])) {
-                $query->where('workers.name', 'like', "%{$request['search_param']}%")
-                ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
-                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
-            }
-            
+            $this->exportSearchFilter($query, $request);
+
         })
         ->whereIn('workers.company_id', $request['company_id'])
         ->where(function ($query) use ($user) {
-            if ($user['user_type'] == 'Customer') {
-                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
-            }
+            $this->exportCustomerFilter($query, $user);
         })
          ->select('workers.id','workers.name','workers.date_of_birth','workers.gender','workers.passport_number','workers.passport_valid_until','workers.address','workers.state','worker_kin.kin_name','kin_relationship.name as kin_relationship_name','worker_kin.kin_contact_number','worker_visa.ksm_reference_number','worker_bio_medical.bio_medical_reference_number','worker_bio_medical.bio_medical_valid_until')
          ->distinct('workers.id')
@@ -767,7 +1411,50 @@ class WorkersServices
     }
 
     /**
-     * @return mixed
+     * Apply the search filter to the query
+     *
+     * @param $query $query The query builder instance
+     * @param array $request The request data containing the  crm_prospect_id, search_param
+     *
+     * @return void
+     */
+    private function exportSearchFilter($query, $request)
+    {
+        if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
+                $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
+        }
+        $search = $request['search_param'] ?? '';
+        if (!empty($search)) {
+            $query->where('workers.name', 'like', "%{$search}%")
+            ->orWhere('workers.passport_number', 'like', '%'.$search.'%')
+            ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$search.'%');
+        }
+    }
+
+    /**
+     * Apply the customer filter to the query
+     *
+     * @param object $query The query builder instance
+     * @param object $user
+     *
+     * @return void
+     */
+    private function exportCustomerFilter($query, $user)
+    {
+        if ($user['user_type'] == self::USER_TYPE_CUSTOMER) {
+            $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+        }
+    }
+
+    /**
+     * workers dropdown
+     *
+     * @param $request
+     *        application_id (int) ID of the application
+     *        onboarding_country_id (int) ID of the onboarding country
+     *        agent_id (int) ID of the agent
+     *
+     * @return mixed Returns the workers
      */
     public function dropdown($request) : mixed
     {
@@ -783,7 +1470,7 @@ class WorkersServices
         ->where('worker_visa.status', 'Pending')
         ->whereIn('workers.company_id', $request['company_id'])
         ->where(function ($query) use ($user) {
-            if ($user['user_type'] == 'Customer') {
+            if ($user['user_type'] == self::USER_TYPE_CUSTOMER) {
                 $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
             }
         })
@@ -791,8 +1478,13 @@ class WorkersServices
         ->orderBy('workers.created_at','DESC')->get();
     }
     /**
+     * Update the worker status
+     *
      * @param $request
-     * @return array
+     *        id (int) ID of the worker
+     *        status (int) ID of the worker status
+     *
+     * @return array Returns an array with two keys: 'isUpdated' and 'message'
      */
     public function updateStatus($request) : array
     {
@@ -804,12 +1496,14 @@ class WorkersServices
         ->update(['status' => $request['status']]);
         return  [
             "isUpdated" => $worker,
-            "message" => "Updated Successfully"
+            "message" => self::MESSAGE_UPDATED_SUCCESSFULLY
         ];
     }
 
     /**
-     * @return mixed
+     * List the kinRelationship
+     *
+     * @return mixed Returns the Kin relationship data
      */
     public function kinRelationship() : mixed
     {
@@ -819,7 +1513,13 @@ class WorkersServices
     }
 
     /**
-     * @return mixed
+     * List the onboarding agent
+     *
+     * @param $request
+     *        application_id (int) ID of the application
+     *        onboarding_country_id (int) ID of the onboarding country
+     *
+     * @return mixed Returns an onboarding agent
      */
     public function onboardingAgent($request) : mixed
     {
@@ -834,8 +1534,11 @@ class WorkersServices
     }
 
     /**
-     * @param $request
-     * @return array
+     * Submit the Replace worker
+     *
+     * @param $request The request data containing replace worker details
+     *
+     * @return array Returns an array with two keys: 'isUpdated' and 'message'
      */
     public function replaceWorker($request) : array
     {
@@ -852,13 +1555,18 @@ class WorkersServices
         ]);
         return  [
             "isUpdated" => $worker,
-            "message" => "Updated Successfully"
+            "message" => self::MESSAGE_UPDATED_SUCCESSFULLY
         ];
     }
 
     /**
+     * List the worker status
+     *
      * @param $request
-     * @return mixed
+     *        application_id (int) ID of the application
+     *        onboarding_country_id (int) ID of the onboarding country
+     *
+     * @return mixed Returns the worker status
      */
     public function workerStatusList($request): mixed
     {
@@ -872,113 +1580,167 @@ class WorkersServices
             ->paginate(Config::get('services.paginate_row'));
     }
     /**
-     * @param $request
-     * @return array|bool
+     * Submit the Assign Workers
+     *
+     * @param $request The request data containing assign worker details
+     *
+     * @return array|bool Returns true if the assign worker is submitted successfully, otherwise returns an array with error details
      */
     public function assignWorker($request): array|bool
     {
-        $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
-        $params['created_by'] = $user['id'];
-
-        $validator = Validator::make($request->toArray(), $this->assignWorkerValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->validateAssignWorkerRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
 
+        $request = $request->all();
+        $request = $this->enrichRequestWithUserDetails($request);
+
         if(isset($request['workers']) && !empty($request['workers'])) {
-            foreach ($request['workers'] as $workerId) {
-                $directrecruitmentWorkers = $this->directrecruitmentWorkers->updateOrCreate([
-                    "worker_id" => $workerId,
-                    'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
-                    'agent_id' => $request['agent_id'] ?? 0,
-                    'application_id' => $request['application_id'] ?? 0,
-                    'created_by'    => $params['created_by'] ?? 0,
-                    'modified_by'   => $params['created_by'] ?? 0   
-                ]);
-
-                $checkCallingVisa = $this->directRecruitmentCallingVisaStatus
-                ->where('application_id', $request['application_id'])
-                ->where('onboarding_country_id', $request['onboarding_country_id'])
-                ->where('agent_id', $request['agent_id'])->get()->toArray();
-
-                if(isset($checkCallingVisa) && count($checkCallingVisa) == 0 ){
-                    $callingVisaStatus = $this->directRecruitmentCallingVisaStatus->create([
-                        'application_id' => $request['application_id'] ?? 0,
-                        'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
-                        'agent_id' => $request['agent_id'] ?? 0,
-                        'item' => 'Calling Visa Status',
-                        'updated_on' => Carbon::now(),
-                        'status' => 1,
-                        'created_by' => $params['created_by'] ?? 0,
-                        'modified_by' => $params['created_by'] ?? 0,
-                    ]);
-                }
-
-                $checkWorkerStatus = $this->workerStatus
-                ->where('application_id', $request['application_id'])
-                ->where('onboarding_country_id', $request['onboarding_country_id'])
-                ->get()->toArray();
-
-                if(isset($checkWorkerStatus) && count($checkWorkerStatus) > 0 ){
-                    $this->workerStatus->where([
-                        'application_id' => $request['application_id'],
-                        'onboarding_country_id' => $request['onboarding_country_id']
-                    ])->update(['updated_on' => Carbon::now(), 'modified_by' => $params['created_by']]);
-                } else {
-                    $workerStatus = $this->workerStatus->create([
-                        'application_id' => $request['application_id'] ?? 0,
-                        'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
-                        'item' => 'Worker Biodata',
-                        'updated_on' => Carbon::now(),
-                        'status' => 1,
-                        'created_by' => $params['created_by'] ?? 0,
-                        'modified_by' => $params['created_by'] ?? 0,
-                    ]);            
-                }
-
-                $onBoardingStatus['application_id'] = $request['application_id'];
-                $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
-                $onBoardingStatus['onboarding_status'] = 4; //Agent Added
-                $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
-            }
+            $this->processAssignWorkers($request);
             return true;
         }else {
             return false;
         }
-        
+
     }
 
     /**
-     * @param $request
-     * @return mixed
+     * Process the assign workers.
+     *
+     * @param array $request $request The request data containing the 'workers', 'onboarding_country_id', 'agent_id', 'application_id',  'created_by'
+     *
+     * @return void
+     *
+     */
+    private function processAssignWorkers($request)
+    {
+        foreach ($request['workers'] as $workerId) {
+
+            $this->processDirectrecruitmentWorkers($workerId, $request);
+
+            $this->processDirectRecruitmentCallingVisaStatus($request);
+
+            $this->processWorkerStatus($request);
+
+            $onBoardingStatus['application_id'] = $request['application_id'];
+            $onBoardingStatus['country_id'] = $request['onboarding_country_id'];
+            $onBoardingStatus['onboarding_status'] = 4; //Agent Added
+            $this->directRecruitmentOnboardingCountryServices->onboarding_status_update($onBoardingStatus);
+        }
+    }
+
+    /**
+     * Process Directrecruitment Workers
+     *
+	 * @param int $worworkerId The id of the worker
+     * @param array $request containing the 'onboarding_country_id', 'agent_id', 'application_id', 'created_by'
+     *
+     * @return void
+     */
+    private function processDirectrecruitmentWorkers($workerId, $request)
+    {
+        $this->directrecruitmentWorkers->updateOrCreate([
+            "worker_id" => $workerId,
+            'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+            'agent_id' => $request['agent_id'] ?? 0,
+            'application_id' => $request['application_id'] ?? 0,
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0
+        ]);
+    }
+
+    /**
+     * Process Direct Recruitment Calling Visa Status
+     *
+     * @param array $request containing the 'onboarding_country_id', 'agent_id', 'application_id', 'created_by'
+     *
+     * @return void
+     */
+    private function processDirectRecruitmentCallingVisaStatus($request)
+    {
+        $checkCallingVisa = $this->directRecruitmentCallingVisaStatus
+            ->where('application_id', $request['application_id'])
+            ->where('onboarding_country_id', $request['onboarding_country_id'])
+            ->where('agent_id', $request['agent_id'])->get()->toArray();
+
+            if(isset($checkCallingVisa) && count($checkCallingVisa) == 0 ){
+                $callingVisaStatus = $this->directRecruitmentCallingVisaStatus->create([
+                    'application_id' => $request['application_id'] ?? 0,
+                    'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+                    'agent_id' => $request['agent_id'] ?? 0,
+                    'item' => 'Calling Visa Status',
+                    'updated_on' => Carbon::now(),
+                    'status' => 1,
+                    'created_by' => $request['created_by'] ?? 0,
+                    'modified_by' => $request['created_by'] ?? 0,
+                ]);
+            }
+    }
+
+    /**
+     * Process Worker Status
+     *
+     * @param array $request containing the 'onboarding_country_id', 'agent_id', 'application_id', 'created_by'
+     *
+     * @return void
+     */
+    private function processWorkerStatus($request)
+    {
+        $checkWorkerStatus = $this->workerStatus
+            ->where('application_id', $request['application_id'])
+            ->where('onboarding_country_id', $request['onboarding_country_id'])
+            ->get()->toArray();
+
+            if(isset($checkWorkerStatus) && count($checkWorkerStatus) > 0 ){
+                $this->workerStatus->where([
+                    'application_id' => $request['application_id'],
+                    'onboarding_country_id' => $request['onboarding_country_id']
+                ])->update(['updated_on' => Carbon::now(), 'modified_by' => $request['created_by']]);
+            } else {
+                $workerStatus = $this->workerStatus->create([
+                    'application_id' => $request['application_id'] ?? 0,
+                    'onboarding_country_id' => $request['onboarding_country_id'] ?? 0,
+                    'item' => 'Worker Biodata',
+                    'updated_on' => Carbon::now(),
+                    'status' => 1,
+                    'created_by' => $request['created_by'] ?? 0,
+                    'modified_by' => $request['created_by'] ?? 0,
+                ]);
+            }
+    }
+
+    /**
+     * Create a Bank detail for worker
+     *
+     * @param array $request request data containing the below params
+     *              worker_id (int) ID of the worker
+     *              bank_name (string) worker bank name
+     *              account_number (int) bank account number
+     *              socso_number (int) socso number
+     *
+     * @return mixed Returns the created bank detail record. otherwise returns an array with error details
+     *               Returns ERROR_UNAUTHORIZED  - if worker company id is not mapped with user company id
+     *               Returns ERROR_WORKER_COUNT - if the no.of bank account exceed the limit
      */
     public function createBankDetails($request) : mixed
     {
 
         $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getAuthenticatedUser();
         $params['created_by'] = $user['id'];
         $params['company_id'] = $user['company_id'];
 
-        $workerData = $this->workers::where('company_id', $params['company_id'])->find($request['worker_id']);
+        $workerData = $this->getWorkerByCompanyId($params);
         if(is_null($workerData)){
-            return [
-                'unauthorizedError' => true
-            ];
+            return self::ERROR_UNAUTHORIZED;
         }
 
-        $workerBankDetail = $this->workerBankDetails::where('worker_id', $request['worker_id'])->count();
-        if(isset($workerBankDetail) && $workerBankDetail > 3){
-            return [
-                'workerCountError' => true 
-            ];
+        $workerBankDetail = $this->getWorkerBankDetailsCount($request);
+        if(isset($workerBankDetail) && $workerBankDetail > self::WORKER_BANK_ACCOUNT_LIMIT){
+            return self::ERROR_WORKER_COUNT;
         }
 
-        //$workerBankDetail = $this->workerBankDetails::findOrFail($request['id']);
-        
         $workerBankDetail = $this->workerBankDetails->create([
             'worker_id' => $request['worker_id'],
             "bank_name" => $request['bank_name'] ?? '',
@@ -990,29 +1752,35 @@ class WorkersServices
     }
 
     /**
-     * @param $request
-     * @return bool|array
+     * Update the bank detail for worker
+     *
+     * @param array $request
+     *              id (int) ID of the update bank account record
+     *              worker_id (int) ID of the worker
+     *              bank_name (string) worker bank name
+     *              account_number (int) bank account number
+     *              socso_number (int) socso number
+     *
+     * @return bool|array Returns true if the bank detail is updated successfully, otherwise returns an array with error details
+     *                    Returns ERROR_UNAUTHORIZED  - if worker company id is not mapped with user company id
+     *                    Returns ERROR_WORKER_COUNT - if the no.of bank account exceed the limit
      */
     public function updateBankDetails($request): bool|array
     {
         $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getAuthenticatedUser();
         $params['modified_by'] = $user['id'];
         $params['company_id'] = $user['company_id'];
 
-        $workerData = $this->workers::where('company_id', $params['company_id'])->find($request['worker_id']);
+        $workerData = $this->getWorkerByCompanyId($params);
         if(is_null($workerData)){
-            return [
-                'unauthorizedError' => true
-            ];
+            return self::ERROR_UNAUTHORIZED;
         }
 
-        $workerBankDetail = $this->workerBankDetails::where('worker_id', $request['worker_id'])->count();
-        
-        if(isset($workerBankDetail) && $workerBankDetail > 3){
-            return [
-                'workerCountError' => true 
-            ];
+        $workerBankDetail = $this->getWorkerBankDetailsCount($request);
+
+        if(isset($workerBankDetail) && $workerBankDetail > self::WORKER_BANK_ACCOUNT_LIMIT){
+            return self::ERROR_WORKER_COUNT;
         }
 
         $workerBankDetail = $this->workerBankDetails::findOrFail($request['id']);
@@ -1027,19 +1795,21 @@ class WorkersServices
     }
 
     /**
+     * Shows the bank detail
+     *
      * @param $request
-     * @return mixed
+     *        id (int) ID of the bank record
+     *
+     * @return mixed Returns the Bank detail
      */
     public function showBankDetails($request) : mixed
     {
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['company_id'] = $this->authServices->getCompanyIds($user);
-
-        if(!($this->validationServices->validate($request,['id' => 'required']))){
-            return [
-                'validate' => $this->validationServices->errors()
-            ];
+        $validationResult = $this->validateShowBankDetailsRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
+        $request = $this->enrichRequestWithUserDetails($request);
+
         return $this->workerBankDetails->join('workers', function ($join) use ($request) {
             $join->on('workers.id', '=', 'worker_bank_details.worker_id')
                  ->whereIn('workers.company_id', $request['company_id']);
@@ -1047,27 +1817,28 @@ class WorkersServices
     }
 
     /**
+     * List the worker bank detail
+     *
      * @param $request
-     * @return mixed
+     *        worker_id (int) ID of the worker
+     *        search_param (string) search parameter
+     *
+     * @return mixed Returns The paginated list of bank detail
      */
     public function listBankDetails($request) : mixed
     {
-        if(isset($request['search_param']) && !empty($request['search_param'])){
-            if(!($this->validationServices->validate($request,['search_param' => 'required|min:3']))){
-                return [
-                    'validate' => $this->validationServices->errors()
-                ];
-            }
+        $validationResult = $this->validateListBankDetailsRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
         return $this->workerBankDetails
-        
         ->where('worker_bank_details.worker_id', $request['worker_id'])
         ->where(function ($query) use ($request) {
-            if (isset($request['search_param']) && !empty($request['search_param'])) {
+            if (!empty($request['search_param'])) {
                 $query->where('worker_bank_details.bank_name', 'like', "%{$request['search_param']}%")
                 ->orWhere('worker_bank_details.account_number', 'like', '%'.$request['search_param'].'%');
             }
-            
+
         })->select('worker_bank_details.id','worker_bank_details.worker_id','worker_bank_details.bank_name','worker_bank_details.account_number','worker_bank_details.socso_number')
         ->distinct()
         ->orderBy('worker_bank_details.created_at','DESC')
@@ -1078,56 +1849,85 @@ class WorkersServices
      * delete the specified Bank Detail of the Worker.
      *
      * @param $request
-     * @return mixed
-     */    
+     *        id (int) ID of the bank record
+     *
+     * @return mixed Returns an array with two keys: 'isDeleted' and 'message'
+     */
     public function deleteBankDetails($request): mixed
-    {   
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['company_id'] = $this->authServices->getCompanyIds($user);
+    {
+        $request = $this->enrichRequestWithUserDetails($request);
 
-        $workerBankDetail = $this->workerBankDetails->join('workers', function ($join) use ($request) {
-            $join->on('workers.id', '=', 'worker_bank_details.worker_id')
-                 ->whereIn('workers.company_id', $request['company_id']);
-        })->select('worker_bank_details.id')->find($request['id']);
+        $workerBankDetail = $this->getWorkerBankDetails($request);
 
         if(is_null($workerBankDetail)){
             return [
                 "isDeleted" => false,
-                "message" => "Data not found"
+                "message" => self::MESSAGE_DATA_NOT_FOUND
             ];
         }
         $workerBankDetail->delete();
         return [
             "isDeleted" => true,
-            "message" => "Deleted Successfully"
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
         ];
     }
+
     /**
-     * add attachment
+     * Get the worker bank detail count based on the given request data.
+     *
+     * @param array $request The request data containing the worker id.
+     *
+     * @return int Returns the worker bank detail count
+     */
+    private function getWorkerBankDetailsCount($request)
+    {
+        return $this->workerBankDetails::where('worker_id', $request['worker_id'])->count();
+    }
+
+    /**
+     * Get the worker bank detail based on the given request data.
+     *
+     * @param array $request The request data containing the company ID and id.
+     * @return mixed Returns the worker bank detail matching the given company ID and id,
+     *               or null if no matching worker bank detail is found.
+     */
+    private function getWorkerBankDetails($request)
+    {
+        return $this->workerBankDetails->join('workers', function ($join) use ($request) {
+            $join->on('workers.id', '=', 'worker_bank_details.worker_id')
+                 ->whereIn('workers.company_id', $request['company_id']);
+        })->select('worker_bank_details.id')->find($request['id']);
+    }
+
+    /**
+     * add attachment for worker
+     *
      * @param $request
-     * @return bool|array
+     *        worker_id (int) ID of the worker
+     *        attachment (file) uploading file
+     *
+     * @return bool|array Returns true if the file is uploaded successfully, otherwise returns an array with error details
      */
     public function addAttachment($request): bool|array
     {
         $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getAuthenticatedUser();
         $params['created_by'] = $user['id'];
         $params['company_id'] = $user['company_id'];
 
-        $validator = Validator::make($request->toArray(), $this->addAttachmentValidation());
-        if($validator->fails()) {
-            return [
-                'error' => $validator->errors()
-            ];
+        $validationResult = $this->validateAddAttachmentRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
         }
-        $workerExists = $this->workers::where('company_id', $params['company_id'])->find($request['worker_id']);
+
+        $workerExists = $this->getWorkerByCompanyId($params);
         if(is_null($workerExists)) {
-            return ['workerError' => true];
+            return self::ERROR_WORKER;
         }
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
-                $filePath = '/workerAttachment/'.$request['worker_id'].'/attachment/' . $fileName; 
+                $filePath = '/workerAttachment/'.$request['worker_id'].'/attachment/' . $fileName;
                 $linode = $this->storage::disk('linode');
                 $linode->put($filePath, file_get_contents($file));
                 $fileUrl = $this->storage::disk('linode')->url($filePath);
@@ -1135,43 +1935,62 @@ class WorkersServices
                         "file_id" => $request['worker_id'],
                         "file_name" => $fileName,
                         "file_type" => 'WORKERATTACHMENT',
-                        "file_url" =>  $fileUrl         
-                    ]);  
+                        "file_url" =>  $fileUrl
+                    ]);
             }
             return true;
-        }else{
+        } else {
             return false;
         }
     }
+
     /**
+     * Get the worker based on the given request data.
+     *
+     * @param array $request The request data containing the company ID and worker id.
+     * @return mixed Returns the worker matching the given company ID and worker id,
+     *               or null if no matching worker is found.
+     */
+    private function getWorkerByCompanyId($request)
+    {
+        return $this->workers::where('company_id', $request['company_id'])->find($request['worker_id']);
+    }
+
+    /**
+     * List the worker attachment
+     *
      * @param $request
-     * @return mixed
+     *        worker_id (int) ID of the worker
+     *
+     * @return mixed Returns The paginated list of worker attachment
      */
     public function listAttachment($request) : mixed
     {
         return $this->workers
         ->select('workers.id')
         ->where('workers.id', $request['worker_id'])
-        ->with(['workerOtherAttachments' => function ($query) { 
+        ->with(['workerOtherAttachments' => function ($query) {
             $query->select(['id', 'file_id', 'file_name', 'file_type', 'file_url', DB::raw('1 as edit_flag')]);
         }])
         ->with('SpecialPassAttachments', 'WorkerRepatriationAttachments', 'WorkerPLKSAttachments', 'workerFomemaAttachments', 'CancellationAttachment', 'WorkerImmigrationAttachments', 'WorkerInsuranceAttachments')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
+     * Delete the worker attachment
      *
      * @param $request
-     * @return bool
-     */    
+     *        attachment_id (int) ID of the attachment
+     *
+     * @return bool Returns true if the file is deleted successfully, otherwise returns false
+     */
     public function deleteAttachment($request): bool
-    {   
-        $user = JWTAuth::parseToken()->authenticate();
-        $request['company_id'] = $this->authServices->getCompanyIds($user);
+    {
+        $request = $this->enrichRequestWithUserDetails($request);
 
         $data = $this->workerAttachments->join('workers', function ($join) use ($request) {
             $join->on('workers.id', '=', 'worker_attachments.file_id')
                  ->whereIn('workers.company_id', $request['company_id']);
-        })->select('worker_attachments.id')->find($request['attachment_id']);
+        })->select('worker_attachments.id')->find($request['id']);
         if(is_null($data)) {
             return false;
         }
@@ -1179,34 +1998,59 @@ class WorkersServices
         return true;
     }
     /**
-     * @param $request
-     * @return mixed
+     * Import the workers
+     *
+     * @param $request The request data containing import worker details
+     *
+     * @return mixed Returns true if the file is imported successfully, otherwise returns an array with error details
      */
     public function import($request, $file): mixed
     {
         $params = $request->all();
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $this->getAuthenticatedUser();
         $params['created_by'] = $user['id'];
         $params['company_id'] = $user['company_id'];
+        $params['user_type'] = $user['user_type'];
 
-        $workerBulkUpload = $this->workerBulkUpload->create([
-                'name' => 'Worker Bulk Upload',
-                'type' => 'Worker bulk upload',
-                'module_type' => 'Workers',
-                'company_id' => $user['company_id'],
-                'created_by' => $params['created_by'],
-                'modified_by' => $params['created_by'],
-                'user_type' => $user['user_type']
-            ]
-        );
+        $workerBulkUpload = $this->createworkerBulkUpload($params);
+
         $rows = Excel::toArray(new CommonWorkerImport($params, $workerBulkUpload), $file);
         $this->workerBulkUpload->where('id', $workerBulkUpload->id)->update(['actual_row_count' => count($rows[0])]);
         Excel::import(new CommonWorkerImport($params, $workerBulkUpload), $file);
         return true;
     }
+
     /**
+     * create worker bulk upload.
+     *
+     * @param array $request
+     *              company_id (int) ID of the company
+     *              created_by (int) ID of the created user
+     *              user_type (string) Type of the user
+     *
+     * @return mixed  Returns the created worker bulk upload record.
+     */
+    private function createworkerBulkUpload($request): mixed
+    {
+        return $this->workerBulkUpload->create([
+            'name' => self::WORKER_BULK_UPLOAD,
+            'type' => self::WORKER_BULK_UPLOAD,
+            'module_type' => self::MODULE_TYPE_WORKERS,
+            'company_id' => $request['company_id'],
+            'created_by' => $request['created_by'],
+            'modified_by' => $request['created_by'],
+            'user_type' => $request['user_type']
+        ]
+    );
+    }
+
+    /**
+     * List the worker import history
+     *
      * @param $request
-     * @return mixed
+     *        company_id (array) ID of the user company
+     *
+     * @return mixed Returns The paginated list of worker import history
      */
     public function importHistory($request) : mixed
     {
@@ -1215,63 +2059,99 @@ class WorkersServices
 
         return $this->workerBulkUpload
         ->select('id', 'actual_row_count', 'total_success', 'total_failure', 'process_status', 'created_at')
-        ->where('module_type', 'Workers')
-        ->where('process_status', 'Processed')
+        ->where('module_type', self::MODULE_TYPE_WORKERS)
+        ->where('process_status', self::PROCESS_STATUS)
         ->whereNotNull('failure_case_url')
         ->whereIn('company_id', $request['company_id'])
         ->orderBy('id', 'desc')
         ->paginate(Config::get('services.paginate_row'));
     }
     /**
+     * Shows the worker import failure export file
+     *
      * @param $request
-     * @return array
+     *
+     * @return array Returns an array with key: file_url
      */
     public function failureExport($request): array
-    {        
+    {
         $workerBulkUpload = $this->workerBulkUpload->findOrFail($request['bulk_upload_id']);
-        if($workerBulkUpload->process_status != 'Processed' || is_null($workerBulkUpload->failure_case_url)) {
-            return [
-                'queueError' => true
-            ];
+        if($workerBulkUpload->process_status != self::PROCESS_STATUS || is_null($workerBulkUpload->failure_case_url)) {
+            return self::ERROR_QUEUE;
         }
         return [
             'file_url' => $workerBulkUpload->failure_case_url
         ];
     }
     /**
+     * Process the worker import failure case
+     *
      * @return bool
      */
     public function prepareExcelForFailureCases(): bool
     {
         $ids = [];
         $data = [];
-        $bulkUploads = $this->workerBulkUpload
-        ->where( function ($query) {
-            $query->whereNull('process_status')
-            ->orWhereNull('failure_case_url');
-        })
-        ->select('id', 'total_records', 'total_success', 'total_failure', 'actual_row_count', 'module_type')
-        ->get()->toArray();
-
+        $bulkUploads = $this->getWorkerBulkUploadRows();
         foreach($bulkUploads as $bulkUpload) {
             if($bulkUpload['actual_row_count'] == ($bulkUpload['total_success'] + $bulkUpload['total_failure'])) {
                 array_push($ids, $bulkUpload['id']);
                 $data[$bulkUpload['id']]['module_type'] = $bulkUpload['module_type'];
             }
         }
-        $this->workerBulkUpload->whereIn('id', $ids)->update(['process_status' => 'Processed']);
+        $this->updateWorkerBulkUploadStatus($ids);
+        $this->createWorkerFailureCasesDocument($ids,$data);
+        return true;
+    }
+
+    /**
+     * Get the worker bulk upload rows.
+     *
+     * @return mixed Retruns the worker bulk upload record rows
+     */
+    private function getWorkerBulkUploadRows(): mixed
+    {
+        return $this->workerBulkUpload
+        ->where( function ($query) {
+            $query->whereNull('process_status')
+            ->orWhereNull('failure_case_url');
+        })
+        ->select('id', 'total_records', 'total_success', 'total_failure', 'actual_row_count', 'module_type')
+        ->get()->toArray();
+    }
+
+    /**
+     * Update the status of worker bulk upload rows.
+     *
+     * @param array $ids - Id of the worker bulk upload record
+     * @return void
+     */
+    private function updateWorkerBulkUploadStatus($ids)
+    {
+        $this->workerBulkUpload->whereIn('id', $ids)->update(['process_status' => self::PROCESS_STATUS]);
+    }
+
+    /**
+     * create worker failure cases document.
+     *
+     * @param array $ids Id of the worker bulk upload record
+     * @param array $data worker module type
+     * @return void
+     */
+    private function createWorkerFailureCasesDocument($ids,$data)
+    {
         foreach($ids as $id) {
             $moduleType = isset($data[$id]['module_type']) ? $data[$id]['module_type'] : '';
             $fileName = "FailureCases" . $id . ".xlsx";
-            $filePath = '/FailureCases/Workers/' . $fileName; 
-            if($moduleType == 'WorkerBioData'){
+            $filePath = '/FailureCases/Workers/' . $fileName;
+            if ($moduleType == self::MODULE_TYPE_WORKERBIODATA){
                 Excel::store(new WorkerBiodataFailureExport($id), $filePath, 'linode');
-            }else if($moduleType == 'Workers'){
+            }
+            if ($moduleType == self::MODULE_TYPE_WORKERS){
                 Excel::store(new FailureExport($id), $filePath, 'linode');
             }
             $fileUrl = $this->storage::disk('linode')->url($filePath);
             $this->workerBulkUpload->where('id', $id)->update(['failure_case_url' => $fileUrl]);
         }
-        return true;
     }
 }

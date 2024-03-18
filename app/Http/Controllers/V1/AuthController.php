@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\AuthServices;
+use Exception;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,82 +24,214 @@ class AuthController extends Controller
     /**
      * @var AuthServices
      */
-    private $authServices;
+    private AuthServices $authServices;
     /**
      * @var EmployeeServices
      */
-    private $employeeServices;
+    private EmployeeServices $employeeServices;
 
     /**
-     * AuthController constructor.
-     * @param AuthServices $authServices
-     * @param EmployeeServices $employeeServices
+     * Constructor
+     *
+     * @param AuthServices $authServices Instance of Auth Services class
+     * @param EmployeeServices $employeeServices Instance of Employee Services class
      */
 
-    public function __construct(AuthServices $authServices,EmployeeServices $employeeServices) 
+    public function __construct(AuthServices $authServices, EmployeeServices $employeeServices)
     {
         $this->authServices = $authServices;
         $this->employeeServices = $employeeServices;
     }
 
     /**
-     * User Login
+     * Login a user.
      *
-     * [Get a JWT token via given credentials].
-     * @bodyParam email string required The username of the user.
-     * @bodyParam password string required The password of the user.
-     * @responseFile responses/login.json
-     * @responseFile 400 responses/login.400.json
-     * @param Request $request
+     * @param Request $request The login request object.
      *
-     * @return JsonResponse
+     * @return JsonResponse The JSON response.
      */
     public function login(Request $request)
     {
-        $credentials = $this->getRequest($request);
-        unset($credentials['domain_name']);
-        $validator = Validator::make($credentials, $this->authServices->loginValidation());
-        if ($validator->fails()) {
-            return $this->validationError($validator->errors());
+        $credentials = $this->getCredentials($request);
+
+        $validator = $this->validateCredentials($credentials);
+        if (!empty($validator)) {
+            return $validator;
         }
+
         if (!$token = Auth::attempt($credentials)) {
-            return $this->sendError(['message' => 'Invalid Credentials'], 400);
+            $isInvalidUser = $this->errorInvalidCredentials();
+            if(!empty($isInvalidUser)) {
+                return $isInvalidUser;
+            }
         }
-        $user = Auth::user();
-        if(is_null($user)){
+
+        $user = $this->getAuthenticatedUser();
+        if(!empty($user['error'])) {
             return $this->sendError(['message' => 'User not found'], 400);
         }
-        $user = $this->authServices->show(['id' => $user['id']]);
-        if(Str::lower($user['user_type']) == 'employee'){
-            $emp = $this->employeeServices->show(['id' => $user['reference_id']]);
-            if(is_null($emp)){
-                return $this->sendError(['message' => 'User not found'], 400);
-            }
-            if(is_null($emp['employeeDetails']['branches']) || ($emp['employeeDetails']['status'] == 0) || ($emp['employeeDetails']['branches']['status'] == 0)){
-                return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
-            }
+        
+        switch (Str::lower($user['user_type'])) {
+            case 'employee':
+                $userValidation = $this->validateEmployeeUser($user);
+                break;
+            case Config::get('services.ROLE_TYPE_ADMIN'):
+                $userValidation = $this->validateAdminUser($user);
+                break;
         }
-        if($user['user_type'] == Config::get('services.ROLE_TYPE_ADMIN')){
-            if($user['status'] == 0){
-                return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
-            }
+
+        if(!empty($userValidation)) {
+            return $userValidation;
         }
+
         return $this->respondWithToken($token, $user);
     }
 
     /**
-     * User Register
+     * Get credentials
      *
-     * [Register the users].
-     * @urlParam BearerToken required The token to access the application.
-     * @bodyParam customer_id integer required The customer Id for the user.
-     * @bodyParam name string required The name of the user.
-     * @bodyParam username string required The username of the user.
-     * @bodyParam password string required The password of the user.
-     * @responseFile responses/register.json
-     * @responseFile 422 responses/register.422.json
-     * @param Request $request
-     * @return JsonResponse
+     * Removes the 'domain_name' key from the request parameters and returns the modified credentials.
+     *
+     * @param Request $request The request object containing the credentials
+     *
+     * @return array The modified credentials without the 'domain_name' key
+     */
+    private function getCredentials(Request $request)
+    {
+        $credentials = $this->getRequest($request);
+        unset($credentials['domain_name']);
+        return $credentials;
+    }
+
+    /**
+     * Validate user credentials
+     * @param array $credentials The user credentials to be validated
+     *
+     * @return array|bool if validator fails return validator errors, otherwise true
+     */
+    private function validateCredentials(array $credentials)
+    {
+        $validator = Validator::make($credentials, $this->authServices->loginValidation());
+        if ($validator->fails()) {
+            return $this->validationError($validator->errors());
+        }
+    }
+
+    /**
+     * Generates an error response for invalid credentials.
+     *
+     * Sends a JSON response with the message "Invalid Credentials" and a status code of 400.
+     *
+     * @return void
+     */
+    private function errorInvalidCredentials()
+    {
+        return $this->sendError(['message' => 'Invalid Credentials'], 400);
+    }
+
+    /**
+     * Retrieves the authenticated user.
+     *
+     * This method retrieves the authenticated user by calling the `Auth::user()` function.
+     * If the user is null, it sends an error response.
+     * Otherwise, it calls the `show` method of the `authServices` object to fetch the details of the user.
+     *
+     * @return array The details of the authenticated user. otherwise return array containing error
+     */
+    private function getAuthenticatedUser()
+    {
+        $user = Auth::user();
+        if (is_null($user)) {
+            return [
+                "error" => true
+            ];
+        }
+        return $this->authServices->show(['id' => $user['id']]);
+    }
+
+    /**
+     * Validates an employee user.
+     *
+     * This method retrieves an employee using the reference ID from the user array, and then checks if the employee is null or inactive. If the employee is null or inactive, it throws an
+     * error.
+     *
+     * @param object $user The user object to validate. The reference_id key must be present.
+     *
+     * @return array|void
+     */
+    private function validateEmployeeUser(object $user)
+    {
+        $employee = $this->employeeServices->show(['id' => $user['reference_id']]);
+        if (is_null($employee) || $this->isEmployeeInactive($employee)) {
+            return $this->errorInactiveUser();
+        }
+    }
+
+    /**
+     * Checks if an employee is inactive.
+     *
+     * This method checks if the employee is considered inactive based on the following conditions:
+     * - If the 'branches' key of the employee details is null
+     * - If the employee status is equal to 0
+     * - If the status of the employee's branches is equal to 0
+     *
+     * @param array &$employee The employee array to check. The 'employeeDetails' key must be present,
+     *                        which should contain a 'branches' key and a 'status' key.
+     *
+     * @return bool Returns true if the employee is considered inactive, false otherwise.
+     */
+    private function isEmployeeInactive(array &$employee): bool
+    {
+        return is_null($employee['employeeDetails']['branches']) ||
+            $employee['employeeDetails']['status'] == 0 ||
+            $employee['employeeDetails']['branches']['status'] == 0;
+    }
+
+    /**
+     * Validates an admin user.
+     *
+     * This method checks if the user status is equal to 0 and throws an error if it is inactive.
+     *
+     * @param array &$user The user array to validate. The status key must be present.
+     *
+     * @return array|void
+     */
+    private function validateAdminUser(array &$user)
+    {
+        if ($user['status'] == 0) {
+            return $this->errorInactiveUser();
+        }
+    }
+
+    /**
+     * Throws an error for an inactive user.
+     *
+     * This method sends an error response indicating that the user's login has been inactivated.
+     *
+     * @return void
+     */
+    private function errorInactiveUser()
+    {
+        return $this->sendError(['message' => 'Your login has been inactivated, kindly contact Administrator'], 400);
+    }
+
+    /**
+     * Registers a new user.
+     *
+     * This method handles the registration of a new user. It performs the following steps:
+     * - Gets the request data using the getRequest method.
+     * - Authenticates the user using JWTAuth::parseToken()->authenticate().
+     * - Adds the user id to the request data.
+     * - Validates the request data using the registerValidation method from the authServices object.
+     * - If validation fails, returns a validation error response.
+     * - Otherwise, creates the user using the create method from the authServices object.
+     * - If the creation process encounters any errors related to subsidiaries, parent company, or existing super user,
+     *   it returns the corresponding error response.
+     * - Otherwise, returns a success response with a message indicating that the user was created successfully.
+     *
+     * @param Request $request The registration request.
+     *
+     * @return JsonResponse The registration response.
      */
     public function register(Request $request)
     {
@@ -109,7 +242,7 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return $this->validationError($validator->errors());
         }
-        $response = $this->authServices->create($request);
+        $this->authServices->create($request);
         // if(isset($response['subsidiaryError'])) {
         //     return $this->sendError(['message' => 'Cannot Create Super User for Subsidiary Company'], 422);
         // } else if(isset($response['parentError'])) {
@@ -121,12 +254,26 @@ class AuthController extends Controller
     }
 
     /**
-     * User Details
-     * [Get the authenticated User Details]
-     * @urlParam BearerToken required The token to access the application.
-     * @responseFile responses/userDetails.json
-     * @responseFile 400 responses/userDetails.400.json
-     * @return JsonResponse
+     * Get the user associated with the authenticated token.
+     *
+     * This method fetches the user associated with the authenticated token.
+     * It first attempts to parse the token and authenticate it using JWTAuth.
+     *
+     * If the token is successfully validated and the user is found, the method returns a success response
+     * containing the user information. Otherwise, it throws an error using the sendError method.
+     *
+     * @return JsonResponse The user information in a success response.
+     *               The structure of the response array:
+     *                  - 'user': The user information.
+     *                      The structure of the user array:
+     *                          - 'id': The unique identifier of the user.
+     *                          - 'name': The name of the user.
+     *                          - 'email': The email address of the user.
+     *                          - ...
+     *
+     * @throws TokenExpiredException If the token is expired.
+     * @throws TokenInvalidException If the token is invalid.
+     * @throws JWTException If the token is absent.
      */
     public function user()
     {
@@ -135,25 +282,39 @@ class AuthController extends Controller
                 $this->sendError(['message' => 'user not found'], 404);
             }
         } catch (TokenExpiredException $e) {
-            Log::info('TokenExpiredException - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'token expired'], 404);
+            $this->handleException($e, 'token expired');
         } catch (TokenInvalidException $e) {
-            Log::info('TokenInvalidException - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'token invalid'], 404);
+            $this->handleException($e, 'token invalid');
         } catch (JWTException $e) {
-            Log::info('JWTException - ' . print_r($e->getMessage(), true));
-            $this->sendError(['message' => 'token absent'], 404);
+            $this->handleException($e, 'token absent');
         }
+
         return $this->sendSuccess(compact('user'));
     }
 
-     /**
-     * User Logout
-     * [Log the user out (Invalidate the token)]
-     * @urlParam BearerToken required The token to access the application.
-     * @responseFile responses/userLogout.json
-     * @responseFile 400 responses/userDetails.400.json
-     * @return JsonResponse
+    /**
+     * Handles an exception.
+     *
+     * This method logs information about the exception and sends an error response with the specified message and HTTP status code.
+     *
+     * @param Exception $e The exception to handle.
+     * @param string $message The error message to send in the response.
+     *
+     * @return void
+     */
+    private function handleException(Exception $e, string $message): void
+    {
+        Log::info(get_class($e) . ' - ' . $e->getMessage());
+        $this->sendError(['message' => $message], 404);
+    }
+
+    /**
+     * Log out the user.
+     *
+     * This method logs out the currently authenticated user by calling the `logout` method of the `guard` instance.
+     * After logging out, it sends a success response with a message indicating the successful logout.
+     *
+     * @return JsonResponse The success response, including a message indicating the successful logout.
      */
     public function logout()
     {
@@ -162,7 +323,10 @@ class AuthController extends Controller
     }
 
     /**
-     * Get the guard to be used during authentication.
+     * Retrieves the authentication guard instance.
+     *
+     * This method returns the current authentication guard instance, which
+     * provides the functionality for authentication and authorization.
      *
      * @return Guard
      */
@@ -172,13 +336,16 @@ class AuthController extends Controller
     }
 
     /**
-     * Refresh a token.
-     * @return JsonResponse
+     * Refreshes the authentication token.
+     *
+     * This method retrieves the current user from the authentication service and refreshes the token using the guard. It returns the refreshed token along with the user information.
+     *
+     * @return JsonResponse The response containing the refreshed token and user information.
      */
     public function refresh()
     {
         $user = Auth::user();
-        if(is_null($user)){
+        if (is_null($user)) {
             return $this->sendError(['message' => 'User not found'], 400);
         }
         $user = $this->authServices->show(['id' => $user['id']]);
@@ -186,9 +353,14 @@ class AuthController extends Controller
     }
 
     /**
-     * Forgot Password
-     * @param Request $request
-     * @return JsonResponse
+     * Handles the forgot password request.
+     *
+     * This method validates the input credentials, sends a forgot password request using the authentication service,
+     * and returns the appropriate response based on the response from the service.
+     *
+     * @param Request $request The request object received from the client.
+     *
+     * @return JsonResponse The JSON response containing the message and status code for successful or failed forgot password request.
      */
     public function forgotPassword(Request $request)
     {
@@ -198,17 +370,21 @@ class AuthController extends Controller
             return $this->validationError($validator->errors());
         }
         $response = $this->authServices->forgotPassword($request);
-        if($response == true) {
+        if ($response) {
             return $this->sendSuccess(['message' => 'Successfully forgot password was created']);
         } else {
             return $this->sendError(['message' => 'Email was not found'], 400);
         }
     }
+
     /**
-     * Forgot password update
-     * @param Request $request
+     * Update forgotten password.
      *
-     * @return JsonResponse
+     * This method updates the forgotten password using the credentials provided in the request.
+     *
+     * @param Request $request The HTTP request object.
+     *
+     * @return JsonResponse The HTTP response containing success message if the password was reset successfully, otherwise, error message.
      */
     public function forgotPasswordUpdate(Request $request)
     {
@@ -218,7 +394,7 @@ class AuthController extends Controller
             return $this->validationError($validator->errors());
         }
         $response = $this->authServices->forgotPasswordUpdate($credentials);
-        if($response == true) {
+        if ($response) {
             return $this->sendSuccess(['message' => 'Successfully password was reset']);
         } else {
             return $this->sendError(['message' => 'Invalid Token']);

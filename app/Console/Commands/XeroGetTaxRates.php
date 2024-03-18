@@ -3,10 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-
+use Illuminate\Support\Facades\Log;
 use App\Services\InvoiceServices;
 use App\Services\DatabaseConnectionServices;
-use Illuminate\Support\Facades\Log;
 
 class XeroGetTaxRates extends Command
 {
@@ -27,7 +26,7 @@ class XeroGetTaxRates extends Command
     /**
      * @var InvoiceServices $invoiceServices
      */
-    private $invoiceServices;
+    private InvoiceServices $invoiceServices;
 
     /**
      * @var DatabaseConnectionServices $databaseConnectionServices
@@ -35,7 +34,11 @@ class XeroGetTaxRates extends Command
     private $databaseConnectionServices;
 
     /**
-     * Create a new command instance.
+     * __construct method.
+     *
+     * Creates a new instance of the class.
+     *
+     * @param InvoiceServices $invoiceServices An instance of InvoiceServices class.
      *
      * @return void
      */
@@ -49,9 +52,9 @@ class XeroGetTaxRates extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
         Log::channel('cron_activity_logs')->info('Cron Job Started - InvoiceServices Save Tax Rates Generation for Tenant DB - '.$this->argument('database'));

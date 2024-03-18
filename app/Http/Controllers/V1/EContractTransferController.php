@@ -52,9 +52,6 @@ class EContractTransferController extends Controller
         try {
             $params = $this->getRequest($request);
             $data = $this->eContractTransferServices->projectList($params);
-            if(is_null($data) || count($data->toArray()) == 0){
-                return $this->sendError(['message' => 'Unauthorized']);
-            }
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
