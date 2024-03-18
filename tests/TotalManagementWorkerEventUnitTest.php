@@ -128,7 +128,7 @@ class TotalManagementWorkerEventUnitTest extends TestCase
      */
     public function testForCreateWorkerEventDepartureDateFutureValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerEvent/create', array_merge($this->creationData(), ['departure_date' => Carbon::now()->subYear()->format('Y-d-m')]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerEvent/create', array_merge($this->creationData(), ['departure_date' => Carbon::now()->subYear()->format('Y-m-d')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
@@ -262,7 +262,7 @@ class TotalManagementWorkerEventUnitTest extends TestCase
      */
     public function testForUpdateWorkerEventDepartureDateFutureValidation(): void
     {
-        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerEvent/update', array_merge($this->updationData(), ['departure_date' => Carbon::now()->subYear()->format('Y-d-m')]), $this->getHeader());
+        $response = $this->json('POST', 'api/v1/totalManagement/manage/workerEvent/update', array_merge($this->updationData(), ['departure_date' => Carbon::now()->subYear()->format('Y-m-d')]), $this->getHeader());
         $response->seeStatusCode(422);
         $response->seeJson([
             'data' => [
