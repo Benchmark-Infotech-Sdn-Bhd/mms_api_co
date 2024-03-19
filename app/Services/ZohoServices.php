@@ -273,23 +273,23 @@ class ZohoServices
     /**
      * Update the Expense
      *
-     * @param array $item
+     * @param object $item
      * @param int $invoiceNumber
      *
      * @return void
      */
     private function updateExpense($item, $invoiceNumber){
-        if($item['service_id'] == self::SERVICE_ID_DIRECTRECRUITMENT){
-            $this->directRecruitmentExpenses->where('id', $item['expense_id'])->update([
+        if($item->service_id == self::SERVICE_ID_DIRECTRECRUITMENT){
+            $this->directRecruitmentExpenses->where('id', $item->expense_id)->update([
                     'invoice_number' => $invoiceNumber
             ]);
-        } else if($item['service_id'] == self::SERVICE_ID_ECONTRACT){
-            $this->eContractCostManagement->where('id', $item['expense_id'])->update([
+        } else if($item->service_id == self::SERVICE_ID_ECONTRACT){
+            $this->eContractCostManagement->where('id', $item->expense_id)->update([
                     'invoice_number' => $invoiceNumber
             ]);
         }
         else {
-            $this->totalManagementCostManagement->where('id', $item['expense_id'])->update([
+            $this->totalManagementCostManagement->where('id', $item->expense_id)->update([
                     'invoice_number' => $invoiceNumber
             ]);
         }
@@ -515,9 +515,9 @@ class ZohoServices
     {
         $crmProspect = $this->crmProspect->findOrFail($request['crm_prospect_id']);
 
-        $generateInvoice['date'] = $params['issue_date'] ?? null;
-        $generateInvoice['due_date'] = $params['due_date'] ?? null;
-        $generateInvoice['reference_number'] = $params['reference_number'] ?? null;
+        $generateInvoice['date'] = $request['issue_date'] ?? null;
+        $generateInvoice['due_date'] = $request['due_date'] ?? null;
+        $generateInvoice['reference_number'] = $request['reference_number'] ?? null;
         $generateInvoice['customer_id'] = $crmProspect->xero_contact_id;
         $generateInvoice['is_inclusive_tax'] = '';
 
