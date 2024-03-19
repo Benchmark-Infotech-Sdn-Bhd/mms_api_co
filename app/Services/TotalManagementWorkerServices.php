@@ -573,9 +573,15 @@ class TotalManagementWorkerServices
             $workerCountArray = $this->getWorkerCount($projectDetails->application_id, $applicationDetails->crm_prospect_id);
             
             if($serviceDetails->from_existing == self::FROM_EXISTING) {
-                $this->processAssignWorkerFromExisting($request, $workerCountArray, $applicationDetails);
+                $checkFromExistingWorker = $this->processAssignWorkerFromExisting($request, $workerCountArray, $applicationDetails);
+                if(!is_null($checkFromExistingWorker)) {
+                    return $checkFromExistingWorker;
+                }
             } else {
-                $this->processAssignWorkerNotFromExisting($request, $workerCountArray, $applicationDetails, $serviceDetails);
+                $checkNotFromExistingWorker = $this->processAssignWorkerNotFromExisting($request, $workerCountArray, $applicationDetails, $serviceDetails);
+                if(!is_null($checkNotFromExistingWorker)) {
+                    return $checkNotFromExistingWorker;
+                }
             }
             $this->processAssignWorkers($request);
         }
