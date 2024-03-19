@@ -334,8 +334,8 @@ class DirectRecruitmentOnboardingAgentServices
     {
         $onboardingCheck = $this->directRecruitmentOnboardingCountry->find($request[self::REQUEST_ONBOARDING_COUNTRY_ID]);
         $applicationCheck = $this->directrecruitmentApplications->find($request[self::REQUEST_APPLICATION_ID]);
-        return $onboardingCheck->application_id === $request[self::REQUEST_APPLICATION_ID] &&
-            $applicationCheck->company_id === $request[self::REQUEST_COMPANY_ID];
+        return $onboardingCheck->application_id == $request[self::REQUEST_APPLICATION_ID] &&
+            $applicationCheck->company_id == $request[self::REQUEST_COMPANY_ID];
     }
 
     /**
