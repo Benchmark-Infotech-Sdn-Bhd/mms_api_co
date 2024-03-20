@@ -28,6 +28,8 @@ class DirectRecruitmentOnboardingAttestationServices
 
     public const REQUEST_ITEM_NAME = 'Attestation Submission';
     public const REQUEST_ATTESTATION_STATUS = 'Pending';
+    public const ATTESTATION_SUBMISSION_STATUS = 'Submitted';
+    public const ATTESTATION_COLLECTION_STATUS = 'Collected';
 
     public const ONBOARDING_STATUS_AGENT_ADDED = 3;
     public const DEFAULT_INT_VALUE = 0;
@@ -359,7 +361,6 @@ class DirectRecruitmentOnboardingAttestationServices
     {
         $onboardingAttestation->file_url = $request['file_url'] ?? $onboardingAttestation->file_url;
         $onboardingAttestation->remarks = $request['remarks'] ?? $onboardingAttestation->remarks;
-        $onboardingAttestation->status = $request['status'] ?? $onboardingAttestation->status;
         $onboardingAttestation->modified_by = $request['modified_by'] ?? $onboardingAttestation->modified_by;
     }
 
@@ -374,11 +375,11 @@ class DirectRecruitmentOnboardingAttestationServices
     private function updateSubmissionAndCollectionDate($request, $onboardingAttestation): void
     {
         if (!empty($request['submission_date'])) {
-            $request['status'] = 'Submitted';
+            $onboardingAttestation->status = self::ATTESTATION_SUBMISSION_STATUS;
             $onboardingAttestation->submission_date = $request['submission_date'];
         }
         if (!empty($request['collection_date'])) {
-            $request['status'] = 'Collected';
+            $onboardingAttestation->status = self::ATTESTATION_COLLECTION_STATUS;
             $onboardingAttestation->collection_date = $request['collection_date'];
             $attestationCount = $this->getOnboardingAttestationCollectedCount($onboardingAttestation->application_id, $onboardingAttestation->onboarding_country_id);
             if ($attestationCount == 0) {
