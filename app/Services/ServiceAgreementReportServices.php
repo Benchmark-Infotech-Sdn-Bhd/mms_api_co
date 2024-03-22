@@ -54,11 +54,13 @@ class ServiceAgreementReportServices
         ->with(['prospectServices.eContractApplications.applicationAttachment' => function ($query) { 
             $query->select(['file_id', 'file_url']);
         }])
-        ->whereHas('prospectServices.totalManagemntApplications.applicationAttachment', function($query){
-            $query->whereNotNull('file_url');
-        })
-        ->orWhereHas('prospectServices.eContractApplications.applicationAttachment', function ($query) {
-            $query->whereNotNull('file_url');
+        ->where(function ($query) {
+            $query->whereHas('prospectServices.totalManagemntApplications.applicationAttachment', function($query){
+                $query->whereNotNull('file_url');
+            })
+            ->orWhereHas('prospectServices.eContractApplications.applicationAttachment', function ($query) {
+                $query->whereNotNull('file_url');
+            });
         })
         ->orderBy('crm_prospects.id','DESC')
         ->paginate(Config::get('services.paginate_row'));
