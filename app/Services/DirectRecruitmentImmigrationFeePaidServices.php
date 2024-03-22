@@ -317,15 +317,9 @@ class DirectRecruitmentImmigrationFeePaidServices
             }
         }
 
-        $search = $request['search'];
-        $export = $request['export'] ?? '';
-        $applicationId = $request['application_id'];
-        $onboardingCountryId = $request['onboarding_country_id'];
-        $companyId = $request['company_id'];
+        $workerDetails = $this->getBaseWorkerDetailsQuery($request['search'], $request['application_id'], $request['onboarding_country_id'], $request['company_id']);
 
-        $workerDetails = $this->getBaseWorkerDetailsQuery($search, $applicationId, $onboardingCountryId, $companyId);
-
-        if (!empty($export)) {
+        if (!empty($request['export'])) {
             $workerDetails = $this->getExportSpecificQuery($workerDetails);
         } else {
             $workerDetails = $this->getNonExportSpecificQuery($workerDetails);
