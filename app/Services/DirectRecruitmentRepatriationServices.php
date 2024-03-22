@@ -342,7 +342,7 @@ class DirectRecruitmentRepatriationServices
     {
         if (request()->hasFile('attachment')) {
             foreach ($request->file('attachment') as $file) {
-                $this->uploadFiles($file->file('attachment'), $workerId, $request['modified_by']);
+                $this->uploadFiles($file, $workerId, $request['modified_by']);
             }
         }
     }
@@ -392,31 +392,29 @@ class DirectRecruitmentRepatriationServices
     /**
      * Uploads multiple files and saves their information to the database.
      *
-     * @param array $files The array of files to upload.
+     * @param $file The array of files to upload.
      * @param int $workerId The ID of the worker.
      * @param int $modifiedBy The ID of the user who modified the files.
      * @return void
      */
-    public function uploadFiles($files, $workerId, $modifiedBy)
+    public function uploadFiles($file, $workerId, $modifiedBy)
     {
-        foreach ($files as $file) {
-            $fileName = $file->getClientOriginalName();
-            $filePath = 'directRecruitment/workers/repatriation/' . $workerId . '/' . $fileName;
+        $fileName = $file->getClientOriginalName();
+        $filePath = 'directRecruitment/workers/repatriation/' . $workerId . '/' . $fileName;
 
-            $linode = $this->storage::disk('linode');
-            $linode->put($filePath, file_get_contents($file));
+        $linode = $this->storage::disk('linode');
+        $linode->put($filePath, file_get_contents($file));
 
-            $fileUrl = $linode->url($filePath);
+        $fileUrl = $linode->url($filePath);
 
-            $this->workerRepatriationAttachments->create([
-                'file_id' => $workerId,
-                'file_name' => $fileName,
-                'file_type' => self::FILE_TYPE_REPATRIATION,
-                'file_url' => $fileUrl,
-                'created_by' => $modifiedBy,
-                'modified_by' => $modifiedBy
-            ]);
-        }
+        $this->workerRepatriationAttachments->create([
+            'file_id' => $workerId,
+            'file_name' => $fileName,
+            'file_type' => self::FILE_TYPE_REPATRIATION,
+            'file_url' => $fileUrl,
+            'created_by' => $modifiedBy,
+            'modified_by' => $modifiedBy
+        ]);
     }
 
     /**
