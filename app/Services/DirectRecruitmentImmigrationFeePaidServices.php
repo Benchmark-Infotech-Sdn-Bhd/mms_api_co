@@ -318,7 +318,7 @@ class DirectRecruitmentImmigrationFeePaidServices
         }
 
         $search = $request['search'];
-        $export = $request['export'];
+        $export = $request['export'] ?? '';
         $applicationId = $request['application_id'];
         $onboardingCountryId = $request['onboarding_country_id'];
         $companyId = $request['company_id'];
