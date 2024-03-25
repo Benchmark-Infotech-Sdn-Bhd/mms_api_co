@@ -299,7 +299,7 @@ class EmployeeServices
         return $this->employee->join('branch', 'branch.id', '=', 'employee.branch_id')
             ->join('users', function ($join) {
                 $join->on('employee.id', '=', 'users.reference_id')
-                ->where('users.user_type', 'Employee');
+                ->where('users.user_type', self::USER_TYPE_EMPLOYEE);
             })
             ->join('user_role_type','users.id','=','user_role_type.user_id')
             ->join('roles','user_role_type.role_id','=','roles.id')
