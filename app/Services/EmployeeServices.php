@@ -302,7 +302,11 @@ class EmployeeServices
                 ->where('users.user_type', self::USER_TYPE_EMPLOYEE);
             })
             ->join('user_role_type','users.id','=','user_role_type.user_id')
-            ->join('roles','user_role_type.role_id','=','roles.id')
+            ->join('roles', function ($join) use ($request) {
+                $join->on('user_role_type.role_id', '=', 'roles.id')
+                ->whereIn('roles.company_id', $request['company_id'])
+                ->whereNull('roles.deleted_at');
+            })
             ->where(function ($query) use ($request) {
                 $this->applyCompanyFilter($query, $request);
             })
