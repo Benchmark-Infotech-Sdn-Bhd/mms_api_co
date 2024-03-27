@@ -45,20 +45,20 @@ class ServiceAgreementReportServices
                 $query->where('crm_prospects.company_name', 'like', '%' . $search . '%');
             }
         })
-        ->with(['prospectServices' => function ($query) {
+        ->with(['prospectServicesExcludingDirectRecruitment' => function ($query) {
             $query->select(['id', 'crm_prospect_id', 'service_id', 'service_name']);
         }])
-        ->with(['prospectServices.totalManagemntApplications.applicationAttachment' => function ($query) {
+        ->with(['prospectServicesExcludingDirectRecruitment.totalManagemntApplications.applicationAttachment' => function ($query) {
             $query->select([ 'file_id', 'file_url']);
         }])
-        ->with(['prospectServices.eContractApplications.applicationAttachment' => function ($query) { 
+        ->with(['prospectServicesExcludingDirectRecruitment.eContractApplications.applicationAttachment' => function ($query) { 
             $query->select(['file_id', 'file_url']);
         }])
         ->where(function ($query) {
-            $query->whereHas('prospectServices.totalManagemntApplications.applicationAttachment', function($query){
+            $query->whereHas('prospectServicesExcludingDirectRecruitment.totalManagemntApplications.applicationAttachment', function($query){
                 $query->whereNotNull('file_url');
             })
-            ->orWhereHas('prospectServices.eContractApplications.applicationAttachment', function ($query) {
+            ->orWhereHas('prospectServicesExcludingDirectRecruitment.eContractApplications.applicationAttachment', function ($query) {
                 $query->whereNotNull('file_url');
             });
         })
