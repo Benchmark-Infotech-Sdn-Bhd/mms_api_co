@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Models\InvoiceItemsTemp;
+use App\Models\XeroItems;
+use App\Models\XeroAccounts;
+use App\Models\XeroTaxRates;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -14,21 +17,42 @@ class InvoiceItemsTempServices
      */
     private InvoiceItemsTemp $invoiceItemsTemp;
     /**
+     * @var XeroItems
+     */
+    private XeroItems $xeroItems;
+    /**
+     * @var XeroAccounts
+     */
+    private XeroAccounts $xeroAccounts;
+    /**
+     * @var XeroTaxRates
+     */
+    private XeroTaxRates $xeroTaxRates;
+    /**
      * @var ValidationServices
      */
     private ValidationServices $validationServices;
 
     /**
-     * InvoiceServices constructor.
-     * @param InvoiceItemsTemp $invoiceItemsTemp
-     * @param ValidationServices $validationServices
+     * InvoiceServices constructor method.
+     * @param InvoiceItemsTemp $invoiceItemsTemp Instance of the InvoiceItemsTemp class.
+     * @param XeroItems $xeroItems Instance of the XeroItems class.
+     * @param XeroAccounts $xeroAccounts Instance of the XeroAccounts class.
+     * @param XeroTaxRates $xeroTaxRates Instance of the XeroTaxRates class.
+     * @param ValidationServices $validationServices Instance of the ValidationServices class.
      */
     public function __construct(
         InvoiceItemsTemp   $invoiceItemsTemp,
+        XeroItems $xeroItems,
+        XeroAccounts $xeroAccounts,
+        XeroTaxRates $xeroTaxRates,
         ValidationServices $validationServices
     )
     {
         $this->invoiceItemsTemp = $invoiceItemsTemp;
+        $this->xeroItems = $xeroItems;
+        $this->xeroAccounts = $xeroAccounts;
+        $this->xeroTaxRates = $xeroTaxRates;
         $this->validationServices = $validationServices;
     }
 
@@ -224,6 +248,19 @@ class InvoiceItemsTempServices
 
         foreach ($fields as $field) {
             $invoiceItemsTemp->$field = $request[$field] ?? $invoiceItemsTemp->$field;
+        }
+
+        If (!empty($invoiceItemsTemp->item_id)){
+            $itemRes = $this->xeroItems->find($invoiceItemsTemp->item_id)->first('name');
+            $invoiceItemsTemp->item = $itemRes->name ?? '';         
+        }        
+        If (!empty($invoiceItemsTemp->account_id)){
+            $accountRes = $this->xeroAccounts->find($invoiceItemsTemp->account_id)->first('name');
+            $invoiceItemsTemp->account = $accountRes->name ?? '';
+        }
+        If (!empty($invoiceItemsTemp->tax_id)){
+            $taxrateRes = $this->xeroTaxRates->find($invoiceItemsTemp->tax_id)->first('effective_rate');
+            $invoiceItemsTemp->tax_rate = $taxrateRes->effective_rate ?? '';
         }
 
         $invoiceItemsTemp->modified_by = $user['id'];
