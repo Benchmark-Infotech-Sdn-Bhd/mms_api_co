@@ -140,15 +140,16 @@ return [
     'DISPATCH_NOTIFICATION_TITLE' => 'DISPATCHES',
     'SERVICE_AGREEMENT_NOTIFICATION_TITLE' => 'SERVICE AGREEMENT',
 
-    'FOMEMA_MAIL_MESSAGE' => 'workers Fomema is  to be renewed before Date ',
-    'PASSPORT_MAIL_MESSAGE' => 'workers Passport is  to be renewed before Date ',
-    'PLKS_MAIL_MESSAGE' => 'workers PLKS is  to be renewed before Date',
-    'CALLING_VISA_MAIL_MESSAGE' => 'workers Calling Visa is  to be renewed before Date',
-    'SPECIAL_PASS_MAIL_MESSAGE' => 'workers Special Pass is  to be renewed before Date',
-    'INSURANCE_MAIL_MESSAGE' => 'workers Insurance is  to be renewed before Date',
-    'ENTRY_VISA_MAIL_MESSAGE' => 'workers Entry Visa  is  to be renewed before Date',
+    'FOMEMA_MAIL_MESSAGE' => 'The FOMEMA of',
+    'PASSPORT_MAIL_MESSAGE' => 'The passports of',
+    'PLKS_MAIL_MESSAGE' => 'The PLKS of',
+    'CALLING_VISA_MAIL_MESSAGE' => 'The Calling Visas of',
+    'SPECIAL_PASS_MAIL_MESSAGE' => 'The Special Passes of',
+    'INSURANCE_MAIL_MESSAGE' => 'The Insurance of',
+    'ENTRY_VISA_MAIL_MESSAGE' => 'The Entry Visa of',
     'SERVICE_AGREEMENT_MAIL_MESSAGE' => 'Service agreement is to expire on',
     'DISPATCH_MAIL_MESSAGE' => 'Dispatch is Pending',
+    'COMMON_EXPIRY_MAIL_MESSAGE' => 'workers are about to expire',
 
     'ACCESS_MODULE_TYPE' => ['Dashboard', 'Maintain Masters', 'Branches', 'CRM', 'Direct Recruitment', 'e-Contract', 'Total Management', 'Employee', 'Access Management', 'Workers', 'Dispatch Management', 'Invoice', 'Reports'],
 
