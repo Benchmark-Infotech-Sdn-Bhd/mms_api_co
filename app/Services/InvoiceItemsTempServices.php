@@ -242,8 +242,8 @@ class InvoiceItemsTempServices
     private function updateInvoiceItems($request, $invoiceItemsTemp, $user)
     {
         $fields = ['crm_prospect_id', 'service_id', 'tax_id', 'item_id',
-            'account_id', 'expense_id', 'invoice_number', 'item',
-            'description', 'quantity', 'price', 'account', 'tax_rate',
+            'account_id', 'expense_id', 'invoice_number',
+            'description', 'quantity', 'price', 
             'total_price', 'created_by'];
 
         foreach ($fields as $field) {
@@ -251,18 +251,20 @@ class InvoiceItemsTempServices
         }
 
         If (!empty($invoiceItemsTemp->item_id)){
-            $itemRes = $this->xeroItems->find($invoiceItemsTemp->item_id)->first('name');
-            $invoiceItemsTemp->item = $itemRes->name ?? '';         
-        }        
-        If (!empty($invoiceItemsTemp->account_id)){
-            $accountRes = $this->xeroAccounts->find($invoiceItemsTemp->account_id)->first('name');
-            $invoiceItemsTemp->account = $accountRes->name ?? '';
+            $itemRes = $this->xeroItems->select('name')->find($invoiceItemsTemp->item_id);            
         }
-        If (!empty($invoiceItemsTemp->tax_id)){
-            $taxrateRes = $this->xeroTaxRates->find($invoiceItemsTemp->tax_id)->first('effective_rate');
-            $invoiceItemsTemp->tax_rate = $taxrateRes->effective_rate ?? '';
-        }
+        $invoiceItemsTemp->item = $itemRes['name'] ?? '';
 
+        If (!empty($invoiceItemsTemp->account_id)){
+            $accountRes = $this->xeroAccounts->select('name')->find($invoiceItemsTemp->account_id);
+        }
+        $invoiceItemsTemp->account = $accountRes['name'] ?? '';
+
+        If (!empty($invoiceItemsTemp->tax_id)){
+            $taxrateRes = $this->xeroTaxRates->select('effective_rate')->find($invoiceItemsTemp->tax_id);
+        }
+        $invoiceItemsTemp->tax_rate = $taxrateRes['effective_rate'] ?? '';
+        
         $invoiceItemsTemp->modified_by = $user['id'];
     }
 
