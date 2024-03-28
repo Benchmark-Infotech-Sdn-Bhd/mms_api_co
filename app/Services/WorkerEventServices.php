@@ -234,8 +234,8 @@ class WorkerEventServices
             'event_date' => $request['event_date'] ?? '',
             'event_type' => $request['event_type'] ?? '',
             'flight_number' => $request['flight_number'] ?? NULL,
-            'departure_date' => $request['departure_date'] ?? NULL,
-            'last_working_date' => $request['last_working_day'] ?? NULL,
+            'departure_date' => ((isset($request['departure_date']) && !empty($request['departure_date'])) ? $request['departure_date'] : null),
+            'last_working_date' => ((isset($request['last_working_date']) && !empty($request['last_working_date'])) ? $request['last_working_date'] : null),
             'remarks' => $request['remarks'] ?? '',
             'created_by' => $request['created_by'],
             'modified_by' => $request['created_by']
