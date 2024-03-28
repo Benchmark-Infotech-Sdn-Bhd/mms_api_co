@@ -558,7 +558,7 @@ class NotificationServices
                 'from_user_id' => 1,
                 'type' => $notificationTitle,
                 'title' => $notificationTitle,
-                'message' => $this->formMessage($row, $notificationMessage),
+                'message' => $this->formMessage($row),
                 'status' => 1,
                 'read_flag' => 0,
                 'created_by' => 1,
@@ -574,12 +574,11 @@ class NotificationServices
 
     /**
      * @param array $data
-     * @param string $notificationMessage
      * @return string
      */
-    private function formMessage($data, $notificationMessage): string
+    private function formMessage($data): string
     {
-        return $data['company_name'] . ' - ' . $data['name'] . ' ' . $notificationMessage . ' ' . $data['valid_until'];
+        return $data['company_name'] . ' - ' . $data['name'];
     }
 
     /**
