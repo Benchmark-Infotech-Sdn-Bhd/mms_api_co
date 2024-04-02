@@ -50,7 +50,6 @@ class Countries extends Model implements Auditable
      * @var array
      */
     public $rules = [
-        // 'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150|unique:countries,country_name,NULL,id,deleted_at,NULL',
         'country_name' => 'required|regex:/^[a-zA-Z ]*$/',
         'system_type' => 'required|regex:/^[a-zA-Z]*$/',
         'bond' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
@@ -58,15 +57,16 @@ class Countries extends Model implements Auditable
     ];
     /**
      * The function returns array that are required for updation.
-     * @param $params
+     * @param int $id
+     * @param int $company_id
      * @return array
      */
-    public function rulesForUpdation($id): array
+    public function rulesForUpdation($id, $company_id): array
     {
         // Unique name with deleted at
         return [
             'id' => 'required|regex:/^[0-9]+$/',
-            'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150|unique:countries,country_name,'.$id.',id,deleted_at,NULL',
+            'country_name' => 'required|regex:/^[a-zA-Z ]*$/|max:150|unique:countries,country_name,'.$id.',id,deleted_at,NULL,company_id,'.$company_id,
             'system_type' => 'required|regex:/^[a-zA-Z]*$/',
             'bond' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/',
             'fee' => 'required|regex:/^(([0-9]{0,6}+)(\.([0-9]{0,2}+))?)$/'
