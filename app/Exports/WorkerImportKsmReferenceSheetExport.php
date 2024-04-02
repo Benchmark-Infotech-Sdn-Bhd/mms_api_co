@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 
 class WorkerImportKsmReferenceSheetExport implements FromQuery, WithHeadings, WithTitle
 {
@@ -65,5 +66,17 @@ class WorkerImportKsmReferenceSheetExport implements FromQuery, WithHeadings, Wi
     public function title(): string
     {
         return 'KmReferenceNumber';
+    }
+
+    /**
+     * sets the column datatype.
+     *
+     * @return array Datatypes of the columns.
+     */
+    public function columnFormats(): array
+    {
+        return [
+            'A' => NumberFormat::FORMAT_TEXT,
+        ];
     }
 }

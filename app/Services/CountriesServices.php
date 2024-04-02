@@ -334,7 +334,7 @@ class CountriesServices
      */
     private function updateValidateRequest($request): array|bool
     {
-        if(!($this->validationServices->validate($request, $this->countries->rulesForUpdation($request['id'])))){
+        if(!($this->validationServices->validate($request, $this->countries->rulesForUpdation($request['id'], $request['company_id'])))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
