@@ -671,8 +671,10 @@ class CRMServices
      */
     private function getTaxRateValue($taxTypeId)
     {
-        $result = $this->xeroTaxRates->select('name')->find($taxTypeId);
-        return $result['name'];
+        if(!empty($taxTypeId)){
+            $result = $this->xeroTaxRates->select('name')->find($taxTypeId);
+            return $result['name'];
+        }        
     }
 
     /**
