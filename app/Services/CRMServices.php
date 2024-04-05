@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Models\CompanyModulePermission;
 use App\Models\RolePermission;
 use App\Models\Role;
+use App\Models\XeroTaxRates;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -97,6 +98,11 @@ class CRMServices
     private Role $role;
 
     /**
+     *  @var XeroTaxRates
+     */
+    private XeroTaxRates $xeroTaxRates;
+
+    /**
      * @var companyModulePermission
      */
     private CompanyModulePermission $companyModulePermission;
@@ -123,6 +129,7 @@ class CRMServices
      * @param AuthServices $authServices Instance of the AuthServices class
      * @param User $user Instance of the User class
      * @param Role $role Instance of the Role class
+     * @param XeroTaxRates $xeroTaxRates Instance of the XeroTaxRates class
      * @param CompanyModulePermission $companyModulePermission Instance of the CompanyModulePermission class
      * @param RolePermission $rolePermission Instance of the RolePermission class
      *
@@ -144,6 +151,7 @@ class CRMServices
         AuthServices                    $authServices,
         User                            $user,
         Role                            $role,
+        XeroTaxRates                    $xeroTaxRates,
         CompanyModulePermission         $companyModulePermission,
         RolePermission                  $rolePermission
     )
@@ -162,6 +170,7 @@ class CRMServices
         $this->authServices = $authServices;
         $this->user = $user;
         $this->role = $role;
+        $this->xeroTaxRates = $xeroTaxRates;
         $this->companyModulePermission = $companyModulePermission;
         $this->rolePermission = $rolePermission;
     }
@@ -596,7 +605,7 @@ class CRMServices
      * @return bool|array Return an array of validation errors or boolean based on the processing result
      */
     public function create($request): bool|array
-    {
+    {        
         $validationResult = $this->validateCreateRequest($request);
         if (is_array($validationResult)) {
             return $validationResult;
@@ -646,9 +655,24 @@ class CRMServices
 
         if (\DB::getDriverName() !== 'sqlite') {
             $request['prospect_id'] = $prospect['id'];
+            $prospect['account_receivable_tax_type'] = $this->getTaxRateValue($prospect['account_receivable_tax_type']);
+            $prospect['account_payable_tax_type'] = $this->getTaxRateValue($prospect['account_payable_tax_type']);            
             $createContactXero = $this->invoiceServices->createContacts($request);
         }
         return true;
+    }
+
+    /**
+     * get tax name from XeroTaxRates
+     *
+     * @param integer $taxTypeId 
+     *
+     * @return mixed $result['name']
+     */
+    private function getTaxRateValue($taxTypeId)
+    {
+        $result = $this->xeroTaxRates->select('name')->find($taxTypeId);
+        return $result['name'];
     }
 
     /**
@@ -675,7 +699,7 @@ class CRMServices
         $prospect['bank_account_number'] = $request['bank_account_number'] ?? $prospect['bank_account_number'];
         $prospect ['tax_id'] = $request['tax_id'] ?? $prospect['tax_id'];
         $prospect['account_receivable_tax_type'] = $request['account_receivable_tax_type'] ?? $prospect['account_receivable_tax_type'];
-        $prospect['account_payable_tax_type'] = $request['account_payable_tax_type'] ?? $prospect['account_receivable_tax_type'];
+        $prospect['account_payable_tax_type'] = $request['account_payable_tax_type'] ?? $prospect['account_payable_tax_type'];
         $prospect['modified_by'] = $request['modified_by'] ?? $prospect['modified_by'];
         $prospect->save();
     }
@@ -728,6 +752,8 @@ class CRMServices
         if (\DB::getDriverName() !== 'sqlite') {
             $request['prospect_id'] = $prospect['id'];
             $request['ContactID'] = $prospect['xero_contact_id'];
+            $request['account_receivable_tax_type'] = $this->getTaxRateValue($prospect['account_receivable_tax_type']);
+            $request['account_payable_tax_type'] = $this->getTaxRateValue($prospect['account_payable_tax_type']);
             $createContactXero = $this->invoiceServices->createContacts($request);
             if (isset($createContactXero->original['Contacts'][0]['ContactID']) && !empty($createContactXero->original['Contacts'][0]['ContactID'])) {
                 $prospect->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
