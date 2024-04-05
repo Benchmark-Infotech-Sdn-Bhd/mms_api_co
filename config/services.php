@@ -184,4 +184,6 @@ return [
     'SUB_DOMAIN_DB_NAME_TWO' => env('SUB_DOMAIN_DB_NAME_TWO'),
 
     'INVOICE_MODULE_ID' => 12,    
+
+    'RENEWAL_NOTIFICATION_TYPE' => ['FOMEMA Renewal' => 1, 'Passport Renewal' => 2, 'PLKS Renewal' => 3, 'Calling Visa Renewal' => 4, 'Special Passes Renewal' => 5, 'Insurance Renewal' => 6, 'Entry Visa Renewal' => 7, 'Service Agreement Renewal' => 8],
 ];
