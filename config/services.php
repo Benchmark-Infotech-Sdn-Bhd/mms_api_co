@@ -148,6 +148,7 @@ return [
     'INSURANCE_MAIL_MESSAGE' => 'The Insurance of',
     'ENTRY_VISA_MAIL_MESSAGE' => 'The Entry Visa of',
     'SERVICE_AGREEMENT_MAIL_MESSAGE' => 'Service agreement is to expire on',
+    'SERVICE_AGREEMENT_EXPIRED_MAIL_MESSAGE' => 'Service agreement is to expired on',
     'DISPATCH_MAIL_MESSAGE' => 'Dispatch is Pending',
     'COMMON_EXPIRY_MAIL_MESSAGE' => 'workers are about to expire',
 
@@ -186,4 +187,8 @@ return [
     'INVOICE_MODULE_ID' => 12,    
 
     'RENEWAL_NOTIFICATION_TYPE' => ['FOMEMA Renewal' => 1, 'Passport Renewal' => 2, 'PLKS Renewal' => 3, 'Calling Visa Renewal' => 4, 'Special Passes Renewal' => 5, 'Insurance Renewal' => 6, 'Entry Visa Renewal' => 7, 'Service Agreement Renewal' => 8],
+
+    'COMPANY_NOTIFICATION_TYPE' => ['renewal', 'expired'],
+
+    'NOTIFICATION_FREQUENCY' => ['daily', 'weekly', 'monthly'],
 ];

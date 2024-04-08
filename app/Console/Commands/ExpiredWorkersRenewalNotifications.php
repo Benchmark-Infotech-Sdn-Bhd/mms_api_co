@@ -8,21 +8,21 @@ use App\Services\NotificationServices;
 use App\Services\DatabaseConnectionServices;
 use Illuminate\Support\Facades\Config;
 
-class RenewalNotifications extends Command
+class ExpiredWorkersRenewalNotifications extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'command:RenewalNotifications {database} {cycle}';
+    protected $signature = 'command:ExpiredWorkersRenewalNotifications {database} {cycle}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'RenewalNotifications Generation';
+    protected $description = 'Expired Workers RenewalNotifications Generation';
 
     /**
      * @var NotificationServices $notificationServices
@@ -50,13 +50,13 @@ class RenewalNotifications extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return mixed
      */
-    public function handle(): void
+    public function handle()
     {
         $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
         Log::channel('cron_activity_logs')->info('Cron Job Started - Renewal Notifications for Tenant DB - '.$this->argument('database'));
-        $data = $this->notificationServices->renewalNotifications(Config::get('services.COMPANY_NOTIFICATION_TYPE')[0], $this->argument('cycle'));
+        $data = $this->notificationServices->renewalNotifications(Config::get('services.COMPANY_NOTIFICATION_TYPE')[1], $this->argument('cycle'));
         Log::channel('cron_activity_logs')->info('Cron Job Ended - Renewal Notifications for Tenant DB - '.$this->argument('database'));
     }
 }

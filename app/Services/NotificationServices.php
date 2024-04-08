@@ -23,6 +23,7 @@ class NotificationServices
     public const RENEWAL_NOTIFICATION = 'renewal';
     public const EXPIRED_NOTIFICATION = 'expired';
     public const RENEWAL_NOTIFICATION_ON = 1;
+    public const EXPIRED_NOTIFICATION_ON = 1;
 
     private Notifications $notifications;
     private CompanyRenewalNotification $companyRenewalNotification;
@@ -126,14 +127,17 @@ class NotificationServices
     /**
      * Sends renewal notifications to users and admins.
      *
+     * @param string $renewalType - notification type, either renewal or expired
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
+     * 
      * @return array Returns an array with the following keys:
      *   - isUpdated (boolean): Indicates whether the notifications were sent successfully.
      *   - message (string): A message indicating the status of the update process.
      */
-    public function renewalNotifications(string $renewalType = self::RENEWAL_NOTIFICATION): array
+    public function renewalNotifications(string $renewalType, string $frequency): array
     {
-        $this->userRenewalNotification();
-        $this->adminRenewalNotification();
+        $this->userRenewalNotification($renewalType, $frequency);
+        $this->adminRenewalNotification($renewalType, $frequency);
 
         return [
             "isUpdated" => true,
@@ -144,13 +148,16 @@ class NotificationServices
     /**
      * Send renewal notification to employee users.
      *
+     * @param string $renewalType - notification type, either renewal or expired
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
+     * 
      * @return void
      */
-    public function userRenewalNotification(): void
+    public function userRenewalNotification(string $renewalType, string $frequency): void
     {
         $employeeUsers = $this->getEmployeeUsersFromModules();
         foreach ($employeeUsers as $user) {
-            $notifications = $this->getUserModulesAndNotification($user);
+            $notifications = $this->getUserModulesAndNotification($user, $renewalType, $frequency);
             $this->dispatchEmployerNotificationMail($notifications, $user);
         }
     }
@@ -181,26 +188,29 @@ class NotificationServices
      * Retrieves the user modules and generates corresponding notifications based on the modules.
      *
      * @param $user array The user data.
+     * @param string $renewalType - notification type, either renewal or expired
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
+     * 
      * @return array The notifications array containing the generated notifications.
      */
-    public function getUserModulesAndNotification($user): array
+    public function getUserModulesAndNotification($user, $renewalType, $frequency): array
     {
         $notifications = [];
         $userModules = $this->getUpdatedUserModules($user);
 
         if (in_array(Config::get('services.ACCESS_MODULE_TYPE')[4], $userModules)) {
-            $notifications['plksRenewal'] = $this->plksRenewalNotifications($user);
-            $notifications['callingVisaRenewal'] = $this->callingVisaRenewalNotifications($user);
-            $notifications['specialPassRenewal'] = $this->specialPassRenewalNotifications($user);
+            $notifications['plksRenewal'] = $this->plksNotifications($user, $renewalType, $frequency);
+            $notifications['callingVisaRenewal'] = $this->callingVisaNotifications($user, $renewalType, $frequency);
+            $notifications['specialPassRenewal'] = $this->specialPassNotifications($user, $renewalType, $frequency);
         }
         if (in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], $userModules)) {
-            $notifications['serviceAgreement'] = $this->serviceAgreementNotifications($user);
+            $notifications['serviceAgreement'] = $this->serviceAgreementNotifications($user, $renewalType, $frequency);
         }
         if (in_array(Config::get('services.ACCESS_MODULE_TYPE')[4], $userModules) || in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], $userModules) || in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], $userModules)) {
-            $notifications['fomemaRenewal'] = $this->fomemaRenewalNotifications($user);
-            $notifications['passportRenewal'] = $this->passportRenewalNotifications($user);
-            $notifications['insuranceRenewal'] = $this->insuranceRenewalNotifications($user);
-            $notifications['entryVisaRenewal'] = $this->entryVisaRenewalNotifications($user);
+            $notifications['fomemaRenewal'] = $this->fomemaNotifications($user, $renewalType, $frequency);
+            $notifications['passportRenewal'] = $this->passportNotifications($user, $renewalType, $frequency);
+            $notifications['insuranceRenewal'] = $this->insuranceNotifications($user, $renewalType, $frequency);
+            $notifications['entryVisaRenewal'] = $this->entryVisaNotifications($user, $renewalType, $frequency);
         }
         return $notifications;
     }
@@ -236,18 +246,21 @@ class NotificationServices
     /**
      * Sends renewal notifications to admin users.
      *
+     * @param string $renewalType - notification type, either renewal or expired
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
+     * 
      * @return void
      */
-    public function adminRenewalNotification(): void
+    public function adminRenewalNotification($renewalType, $frequency): void
     {
         $notifications = [
-            'fomemaRenewal',
-            'passportRenewal',
-            'plksRenewal',
-            'callingVisaRenewal',
-            'specialPassRenewal',
-            'insuranceRenewal',
-            'entryVisaRenewal',
+            'fomema',
+            'passport',
+            'plks',
+            'callingVisa',
+            'specialPass',
+            'insurance',
+            'entryVisa',
             'serviceAgreement',
             'dispatchPending'
         ];
@@ -263,7 +276,7 @@ class NotificationServices
                 if($notification == 'dispatchPending'){
                     $message[$notification] = $this->dispatchSummaryNotifications($user);
                 }else {
-                    $message[$notification] = $this->{$notification.'Notifications'}($user);
+                    $message[$notification] = $this->{$notification.'Notifications'}($user, $renewalType, $frequency);
                 }
                 
             }
@@ -291,7 +304,7 @@ class NotificationServices
      */
     private function checkDispatchConditions($message): bool
     {
-        return (!empty($message['fomemaRenewal']) || !empty($message['passportRenewal']) || !empty($message['plksRenewal']) || !empty($message['callingVisaRenewal']) || !empty($message['specialPassRenewal']) || !empty($message['insuranceRenewal']) || !empty($message['entryVisaRenewal']) || !empty($message['serviceAgreement']));
+        return (!empty($message['fomema']) || !empty($message['passport']) || !empty($message['plks']) || !empty($message['callingVisa']) || !empty($message['specialPass']) || !empty($message['insurance']) || !empty($message['entryVisa']) || !empty($message['serviceAgreement']));
     }
 
 
@@ -339,55 +352,190 @@ class NotificationServices
 
 
     /**
-     * Generates Fomema renewal notifications for a user
+     * Generates Fomema notifications for a user
      *
      * @param array $user The user for whom to generate the notifications
+     * @param string $renewalType - notification type, either renewal or expired
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
+     * 
      * @return array The generated notification parameters
+     * 
+     * @see getNotificationDetails()
+     * @see fomemaRenewalNotifications()
+     * @see fomemaExpiryNotifications()
      */
-    public function fomemaRenewalNotifications($user)
+    public function fomemaNotifications($user, $renewalType, $frequency)
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], self::RENEWAL_NOTIFICATION, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['FOMEMA Renewal']);
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['FOMEMA Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            $fomemaRenewalNotificationsCount = Workers::whereDate('fomema_valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
+            if($renewalType == self::RENEWAL_NOTIFICATION) {
+                $params = $this->fomemaRenewalNotifications($user, $notificationDetails);
+            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+                $params = $this->fomemaExpiryNotifications($user, $notificationDetails);
+            }
+        }
+        return $params;
+    }
+    /**
+     * Count and generate Fomema renewal notifications for a user.
+     *
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's Fomema notification details
+     * 
+     * @return array The generated notification parameters
+     * 
+     */
+    public function fomemaRenewalNotifications($user, $notificationDetails): array
+    {
+        $params = [];
+        $fomemaRenewalNotificationsCount = Workers::whereDate('fomema_valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
                                     ->whereDate('fomema_valid_until', '>=', Carbon::now())
                                     ->select('id')
                                     ->where('company_id', $user['company_id'])
                                     ->count();
 
-            if (isset($fomemaRenewalNotificationsCount) && $fomemaRenewalNotificationsCount != 0) {
+        if (isset($fomemaRenewalNotificationsCount) && $fomemaRenewalNotificationsCount != 0) {
 
-                $params = $this->formNotificationInsertData($user, $fomemaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.FOMEMA_NOTIFICATION_TITLE'), Config::get('services.FOMEMA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.FOMEMA_MAIL_MESSAGE'));
-                $this->insertNotification($params);
-                $params['company_id'] = $user['company_id'];
+            $params = $this->formNotificationInsertData($user, $fomemaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.FOMEMA_NOTIFICATION_TITLE'), Config::get('services.FOMEMA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.FOMEMA_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
+        }
+        return $params;
+    }
+
+    /**
+     * Count and generate Fomema renewal notifications for a user.
+     *
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's Fomema notification details
+     * 
+     * @return array The generated notification parameters
+     * 
+     */
+    public function fomemaExpiryNotifications($user, $notificationDetails): array
+    {
+        $params = [];
+        $fomemaRenewalNotificationsCount = Workers::whereDate('fomema_valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+                                    ->whereDate('fomema_valid_until', '<', Carbon::now())
+                                    ->select('id')
+                                    ->where('company_id', $user['company_id'])
+                                    ->count();
+
+        if (isset($fomemaRenewalNotificationsCount) && $fomemaRenewalNotificationsCount != 0) {
+
+            $params = $this->formNotificationInsertData($user, $fomemaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.FOMEMA_NOTIFICATION_TITLE'), Config::get('services.FOMEMA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.FOMEMA_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
+        }
+        return $params;
+    }
+
+    /**
+     * Generates passport notifications for a user
+     *
+     * @param array $user The user for whom the notifications should be generated
+     * @param string $renewalType - notification type, either renewal or expired
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
+     * 
+     * @return array The generated notification parameters
+     * 
+     * @see getNotificationDetails()
+     * @see passportRenewalNotifications()
+     * @see passportExpiryNotifications()
+     */
+    public function passportNotifications($user, $renewalType, $frequency): array
+    {
+        $params = [];
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
+
+        if(!empty($notificationDetails)) {
+            if($renewalType == self::RENEWAL_NOTIFICATION) {
+                $params = $this->passportRenewalNotifications($user, $notificationDetails);
+            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+                $params = $this->passportExpiryNotifications($user, $notificationDetails);
+                
             }
         }
         return $params;
     }
 
     /**
-     * Generates passport renewal notifications for a user
+     * Count and generate passport renewal notifications for a user.
      *
-     * @param array $user The user for whom the notifications should be generated
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's passport notification details
+     * 
      * @return array The generated notification parameters
+     * 
      */
-    public function passportRenewalNotifications($user): array
+    public function passportRenewalNotifications($user, $notificationDetails): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], self::RENEWAL_NOTIFICATION, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal']);
-
-        if(!empty($notificationDetails)) {
-            $passportRenewalNotificationsCount = Workers::whereDate('passport_valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
+        $passportRenewalNotificationsCount = Workers::whereDate('passport_valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
                                     ->whereDate('passport_valid_until', '>=', Carbon::now())
                                     ->select('id')
                                     ->where('company_id', $user['company_id'])
                                     ->count();
 
-            if (isset($passportRenewalNotificationsCount) && $passportRenewalNotificationsCount != 0) {
-                $params = $this->formNotificationInsertData($user, $passportRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PASSPORT_NOTIFICATION_TITLE'), Config::get('services.PASSPORT_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.PASSPORT_MAIL_MESSAGE'));
-                $this->insertNotification($params);
-                $params['company_id'] = $user['company_id'];
+        if (isset($passportRenewalNotificationsCount) && $passportRenewalNotificationsCount != 0) {
+            $params = $this->formNotificationInsertData($user, $passportRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PASSPORT_NOTIFICATION_TITLE'), Config::get('services.PASSPORT_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.PASSPORT_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
+        }
+        return $params;
+    }
+
+    /**
+     * Count and generate passport renewal notifications for a user.
+     *
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's passport notification details
+     * 
+     * @return array The generated notification parameters
+     * 
+     */
+    public function passportExpiryNotifications($user, $notificationDetails): array
+    {
+        $params = [];
+        $passportRenewalNotificationsCount = Workers::whereDate('passport_valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+                                    ->whereDate('passport_valid_until', '<', Carbon::now())
+                                    ->select('id')
+                                    ->where('company_id', $user['company_id'])
+                                    ->count();
+
+        if (isset($passportRenewalNotificationsCount) && $passportRenewalNotificationsCount != 0) {
+            $params = $this->formNotificationInsertData($user, $passportRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PASSPORT_NOTIFICATION_TITLE'), Config::get('services.PASSPORT_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.PASSPORT_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
+        }
+        return $params;
+    }
+
+    /**
+     * Count and generate PLKS notifications for a user.
+     *
+     * @param array $user The user information
+     * @param string $renewalType - notification type, either renewal or expired
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
+     * 
+     * @return array The generated notification parameters
+     * 
+     * @see getNotificationDetails()
+     * @see plksRenewalNotifications()
+     * @see plksExpiryNotifications()
+     */
+    public function plksNotifications($user, $renewalType, $frequency): array
+    {
+        $params = [];
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
+
+        if(!empty($notificationDetails)) {
+            if($renewalType == self::RENEWAL_NOTIFICATION) {
+                $params = $this->plksRenewalNotifications($user, $notificationDetails);
+            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+                $params = $this->plksExpiryNotifications($user, $notificationDetails);
             }
         }
         return $params;
@@ -397,82 +545,212 @@ class NotificationServices
      * Count and generate PLKS renewal notifications for a user.
      *
      * @param array $user The user information
+     * @param array $notificationDetails - contains company's plks notification details
+     * 
      * @return array The generated notification parameters
      * 
-     * @see getNotificationDetails()
      */
-    public function plksRenewalNotifications($user): array
+    public function plksRenewalNotifications($user, $notificationDetails): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], self::RENEWAL_NOTIFICATION, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal']);
-
-        if(!empty($notificationDetails)) {
-            $plksRenewalNotificationsCount = Workers::whereDate('plks_expiry_date', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
+        $plksRenewalNotificationsCount = Workers::whereDate('plks_expiry_date', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
                                 ->whereDate('plks_expiry_date', '>=', Carbon::now())
                                 ->select('id')
                                 ->where('company_id', $user['company_id'])
                                 ->count();
 
-            if (isset($plksRenewalNotificationsCount) && $plksRenewalNotificationsCount != 0) {
-                $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PLKS_NOTIFICATION_TITLE'), Config::get('services.PLKS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.PLKS_MAIL_MESSAGE'));
-                $this->insertNotification($params);
-                $params['company_id'] = $user['company_id'];
-            }
+        if (isset($plksRenewalNotificationsCount) && $plksRenewalNotificationsCount != 0) {
+            $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PLKS_NOTIFICATION_TITLE'), Config::get('services.PLKS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.PLKS_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
         }
         return $params;
     }
 
     /**
-     * Calls visa renewal notifications for a user.
+     * Count and generate PLKS renewal notifications for a user.
+     *
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's plks notification details
+     * 
+     * @return array The generated notification parameters
+     * 
+     */
+    public function plksExpiryNotifications($user, $notificationDetails): array
+    {
+        $params = [];
+        $plksRenewalNotificationsCount = Workers::whereDate('plks_expiry_date', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+                                ->whereDate('plks_expiry_date', '<', Carbon::now())
+                                ->select('id')
+                                ->where('company_id', $user['company_id'])
+                                ->count();
+
+        if (isset($plksRenewalNotificationsCount) && $plksRenewalNotificationsCount != 0) {
+            $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PLKS_NOTIFICATION_TITLE'), Config::get('services.PLKS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.PLKS_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
+        }
+        return $params;
+    }
+
+    /**
+     * Count and generate calling visa notifications for a user.
      *
      * @param array $user The user details.
+     * @param string $renewalType - notification type, either renewal or expired
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
+     * 
      * @return array The notification parameters.
+     * 
+     * @see getNotificationDetails()
+     * @see callingVisaRenewalNotifications()
+     * @see callingVisaExpiryNotifications()
      */
-    public function callingVisaRenewalNotifications($user): array
+    public function callingVisaNotifications($user, $renewalType, $frequency): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], self::RENEWAL_NOTIFICATION, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Calling Visa Renewal']);
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Calling Visa Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            $callingVisaRenewalNotificationsCount = Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
-                                        ->whereDate('worker_visa.calling_visa_valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
-                                        ->whereDate('worker_visa.calling_visa_valid_until', '>=', Carbon::now())
-                                        ->select('workers.id')
-                                        ->where('workers.company_id', $user['company_id'])
-                                        ->count();
-
-            if (isset($callingVisaRenewalNotificationsCount) && $callingVisaRenewalNotificationsCount != 0) {
-                $params = $this->formNotificationInsertData($user, $callingVisaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.CALLING_VISA_NOTIFICATION_TITLE'), Config::get('services.CALLING_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.CALLING_VISA_MAIL_MESSAGE'));
-                $this->insertNotification($params);
-                $params['company_id'] = $user['company_id'];
+            if($renewalType == self::RENEWAL_NOTIFICATION) {
+                $params = $this->callingVisaRenewalNotifications($user, $notificationDetails);
+            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+                $params = $this->callingVisaExpiryNotifications($user, $notificationDetails);
             }
         }
         return $params;
     }
 
     /**
-     * Generates special pass renewal notifications for a given user.
+     * Count and generate calling visa renewal notifications for a user.
      *
-     * @param array $user The user for whom the notifications are generated.
-     * @return array The generated notification parameters.
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's calling visa notification details
+     * 
+     * @return array The generated notification parameters
+     * 
      */
-    public function specialPassRenewalNotifications($user): array
+    public function callingVisaRenewalNotifications($user, $notificationDetails): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], self::RENEWAL_NOTIFICATION, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Special Passes Renewal']);
+        $callingVisaRenewalNotificationsCount = Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+                                            ->whereDate('worker_visa.calling_visa_valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
+                                            ->whereDate('worker_visa.calling_visa_valid_until', '>=', Carbon::now())
+                                            ->select('workers.id')
+                                            ->where('workers.company_id', $user['company_id'])
+                                            ->count();
+
+        if (isset($callingVisaRenewalNotificationsCount) && $callingVisaRenewalNotificationsCount != 0) {
+            $params = $this->formNotificationInsertData($user, $callingVisaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.CALLING_VISA_NOTIFICATION_TITLE'), Config::get('services.CALLING_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.CALLING_VISA_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
+        }
+        return $params;
+    }
+
+    /**
+     * Count and generate calling visa renewal notifications for a user.
+     *
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's calling visa notification details
+     * 
+     * @return array The generated notification parameters
+     * 
+     */
+    public function callingVisaExpiryNotifications($user, $notificationDetails): array
+    {
+        $params = [];
+        $callingVisaRenewalNotificationsCount = Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+                                            ->whereDate('worker_visa.calling_visa_valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+                                            ->whereDate('worker_visa.calling_visa_valid_until', '<', Carbon::now())
+                                            ->select('workers.id')
+                                            ->where('workers.company_id', $user['company_id'])
+                                            ->count();
+
+        if (isset($callingVisaRenewalNotificationsCount) && $callingVisaRenewalNotificationsCount != 0) {
+            $params = $this->formNotificationInsertData($user, $callingVisaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.CALLING_VISA_NOTIFICATION_TITLE'), Config::get('services.CALLING_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.CALLING_VISA_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
+        }
+        return $params;
+    }
+    
+    /**
+     * Generates special pass notifications for a given user.
+     *
+     * @param array $user The user for whom the notifications are generated.
+     * @param string $renewalType - notification type, either renewal or expired
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
+     * 
+     * @return array The generated notification parameters.
+     * 
+     * @see getNotificationDetails()
+     * @see specialPassRenewalNotifications()
+     * @see specialPassExpiryNotifications()
+     */
+    public function specialPassNotifications($user, $renewalType, $frequency): array
+    {
+        $params = [];
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Special Passes Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            $specialPassRenewalNotificationsCount = Workers::whereDate('special_pass_valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
-                                        ->whereDate('special_pass_valid_until', '>=', Carbon::now())
-                                        ->select('id')
-                                        ->where('company_id', $user['company_id'])
-                                        ->count();
-
-            if (isset($specialPassRenewalNotificationsCount) && $specialPassRenewalNotificationsCount != 0) {
-                $params = $this->formNotificationInsertData($user, $specialPassRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_TITLE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.SPECIAL_PASS_MAIL_MESSAGE'));
-                $this->insertNotification($params);
-                $params['company_id'] = $user['company_id'];
+            if($renewalType == self::RENEWAL_NOTIFICATION) {
+                $params = $this->specialPassRenewalNotifications($user, $notificationDetails);
+            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+                $params = $this->specialPassExpiryNotifications($user, $notificationDetails);
             }
+        }
+        return $params;
+    }
+
+    /**
+     * Count and generate special pass renewal notifications for a user.
+     *
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's special pass notification details
+     * 
+     * @return array The generated notification parameters
+     * 
+     */
+    public function specialPassRenewalNotifications($user, $notificationDetails): array
+    {
+        $params = [];
+        $specialPassRenewalNotificationsCount = Workers::whereDate('special_pass_valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
+                                            ->whereDate('special_pass_valid_until', '>=', Carbon::now())
+                                            ->select('id')
+                                            ->where('company_id', $user['company_id'])
+                                            ->count();
+
+        if (isset($specialPassRenewalNotificationsCount) && $specialPassRenewalNotificationsCount != 0) {
+            $params = $this->formNotificationInsertData($user, $specialPassRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_TITLE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.SPECIAL_PASS_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
+        }
+        return $params;
+    }
+
+    /**
+     * Count and generate  special pass renewal notifications for a user.
+     *
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's special pass notification details
+     * 
+     * @return array The generated notification parameters
+     * 
+     */
+    public function specialPassExpiryNotifications($user, $notificationDetails): array
+    {
+        $params = [];
+        $specialPassRenewalNotificationsCount = Workers::whereDate('special_pass_valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+                                            ->whereDate('special_pass_valid_until', '<', Carbon::now())
+                                            ->select('id')
+                                            ->where('company_id', $user['company_id'])
+                                            ->count();
+
+        if (isset($specialPassRenewalNotificationsCount) && $specialPassRenewalNotificationsCount != 0) {
+            $params = $this->formNotificationInsertData($user, $specialPassRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_TITLE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.SPECIAL_PASS_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
         }
         return $params;
     }
@@ -481,26 +759,80 @@ class NotificationServices
      * Checks for insurance renewal notifications for a given user.
      *
      * @param array $user The user for which to check insurance renewal notifications.
+     * @param string $renewalType - notification type, either renewal or expired
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
+     * 
      * @return array Returns an array containing the notification parameters if there are insurance renewal notifications, otherwise an empty array.
+     * 
+     * @see getNotificationDetails()
+     * @see insuranceRenewalNotifications()
+     * @see insuranceExpiryNotifications()
      */
-    public function insuranceRenewalNotifications($user): array
+    public function insuranceNotifications($user, $renewalType, $frequency): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], self::RENEWAL_NOTIFICATION, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal']);
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            $insuranceRenewalNotifications = Workers::join('worker_insurance_details', 'workers.id', '=', 'worker_insurance_details.worker_id')
-                                    ->whereDate('worker_insurance_details.insurance_expiry_date', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
-                                    ->whereDate('worker_insurance_details.insurance_expiry_date', '>=', Carbon::now())
-                                    ->select('workers.id')
-                                    ->where('workers.company_id', $user['company_id'])
-                                    ->count();
-
-            if (isset($insuranceRenewalNotifications) && $insuranceRenewalNotifications != 0) {
-                $params = $this->formNotificationInsertData($user, $insuranceRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.INSURANCE_NOTIFICATION_TITLE'), Config::get('services.INSURANCE_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.INSURANCE_MAIL_MESSAGE'));
-                $this->insertNotification($params);
-                $params['company_id'] = $user['company_id'];
+            if($renewalType == self::RENEWAL_NOTIFICATION) {
+                $params = $this->insuranceRenewalNotifications($user, $notificationDetails);
+            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+                $params = $this->insuranceExpiryNotifications($user, $notificationDetails);
             }
+        }
+        return $params;
+    }
+
+    /**
+     * Count and generate insurance renewal notifications for a user.
+     *
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's insurance notification details
+     * 
+     * @return array The generated notification parameters
+     * 
+     */
+    public function insuranceRenewalNotifications($user, $notificationDetails): array
+    {
+        $params = [];
+        $insuranceRenewalNotifications = Workers::join('worker_insurance_details', 'workers.id', '=', 'worker_insurance_details.worker_id')
+                                        ->whereDate('worker_insurance_details.insurance_expiry_date', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
+                                        ->whereDate('worker_insurance_details.insurance_expiry_date', '>=', Carbon::now())
+                                        ->select('workers.id')
+                                        ->where('workers.company_id', $user['company_id'])
+                                        ->count();
+
+        if (isset($insuranceRenewalNotifications) && $insuranceRenewalNotifications != 0) {
+            $params = $this->formNotificationInsertData($user, $insuranceRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.INSURANCE_NOTIFICATION_TITLE'), Config::get('services.INSURANCE_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.INSURANCE_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
+        }
+        return $params;
+    }
+
+    /**
+     * Count and generate  insurance renewal notifications for a user.
+     *
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's insurance notification details
+     * 
+     * @return array The generated notification parameters
+     * 
+     */
+    public function insuranceExpiryNotifications($user, $notificationDetails): array
+    {
+        $params = [];
+        $insuranceRenewalNotifications = Workers::join('worker_insurance_details', 'workers.id', '=', 'worker_insurance_details.worker_id')
+                                        ->whereDate('worker_insurance_details.insurance_expiry_date', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+                                        ->whereDate('worker_insurance_details.insurance_expiry_date', '<', Carbon::now())
+                                        ->select('workers.id')
+                                        ->where('workers.company_id', $user['company_id'])
+                                        ->count();
+
+        if (isset($insuranceRenewalNotifications) && $insuranceRenewalNotifications != 0) {
+            $params = $this->formNotificationInsertData($user, $insuranceRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.INSURANCE_NOTIFICATION_TITLE'), Config::get('services.INSURANCE_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.INSURANCE_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
         }
         return $params;
     }
@@ -509,26 +841,80 @@ class NotificationServices
      * Retrieves the entry visa renewal notifications for a user.
      *
      * @param array $user An array containing the company_id of the user.
+     * @param string $renewalType - notification type, either renewal or expired
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
+     * 
      * @return array An array with the notification data if there are entry visa renewal notifications, otherwise an empty array.
+     * 
+     * @see getNotificationDetails()
+     * @see entryVisaRenewalNotifications()
+     * @see entryVisaExpiryNotifications()
      */
-    public function entryVisaRenewalNotifications($user): array
+    public function entryVisaNotifications($user, $renewalType, $frequency): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], self::RENEWAL_NOTIFICATION, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal']);
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            $entryVisaRenewalNotifications = Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+            if($renewalType == self::RENEWAL_NOTIFICATION) {
+                $params = $this->entryVisaRenewalNotifications($user, $notificationDetails);
+            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+                $params = $this->entryVisaExpiryNotifications($user, $notificationDetails);
+            } 
+        }
+        return $params;
+    }
+
+    /**
+     * Count and generate entry visa renewal notifications for a user.
+     *
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's entry visa notification details
+     * 
+     * @return array The generated notification parameters
+     * 
+     */
+    public function entryVisaRenewalNotifications($user, $notificationDetails): array
+    {
+        $params = [];
+        $entryVisaRenewalNotifications = Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
                                     ->whereDate('worker_visa.entry_visa_valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
                                     ->whereDate('worker_visa.entry_visa_valid_until', '>=', Carbon::now())
                                     ->select('workers.id')
                                     ->where('workers.company_id', $user['company_id'])
                                     ->count();
 
-            if (isset($entryVisaRenewalNotifications) && $entryVisaRenewalNotifications != 0) {
-                $params = $this->formNotificationInsertData($user, $entryVisaRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.ENTRY_VISA_NOTIFICATION_TITLE'), Config::get('services.ENTRY_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.ENTRY_VISA_MAIL_MESSAGE'));
-                $this->insertNotification($params);
-                $params['company_id'] = $user['company_id'];
-            }
+        if (isset($entryVisaRenewalNotifications) && $entryVisaRenewalNotifications != 0) {
+            $params = $this->formNotificationInsertData($user, $entryVisaRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.ENTRY_VISA_NOTIFICATION_TITLE'), Config::get('services.ENTRY_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.ENTRY_VISA_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
+        }
+        return $params;
+    }
+
+    /**
+     * Count and generate  entry visa renewal notifications for a user.
+     *
+     * @param array $user The user information
+     * @param array $notificationDetails - contains company's entry visa notification details
+     * 
+     * @return array The generated notification parameters
+     * 
+     */
+    public function entryVisaExpiryNotifications($user, $notificationDetails): array
+    {
+        $params = [];
+        $entryVisaRenewalNotifications = Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+                                    ->whereDate('worker_visa.entry_visa_valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+                                    ->whereDate('worker_visa.entry_visa_valid_until', '<', Carbon::now())
+                                    ->select('workers.id')
+                                    ->where('workers.company_id', $user['company_id'])
+                                    ->count();
+
+        if (isset($entryVisaRenewalNotifications) && $entryVisaRenewalNotifications != 0) {
+            $params = $this->formNotificationInsertData($user, $entryVisaRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.ENTRY_VISA_NOTIFICATION_TITLE'), Config::get('services.ENTRY_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.ENTRY_VISA_MAIL_MESSAGE'));
+            $this->insertNotification($params);
+            $params['company_id'] = $user['company_id'];
         }
         return $params;
     }
@@ -539,22 +925,33 @@ class NotificationServices
      * @param array $user The user data.
      * @return array The parameters for service agreement notifications.
      */
-    public function serviceAgreementNotifications($user): array
+    public function serviceAgreementNotifications($user, $renewalType, $frequency): array
     {
         $params['mail_message'] = '';
         $params['company_id'] = '';
 
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Service Agreement Renewal'], $frequency);
+
         $notificationTitle = Config::get('services.SERVICE_AGREEMENT_NOTIFICATION_TITLE');
-        $notificationMessage = Config::get('services.SERVICE_AGREEMENT_MAIL_MESSAGE');
-
-        $serviceAgreement = $this->getServiceAgreement($user);
-        if(!empty($serviceAgreement)) {
-            $mailMessage = $this->generateNotificationsAndUpdateMailMessage($serviceAgreement, $user, $notificationTitle, $notificationMessage);
-
-            if (!empty($mailMessage)) {
-                $params['company_id'] = $user['company_id'];
-                $params['mail_message'] = $mailMessage;
+        if(!empty($notificationDetails)) {
+            if($renewalType == self::RENEWAL_NOTIFICATION) {
+                $serviceAgreement = $this->getServiceAgreement($user, $notificationDetails);
+                $notificationMessage = Config::get('services.SERVICE_AGREEMENT_MAIL_MESSAGE');
+                if(!empty($serviceAgreement)) {
+                    $mailMessage = $this->generateNotificationsAndUpdateMailMessage($serviceAgreement, $user, $notificationTitle, $notificationMessage);
+                }
+            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+                $serviceAgreement = $this->getExpiredServiceAgreement($user, $notificationDetails);
+                $notificationMessage = Config::get('services.SERVICE_AGREEMENT_EXPIRED_MAIL_MESSAGE');
+                if(!empty($serviceAgreement)) {
+                    $mailMessage = $this->generateNotificationsAndUpdateMailMessage($serviceAgreement, $user, $notificationTitle, $notificationMessage);
+                }
             }
+        }
+
+        if (!empty($mailMessage)) {
+            $params['company_id'] = $user['company_id'];
+            $params['mail_message'] = $mailMessage;
         }
         return $params;
     }
@@ -565,20 +962,34 @@ class NotificationServices
      * @param array $user An array containing the user's data
      * @return Collection if notification enabled, otherwise void
      */
-    private function getServiceAgreement($user)
+    private function getServiceAgreement($user, $notificationDetails)
     {
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], self::RENEWAL_NOTIFICATION, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Service Agreement Renewal']);
+        return EContractProject::leftjoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
+            ->leftjoin('crm_prospects', 'crm_prospects.id', '=', 'e-contract_applications.crm_prospect_id')
+            ->select('e-contract_project.id', 'e-contract_project.name', 'e-contract_project.valid_until', 'crm_prospects.company_name')
+            ->distinct('e-contract_project.id', 'e-contract_project.name', 'e-contract_project.valid_until', 'crm_prospects.company_name')
+            ->whereDate('e-contract_project.valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
+            ->whereDate('e-contract_project.valid_until', '>=', Carbon::now())
+            ->where('e-contract_applications.company_id', $user['company_id'])
+            ->get();
+    }
 
-        if(!empty($notificationDetails)) {
-            return EContractProject::leftjoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
-                ->leftjoin('crm_prospects', 'crm_prospects.id', '=', 'e-contract_applications.crm_prospect_id')
-                ->select('e-contract_project.id', 'e-contract_project.name', 'e-contract_project.valid_until', 'crm_prospects.company_name')
-                ->distinct('e-contract_project.id', 'e-contract_project.name', 'e-contract_project.valid_until', 'crm_prospects.company_name')
-                ->whereDate('e-contract_project.valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
-                ->whereDate('e-contract_project.valid_until', '>=', Carbon::now())
-                ->where('e-contract_applications.company_id', $user['company_id'])
-                ->get();
-        }
+    /**
+     * Get service agreements that are expiring within the next 3 months
+     *
+     * @param array $user An array containing the user's data
+     * @return Collection if notification enabled, otherwise void
+     */
+    private function getExpiredServiceAgreement($user, $notificationDetails)
+    {
+        return EContractProject::leftjoin('e-contract_applications', 'e-contract_applications.id', '=', 'e-contract_project.application_id')
+            ->leftjoin('crm_prospects', 'crm_prospects.id', '=', 'e-contract_applications.crm_prospect_id')
+            ->select('e-contract_project.id', 'e-contract_project.name', 'e-contract_project.valid_until', 'crm_prospects.company_name')
+            ->distinct('e-contract_project.id', 'e-contract_project.name', 'e-contract_project.valid_until', 'crm_prospects.company_name')
+            ->whereDate('e-contract_project.valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+            ->whereDate('e-contract_project.valid_until', '<', Carbon::now())
+            ->where('e-contract_applications.company_id', $user['company_id'])
+            ->get();
     }
 
     /**
@@ -806,29 +1217,52 @@ class NotificationServices
      * @param int $companyId ID of the current company
      * @param string $notificationType type of the notification whether renewal or expired
      * @param int $notificationId Notification ID from notification master
+     * @param string $frequency - notification cycle (daily, weekly, monthly)
      * 
      * @return array Returns the renewal notification details
      */
-    public function getNotificationDetails(int $companyId, string $notificationType, int $notificationId): array
+    public function getNotificationDetails(int $companyId, string $notificationType, int $notificationId, string $frequency): array
     {
         if($notificationType == self::RENEWAL_NOTIFICATION) {
-           return $this->getRenewalNotificationDetails($companyId, $notificationId);
+           return $this->getRenewalNotificationDetails($companyId, $notificationId, $frequency);
+        } else if($notificationType == self::EXPIRED_NOTIFICATION) {
+           return $this->getExpiredNotificationDetails($companyId, $notificationId, $frequency);
         }
     }
 
-    /** Get the current company's notification details
+    /** Get the current company's renewal notification details
     * 
     * @param int $company_id ID of the current company
     * @param string $notificationId Notification ID from notification master
+    * @param string $frequency - notification cycle (daily, weekly, monthly)
     * 
     * @return array Returns the renewal notification details
     */
-   public function getRenewalNotificationDetails(int $companyId, int $notificationId): array
+   public function getRenewalNotificationDetails(int $companyId, int $notificationId, string $frequency): array
    {
        return $this->companyRenewalNotification->where('notification_id', $notificationId)
                     ->where('company_id', $companyId)
                     ->where('renewal_notification_status', self::RENEWAL_NOTIFICATION_ON)
-                    ->select('renewal_notification_status', 'renewal_duration_in_days', 'renewal_frequency_cycle', 'expired_notification_status', 'expired_duration_in_days', 'expired_frequency_cycle')
+                    ->where('renewal_frequency_cycle', $frequency)
+                    ->select('renewal_notification_status', 'renewal_duration_in_days', 'renewal_frequency_cycle')
                     ->get()->toArray();
    }
+
+   /** Get the current company's expired notification details
+    * 
+    * @param int $company_id ID of the current company
+    * @param string $notificationId Notification ID from notification master
+    * @param string $frequency - notification cycle (daily, weekly, monthly)
+    * 
+    * @return array Returns the expired notification details
+    */
+    public function getExpiredNotificationDetails(int $companyId, int $notificationId, string $frequency): array
+    {
+        return $this->companyRenewalNotification->where('notification_id', $notificationId)
+                     ->where('company_id', $companyId)
+                     ->where('expired_notification_status', self::EXPIRED_NOTIFICATION_ON)
+                     ->where('expired_frequency_cycle', $frequency)
+                     ->select('expired_notification_status', 'expired_duration_in_days', 'expired_frequency_cycle')
+                     ->get()->toArray();
+    }
 }
