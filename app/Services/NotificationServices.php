@@ -20,8 +20,6 @@ use App\Models\CompanyRenewalNotification;
 
 class NotificationServices
 {
-    public const RENEWAL_NOTIFICATION = 'renewal';
-    public const EXPIRED_NOTIFICATION = 'expired';
     public const RENEWAL_NOTIFICATION_ON = 1;
     public const EXPIRED_NOTIFICATION_ON = 1;
 
@@ -277,8 +275,7 @@ class NotificationServices
                     $message[$notification] = $this->dispatchSummaryNotifications($user);
                 }else {
                     $message[$notification] = $this->{$notification.'Notifications'}($user, $renewalType, $frequency);
-                }
-                
+                }  
             }
 
             $dispatchConditions = $this->checkDispatchConditions($message);
@@ -329,12 +326,17 @@ class NotificationServices
         $message,
         $duration,
         $durationType,
-        $mailMessage = null
+        $mailMessage = null,
+        $notificationType
     ): array
     {
         $durationDate = $durationType == 'DAYS'
             ? Carbon::now()->addDays($duration)
             : Carbon::now()->addMonths($duration);
+
+        $commonMessage = $notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]
+            ? Config::get('services.COMMON_RENEWAL_MAIL_MESSAGE')
+            : Config::get('services.COMMON_EXPIRY_MAIL_MESSAGE');
 
         return [
             'user_id' => $user['id'],
@@ -342,7 +344,7 @@ class NotificationServices
             'type' => $type,
             'title' => $title,
             'message' => $count . " " . $message,
-            'mail_message' =>  $mailMessage . " " . $count . " " . Config::get('services.COMMON_EXPIRY_MAIL_MESSAGE'),
+            'mail_message' =>  $mailMessage . " " . $count . " " . $commonMessage,
             'status' => 1,
             'read_flag' => 0,
             'created_by' => 1,
@@ -370,9 +372,9 @@ class NotificationServices
         $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['FOMEMA Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            if($renewalType == self::RENEWAL_NOTIFICATION) {
+            if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
                 $params = $this->fomemaRenewalNotifications($user, $notificationDetails);
-            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+            } else if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
                 $params = $this->fomemaExpiryNotifications($user, $notificationDetails);
             }
         }
@@ -397,8 +399,7 @@ class NotificationServices
                                     ->count();
 
         if (isset($fomemaRenewalNotificationsCount) && $fomemaRenewalNotificationsCount != 0) {
-
-            $params = $this->formNotificationInsertData($user, $fomemaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.FOMEMA_NOTIFICATION_TITLE'), Config::get('services.FOMEMA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.FOMEMA_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $fomemaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.FOMEMA_NOTIFICATION_TITLE'), Config::get('services.FOMEMA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.FOMEMA_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -424,8 +425,7 @@ class NotificationServices
                                     ->count();
 
         if (isset($fomemaRenewalNotificationsCount) && $fomemaRenewalNotificationsCount != 0) {
-
-            $params = $this->formNotificationInsertData($user, $fomemaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.FOMEMA_NOTIFICATION_TITLE'), Config::get('services.FOMEMA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.FOMEMA_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $fomemaRenewalNotificationsCount, Config::get('services.EXPIRY_NOTIFICATION_TYPE'), Config::get('services.FOMEMA_EXPIRY_NOTIFICATION_TITLE'), Config::get('services.FOMEMA_EXPIRY_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.FOMEMA_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -451,9 +451,9 @@ class NotificationServices
         $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            if($renewalType == self::RENEWAL_NOTIFICATION) {
+            if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
                 $params = $this->passportRenewalNotifications($user, $notificationDetails);
-            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+            } else if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
                 $params = $this->passportExpiryNotifications($user, $notificationDetails);
                 
             }
@@ -480,7 +480,7 @@ class NotificationServices
                                     ->count();
 
         if (isset($passportRenewalNotificationsCount) && $passportRenewalNotificationsCount != 0) {
-            $params = $this->formNotificationInsertData($user, $passportRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PASSPORT_NOTIFICATION_TITLE'), Config::get('services.PASSPORT_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.PASSPORT_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $passportRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PASSPORT_NOTIFICATION_TITLE'), Config::get('services.PASSPORT_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.PASSPORT_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -506,7 +506,7 @@ class NotificationServices
                                     ->count();
 
         if (isset($passportRenewalNotificationsCount) && $passportRenewalNotificationsCount != 0) {
-            $params = $this->formNotificationInsertData($user, $passportRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PASSPORT_NOTIFICATION_TITLE'), Config::get('services.PASSPORT_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.PASSPORT_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $passportRenewalNotificationsCount, Config::get('services.EXPIRY_NOTIFICATION_TYPE'), Config::get('services.PASSPORT_EXPIRY_NOTIFICATION_TITLE'), Config::get('services.PASSPORT_EXPIRY_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.PASSPORT_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -532,9 +532,9 @@ class NotificationServices
         $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            if($renewalType == self::RENEWAL_NOTIFICATION) {
+            if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
                 $params = $this->plksRenewalNotifications($user, $notificationDetails);
-            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+            } else if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
                 $params = $this->plksExpiryNotifications($user, $notificationDetails);
             }
         }
@@ -560,7 +560,7 @@ class NotificationServices
                                 ->count();
 
         if (isset($plksRenewalNotificationsCount) && $plksRenewalNotificationsCount != 0) {
-            $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PLKS_NOTIFICATION_TITLE'), Config::get('services.PLKS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.PLKS_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PLKS_NOTIFICATION_TITLE'), Config::get('services.PLKS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.PLKS_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -586,7 +586,7 @@ class NotificationServices
                                 ->count();
 
         if (isset($plksRenewalNotificationsCount) && $plksRenewalNotificationsCount != 0) {
-            $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PLKS_NOTIFICATION_TITLE'), Config::get('services.PLKS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.PLKS_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.EXPIRY_NOTIFICATION_TYPE'), Config::get('services.PLKS_EXPIRY_NOTIFICATION_TITLE'), Config::get('services.PLKS_EXPIRY_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.PLKS_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -612,9 +612,9 @@ class NotificationServices
         $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Calling Visa Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            if($renewalType == self::RENEWAL_NOTIFICATION) {
+            if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
                 $params = $this->callingVisaRenewalNotifications($user, $notificationDetails);
-            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+            } else if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
                 $params = $this->callingVisaExpiryNotifications($user, $notificationDetails);
             }
         }
@@ -641,7 +641,7 @@ class NotificationServices
                                             ->count();
 
         if (isset($callingVisaRenewalNotificationsCount) && $callingVisaRenewalNotificationsCount != 0) {
-            $params = $this->formNotificationInsertData($user, $callingVisaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.CALLING_VISA_NOTIFICATION_TITLE'), Config::get('services.CALLING_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.CALLING_VISA_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $callingVisaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.CALLING_VISA_NOTIFICATION_TITLE'), Config::get('services.CALLING_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.CALLING_VISA_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -668,7 +668,7 @@ class NotificationServices
                                             ->count();
 
         if (isset($callingVisaRenewalNotificationsCount) && $callingVisaRenewalNotificationsCount != 0) {
-            $params = $this->formNotificationInsertData($user, $callingVisaRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.CALLING_VISA_NOTIFICATION_TITLE'), Config::get('services.CALLING_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.CALLING_VISA_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $callingVisaRenewalNotificationsCount, Config::get('services.EXPIRY_NOTIFICATION_TYPE'), Config::get('services.CALLING_VISA_EXPIRY_NOTIFICATION_TITLE'), Config::get('services.CALLING_VISA_EXPIRY_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.CALLING_VISA_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -694,9 +694,9 @@ class NotificationServices
         $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Special Passes Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            if($renewalType == self::RENEWAL_NOTIFICATION) {
+            if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
                 $params = $this->specialPassRenewalNotifications($user, $notificationDetails);
-            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+            } else if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
                 $params = $this->specialPassExpiryNotifications($user, $notificationDetails);
             }
         }
@@ -722,7 +722,7 @@ class NotificationServices
                                             ->count();
 
         if (isset($specialPassRenewalNotificationsCount) && $specialPassRenewalNotificationsCount != 0) {
-            $params = $this->formNotificationInsertData($user, $specialPassRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_TITLE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.SPECIAL_PASS_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $specialPassRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_TITLE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.SPECIAL_PASS_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -748,7 +748,7 @@ class NotificationServices
                                             ->count();
 
         if (isset($specialPassRenewalNotificationsCount) && $specialPassRenewalNotificationsCount != 0) {
-            $params = $this->formNotificationInsertData($user, $specialPassRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_TITLE'), Config::get('services.SPECIAL_PASS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.SPECIAL_PASS_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $specialPassRenewalNotificationsCount, Config::get('services.EXPIRY_NOTIFICATION_TYPE'), Config::get('services.SPECIAL_PASS_EXPIRY_NOTIFICATION_TITLE'), Config::get('services.SPECIAL_PASS_EXPIRY_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.SPECIAL_PASS_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -774,9 +774,9 @@ class NotificationServices
         $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            if($renewalType == self::RENEWAL_NOTIFICATION) {
+            if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
                 $params = $this->insuranceRenewalNotifications($user, $notificationDetails);
-            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+            } else if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
                 $params = $this->insuranceExpiryNotifications($user, $notificationDetails);
             }
         }
@@ -803,7 +803,7 @@ class NotificationServices
                                         ->count();
 
         if (isset($insuranceRenewalNotifications) && $insuranceRenewalNotifications != 0) {
-            $params = $this->formNotificationInsertData($user, $insuranceRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.INSURANCE_NOTIFICATION_TITLE'), Config::get('services.INSURANCE_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.INSURANCE_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $insuranceRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.INSURANCE_NOTIFICATION_TITLE'), Config::get('services.INSURANCE_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.INSURANCE_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -830,7 +830,7 @@ class NotificationServices
                                         ->count();
 
         if (isset($insuranceRenewalNotifications) && $insuranceRenewalNotifications != 0) {
-            $params = $this->formNotificationInsertData($user, $insuranceRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.INSURANCE_NOTIFICATION_TITLE'), Config::get('services.INSURANCE_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.INSURANCE_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $insuranceRenewalNotifications, Config::get('services.EXPIRY_NOTIFICATION_TYPE'), Config::get('services.INSURANCE_EXPIRY_NOTIFICATION_TITLE'), Config::get('services.INSURANCE_EXPIRY_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.INSURANCE_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -856,9 +856,9 @@ class NotificationServices
         $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
-            if($renewalType == self::RENEWAL_NOTIFICATION) {
+            if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
                 $params = $this->entryVisaRenewalNotifications($user, $notificationDetails);
-            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+            } else if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
                 $params = $this->entryVisaExpiryNotifications($user, $notificationDetails);
             } 
         }
@@ -885,7 +885,7 @@ class NotificationServices
                                     ->count();
 
         if (isset($entryVisaRenewalNotifications) && $entryVisaRenewalNotifications != 0) {
-            $params = $this->formNotificationInsertData($user, $entryVisaRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.ENTRY_VISA_NOTIFICATION_TITLE'), Config::get('services.ENTRY_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.ENTRY_VISA_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $entryVisaRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.ENTRY_VISA_NOTIFICATION_TITLE'), Config::get('services.ENTRY_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.ENTRY_VISA_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -912,7 +912,7 @@ class NotificationServices
                                     ->count();
 
         if (isset($entryVisaRenewalNotifications) && $entryVisaRenewalNotifications != 0) {
-            $params = $this->formNotificationInsertData($user, $entryVisaRenewalNotifications, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.ENTRY_VISA_NOTIFICATION_TITLE'), Config::get('services.ENTRY_VISA_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.ENTRY_VISA_MAIL_MESSAGE'));
+            $params = $this->formNotificationInsertData($user, $entryVisaRenewalNotifications, Config::get('services.EXPIRY_NOTIFICATION_TYPE'), Config::get('services.ENTRY_VISA_EXPIRY_NOTIFICATION_TITLE'), Config::get('services.ENTRY_VISA_EXPIRY_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.ENTRY_VISA_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]);
             $this->insertNotification($params);
             $params['company_id'] = $user['company_id'];
         }
@@ -934,15 +934,15 @@ class NotificationServices
 
         $notificationTitle = Config::get('services.SERVICE_AGREEMENT_NOTIFICATION_TITLE');
         if(!empty($notificationDetails)) {
-            if($renewalType == self::RENEWAL_NOTIFICATION) {
+            if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
                 $serviceAgreement = $this->getServiceAgreement($user, $notificationDetails);
                 $notificationMessage = Config::get('services.SERVICE_AGREEMENT_MAIL_MESSAGE');
                 if(!empty($serviceAgreement)) {
                     $mailMessage = $this->generateNotificationsAndUpdateMailMessage($serviceAgreement, $user, $notificationTitle, $notificationMessage);
                 }
-            } else if($renewalType == self::EXPIRED_NOTIFICATION) {
+            } else if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
                 $serviceAgreement = $this->getExpiredServiceAgreement($user, $notificationDetails);
-                $notificationMessage = Config::get('services.SERVICE_AGREEMENT_EXPIRED_MAIL_MESSAGE');
+                $notificationMessage = Config::get('services.SERVICE_AGREEMENT_EXPIRY_MAIL_MESSAGE');
                 if(!empty($serviceAgreement)) {
                     $mailMessage = $this->generateNotificationsAndUpdateMailMessage($serviceAgreement, $user, $notificationTitle, $notificationMessage);
                 }
@@ -1223,9 +1223,9 @@ class NotificationServices
      */
     public function getNotificationDetails(int $companyId, string $notificationType, int $notificationId, string $frequency): array
     {
-        if($notificationType == self::RENEWAL_NOTIFICATION) {
+        if($notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
            return $this->getRenewalNotificationDetails($companyId, $notificationId, $frequency);
-        } else if($notificationType == self::EXPIRED_NOTIFICATION) {
+        } else if($notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
            return $this->getExpiredNotificationDetails($companyId, $notificationId, $frequency);
         }
     }
