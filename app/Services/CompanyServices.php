@@ -887,7 +887,22 @@ class CompanyServices
      */
     public function emailConfigurationNotificationList($request)
     {
-        return $this->renewalNotification->select('id','notification_name','status')->get();
+        $countDirectRecruitmentModule = $this->companyModulePermission->leftJoin('modules', 'modules.id', 'company_module_permission.module_id')
+            ->where('company_module_permission.company_id', $request['company_id'])
+            ->where('modules.feature_flag', 0)
+            ->where('modules.module_name',Config::get('services.ACCESS_MODULE_TYPE')[4])
+            ->select('modules.id', 'modules.module_name', 'company_module_permission.id as company_module_permission_id')
+            ->count();
+
+        $notificationId = [];
+
+        if($countDirectRecruitmentModule > 0) {
+            $notificationId = array_merge(Config::get('services.DIRECT_RECRUITMENT_NOTIFICATION_ID'),Config::get('services.DEFAULT_NOTIFICATION_ID'));
+        }else {
+            $notificationId = Config::get('services.DEFAULT_NOTIFICATION_ID');
+        }
+
+        return $this->renewalNotification->select('id','notification_name','status')->whereIn('id', $notificationId)->get();
     }
 
     /**

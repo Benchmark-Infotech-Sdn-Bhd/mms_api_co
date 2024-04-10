@@ -788,6 +788,107 @@ class CompanyUnitTest extends TestCase
         ]);
     }
     /**
+     * Functional test for Company Email Configuration Notification List
+     * 
+     * @return void
+     */
+    public function testForCompanyEmailConfigurationNotificationList(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/emailConfiguration/notificationList', ['company_id' => 1], $this->getSuperHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+
+    /**
+     * Functional test for Company Email Configuration show
+     * 
+     * @return void
+     */
+    public function testForCompanyEmailConfigurationShow(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $this->json('POST', 'api/v1/company/emailConfiguration/save', $this->companyEmailConfigurationData(), $this->getSuperHeader(false));
+        $response = $this->json('POST', 'api/v1/company/emailConfiguration/show', ['company_id' => 1], $this->getSuperHeader(false));
+        $response->assertEquals(200, $this->response->status());
+        $this->response->assertJsonStructure([
+            'data' =>
+                [
+                ]
+        ]);
+    }
+
+    /**
+     * Functional test for Company Email Configuration save
+     * 
+     * @return void
+     */
+    public function testForCompanyEmailConfigurationSave(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/emailConfiguration/save', $this->companyEmailConfigurationData(), $this->getSuperHeader(false));
+        $response->seeStatusCode(200);
+        $response->seeJson([
+            'data' => ['message' => 'Email Configuration Saved Successfully']
+        ]);
+    }
+
+    /**
+     * Functional test for Company Email Configuration save company id validation
+     * 
+     * @return void
+     */
+    public function testForCompanyEmailConfigurationSaveCompanyIdValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/emailConfiguration/save', array_merge($this->companyEmailConfigurationData(), ['company_id' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'company_id' => ['The company id field is required.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Company Email Configuration save notification type validation
+     * 
+     * @return void
+     */
+    public function testForCompanyEmailConfigurationSaveNotificationTypeValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/emailConfiguration/save', array_merge($this->companyEmailConfigurationData(), ['notification_type' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'notification_type' => ['The notification type field is required.']
+            ]
+        ]);
+    }
+
+    /**
+     * Functional test for Company Email Configuration save notification settings validation
+     * 
+     * @return void
+     */
+    public function testForCompanyEmailConfigurationSaveNotificationDettingsValidation(): void
+    {
+        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
+        $response = $this->json('POST', 'api/v1/company/emailConfiguration/save', array_merge($this->companyEmailConfigurationData(), ['notification_settings' => '']), $this->getSuperHeader(false));
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            'data' => [
+                'notification_settings' => ['The notification settings field is required.']
+            ]
+        ]);
+    }
+
+    /**
      * @return array
      */
     public function creationData(): array
@@ -831,6 +932,17 @@ class CompanyUnitTest extends TestCase
             "refresh_token" => "3ODPNZS07IutHX1itXx_tHSVFB4P_454pS6rhhAs7sg",
             "redirect_url" => "testredreictups.com",
             "remarks" => "test remarkups"
+        ];
+    }
+    /**
+     * @return array
+     */
+    public function companyEmailConfigurationData(): array
+    {
+        return [
+            "company_id"  =>  1,
+            "notification_type" =>  "renewal",
+            "notification_settings" =>  json_encode([["notification_id"=>1, "renewal_notification_status"=>1, "renewal_duration_in_days"=>1, "renewal_frequency_cycle"=>"Weekly"]])
         ];
     }
 }

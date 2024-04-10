@@ -209,4 +209,8 @@ return [
     'COMPANY_NOTIFICATION_TYPE' => ['renewal', 'expired'],
 
     'NOTIFICATION_FREQUENCY' => ['daily', 'weekly', 'monthly'],
+
+    'DIRECT_RECRUITMENT_NOTIFICATION_ID' => [1,2,3,4,5,6],
+    
+    'DEFAULT_NOTIFICATION_ID' => [7,8],
 ];

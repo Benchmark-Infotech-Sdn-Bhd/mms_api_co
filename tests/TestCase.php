@@ -64,6 +64,7 @@ abstract class TestCase extends BaseTestCase
         if($artisan === true) {
             $this->artisan("db:seed --class=unit_testing_super_admin");
             $this->artisan("db:seed --class=unit_testing_modules");
+            $this->artisan("db:seed --class=RenewalNotificationsSeeder");
         }
         $response = $this->call('POST', 'api/v1/login', ['email' => 'unittest@gmail.com', 'password' => 'Welcome@123']);
         $this->assertEquals(200, $response->status());
