@@ -13,6 +13,8 @@ use App\Models\XeroSettings;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use App\Models\CompanyRenewalNotification;
+use App\Models\RenewalNotification;
 
 class CompanyServices
 {
@@ -62,6 +64,16 @@ class CompanyServices
     private XeroSettings $xeroSettings;
 
     /**
+     * @var CompanyRenewalNotification
+     */
+    private CompanyRenewalNotification $companyRenewalNotification;
+
+    /**
+     * @var RenewalNotification
+     */
+    private RenewalNotification $renewalNotification;
+
+    /**
      * CompanyServices constructor
      *
      * @param Company $company Instance of the Company class
@@ -73,6 +85,8 @@ class CompanyServices
      * @param Storage $storage Instance of the Storage class
      * @param RolePermission $rolePermission Instance of the RolePermission class
      * @param XeroSettings $xeroSettings Instance of the XeroSettings class
+     * @param CompanyRenewalNotification $companyRenewalNotification Instance of the CompanyRenewalNotification class
+     * @param RenewalNotification $renewalNotification Instance of the RenewalNotification class
      *
      * @return void
      *
@@ -86,7 +100,9 @@ class CompanyServices
         Storage $storage,
         CompanyModulePermission $companyModulePermission,
         RolePermission $rolePermission,
-        XeroSettings $xeroSettings
+        XeroSettings $xeroSettings,
+        CompanyRenewalNotification $companyRenewalNotification,
+        RenewalNotification $renewalNotification
     )
     {
         $this->company = $company;
@@ -98,6 +114,8 @@ class CompanyServices
         $this->storage = $storage;
         $this->rolePermission = $rolePermission;
         $this->xeroSettings = $xeroSettings;
+        $this->companyRenewalNotification = $companyRenewalNotification;
+        $this->renewalNotification = $renewalNotification;
     }
 
     /**
@@ -190,6 +208,21 @@ class CompanyServices
             'refresh_token' => 'required'
         ];
     }
+
+    /**
+     * Creates the validation rules for Save Email Configuration Details of a company.
+     *
+     * @return array The array containing the validation rules.
+     */
+    public function emailConfigurationSaveValidation(): array
+    {
+        return [
+            'company_id' => 'required',
+            'notification_type' => 'required',
+            'notification_settings' => 'required'
+        ];
+    }
+
 
     /**
      * Validate the given request data.
@@ -842,5 +875,126 @@ class CompanyServices
         }
 
         return true;
+    }
+
+    /*
+     * list the email configuration notification list.
+     *
+     * 
+     * @param array $request The request data containing the company_id key
+     *
+     * @return mixed Returns the company notification list
+     */
+    public function emailConfigurationNotificationList($request)
+    {
+        return $this->renewalNotification->select('id','notification_name','status')->get();
+    }
+
+    /**
+     * Show the Email Configuration Details.
+     *
+     * @param array $request The request data containing the company_id key.
+     * @return mixed Returns email configuration data
+     */
+    public function emailConfigurationShow($request): mixed
+    {
+        return $this->companyRenewalNotification->where('company_id', $request['company_id'])->get();
+    }
+
+    /**
+     * Save the Email Configuration Detail.
+     *
+     * @param array $request The request data containing email Configuration details.
+     *                       The array should have the following keys:
+     *                      - company_id: ID of the company.
+     *                      - notification_type: type of the notification.
+     *                      - notification_settings: it containing the notification settings value
+     *                      - created_by: Created user ID
+     * 
+     * @return mixed Returns true if the details is saved successfully.
+     *              Returns error if validation error is exist
+     *              Returns InvalidNotificationType if notification type is not exist
+     */
+    public function emailConfigurationSave($request): mixed
+    {
+        $validator = Validator::make($request, $this->emailConfigurationSaveValidation());
+        if ($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        if (!in_array($request['notification_type'], Config::get('services.COMPANY_NOTIFICATION_TYPE'))) {
+            return [
+                'InvalidNotificationType' => true
+            ];
+        }
+
+        if($request['notification_type'] == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]){
+            $this->updateRenewalNotificationSettings($request);
+        } else if($request['notification_type'] == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]){
+            $this->updateExpiredNotificationSettings($request);
+        }
+        return true;
+    }
+    /**
+     * Update the Renewal Notification Settings
+     *
+     * @param array $request The request data containing email Configuration Renewal details.
+     *                       The array should have the following keys:
+     *                      - company_id: ID of the company.
+     *                      - notification_type: type of the notification.
+     *                      - notification_settings: it containing the notification settings value
+     *                      - created_by: Created user ID
+     *
+     * @return void
+     */
+    private function updateRenewalNotificationSettings($request){
+        $notificationSettings = json_decode($request['notification_settings']);
+        foreach ($notificationSettings as $settings) {
+            $this->companyRenewalNotification->updateOrCreate(
+                [
+                    'company_id' => $request['company_id'],
+                    'notification_id' => $settings->notification_id
+                ],
+                [
+                    'renewal_notification_status' => $settings->renewal_notification_status,
+                    'renewal_duration_in_days' => $settings->renewal_duration_in_days,
+                    'renewal_frequency_cycle' => $settings->renewal_frequency_cycle,
+                    'created_by'    => $request['created_by'] ?? 0,
+                    'modified_by'   => $request['created_by'] ?? 0
+                ]
+            );
+        }
+    }
+    /**
+     * Update the Expired Notification Settings
+     *
+     * @param array $request The request data containing email Configuration Expired details.
+     *                       The array should have the following keys:
+     *                      - company_id: ID of the company.
+     *                      - notification_type: type of the notification.
+     *                      - notification_settings: it containing the notification settings value
+     *                      - created_by: Created user ID
+     *
+     * @return void
+     */
+    private function updateExpiredNotificationSettings($request){
+        $notificationSettings = json_decode($request['notification_settings']);
+        foreach ($notificationSettings as $settings) {
+            $this->companyRenewalNotification->updateOrCreate(
+                [
+                    'company_id' => $request['company_id'],
+                    'notification_id' => $settings->notification_id
+                ],
+                [
+                    'expired_notification_status' => $settings->expired_notification_status,
+                    'expired_duration_in_days' => $settings->expired_duration_in_days,
+                    'expired_frequency_cycle' => $settings->expired_frequency_cycle,
+                    'created_by'    => $request['created_by'] ?? 0,
+                    'modified_by'   => $request['created_by'] ?? 0
+                ]
+            );
+        }
     }
 }
