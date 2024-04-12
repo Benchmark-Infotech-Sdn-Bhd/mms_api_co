@@ -23,13 +23,13 @@ return new class extends Migration
             // Foreign key from company table
             $table->foreign('company_id')->references('id')->on('company')->onDelete('cascade');
             // Column for Renewal Notification status
-            $table->tinyInteger('renewal_notification_status')->default(1)->unsigned()->index();
+            $table->tinyInteger('renewal_notification_status')->default(0)->unsigned()->index();
             // Column for days, the renewal notification to be sent before item expiry
             $table->integer('renewal_duration_in_days')->default(0);
             // Column for renewal notification cycle
-            $table->enum('renewal_frequency_cycle',['Daily', 'Weekly', 'Monthly'])->default('Daily')->index();
+            $table->enum('renewal_frequency_cycle',['Daily', 'Weekly', 'Monthly'])->default('Weekly')->index();
             // Column for Expired Notification status
-            $table->tinyInteger('expired_notification_status')->default(1)->unsigned()->index();
+            $table->tinyInteger('expired_notification_status')->default(0)->unsigned()->index();
             // Column for days, the expired notification to be sent after item expiry
             $table->integer('expired_duration_in_days')->default(0);
             // Column for expired notification cycle

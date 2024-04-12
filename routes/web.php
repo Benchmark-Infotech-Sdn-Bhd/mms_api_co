@@ -79,6 +79,15 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('show', 'V1\CompanyController@accountSystemShow');
                     });
                 });    
+                $router->group(['prefix' => 'emailConfiguration'], function () use ($router) {
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:15,Add']], function () use ($router) {
+                        $router->post('save', 'V1\CompanyController@emailConfigurationSave');
+                    });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:15,View']], function () use ($router) {
+                        $router->post('notificationList', 'V1\CompanyController@emailConfigurationNotificationList');
+                        $router->post('show', 'V1\CompanyController@emailConfigurationShow');
+                    });
+                });
             });
             
         });

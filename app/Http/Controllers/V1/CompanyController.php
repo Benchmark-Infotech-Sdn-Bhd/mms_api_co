@@ -438,4 +438,63 @@ class CompanyController extends Controller
             return $this->sendError(['message' => 'Failed to Delete Account System']);
         }
     }
+    /**
+     * List email configuration notification list.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function emailConfigurationNotificationList(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->emailConfigurationNotificationList($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List Notification']);
+        }
+    }
+    /**
+     * Show Email Configuration Details
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function emailConfigurationShow(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $response = $this->companyServices->emailConfigurationShow($params);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Show Email Configuration']);
+        }
+    }
+
+    /**
+     * Save the Email Configuration Detail.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function emailConfigurationSave(Request $request) : JsonResponse
+    {
+        try {
+            $params = $this->getRequest($request);
+            $user = JWTAuth::parseToken()->authenticate();
+            $params['created_by'] = $user['id'];
+            $response = $this->companyServices->emailConfigurationSave($params);
+            if(isset($response['error'])) {
+                return $this->validationError($response['error']);
+            } elseif (isset($response['InvalidNotificationType'])) {
+                return $this->sendError(['message' => 'Invalid Notification Type.']); 
+            }
+            return $this->sendSuccess(['message' => 'Email Configuration Saved Successfully']);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Save the Email Configuration']);
+        }
+    }
 }
