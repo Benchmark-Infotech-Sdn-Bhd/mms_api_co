@@ -18,6 +18,8 @@ use App\Models\RenewalNotification;
 
 class CompanyServices
 {
+    public const DEFAULT_INTEGER_VALUE_ZERO = 0;
+
     /**
      * @var Company
      */
@@ -887,23 +889,39 @@ class CompanyServices
      */
     public function emailConfigurationNotificationList($request)
     {
-        $countDirectRecruitmentModule = $this->companyModulePermission->leftJoin('modules', 'modules.id', 'company_module_permission.module_id')
-            ->where('company_module_permission.company_id', $request['company_id'])
-            ->where('modules.feature_flag', 0)
-            ->where('modules.module_name',Config::get('services.ACCESS_MODULE_TYPE')[4])
-            ->select('modules.id', 'modules.module_name', 'company_module_permission.id as company_module_permission_id')
-            ->count();
+        $countDirectRecruitmentModule = $this->getCompanyModulesCount($request['company_id'],Config::get('services.ACCESS_MODULE_TYPE')[4]);
+        $countEcontractModule = $this->getCompanyModulesCount($request['company_id'],Config::get('services.ACCESS_MODULE_TYPE')[5]);    
 
-        $notificationId = [];
-
-        if($countDirectRecruitmentModule > 0) {
-            $notificationId = array_merge(Config::get('services.DIRECT_RECRUITMENT_NOTIFICATION_ID'),Config::get('services.DEFAULT_NOTIFICATION_ID'));
-        }else {
-            $notificationId = Config::get('services.DEFAULT_NOTIFICATION_ID');
+        if($countDirectRecruitmentModule > self::DEFAULT_INTEGER_VALUE_ZERO && $countEcontractModule > self::DEFAULT_INTEGER_VALUE_ZERO) {
+            $notificationId = array_merge(Config::get('services.DIRECT_RECRUITMENT_NOTIFICATION_ID'),Config::get('services.ECONTRACT_NOTIFICATION_ID'));
+        } else if($countDirectRecruitmentModule > self::DEFAULT_INTEGER_VALUE_ZERO && $countEcontractModule == self::DEFAULT_INTEGER_VALUE_ZERO) {
+            $notificationId = Config::get('services.DIRECT_RECRUITMENT_NOTIFICATION_ID');
+        } else if($countDirectRecruitmentModule == self::DEFAULT_INTEGER_VALUE_ZERO && $countEcontractModule > self::DEFAULT_INTEGER_VALUE_ZERO){
+            $notificationId = Config::get('services.ECONTRACT_NOTIFICATION_ID');
+        } else {
+            $notificationId = [];
         }
 
         return $this->renewalNotification->select('id','notification_name','status')->whereIn('id', $notificationId)->get();
     }
+
+    /**
+     * Get the company module count
+     *
+     * @param int $companyId ID of the company.
+     * @param string $moduleName name of the module.
+     *                       
+     *
+     * @return int - Returns the module count
+     */
+    private function getCompanyModulesCount($companyId,$moduleName){
+        return $this->companyModulePermission->leftJoin('modules', 'modules.id', 'company_module_permission.module_id')
+            ->where('company_module_permission.company_id', $companyId)
+            ->where('modules.feature_flag', 0)
+            ->where('modules.module_name',$moduleName)
+            ->select('modules.id', 'modules.module_name', 'company_module_permission.id as company_module_permission_id')
+            ->count();
+    }    
 
     /**
      * Show the Email Configuration Details.

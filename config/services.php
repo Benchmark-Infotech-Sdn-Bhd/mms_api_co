@@ -210,7 +210,7 @@ return [
 
     'NOTIFICATION_FREQUENCY' => ['daily', 'weekly', 'monthly'],
 
-    'DIRECT_RECRUITMENT_NOTIFICATION_ID' => [1,2,3,4,5,6],
+    'DIRECT_RECRUITMENT_NOTIFICATION_ID' => [1,2,3,4,5,6,7],
     
-    'DEFAULT_NOTIFICATION_ID' => [7,8],
+    'ECONTRACT_NOTIFICATION_ID' => [8],
 ];
