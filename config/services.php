@@ -137,6 +137,22 @@ return [
     'ENTRY_VISA_NOTIFICATION_TITLE' => 'ENTRY VISA RENEWAL',
     'ENTRY_VISA_NOTIFICATION_MESSAGE' => 'workers Entry Visa should be renewed.',
 
+    'EXPIRY_NOTIFICATION_TYPE' => 'EXPIRYNOTIFICATIONS',
+    'FOMEMA_EXPIRY_NOTIFICATION_TITLE' => 'FOMEMA EXPIRY',
+    'FOMEMA_EXPIRY_NOTIFICATION_MESSAGE' => 'workers Fomema are expired.',
+    'PASSPORT_EXPIRY_NOTIFICATION_TITLE' => 'PASSPORT EXPIRY',
+    'PASSPORT_EXPIRY_NOTIFICATION_MESSAGE' => 'workers Passport are expired.',
+    'PLKS_EXPIRY_NOTIFICATION_TITLE' => 'PLKS EXPIRY',
+    'PLKS_EXPIRY_NOTIFICATION_MESSAGE' => 'workers PLKS Visa are expired.',
+    'CALLING_VISA_EXPIRY_NOTIFICATION_TITLE' => 'CALLING VISA EXPIRY',
+    'CALLING_VISA_EXPIRY_NOTIFICATION_MESSAGE' => 'workers Calling Visa are expired.',
+    'SPECIAL_PASS_EXPIRY_NOTIFICATION_TITLE' => 'SPECIAL PASS EXPIRY',
+    'SPECIAL_PASS_EXPIRY_NOTIFICATION_MESSAGE' => 'workers Special Pass are expired.',
+    'INSURANCE_EXPIRY_NOTIFICATION_TITLE' => 'INSURANCE EXPIRY',
+    'INSURANCE_EXPIRY_NOTIFICATION_MESSAGE' => 'workers Insurance are expired.',
+    'ENTRY_VISA_EXPIRY_NOTIFICATION_TITLE' => 'ENTRY VISA EXPIRY',
+    'ENTRY_VISA_EXPIRY_NOTIFICATION_MESSAGE' => 'workers Entry Visa are expired.',
+
     'DISPATCH_NOTIFICATION_TITLE' => 'DISPATCHES',
     'SERVICE_AGREEMENT_NOTIFICATION_TITLE' => 'SERVICE AGREEMENT',
 
@@ -149,7 +165,10 @@ return [
     'ENTRY_VISA_MAIL_MESSAGE' => 'The Entry Visa of',
     'SERVICE_AGREEMENT_MAIL_MESSAGE' => 'Service agreement is to expire on',
     'DISPATCH_MAIL_MESSAGE' => 'Dispatch is Pending',
-    'COMMON_EXPIRY_MAIL_MESSAGE' => 'workers are about to expire',
+    'COMMON_RENEWAL_MAIL_MESSAGE' => 'workers are about to expire',
+
+    'SERVICE_AGREEMENT_EXPIRY_MAIL_MESSAGE' => 'Service agreement is to expired on',
+    'COMMON_EXPIRY_MAIL_MESSAGE' => 'workers are expired',
 
     'ACCESS_MODULE_TYPE' => ['Dashboard', 'Maintain Masters', 'Branches', 'CRM', 'Direct Recruitment', 'e-Contract', 'Total Management', 'Employee', 'Access Management', 'Workers', 'Dispatch Management', 'Invoice', 'Reports'],
 
@@ -184,4 +203,14 @@ return [
     'SUB_DOMAIN_DB_NAME_TWO' => env('SUB_DOMAIN_DB_NAME_TWO'),
 
     'INVOICE_MODULE_ID' => 12,    
+
+    'RENEWAL_NOTIFICATION_TYPE' => ['FOMEMA Renewal' => 1, 'Passport Renewal' => 2, 'PLKS Renewal' => 3, 'Calling Visa Renewal' => 4, 'Special Passes Renewal' => 5, 'Insurance Renewal' => 6, 'Entry Visa Renewal' => 7, 'Service Agreement Renewal' => 8],
+
+    'COMPANY_NOTIFICATION_TYPE' => ['renewal', 'expired'],
+
+    'NOTIFICATION_FREQUENCY' => ['daily', 'weekly', 'monthly'],
+
+    'DIRECT_RECRUITMENT_NOTIFICATION_ID' => [1,2,3,4,5,6,7],
+    
+    'ECONTRACT_NOTIFICATION_ID' => [8],
 ];

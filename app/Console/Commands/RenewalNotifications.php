@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use App\Services\NotificationServices;
 use App\Services\DatabaseConnectionServices;
+use Illuminate\Support\Facades\Config;
 
 class RenewalNotifications extends Command
 {
@@ -14,7 +15,7 @@ class RenewalNotifications extends Command
      *
      * @var string
      */
-    protected $signature = 'command:RenewalNotifications {database}';
+    protected $signature = 'command:RenewalNotifications {database} {type} {cycle}';
 
     /**
      * The console command description.
@@ -55,7 +56,7 @@ class RenewalNotifications extends Command
     {
         $this->databaseConnectionServices->dbConnectQueue($this->argument('database'));
         Log::channel('cron_activity_logs')->info('Cron Job Started - Renewal Notifications for Tenant DB - '.$this->argument('database'));
-        $data = $this->notificationServices->renewalNotifications();
+        $data = $this->notificationServices->renewalNotifications($this->argument('type'), $this->argument('cycle'));
         Log::channel('cron_activity_logs')->info('Cron Job Ended - Renewal Notifications for Tenant DB - '.$this->argument('database'));
     }
 }

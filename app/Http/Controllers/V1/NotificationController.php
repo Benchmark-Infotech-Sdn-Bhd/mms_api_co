@@ -85,10 +85,11 @@ class NotificationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function renewalNotifications(): JsonResponse
+    public function renewalNotifications(Request $request): JsonResponse
     {
         try {
-            $data = $this->notificationServices->renewalNotifications();
+            $params = $this->getRequest($request);
+            $data = $this->notificationServices->renewalNotifications($params['renewalType'], $params['frequency']);
             return $this->sendSuccess($data);
         } catch (Exception $e) {
             Log::error('Error - ' . print_r($e->getMessage(), true));
