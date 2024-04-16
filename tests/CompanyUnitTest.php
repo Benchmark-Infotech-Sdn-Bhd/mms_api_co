@@ -855,23 +855,6 @@ class CompanyUnitTest extends TestCase
     }
 
     /**
-     * Functional test for Company Email Configuration save notification type validation
-     * 
-     * @return void
-     */
-    public function testForCompanyEmailConfigurationSaveNotificationTypeValidation(): void
-    {
-        $this->json('POST', 'api/v1/company/create', $this->creationData(), $this->getSuperHeader());
-        $response = $this->json('POST', 'api/v1/company/emailConfiguration/save', array_merge($this->companyEmailConfigurationData(), ['notification_type' => '']), $this->getSuperHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'notification_type' => ['The notification type field is required.']
-            ]
-        ]);
-    }
-
-    /**
      * Functional test for Company Email Configuration save notification settings validation
      * 
      * @return void
@@ -941,8 +924,7 @@ class CompanyUnitTest extends TestCase
     {
         return [
             "company_id"  =>  1,
-            "notification_type" =>  "renewal",
-            "notification_settings" =>  json_encode([["notification_id"=>1, "renewal_notification_status"=>1, "renewal_duration_in_days"=>1, "renewal_frequency_cycle"=>"Weekly"]])
+            "notification_settings" =>  json_encode([["notification_id"=>1, "renewal_duration_in_days"=>1, "renewal_frequency_cycle"=>"Weekly", "expired_notification_status" => 1, "expired_duration_in_days" => 30, "expired_frequency_cycle" => "Weekly"]])
         ];
     }
 }
