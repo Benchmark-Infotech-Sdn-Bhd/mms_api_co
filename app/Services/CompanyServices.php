@@ -220,7 +220,6 @@ class CompanyServices
     {
         return [
             'company_id' => 'required',
-            'notification_type' => 'required',
             'notification_settings' => 'required'
         ];
     }
@@ -931,7 +930,10 @@ class CompanyServices
      */
     public function emailConfigurationShow($request): mixed
     {
-        return $this->companyRenewalNotification->where('company_id', $request['company_id'])->get();
+        return $this->companyRenewalNotification->join('renewal_notifications', 'renewal_notifications.id', 'company_renewal_notifications.notification_id')
+            ->where('company_renewal_notifications.company_id', $request['company_id'])
+            ->select('company_renewal_notifications.id', 'company_renewal_notifications.notification_id', 'renewal_notifications.notification_name', 'company_renewal_notifications.company_id', 'company_renewal_notifications.renewal_notification_status', 'company_renewal_notifications.renewal_duration_in_days', 'company_renewal_notifications.renewal_frequency_cycle', 'company_renewal_notifications.expired_notification_status', 'company_renewal_notifications.expired_duration_in_days', 'company_renewal_notifications.expired_frequency_cycle', 'company_renewal_notifications.created_at', 'company_renewal_notifications.updated_at')
+            ->get();
     }
 
     /**
@@ -957,23 +959,14 @@ class CompanyServices
             ];
         }
 
-        if (!in_array($request['notification_type'], Config::get('services.COMPANY_NOTIFICATION_TYPE'))) {
-            return [
-                'InvalidNotificationType' => true
-            ];
-        }
-
-        if($request['notification_type'] == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]){
-            $this->updateRenewalNotificationSettings($request);
-        } else if($request['notification_type'] == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]){
-            $this->updateExpiredNotificationSettings($request);
-        }
+        $this->updateNotificationSettings($request);
+        
         return true;
     }
     /**
-     * Update the Renewal Notification Settings
+     * Update the Notification Settings
      *
-     * @param array $request The request data containing email Configuration Renewal details.
+     * @param array $request The request data containing email Configuration details.
      *                       The array should have the following keys:
      *                      - company_id: ID of the company.
      *                      - notification_type: type of the notification.
@@ -982,7 +975,7 @@ class CompanyServices
      *
      * @return void
      */
-    private function updateRenewalNotificationSettings($request){
+    private function updateNotificationSettings($request) {
         $notificationSettings = json_decode($request['notification_settings']);
         foreach ($notificationSettings as $settings) {
             $this->companyRenewalNotification->updateOrCreate(
@@ -991,37 +984,10 @@ class CompanyServices
                     'notification_id' => $settings->notification_id
                 ],
                 [
-                    'renewal_notification_status' => $settings->renewal_notification_status,
+                    'renewal_notification_status' => $settings->renewal_notification_status ?? 1,
                     'renewal_duration_in_days' => $settings->renewal_duration_in_days,
                     'renewal_frequency_cycle' => $settings->renewal_frequency_cycle,
-                    'created_by'    => $request['created_by'] ?? 0,
-                    'modified_by'   => $request['created_by'] ?? 0
-                ]
-            );
-        }
-    }
-    /**
-     * Update the Expired Notification Settings
-     *
-     * @param array $request The request data containing email Configuration Expired details.
-     *                       The array should have the following keys:
-     *                      - company_id: ID of the company.
-     *                      - notification_type: type of the notification.
-     *                      - notification_settings: it containing the notification settings value
-     *                      - created_by: Created user ID
-     *
-     * @return void
-     */
-    private function updateExpiredNotificationSettings($request){
-        $notificationSettings = json_decode($request['notification_settings']);
-        foreach ($notificationSettings as $settings) {
-            $this->companyRenewalNotification->updateOrCreate(
-                [
-                    'company_id' => $request['company_id'],
-                    'notification_id' => $settings->notification_id
-                ],
-                [
-                    'expired_notification_status' => $settings->expired_notification_status,
+                    'expired_notification_status' => $settings->expired_notification_status ?? 1,
                     'expired_duration_in_days' => $settings->expired_duration_in_days,
                     'expired_frequency_cycle' => $settings->expired_frequency_cycle,
                     'created_by'    => $request['created_by'] ?? 0,
