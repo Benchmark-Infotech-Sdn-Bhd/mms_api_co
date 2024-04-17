@@ -19,6 +19,7 @@ use App\Models\RenewalNotification;
 class CompanyServices
 {
     public const DEFAULT_INTEGER_VALUE_ZERO = 0;
+    public const DEFAULT_FREQUENCY = 'Weekly';
 
     /**
      * @var Company
@@ -985,11 +986,11 @@ class CompanyServices
                 ],
                 [
                     'renewal_notification_status' => $settings->renewal_notification_status ?? 1,
-                    'renewal_duration_in_days' => $settings->renewal_duration_in_days,
-                    'renewal_frequency_cycle' => $settings->renewal_frequency_cycle,
-                    'expired_notification_status' => $settings->expired_notification_status ?? 1,
-                    'expired_duration_in_days' => $settings->expired_duration_in_days,
-                    'expired_frequency_cycle' => $settings->expired_frequency_cycle,
+                    'renewal_duration_in_days' => $settings->renewal_duration_in_days ?? 0,
+                    'renewal_frequency_cycle' => $settings->renewal_frequency_cycle ?? self::DEFAULT_FREQUENCY,
+                    'expired_notification_status' => $settings->expired_notification_status ?? 0,
+                    'expired_duration_in_days' => $settings->expired_duration_in_days ?? 0,
+                    'expired_frequency_cycle' => $settings->expired_frequency_cycle ?? self::DEFAULT_FREQUENCY,
                     'created_by'    => $request['created_by'] ?? 0,
                     'modified_by'   => $request['created_by'] ?? 0
                 ]
