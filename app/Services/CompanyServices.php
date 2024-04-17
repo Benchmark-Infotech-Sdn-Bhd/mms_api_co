@@ -19,7 +19,7 @@ use App\Models\RenewalNotification;
 class CompanyServices
 {
     public const DEFAULT_INTEGER_VALUE_ZERO = 0;
-    public const DEFAULT_FREQUENCY = 'Weekly';
+    public const DEFAULT_FREQUENCY = 'None';
 
     /**
      * @var Company
