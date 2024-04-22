@@ -475,7 +475,7 @@ class DirectRecruitmentWorkersServices
             ELSE worker_visa.approval_status END) = '" . $request['status'] . "'");
         }
         return $data->distinct()
-            ->orderBy('workers.created_at', 'DESC')
+            ->orderBy('workers.id', 'DESC')
             ->paginate(Config::get('services.paginate_row'));
     }
 
