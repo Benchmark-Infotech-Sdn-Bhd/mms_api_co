@@ -126,8 +126,8 @@ return [
     'FOMEMA_NOTIFICATION_MESSAGE' => 'workers Fomema should be renewed.',
     'PASSPORT_NOTIFICATION_TITLE' => 'PASSPORT RENEWAL',
     'PASSPORT_NOTIFICATION_MESSAGE' => 'workers Passport should be renewed.',
-    'PLKS_NOTIFICATION_TITLE' => 'PLKS RENEWAL',
-    'PLKS_NOTIFICATION_MESSAGE' => 'workers PLKS Visa should be renewed.',
+    'PLKS_NOTIFICATION_TITLE' => 'PLKS(WORK PERMIT) RENEWAL',
+    'PLKS_NOTIFICATION_MESSAGE' => 'workers PLKS Visa(Work Permit) should be renewed.',
     'CALLING_VISA_NOTIFICATION_TITLE' => 'CALLING VISA RENEWAL',
     'CALLING_VISA_NOTIFICATION_MESSAGE' => 'workers Calling Visa should be renewed.',
     'SPECIAL_PASS_NOTIFICATION_TITLE' => 'SPECIAL PASS RENEWAL',
@@ -142,8 +142,8 @@ return [
     'FOMEMA_EXPIRY_NOTIFICATION_MESSAGE' => 'workers Fomema are expired.',
     'PASSPORT_EXPIRY_NOTIFICATION_TITLE' => 'PASSPORT EXPIRY',
     'PASSPORT_EXPIRY_NOTIFICATION_MESSAGE' => 'workers Passport are expired.',
-    'PLKS_EXPIRY_NOTIFICATION_TITLE' => 'PLKS EXPIRY',
-    'PLKS_EXPIRY_NOTIFICATION_MESSAGE' => 'workers PLKS Visa are expired.',
+    'PLKS_EXPIRY_NOTIFICATION_TITLE' => 'PLKS(WORK PERMIT) EXPIRY',
+    'PLKS_EXPIRY_NOTIFICATION_MESSAGE' => 'workers PLKS Visa(Work Permit) are expired.',
     'CALLING_VISA_EXPIRY_NOTIFICATION_TITLE' => 'CALLING VISA EXPIRY',
     'CALLING_VISA_EXPIRY_NOTIFICATION_MESSAGE' => 'workers Calling Visa are expired.',
     'SPECIAL_PASS_EXPIRY_NOTIFICATION_TITLE' => 'SPECIAL PASS EXPIRY',
@@ -158,7 +158,7 @@ return [
 
     'FOMEMA_MAIL_MESSAGE' => 'The FOMEMA of',
     'PASSPORT_MAIL_MESSAGE' => 'The passports of',
-    'PLKS_MAIL_MESSAGE' => 'The PLKS of',
+    'PLKS_MAIL_MESSAGE' => 'The PLKS(Work Permit) of',
     'CALLING_VISA_MAIL_MESSAGE' => 'The Calling Visas of',
     'SPECIAL_PASS_MAIL_MESSAGE' => 'The Special Passes of',
     'INSURANCE_MAIL_MESSAGE' => 'The Insurance of',
@@ -212,5 +212,7 @@ return [
 
     'DIRECT_RECRUITMENT_NOTIFICATION_ID' => [1,2,3,4,5,6,7],
     
-    'ECONTRACT_NOTIFICATION_ID' => [8],
+    'TOTAL_MANAGEMENT_NOTIFICATION_ID' => [1,2,3,6,8],
+
+    'ECONTRACT_NOTIFICATION_ID' => [1,2,3,6,8],
 ];

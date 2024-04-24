@@ -448,7 +448,7 @@ class NotificationServices
     public function passportNotifications($user, $renewalType, $frequency): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Passport Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
             if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
@@ -553,12 +553,15 @@ class NotificationServices
     public function plksRenewalNotifications($user, $notificationDetails): array
     {
         $params = [];
-        $plksRenewalNotificationsCount = Workers::whereDate('plks_expiry_date', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
-                                ->whereDate('plks_expiry_date', '>=', Carbon::now())
-                                ->select('id')
-                                ->where('company_id', $user['company_id'])
+        $plksRenewalNotificationsCount = Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+                                ->where(function ($query) {
+                                    $query->whereDate('workers.plks_expiry_date', '>=', Carbon::now())
+                                    ->orWhereDate('worker_visa.work_permit_valid_until', '>=', Carbon::now());
+                                })
+                                ->select('workers.id')
+                                ->where('workers.company_id', $user['company_id'])
                                 ->count();
-
+        
         if (isset($plksRenewalNotificationsCount) && $plksRenewalNotificationsCount != 0) {
             $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PLKS_NOTIFICATION_TITLE'), Config::get('services.PLKS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.PLKS_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]);
             $this->insertNotification($params);
@@ -579,11 +582,20 @@ class NotificationServices
     public function plksExpiryNotifications($user, $notificationDetails): array
     {
         $params = [];
-        $plksRenewalNotificationsCount = Workers::whereDate('plks_expiry_date', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
-                                ->whereDate('plks_expiry_date', '<', Carbon::now())
-                                ->select('id')
-                                ->where('company_id', $user['company_id'])
-                                ->count();
+        $plksRenewalNotificationsCount = Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+                            ->where(function($q) use ($notificationDetails) {
+                                $q->where(function($query) use ($notificationDetails){
+                                    $query->whereDate('workers.plks_expiry_date', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+                                    ->whereDate('workers.plks_expiry_date', '<', Carbon::now());
+                                })
+                                ->orWhere(function($query) use ($notificationDetails) {
+                                    $query->whereDate('worker_visa.work_permit_valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+                                    ->whereDate('worker_visa.work_permit_valid_until', '<', Carbon::now());
+                                });
+                            })
+                            ->select('workers.id')
+                            ->where('workers.company_id', $user['company_id'])
+                            ->count();
 
         if (isset($plksRenewalNotificationsCount) && $plksRenewalNotificationsCount != 0) {
             $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.EXPIRY_NOTIFICATION_TYPE'), Config::get('services.PLKS_EXPIRY_NOTIFICATION_TITLE'), Config::get('services.PLKS_EXPIRY_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.PLKS_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]);
@@ -771,7 +783,7 @@ class NotificationServices
     public function insuranceNotifications($user, $renewalType, $frequency): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Insurance Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
             if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
@@ -853,7 +865,7 @@ class NotificationServices
     public function entryVisaNotifications($user, $renewalType, $frequency): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Entry Visa Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
             if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
