@@ -98,7 +98,8 @@ class EContractPayrollImport implements ToModel, WithChunkReading, WithHeadingRo
             'sosco_deduction' => $row['sosco_deduction'] ?? 0,
             'sosco_contribution' => $row['sosco_contribution'] ?? 0,
             'created_by' => $this->parameters['created_by'] ?? 0,
-            'modified_by' => $this->parameters['created_by'] ?? 0
+            'modified_by' => $this->parameters['created_by'] ?? 0,
+            'company_id' => $this->parameters['company_id'] ?? 0
         ];
     }
 
