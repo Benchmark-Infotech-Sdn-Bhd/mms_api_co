@@ -76,7 +76,7 @@ class EContractPayrollsImport extends Job
         } else {
             $this->logAndIncrementFailure('ERROR - EMPTY INPUT');
         }
-        $this->insertRecord($comments, 1, $successFlag, $this->payrollParameter['company_id']);
+        $this->insertRecord($comments, 1, $successFlag, $parameters['company_id']);
     }
 
     /**
