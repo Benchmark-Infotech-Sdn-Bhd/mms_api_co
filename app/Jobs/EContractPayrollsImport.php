@@ -61,6 +61,8 @@ class EContractPayrollsImport extends Job
      */
     public function handle(DatabaseConnectionServices $databaseConnectionServices): void
     {
+        $comments = '';
+        $successFlag = 0;
         $parameters = $this->payrollParameter;
         if ($this->validatePayrollParameters($parameters)) {
             $worker = DB::table('workers')
