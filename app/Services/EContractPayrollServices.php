@@ -667,7 +667,8 @@ class EContractPayrollServices
                 $this->applyWorkerSearchFilter($query, $request);
             })
             ->distinct('workers.id')
-            ->orderBy('e-contract_payroll.id','DESC');
+            ->orderBy('e-contract_payroll.id','DESC')
+            ->orderBy('workers.id','DESC');
     }
 
     /**

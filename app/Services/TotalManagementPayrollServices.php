@@ -317,6 +317,7 @@ class TotalManagementPayrollServices
         $data = $this->applySearchFilter($request,$data);
         $data = $this->ListSelectColumns($data)
                     ->orderBy('total_management_payroll.id','DESC')
+                    ->orderBy('workers.id','DESC')
                     ->paginate(Config::get('services.paginate_row'));
         return $data;
     }
