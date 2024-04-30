@@ -1018,6 +1018,9 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                         $router->post('add', 'V1\TotalManagementProjectController@add');
                         $router->post('update', 'V1\TotalManagementProjectController@update');
                     });
+                    $router->group(['prefix' => '', 'middleware' => ['permissions:6,Delete']], function () use ($router) {
+                        $router->post('deleteAttachment', 'V1\TotalManagementProjectController@deleteAttachment');
+                    });
                 });
                 $router->group(['prefix' => 'supervisor'], function () use ($router) {
                     $router->group(['prefix' => '', 'middleware' => ['permissions:7,View']], function () use ($router) {

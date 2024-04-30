@@ -77,10 +77,9 @@ class TotalManagementProjectController extends Controller
     public function add(Request $request): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['created_by'] = $user['id'];
-            $response = $this->totalManagementProjectServices->add($params);
+            $request['created_by'] = $user['id'];
+            $response = $this->totalManagementProjectServices->add($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }
@@ -99,11 +98,10 @@ class TotalManagementProjectController extends Controller
     public function update(Request $request): JsonResponse
     {
         try {
-            $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['modified_by'] = $user['id'];
-            $params['company_id'] = $this->authServices->getCompanyIds($user);
-            $response = $this->totalManagementProjectServices->update($params);
+            $request['modified_by'] = $user['id'];
+            $request['company_id'] = $this->authServices->getCompanyIds($user);
+            $response = $this->totalManagementProjectServices->update($request);
             if(isset($response['error'])) {
                 return $this->validationError($response['error']);
             }else if(isset($data['unauthorizedError'])) {
@@ -114,5 +112,24 @@ class TotalManagementProjectController extends Controller
             Log::error('Error = ' . print_r($e->getMessage(), true));
             return $this->sendError(['message' => 'Failed to Update Total Management Project'], 400);
         }
+    }
+
+    /**
+     * delete attachment.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteAttachment(Request $request): JsonResponse
+    {   
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $request['company_id'] = $this->authServices->getCompanyIds($user);
+            $response = $this->totalManagementProjectServices->deleteAttachment($request);
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => $e->getMessage()]);
+        }        
     }
 }

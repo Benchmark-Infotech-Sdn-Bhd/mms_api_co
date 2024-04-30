@@ -954,9 +954,9 @@ class NotificationServices
                 if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], explode(",",$user['module_name']))) {
                     $eContractServiceAgreement = $this->getServiceAgreement($user, $notificationDetails);
                 }
-                // if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], explode(",",$user['module_name']))) {
-                //     $TotalManagementserviceAgreement = $this->getTotalManagementServiceAgreement($user, $notificationDetails);
-                // }
+                if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], explode(",",$user['module_name']))) {
+                    $TotalManagementserviceAgreement = $this->getTotalManagementServiceAgreement($user, $notificationDetails);
+                }
 
                 $serviceAgreement = array_unique(array_merge($eContractServiceAgreement, $TotalManagementserviceAgreement), SORT_REGULAR);
 
@@ -968,9 +968,9 @@ class NotificationServices
                 if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], explode(",",$user['module_name']))) {
                     $eContractServiceAgreement = $this->getExpiredServiceAgreement($user, $notificationDetails);
                 }
-                // if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], explode(",",$user['module_name']))) {
-                    // $TotalManagementserviceAgreement = $this->getTotalManagementExpiredServiceAgreement($user, $notificationDetails);
-                // }
+                if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], explode(",",$user['module_name']))) {
+                    $TotalManagementserviceAgreement = $this->getTotalManagementExpiredServiceAgreement($user, $notificationDetails);
+                }
 
                 $serviceAgreement = array_unique(array_merge($eContractServiceAgreement, $TotalManagementserviceAgreement), SORT_REGULAR);
 
@@ -1006,23 +1006,23 @@ class NotificationServices
             ->get()->toArray();
     }
 
-    // /**
-    //  * Get service agreements that are expiring within the next 3 months
-    //  *
-    //  * @param array $user An array containing the user's data
-    //  * @return Collection if notification enabled, otherwise void
-    //  */
-    // private function getTotalManagementServiceAgreement($user, $notificationDetails)
-    // {
-    //     return TotalManagementProject::leftjoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-    //         ->leftjoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
-    //         ->select('total_management_project.id', 'total_management_project.name', /*'total_management_project.valid_until',*/ 'crm_prospects.company_name')
-    //         ->distinct('total_management_project.id', 'total_management_project.name', /*'total_management_project.valid_until',*/ 'crm_prospects.company_name')
-    //         // ->whereDate('total_management_project.valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
-    //         // ->whereDate('total_management_project.valid_until', '>=', Carbon::now())
-    //         ->where('total_management_applications.company_id', $user['company_id'])
-    //         ->get()->toArray();
-    // }
+    /**
+     * Get service agreements that are expiring within the next 3 months
+     *
+     * @param array $user An array containing the user's data
+     * @return Collection if notification enabled, otherwise void
+     */
+    private function getTotalManagementServiceAgreement($user, $notificationDetails)
+    {
+        return TotalManagementProject::leftjoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+            ->leftjoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
+            ->select('total_management_project.id', 'total_management_project.name', 'total_management_project.valid_until', 'crm_prospects.company_name')
+            ->distinct('total_management_project.id', 'total_management_project.name', 'total_management_project.valid_until', 'crm_prospects.company_name')
+            ->whereDate('total_management_project.valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
+            ->whereDate('total_management_project.valid_until', '>=', Carbon::now())
+            ->where('total_management_applications.company_id', $user['company_id'])
+            ->get()->toArray();
+    }
 
     /**
      * Get service agreements that are expiring within the next 3 months
@@ -1042,23 +1042,23 @@ class NotificationServices
             ->get()->toArray();
     }
 
-//     /**
-//     * Get service agreements that are expiring within the next 3 months
-//     *
-//     * @param array $user An array containing the user's data
-//     * @return Collection if notification enabled, otherwise void
-//     */
-//    private function getTotalManagementExpiredServiceAgreement($user, $notificationDetails)
-//    {
-//         return TotalManagementProject::leftjoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
-//         ->leftjoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
-//         ->select('total_management_project.id', 'total_management_project.name', /*'total_management_project.valid_until',*/ 'crm_prospects.company_name')
-//         ->distinct('total_management_project.id', 'total_management_project.name', /*'total_management_project.valid_until',*/ 'crm_prospects.company_name')
-//         // ->whereDate('total_management_project.valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
-//         // ->whereDate('total_management_project.valid_until', '<', Carbon::now())
-//         ->where('total_management_applications.company_id', $user['company_id'])
-//         ->get()->toArray();
-//    }
+    /**
+    * Get service agreements that are expiring within the next 3 months
+    *
+    * @param array $user An array containing the user's data
+    * @return Collection if notification enabled, otherwise void
+    */
+   private function getTotalManagementExpiredServiceAgreement($user, $notificationDetails)
+   {
+        return TotalManagementProject::leftjoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+        ->leftjoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
+        ->select('total_management_project.id', 'total_management_project.name', 'total_management_project.valid_until', 'crm_prospects.company_name')
+        ->distinct('total_management_project.id', 'total_management_project.name', 'total_management_project.valid_until', 'crm_prospects.company_name')
+        ->whereDate('total_management_project.valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+        ->whereDate('total_management_project.valid_until', '<', Carbon::now())
+        ->where('total_management_applications.company_id', $user['company_id'])
+        ->get()->toArray();
+   }
 
     /**
      * Generates notifications and updates mail message.

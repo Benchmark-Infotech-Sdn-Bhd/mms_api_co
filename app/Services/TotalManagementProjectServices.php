@@ -5,25 +5,48 @@ namespace App\Services;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use App\Models\TotalManagementProject;
+use App\Models\TotalManagementProjectAttachments;
+use Illuminate\Support\Facades\Storage;
 
 class TotalManagementProjectServices
 {
     public const DEFAULT_TRANSFER_FLAG = 0;
     public const DEFAULT_VALUE = 0;
     public const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
+    public const ATTACHMENT_ACTION_CREATE = 'CREATE';
+    public const ATTACHMENT_ACTION_UPDATE = 'UPDATE';
+    public const SERVICE_AGREEMENT = 'Service Agreement';
+    public const DEFAULT_INTEGER_VALUE_ZERO = 0;
+    public const MESSAGE_DELETED_NOT_FOUND = "Data not found";
+    public const MESSAGE_DELETED_SUCCESSFULLY = "Deleted Successfully";
 
     /**
      * @var totalManagementProject
      */
     private TotalManagementProject $totalManagementProject;
+
+    /**
+     * @var TotalManagementProjectAttachments
+     */
+    private TotalManagementProjectAttachments $totalManagementProjectAttachments;
+
+    /**
+     * @var Storage
+     */
+    private Storage $storage;
+
     /**
      * TotalManagementProjectServices constructor.
      * 
      * @param TotalManagementProject $totalManagementProject The totalManagementProject object.
+     * @param TotalManagementProjectAttachments $totalManagementProjectAttachments Instance of the TotalManagementProjectAttachments class.
+     * @param Storage $storage Instance of the Storage class.
      */
-    public function __construct(TotalManagementProject $totalManagementProject)
+    public function __construct(TotalManagementProject $totalManagementProject, TotalManagementProjectAttachments $totalManagementProjectAttachments, Storage $storage)
     {
         $this->totalManagementProject = $totalManagementProject;
+        $this->totalManagementProjectAttachments = $totalManagementProjectAttachments;
+        $this->storage = $storage;
     }
     /**
      * validate the add project request data
@@ -45,7 +68,8 @@ class TotalManagementProjectServices
             'driver_id' => 'required',
             'annual_leave' => 'required|regex:/^[0-9]+$/|max:2',
             'medical_leave' => 'required|regex:/^[0-9]+$/|max:2',
-            'hospitalization_leave' => 'required|regex:/^[0-9]+$/|max:2'
+            'hospitalization_leave' => 'required|regex:/^[0-9]+$/|max:2',
+            'valid_until' => 'required|date|date_format:Y-m-d'
         ];
     }
     /**
@@ -68,7 +92,8 @@ class TotalManagementProjectServices
             'driver_id' => 'required',
             'annual_leave' => 'required|regex:/^[0-9]+$/|max:2',
             'medical_leave' => 'required|regex:/^[0-9]+$/|max:2',
-            'hospitalization_leave' => 'required|regex:/^[0-9]+$/|max:2'
+            'hospitalization_leave' => 'required|regex:/^[0-9]+$/|max:2',
+            'valid_until' => 'required|date|date_format:Y-m-d'
         ];
     }
 
@@ -81,7 +106,7 @@ class TotalManagementProjectServices
      */
     private function validateAddRequest($request): array|bool
     {
-        $validator = Validator::make($request, $this->addValidation());
+        $validator = Validator::make($request->toArray(), $this->addValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
@@ -100,7 +125,7 @@ class TotalManagementProjectServices
      */
     private function validateUpdateRequest($request): array|bool
     {
-        $validator = Validator::make($request, $this->updateValidation());
+        $validator = Validator::make($request->toArray(), $this->updateValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
@@ -192,9 +217,9 @@ class TotalManagementProjectServices
      */
     private function listSelectColumns($data)
     {
-        return $data->select('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.supervisor_id', 'total_management_project.supervisor_type', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name as vendor_name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.created_at', 'total_management_project.updated_at')
+        return $data->select('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.supervisor_id', 'total_management_project.supervisor_type', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name as vendor_name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.valid_until', 'total_management_project.created_at', 'total_management_project.updated_at')
         ->selectRaw('count(distinct workers.id) as workers, count(distinct worker_employment.id) as worker_employments, IF(total_management_project.supervisor_type = "employee", employee.employee_name, supervisorTransportation.driver_name) as supervisor_name')
-        ->groupBy('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.supervisor_id', 'total_management_project.supervisor_type', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.created_at', 'total_management_project.updated_at', 'supervisorTransportation.driver_name');
+        ->groupBy('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.supervisor_id', 'total_management_project.supervisor_type', 'total_management_project.employee_id', 'employee.employee_name', 'total_management_project.transportation_provider_id', 'vendors.name', 'total_management_project.driver_id', 'transportation.driver_name', 'total_management_project.assign_as_supervisor', 'total_management_project.annual_leave', 'total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.valid_until', 'total_management_project.created_at', 'total_management_project.updated_at', 'supervisorTransportation.driver_name');
     }
 
     /**
@@ -208,12 +233,12 @@ class TotalManagementProjectServices
      */   
     public function show($request): mixed
     {
-        return $this->totalManagementProject
+        return $this->totalManagementProject->with('projectAttachments')
             ->join('total_management_applications', function ($join) use ($request) {
                 $join->on('total_management_applications.id', '=', 'total_management_project.application_id')
                     ->whereIn('total_management_applications.company_id', $request['company_id']);
             })
-            ->select('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.supervisor_id','total_management_project.supervisor_type', 'total_management_project.employee_id','total_management_project.transportation_provider_id', 'total_management_project.driver_id','total_management_project.assign_as_supervisor', 'total_management_project.annual_leave','total_management_project.medical_leave', 'total_management_project.hospitalization_leave','total_management_project.created_by', 'total_management_project.modified_by','total_management_project.created_at', 'total_management_project.updated_at','total_management_project.deleted_at')
+            ->select('total_management_project.id', 'total_management_project.application_id', 'total_management_project.name', 'total_management_project.state', 'total_management_project.city', 'total_management_project.address', 'total_management_project.supervisor_id','total_management_project.supervisor_type', 'total_management_project.employee_id','total_management_project.transportation_provider_id', 'total_management_project.driver_id','total_management_project.assign_as_supervisor', 'total_management_project.annual_leave','total_management_project.medical_leave', 'total_management_project.hospitalization_leave', 'total_management_project.valid_until', 'total_management_project.created_by', 'total_management_project.modified_by','total_management_project.created_at', 'total_management_project.updated_at','total_management_project.deleted_at')
             ->find($request['id']);
     }
     /**
@@ -233,7 +258,8 @@ class TotalManagementProjectServices
         if (is_array($validationResult)) {
             return $validationResult;
         }
-        $this->createTotalMangementProject($request);
+        $totalManagementProject = $this->createTotalMangementProject($request);
+        $this->updateTotalManagementProjectAttachments(self::ATTACHMENT_ACTION_CREATE, $request, $totalManagementProject->id);
         return true;
     }
     /**
@@ -254,11 +280,11 @@ class TotalManagementProjectServices
      *              hospitalization_leave (int) hospitalization leave
      *              created_by (int) The ID of the user who created the project.
      * 
-     * @return void
+     * @return mixed TotalManagementProject The newly created TotalManagement project.
      */
     private function createTotalMangementProject($request)
     {
-        $this->totalManagementProject->create([
+        return $this->totalManagementProject->create([
             'application_id' => $request['application_id'] ?? self::DEFAULT_VALUE,
             'name' => $request['name'] ?? '',
             'state' => $request['state'] ?? '',
@@ -273,6 +299,7 @@ class TotalManagementProjectServices
             'annual_leave' => $request['annual_leave'] ?? self::DEFAULT_VALUE,
             'medical_leave' => $request['medical_leave'] ?? self::DEFAULT_VALUE,
             'hospitalization_leave' => $request['hospitalization_leave'] ?? self::DEFAULT_VALUE,
+            "valid_until" =>  $request['valid_until'] ?? null,
             'created_by' => $request['created_by'] ?? self::DEFAULT_VALUE,
             'modified_by' => $request['created_by'] ?? self::DEFAULT_VALUE
         ]);
@@ -305,6 +332,8 @@ class TotalManagementProjectServices
             return self::ERROR_UNAUTHORIZED;
         }
         $this->updateTotalManagementProject($totalManagementProject, $request);
+
+        $this->updateTotalManagementProjectAttachments(self::ATTACHMENT_ACTION_UPDATE, $request, $request['id']);
         return true;
     }
     /**
@@ -363,5 +392,86 @@ class TotalManagementProjectServices
         $totalManagementProject->hospitalization_leave =  $request['hospitalization_leave'] ?? $totalManagementProject->hospitalization_leave;
         $totalManagementProject->modified_by =  $request['modified_by'] ?? $totalManagementProject->modified_by;
         $totalManagementProject->save();
+    }
+
+    /**
+     * Upload attachment of total management project.
+     *
+     * @param string $action The action value find the [create or update] functionality
+     * @param array $request The request data containing valid until, total management project attachments, created by, modified by
+     * @param int $totalManagementProjectId The attachments was upload against the application Id
+     *
+     * @return void
+     */
+    public function updateTotalManagementProjectAttachments($action, $request, $totalManagementProjectId): void
+    {
+        if (request()->hasFile('attachment') && isset($totalManagementProjectId) && !empty($request['valid_until'])) {
+            foreach($request->file('attachment') as $file) {
+                $fileName = $file->getClientOriginalName();
+                $filePath = '/totalManagement/project/'. $fileName;
+                $linode = $this->storage::disk('linode');
+                $linode->put($filePath, file_get_contents($file));
+                $fileUrl = $this->storage::disk('linode')->url($filePath);
+
+                $processData = [
+                    "file_name" => $fileName, "file_type" => self::SERVICE_AGREEMENT, "file_url" =>  $fileUrl
+                ];
+
+                if ($action == self::ATTACHMENT_ACTION_CREATE) {
+                    $processData['created_by'] = $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
+                    $processData['modified_by'] = $request['created_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
+                } else {
+                    $processData['modified_by'] = $request['modified_by'] ?? self::DEFAULT_INTEGER_VALUE_ZERO;
+                }
+
+                $this->totalManagementProjectAttachments->updateOrCreate(
+                    ["file_id" => $totalManagementProjectId], $processData
+                );
+            }
+        }
+    }
+
+    /**
+     * Delete the total management project attachment
+     *
+     * @param array $request The request data containing the attachment id and company id.
+     * @return array The result of the delete operation containing the deletion status and message.
+     */
+    public function deleteAttachment($request): array
+    {
+        $data = $this->totalManagementProjectAttachments
+        ->join('total_management_project', function($query) use($request) {
+            $query->on('total_management_project.id','=','total_management_project_attachments.file_id');
+        })
+        ->join('total_management_applications', function($query) use($request) {
+            $this->applyTotalManagementApplicationFilter($query, $request);
+        })
+        ->select('total_management_project_attachments.id', 'total_management_project_attachments.file_id', 'total_management_project_attachments.file_name', 'total_management_project_attachments.file_type', 'total_management_project_attachments.file_url', 'total_management_project_attachments.created_by', 'total_management_project_attachments.modified_by', 'total_management_project_attachments.created_at', 'total_management_project_attachments.updated_at', 'total_management_project_attachments.deleted_at')
+        ->find($request['attachment_id']);
+        if (is_null($data)) {
+            return [
+                "isDeleted" => false,
+                "message" => self::MESSAGE_DELETED_NOT_FOUND
+            ];
+        }
+
+        return [
+            "isDeleted" => $data->delete(),
+            "message" => self::MESSAGE_DELETED_SUCCESSFULLY
+        ];
+    }
+
+    /**
+     * Apply the "total management applications" filter to the query
+     *
+     * @param \Illuminate\Database\Query\Builder $query The query builder instance
+     * @param array $request The request data containing the company id
+     *
+     * @return void
+     */
+    private function applyTotalManagementApplicationFilter($query, $request)
+    {
+        $query->on('total_management_applications.id','=','total_management_project.application_id')
+            ->whereIn('total_management_applications.company_id', $request['company_id']);
     }
 }
