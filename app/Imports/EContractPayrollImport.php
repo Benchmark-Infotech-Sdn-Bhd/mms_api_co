@@ -43,7 +43,7 @@ class EContractPayrollImport implements ToModel, WithChunkReading, WithHeadingRo
             $payrollParameters = $this->getPayrollParameters($row);
                 
             DB::table('e-contract_payroll_bulk_upload')->where('id', $this->bulkUpload->id)->increment('total_records');
-            dispatch(new EContractPayrollsImport(Config::get('database.connections.mysql.database'), $payrollParameter, $this->bulkUpload))->onQueue(Config::get('services.ECONTRACT_PAYROLL_IMPORT'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
+            dispatch(new EContractPayrollsImport(Config::get('database.connections.mysql.database'), $payrollParameters, $this->bulkUpload))->onQueue(Config::get('services.ECONTRACT_PAYROLL_IMPORT'))->onConnection(Config::get('services.QUEUE_CONNECTION'));
         } catch (Exception $exception) {
             Log::error('Error - ' . print_r($exception->getMessage(), true));
         }
@@ -98,7 +98,8 @@ class EContractPayrollImport implements ToModel, WithChunkReading, WithHeadingRo
             'sosco_deduction' => $row['sosco_deduction'] ?? 0,
             'sosco_contribution' => $row['sosco_contribution'] ?? 0,
             'created_by' => $this->parameters['created_by'] ?? 0,
-            'modified_by' => $this->parameters['created_by'] ?? 0
+            'modified_by' => $this->parameters['created_by'] ?? 0,
+            'company_id' => $this->parameters['company_id'] ?? 0
         ];
     }
 

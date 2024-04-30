@@ -1316,15 +1316,14 @@ class WorkersServices
      */
     private function listApplySearchFilter($request,$data)
     {
-        $search = $request['search_param'] ?? '';
         return $data->where(function ($query) use ($request) {
             if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
                 $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
             }
-            if (!empty($search)) {
-                $query->where('workers.name', 'like', "%{$search}%")
-                ->orWhere('workers.passport_number', 'like', '%'.$search.'%')
-                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$search.'%');
+            if (isset($request['search_param']) && !empty($request['search_param'])) {
+                $query->where('workers.name', 'like', '%'.$request['search_param'].'%')
+                ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
+                ->orWhere('worker_visa.ksm_reference_number', 'like', '%'.$request['search_param'].'%');
             }
 
         });

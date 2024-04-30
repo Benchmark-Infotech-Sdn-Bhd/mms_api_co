@@ -61,6 +61,8 @@ class EContractPayrollsImport extends Job
      */
     public function handle(DatabaseConnectionServices $databaseConnectionServices): void
     {
+        $comments = '';
+        $successFlag = 0;
         $parameters = $this->payrollParameter;
         if ($this->validatePayrollParameters($parameters)) {
             $worker = DB::table('workers')
@@ -74,7 +76,7 @@ class EContractPayrollsImport extends Job
         } else {
             $this->logAndIncrementFailure('ERROR - EMPTY INPUT');
         }
-        $this->insertRecord($comments, 1, $successFlag, $this->payrollParameter['company_id']);
+        $this->insertRecord($comments, 1, $successFlag, $parameters['company_id']);
     }
 
     /**
