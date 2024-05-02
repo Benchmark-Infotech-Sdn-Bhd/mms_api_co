@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Carbon;
 use App\Models\OnboardingDispatch;
 use App\Models\CompanyRenewalNotification;
+use App\Models\TotalManagementProject;
 
 class NotificationServices
 {
@@ -201,7 +202,7 @@ class NotificationServices
             $notifications['callingVisaRenewal'] = $this->callingVisaNotifications($user, $renewalType, $frequency);
             $notifications['specialPassRenewal'] = $this->specialPassNotifications($user, $renewalType, $frequency);
         }
-        if (in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], $userModules)) {
+        if (in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], $userModules) || in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], $userModules)) {
             $notifications['serviceAgreement'] = $this->serviceAgreementNotifications($user, $renewalType, $frequency);
         }
         if (in_array(Config::get('services.ACCESS_MODULE_TYPE')[4], $userModules) || in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], $userModules) || in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], $userModules)) {
@@ -448,7 +449,7 @@ class NotificationServices
     public function passportNotifications($user, $renewalType, $frequency): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Passport Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
             if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
@@ -553,12 +554,15 @@ class NotificationServices
     public function plksRenewalNotifications($user, $notificationDetails): array
     {
         $params = [];
-        $plksRenewalNotificationsCount = Workers::whereDate('plks_expiry_date', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
-                                ->whereDate('plks_expiry_date', '>=', Carbon::now())
-                                ->select('id')
-                                ->where('company_id', $user['company_id'])
+        $plksRenewalNotificationsCount = Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+                                ->where(function ($query) {
+                                    $query->whereDate('workers.plks_expiry_date', '>=', Carbon::now())
+                                    ->orWhereDate('worker_visa.work_permit_valid_until', '>=', Carbon::now());
+                                })
+                                ->select('workers.id')
+                                ->where('workers.company_id', $user['company_id'])
                                 ->count();
-
+        
         if (isset($plksRenewalNotificationsCount) && $plksRenewalNotificationsCount != 0) {
             $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.NOTIFICATION_TYPE'), Config::get('services.PLKS_NOTIFICATION_TITLE'), Config::get('services.PLKS_NOTIFICATION_MESSAGE'), $notificationDetails[0]['renewal_duration_in_days'], 'DAYS', Config::get('services.PLKS_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]);
             $this->insertNotification($params);
@@ -579,11 +583,20 @@ class NotificationServices
     public function plksExpiryNotifications($user, $notificationDetails): array
     {
         $params = [];
-        $plksRenewalNotificationsCount = Workers::whereDate('plks_expiry_date', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
-                                ->whereDate('plks_expiry_date', '<', Carbon::now())
-                                ->select('id')
-                                ->where('company_id', $user['company_id'])
-                                ->count();
+        $plksRenewalNotificationsCount = Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+                            ->where(function($q) use ($notificationDetails) {
+                                $q->where(function($query) use ($notificationDetails){
+                                    $query->whereDate('workers.plks_expiry_date', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+                                    ->whereDate('workers.plks_expiry_date', '<', Carbon::now());
+                                })
+                                ->orWhere(function($query) use ($notificationDetails) {
+                                    $query->whereDate('worker_visa.work_permit_valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+                                    ->whereDate('worker_visa.work_permit_valid_until', '<', Carbon::now());
+                                });
+                            })
+                            ->select('workers.id')
+                            ->where('workers.company_id', $user['company_id'])
+                            ->count();
 
         if (isset($plksRenewalNotificationsCount) && $plksRenewalNotificationsCount != 0) {
             $params = $this->formNotificationInsertData($user, $plksRenewalNotificationsCount, Config::get('services.EXPIRY_NOTIFICATION_TYPE'), Config::get('services.PLKS_EXPIRY_NOTIFICATION_TITLE'), Config::get('services.PLKS_EXPIRY_NOTIFICATION_MESSAGE'), $notificationDetails[0]['expired_duration_in_days'], 'DAYS', Config::get('services.PLKS_MAIL_MESSAGE'), Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]);
@@ -771,7 +784,7 @@ class NotificationServices
     public function insuranceNotifications($user, $renewalType, $frequency): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Insurance Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
             if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
@@ -853,7 +866,7 @@ class NotificationServices
     public function entryVisaNotifications($user, $renewalType, $frequency): array
     {
         $params = [];
-        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['PLKS Renewal'], $frequency);
+        $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Entry Visa Renewal'], $frequency);
 
         if(!empty($notificationDetails)) {
             if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
@@ -929,19 +942,38 @@ class NotificationServices
     {
         $params['mail_message'] = '';
         $params['company_id'] = '';
+        $eContractServiceAgreement = [];
+        $TotalManagementserviceAgreement = [];
+        $serviceAgreement = [];
 
         $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Service Agreement Renewal'], $frequency);
 
         $notificationTitle = Config::get('services.SERVICE_AGREEMENT_NOTIFICATION_TITLE');
         if(!empty($notificationDetails)) {
             if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
-                $serviceAgreement = $this->getServiceAgreement($user, $notificationDetails);
+                if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], explode(",",$user['module_name']))) {
+                    $eContractServiceAgreement = $this->getServiceAgreement($user, $notificationDetails);
+                }
+                if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], explode(",",$user['module_name']))) {
+                    $TotalManagementserviceAgreement = $this->getTotalManagementServiceAgreement($user, $notificationDetails);
+                }
+
+                $serviceAgreement = array_unique(array_merge($eContractServiceAgreement, $TotalManagementserviceAgreement), SORT_REGULAR);
+
                 $notificationMessage = Config::get('services.SERVICE_AGREEMENT_MAIL_MESSAGE');
                 if(!empty($serviceAgreement)) {
                     $mailMessage = $this->generateNotificationsAndUpdateMailMessage($serviceAgreement, $user, $notificationTitle, $notificationMessage);
                 }
             } else if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
-                $serviceAgreement = $this->getExpiredServiceAgreement($user, $notificationDetails);
+                if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], explode(",",$user['module_name']))) {
+                    $eContractServiceAgreement = $this->getExpiredServiceAgreement($user, $notificationDetails);
+                }
+                if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], explode(",",$user['module_name']))) {
+                    $TotalManagementserviceAgreement = $this->getTotalManagementExpiredServiceAgreement($user, $notificationDetails);
+                }
+
+                $serviceAgreement = array_unique(array_merge($eContractServiceAgreement, $TotalManagementserviceAgreement), SORT_REGULAR);
+
                 $notificationMessage = Config::get('services.SERVICE_AGREEMENT_EXPIRY_MAIL_MESSAGE');
                 if(!empty($serviceAgreement)) {
                     $mailMessage = $this->generateNotificationsAndUpdateMailMessage($serviceAgreement, $user, $notificationTitle, $notificationMessage);
@@ -971,7 +1003,25 @@ class NotificationServices
             ->whereDate('e-contract_project.valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
             ->whereDate('e-contract_project.valid_until', '>=', Carbon::now())
             ->where('e-contract_applications.company_id', $user['company_id'])
-            ->get();
+            ->get()->toArray();
+    }
+
+    /**
+     * Get service agreements that are expiring within the next 3 months
+     *
+     * @param array $user An array containing the user's data
+     * @return Collection if notification enabled, otherwise void
+     */
+    private function getTotalManagementServiceAgreement($user, $notificationDetails)
+    {
+        return TotalManagementProject::leftjoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+            ->leftjoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
+            ->select('total_management_project.id', 'total_management_project.name', 'total_management_project.valid_until', 'crm_prospects.company_name')
+            ->distinct('total_management_project.id', 'total_management_project.name', 'total_management_project.valid_until', 'crm_prospects.company_name')
+            ->whereDate('total_management_project.valid_until', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
+            ->whereDate('total_management_project.valid_until', '>=', Carbon::now())
+            ->where('total_management_applications.company_id', $user['company_id'])
+            ->get()->toArray();
     }
 
     /**
@@ -989,8 +1039,26 @@ class NotificationServices
             ->whereDate('e-contract_project.valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
             ->whereDate('e-contract_project.valid_until', '<', Carbon::now())
             ->where('e-contract_applications.company_id', $user['company_id'])
-            ->get();
+            ->get()->toArray();
     }
+
+    /**
+    * Get service agreements that are expiring within the next 3 months
+    *
+    * @param array $user An array containing the user's data
+    * @return Collection if notification enabled, otherwise void
+    */
+   private function getTotalManagementExpiredServiceAgreement($user, $notificationDetails)
+   {
+        return TotalManagementProject::leftjoin('total_management_applications', 'total_management_applications.id', '=', 'total_management_project.application_id')
+        ->leftjoin('crm_prospects', 'crm_prospects.id', '=', 'total_management_applications.crm_prospect_id')
+        ->select('total_management_project.id', 'total_management_project.name', 'total_management_project.valid_until', 'crm_prospects.company_name')
+        ->distinct('total_management_project.id', 'total_management_project.name', 'total_management_project.valid_until', 'crm_prospects.company_name')
+        ->whereDate('total_management_project.valid_until', '>=', Carbon::now()->subDays($notificationDetails[0]['expired_duration_in_days']))
+        ->whereDate('total_management_project.valid_until', '<', Carbon::now())
+        ->where('total_management_applications.company_id', $user['company_id'])
+        ->get()->toArray();
+   }
 
     /**
      * Generates notifications and updates mail message.

@@ -889,19 +889,20 @@ class CompanyServices
      */
     public function emailConfigurationNotificationList($request)
     {
+        $notificationId = [];
         $countDirectRecruitmentModule = $this->getCompanyModulesCount($request['company_id'],Config::get('services.ACCESS_MODULE_TYPE')[4]);
+        $countTotalManagementModule = $this->getCompanyModulesCount($request['company_id'],Config::get('services.ACCESS_MODULE_TYPE')[6]);
         $countEcontractModule = $this->getCompanyModulesCount($request['company_id'],Config::get('services.ACCESS_MODULE_TYPE')[5]);    
 
-        if($countDirectRecruitmentModule > self::DEFAULT_INTEGER_VALUE_ZERO && $countEcontractModule > self::DEFAULT_INTEGER_VALUE_ZERO) {
-            $notificationId = array_merge(Config::get('services.DIRECT_RECRUITMENT_NOTIFICATION_ID'),Config::get('services.ECONTRACT_NOTIFICATION_ID'));
-        } else if($countDirectRecruitmentModule > self::DEFAULT_INTEGER_VALUE_ZERO && $countEcontractModule == self::DEFAULT_INTEGER_VALUE_ZERO) {
-            $notificationId = Config::get('services.DIRECT_RECRUITMENT_NOTIFICATION_ID');
-        } else if($countDirectRecruitmentModule == self::DEFAULT_INTEGER_VALUE_ZERO && $countEcontractModule > self::DEFAULT_INTEGER_VALUE_ZERO){
-            $notificationId = Config::get('services.ECONTRACT_NOTIFICATION_ID');
-        } else {
-            $notificationId = [];
+		if($countDirectRecruitmentModule > self::DEFAULT_INTEGER_VALUE_ZERO) {
+            $notificationId = array_unique(array_merge($notificationId, Config::get('services.DIRECT_RECRUITMENT_NOTIFICATION_ID')), SORT_REGULAR);
+        } 
+		if($countTotalManagementModule > self::DEFAULT_INTEGER_VALUE_ZERO) {
+            $notificationId = array_unique(array_merge($notificationId, Config::get('services.TOTAL_MANAGEMENT_NOTIFICATION_ID')), SORT_REGULAR);
+        } 
+		if($countEcontractModule > self::DEFAULT_INTEGER_VALUE_ZERO){
+			$notificationId = array_unique(array_merge($notificationId, Config::get('services.ECONTRACT_NOTIFICATION_ID')), SORT_REGULAR);
         }
-
         return $this->renewalNotification->select('id','notification_name','status')->whereIn('id', $notificationId)->get();
     }
 

@@ -10,7 +10,7 @@
 <p>{{ $params['message']['passportRenewal']['mail_message'] }}</p>
 @endisset
 @isset($params['message']['plksRenewal']['mail_message'])
-<p><b>PLKS:</b></p>
+<p><b>PLKS(Work Permit):</b></p>
 <p>{{ $params['message']['plksRenewal']['mail_message'] }}</p>
 @endisset
 @isset($params['message']['callingVisaRenewal']['mail_message'])
