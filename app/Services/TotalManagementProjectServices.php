@@ -390,6 +390,7 @@ class TotalManagementProjectServices
         $totalManagementProject->annual_leave =  $request['annual_leave'] ?? $totalManagementProject->annual_leave;
         $totalManagementProject->medical_leave =  $request['medical_leave'] ?? $totalManagementProject->medical_leave;
         $totalManagementProject->hospitalization_leave =  $request['hospitalization_leave'] ?? $totalManagementProject->hospitalization_leave;
+        $totalManagementProject->valid_until =  $request['valid_until'] ?? $totalManagementProject->valid_until;
         $totalManagementProject->modified_by =  $request['modified_by'] ?? $totalManagementProject->modified_by;
         $totalManagementProject->save();
     }
@@ -405,7 +406,7 @@ class TotalManagementProjectServices
      */
     public function updateTotalManagementProjectAttachments($action, $request, $totalManagementProjectId): void
     {
-        if (request()->hasFile('attachment') && isset($totalManagementProjectId) && !empty($request['valid_until'])) {
+        if (request()->hasFile('attachment') && isset($totalManagementProjectId)) {
             foreach($request->file('attachment') as $file) {
                 $fileName = $file->getClientOriginalName();
                 $filePath = '/totalManagement/project/'. $fileName;
