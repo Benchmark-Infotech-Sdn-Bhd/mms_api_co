@@ -202,9 +202,9 @@ class DirectRecruitmentExpensesServices
         foreach ($request->file('attachment') as $file) {
             $fileName = $file->getClientOriginalName();
             $filePath = '/expenses/' . $request['id'] . $fileName;
-            $linode = $this->storage->disk('linode');
+            $linode = $this->storage::disk('linode');
             $linode->put($filePath, file_get_contents($file));
-            $fileUrl = $this->storage->disk('linode')->url($filePath);
+            $fileUrl = $linode->url($filePath);
             $this->directRecruitmentExpensesAttachments::create([
                 "file_id" => $request['id'],
                 "file_name" => $fileName,

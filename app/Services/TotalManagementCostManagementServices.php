@@ -268,7 +268,7 @@ class TotalManagementCostManagementServices
      * @see validateUpdateRequest()
      * @see getCostManagement()
      * @see updateTotalManagementCostManagement()
-     * @see deleteCostManagementFiles()
+     * // @see deleteCostManagementFiles()
      * @see uploadCostManagementFiles()
      * 
      */
@@ -289,7 +289,7 @@ class TotalManagementCostManagementServices
 
         $this->updateTotalManagementCostManagement($costManagement, $request);
 
-        $this->deleteCostManagementFiles($request['id']);
+        //$this->deleteCostManagementFiles($request['id']);
 
         $this->uploadCostManagementFiles($request, $costManagement->id);
 
