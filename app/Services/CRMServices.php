@@ -427,8 +427,8 @@ class CRMServices
             'bank_account_name'             => $request['bank_account_name'] ?? '',
             'bank_account_number'           => $request['bank_account_number'] ?? 0,
             'tax_id'                        => $request['tax_id'] ?? '',
-            'account_receivable_tax_type'   => $request['account_receivable_tax_type'] ?? '',
-            'account_payable_tax_type'      => $request['account_payable_tax_type'] ?? '',
+            'account_receivable_tax_type'   => $request['account_receivable_tax_type'] ?? NULL,
+            'account_payable_tax_type'      => $request['account_payable_tax_type'] ?? NULL,
             'created_by'                    => $request['created_by'] ?? 0,
             'modified_by'                   => $request['created_by'] ?? 0,
             'company_id'                    => $request['company_id'] ?? 0
