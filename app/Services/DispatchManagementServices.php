@@ -111,7 +111,8 @@ class DispatchManagementServices
             'calltime' => 'required|date|date_format:Y-m-d',
             'area' => 'required',
             'employer_name' => 'required',
-            'phone_number' => 'required'
+            'phone_number' => 'required',
+            'acknowledgement_remarks' => 'required'
         ];
     }
 
