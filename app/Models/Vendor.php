@@ -69,7 +69,7 @@ class Vendor extends Model implements Auditable
             'type' => 'required',
             'email_address' => 'required|unique:vendors,email_address,'.$id,
             'contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
-            'person_in_charge' => 'required|regex:/^[a-zA-Z]+$/u|max:150',
+            'person_in_charge' => 'required|regex:/^[a-zA-Z @&$]+$/u|max:150',
             'pic_contact_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:11',
             'address' => 'required',
             'state' => 'required|regex:/^[a-zA-Z0-9 ]*$/u|max:150',
