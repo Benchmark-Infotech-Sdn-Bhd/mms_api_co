@@ -9,12 +9,17 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 
 class FomemaRenewalExport implements FromQuery, WithHeadings
 {
     use Exportable;
 
     private int $companyId;
+
+    private string $notificationType;
+
+    private int $days;
 
     /**
      * __construct
@@ -25,9 +30,11 @@ class FomemaRenewalExport implements FromQuery, WithHeadings
      *
      * @return void
      */
-    public function __construct(int $companyId)
+    public function __construct(int $companyId, string $notificationType, int $days)
     {
         $this->companyId = $companyId;
+        $this->notificationType = $notificationType;
+        $this->days = $days;
     }
 
     /**
@@ -37,10 +44,19 @@ class FomemaRenewalExport implements FromQuery, WithHeadings
      */
     public function query()
     {
-        return Workers::query()
-            ->whereDate('fomema_valid_until', '<', Carbon::now()->addMonths(3))
-            ->where('company_id', $this->companyId)
-            ->select('name as worker_name', 'gender', 'passport_number', 'fomema_valid_until as fomema_expiry_date');
+        if($this->notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
+            return Workers::query()
+                    ->whereDate('fomema_valid_until', '<', Carbon::now()->addDays($this->days))
+                    ->whereDate('fomema_valid_until', '>=', Carbon::now())
+                    ->where('company_id', $this->companyId)
+                    ->select('name as worker_name', 'gender', 'passport_number', 'fomema_valid_until as fomema_expiry_date');
+        } else if($this->notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
+            return Workers::query()
+                    ->whereDate('fomema_valid_until', '>=', Carbon::now()->subDays($this->days))
+                    ->whereDate('fomema_valid_until', '<', Carbon::now())
+                    ->where('company_id', $this->companyId)
+                    ->select('name as worker_name', 'gender', 'passport_number', 'fomema_valid_until as fomema_expiry_date');
+        }
     }
 
     /**

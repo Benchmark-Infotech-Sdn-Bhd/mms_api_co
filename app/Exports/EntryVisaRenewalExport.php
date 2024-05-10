@@ -9,6 +9,7 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 
 class EntryVisaRenewalExport implements FromQuery, WithHeadings
 {
@@ -16,15 +17,21 @@ class EntryVisaRenewalExport implements FromQuery, WithHeadings
 
     private int $companyId;
 
+    private string $notificationType;
+
+    private int $days;
+
     /**
      * Constructor method for the class.
      *
      * @param int $companyId The ID of the company.
      * @return void
      */
-    public function __construct(int $companyId)
+    public function __construct(int $companyId, string $notificationType, int $days)
     {
         $this->companyId = $companyId;
+        $this->notificationType = $notificationType;
+        $this->days = $days;
     }
 
     /**
@@ -37,11 +44,20 @@ class EntryVisaRenewalExport implements FromQuery, WithHeadings
      */
     public function query()
     {
-        return Workers::query()
-            ->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
-            ->whereDate('worker_visa.entry_visa_valid_until', '<', Carbon::now()->addDays(15))
-            ->where('workers.company_id', $this->companyId)
-            ->select('workers.name as worker_name', 'workers.gender', 'workers.passport_number', 'worker_visa.entry_visa_valid_until as entry_visa_expiry_date');
+        if($this->notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
+            return Workers::query()
+                        ->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+                        ->whereDate('worker_visa.entry_visa_valid_until', '<', Carbon::now()->addDays($this->days))
+                        ->whereDate('worker_visa.entry_visa_valid_until', '>=', Carbon::now())
+                        ->where('workers.company_id', $this->companyId)
+                        ->select('workers.name as worker_name', 'workers.gender', 'workers.passport_number', 'worker_visa.entry_visa_valid_until as entry_visa_expiry_date');
+        } else if($this->notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
+            return Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+                        ->whereDate('worker_visa.entry_visa_valid_until', '>=', Carbon::now()->subDays($this->days))
+                        ->whereDate('worker_visa.entry_visa_valid_until', '<', Carbon::now())
+                        ->where('workers.company_id', $this->companyId)
+                        ->select('workers.name as worker_name', 'workers.gender', 'workers.passport_number', 'worker_visa.entry_visa_valid_until as entry_visa_expiry_date');
+        }
     }
 
     /**

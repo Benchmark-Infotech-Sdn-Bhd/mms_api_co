@@ -9,12 +9,17 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 
 class PassportRenewalExport implements FromQuery, WithHeadings
 {
     use Exportable;
 
     private int $companyId;
+
+    private string $notificationType;
+
+    private int $days;
 
     /**
      * Constructor for the class.
@@ -23,9 +28,11 @@ class PassportRenewalExport implements FromQuery, WithHeadings
      *
      * @return void
      */
-    public function __construct(int $companyId)
+    public function __construct(int $companyId, string $notificationType, int $days)
     {
         $this->companyId = $companyId;
+        $this->notificationType = $notificationType;
+        $this->days = $days;
     }
 
     /**
@@ -45,10 +52,19 @@ class PassportRenewalExport implements FromQuery, WithHeadings
      */
     public function query()
     {
-        return Workers::query()
-            ->whereDate('passport_valid_until', '<', Carbon::now()->addMonths(3))
+        if($this->notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
+            return Workers::query()
+            ->whereDate('passport_valid_until', '<', Carbon::now()->addDays($this->days))
+            ->whereDate('passport_valid_until', '>=', Carbon::now())
             ->where('company_id', $this->companyId)
             ->select('name as worker_name', 'gender', 'passport_number', 'passport_valid_until as passport_expiry_date');
+        } else if($this->notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
+            return Workers::query()
+            ->whereDate('passport_valid_until', '>=', Carbon::now()->subDays($this->days))
+            ->whereDate('passport_valid_until', '<', Carbon::now())
+            ->where('company_id', $this->companyId)
+            ->select('name as worker_name', 'gender', 'passport_number', 'passport_valid_until as passport_expiry_date');
+        }
     }
 
     /**
