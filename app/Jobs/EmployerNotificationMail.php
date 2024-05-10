@@ -44,6 +44,8 @@ class EmployerNotificationMail implements ShouldQueue
         'serviceAgreement' => ServiceAgreementExport::class
     ];
 
+    const SERVICE_AGREEMENT = 'serviceAgreement';
+
     /**
      * Constructs a new instance of the class.
      *
@@ -140,7 +142,11 @@ class EmployerNotificationMail implements ShouldQueue
             if (!empty($mailMessage[$type]['company_id'])) {
                 $filename = strtolower($type) . ".xlsx";
                 $input["{$type}_filename"] = $filename;
-                $input["{$type}_file"] = Excel::raw(new $exportClass($mailMessage[$type]['company_id']), BaseExcel::XLSX);
+                if($type == self::SERVICE_AGREEMENT) {
+                    // $input["{$type}_file"] = Excel::raw(new $exportClass($mailMessage[$type]['company_id'], $mailMessage[$type]['notification_type'], $mailMessage[$type]['duration'], $mailMessage[$type]['modules']), BaseExcel::XLSX);
+                } else {
+                    $input["{$type}_file"] = Excel::raw(new $exportClass($mailMessage[$type]['company_id'], $mailMessage[$type]['notification_type'], $mailMessage[$type]['duration']), BaseExcel::XLSX);
+                } 
             }
         }
     }

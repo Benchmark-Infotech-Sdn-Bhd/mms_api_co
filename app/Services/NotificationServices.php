@@ -350,6 +350,8 @@ class NotificationServices
             'read_flag' => 0,
             'created_by' => 1,
             'modified_by' => 1,
+            'notification_type' => $notificationType,
+            'duration' => $duration
         ];
     }
 
@@ -555,6 +557,10 @@ class NotificationServices
     {
         $params = [];
         $plksRenewalNotificationsCount = Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+                                ->where(function($query) use ($notificationDetails) {
+                                    $query->whereDate('workers.plks_expiry_date', '<', Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']))
+                                    ->orWhereDate('worker_visa.work_permit_valid_until', '<',  Carbon::now()->addDays($notificationDetails[0]['renewal_duration_in_days']));
+                                })
                                 ->where(function ($query) {
                                     $query->whereDate('workers.plks_expiry_date', '>=', Carbon::now())
                                     ->orWhereDate('worker_visa.work_permit_valid_until', '>=', Carbon::now());
@@ -943,7 +949,7 @@ class NotificationServices
         $params['mail_message'] = '';
         $params['company_id'] = '';
         $eContractServiceAgreement = [];
-        $TotalManagementserviceAgreement = [];
+        $totalManagementserviceAgreement = [];
         $serviceAgreement = [];
 
         $notificationDetails = $this->getNotificationDetails($user['company_id'], $renewalType, Config::get('services.RENEWAL_NOTIFICATION_TYPE')['Service Agreement Renewal'], $frequency);
@@ -955,34 +961,39 @@ class NotificationServices
                     $eContractServiceAgreement = $this->getServiceAgreement($user, $notificationDetails);
                 }
                 if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], explode(",",$user['module_name']))) {
-                    $TotalManagementserviceAgreement = $this->getTotalManagementServiceAgreement($user, $notificationDetails);
+                    $totalManagementserviceAgreement = $this->getTotalManagementServiceAgreement($user, $notificationDetails);
                 }
 
-                $serviceAgreement = array_unique(array_merge($eContractServiceAgreement, $TotalManagementserviceAgreement), SORT_REGULAR);
+                $serviceAgreement = array_unique(array_merge($eContractServiceAgreement, $totalManagementserviceAgreement), SORT_REGULAR);
 
                 $notificationMessage = Config::get('services.SERVICE_AGREEMENT_MAIL_MESSAGE');
                 if(!empty($serviceAgreement)) {
                     $mailMessage = $this->generateNotificationsAndUpdateMailMessage($serviceAgreement, $user, $notificationTitle, $notificationMessage);
+                    $params['notification_type'] = Config::get('services.COMPANY_NOTIFICATION_TYPE')[0];
+                    $params['duration'] = $notificationDetails[0]['renewal_duration_in_days'];
                 }
             } else if($renewalType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
                 if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[5], explode(",",$user['module_name']))) {
                     $eContractServiceAgreement = $this->getExpiredServiceAgreement($user, $notificationDetails);
                 }
                 if(in_array(Config::get('services.ACCESS_MODULE_TYPE')[6], explode(",",$user['module_name']))) {
-                    $TotalManagementserviceAgreement = $this->getTotalManagementExpiredServiceAgreement($user, $notificationDetails);
+                    $totalManagementserviceAgreement = $this->getTotalManagementExpiredServiceAgreement($user, $notificationDetails);
                 }
 
-                $serviceAgreement = array_unique(array_merge($eContractServiceAgreement, $TotalManagementserviceAgreement), SORT_REGULAR);
+                $serviceAgreement = array_unique(array_merge($eContractServiceAgreement, $totalManagementserviceAgreement), SORT_REGULAR);
 
                 $notificationMessage = Config::get('services.SERVICE_AGREEMENT_EXPIRY_MAIL_MESSAGE');
                 if(!empty($serviceAgreement)) {
                     $mailMessage = $this->generateNotificationsAndUpdateMailMessage($serviceAgreement, $user, $notificationTitle, $notificationMessage);
+                    $params['notification_type'] = Config::get('services.COMPANY_NOTIFICATION_TYPE')[1];
+                    $params['duration'] = $notificationDetails[0]['expired_duration_in_days'];
                 }
             }
         }
 
         if (!empty($mailMessage)) {
             $params['company_id'] = $user['company_id'];
+            $params['modules'] = $user['module_name'];
             $params['mail_message'] = $mailMessage;
         }
         return $params;

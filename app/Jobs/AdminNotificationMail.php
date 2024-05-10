@@ -32,6 +32,8 @@ class AdminNotificationMail implements ShouldQueue
     private mixed $user;
     private mixed $message;
 
+    const SERVICE_AGREEMENT = 'serviceAgreement';
+
     /**
      * Class constructor.
      *
@@ -137,7 +139,11 @@ class AdminNotificationMail implements ShouldQueue
         foreach ($attachmentDetails as $key => $value) {
             if (!empty($mailMessage[$key]['company_id'])) {
                 $input[$key . '_attachment_filename'] = $key . ".xlsx";
-                $input[$key . '_attachment_file'] = Excel::raw(new $value($mailMessage[$key]['company_id']), BaseExcel::XLSX);
+                if($key == self::SERVICE_AGREEMENT) {
+                    // $input[$key . '_attachment_file'] = Excel::raw(new $value($mailMessage[$key]['company_id'], $mailMessage[$key]['notification_type'], $mailMessage[$key]['duration'], $mailMessage[$key]['modules']), BaseExcel::XLSX);
+                } else {
+                    $input[$key . '_attachment_file'] = Excel::raw(new $value($mailMessage[$key]['company_id'], $mailMessage[$key]['notification_type'], $mailMessage[$key]['duration']), BaseExcel::XLSX);
+                } 
             }
         }
         return $input;

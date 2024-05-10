@@ -9,12 +9,17 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 
 class InsuranceRenewalExport implements FromQuery, WithHeadings
 {
     use Exportable;
 
     private int $companyId;
+
+    private string $notificationType;
+
+    private int $days;
 
     /**
      * Constructs a new object of the class.
@@ -23,9 +28,11 @@ class InsuranceRenewalExport implements FromQuery, WithHeadings
      *
      * @return void
      */
-    public function __construct(int $companyId)
+    public function __construct(int $companyId, string $notificationType, int $days)
     {
         $this->companyId = $companyId;
+        $this->notificationType = $notificationType;
+        $this->days = $days;
     }
 
     /**
@@ -35,11 +42,21 @@ class InsuranceRenewalExport implements FromQuery, WithHeadings
      */
     public function query()
     {
-        return Workers::query()
-            ->join('worker_insurance_details', 'workers.id', '=', 'worker_insurance_details.worker_id')
-            ->whereDate('worker_insurance_details.insurance_expiry_date', '<', Carbon::now()->addMonths(1))
-            ->where('workers.company_id', $this->companyId)
-            ->select('workers.name as worker_name', 'workers.gender', 'workers.passport_number', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_expiry_date as expiry_date');
+        if($this->notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[0]) {
+            return Workers::query()
+                        ->join('worker_insurance_details', 'workers.id', '=', 'worker_insurance_details.worker_id')
+                        ->whereDate('worker_insurance_details.insurance_expiry_date', '<', Carbon::now()->addDays($this->days))
+                        ->whereDate('worker_insurance_details.insurance_expiry_date', '>=', Carbon::now())
+                        ->where('workers.company_id', $this->companyId)
+                        ->select('workers.name as worker_name', 'workers.gender', 'workers.passport_number', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_expiry_date as expiry_date');
+        } else if($this->notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
+            return Workers::query()
+                        ->join('worker_insurance_details', 'workers.id', '=', 'worker_insurance_details.worker_id')
+                        ->whereDate('worker_insurance_details.insurance_expiry_date', '>=', Carbon::now()->subDays($this->days))
+                        ->whereDate('worker_insurance_details.insurance_expiry_date', '<', Carbon::now())
+                        ->where('workers.company_id', $this->companyId)
+                        ->select('workers.name as worker_name', 'workers.gender', 'workers.passport_number', 'worker_insurance_details.ig_policy_number', 'worker_insurance_details.hospitalization_policy_number', 'worker_insurance_details.insurance_expiry_date as expiry_date');
+        }
     }
 
     /**
