@@ -655,26 +655,11 @@ class CRMServices
 
         if (\DB::getDriverName() !== 'sqlite') {
             $request['prospect_id'] = $prospect['id'];
-            $prospect['account_receivable_tax_type'] = $this->getTaxRateValue($prospect['account_receivable_tax_type']);
-            $prospect['account_payable_tax_type'] = $this->getTaxRateValue($prospect['account_payable_tax_type']);            
+            $request['account_receivable_tax_type'] = $prospect['account_receivable_tax_type'];
+            $request['account_payable_tax_type'] = $prospect['account_payable_tax_type'];            
             $createContactXero = $this->invoiceServices->createContacts($request);
         }
         return true;
-    }
-
-    /**
-     * get tax name from XeroTaxRates
-     *
-     * @param integer $taxTypeId 
-     *
-     * @return mixed $result['name']
-     */
-    private function getTaxRateValue($taxTypeId)
-    {
-        if(!empty($taxTypeId)){
-            $result = $this->xeroTaxRates->select('name')->find($taxTypeId);
-            return $result['name'];
-        }        
     }
 
     /**
@@ -754,8 +739,8 @@ class CRMServices
         if (\DB::getDriverName() !== 'sqlite') {
             $request['prospect_id'] = $prospect['id'];
             $request['ContactID'] = $prospect['xero_contact_id'];
-            $request['account_receivable_tax_type'] = $this->getTaxRateValue($prospect['account_receivable_tax_type']);
-            $request['account_payable_tax_type'] = $this->getTaxRateValue($prospect['account_payable_tax_type']);
+            $request['account_receivable_tax_type'] = $prospect['account_receivable_tax_type'];
+            $request['account_payable_tax_type'] = $prospect['account_payable_tax_type'];
             $createContactXero = $this->invoiceServices->createContacts($request);
             if (isset($createContactXero->original['Contacts'][0]['ContactID']) && !empty($createContactXero->original['Contacts'][0]['ContactID'])) {
                 $prospect->xero_contact_id = $createContactXero->original['Contacts'][0]['ContactID'];
