@@ -561,6 +561,21 @@ class XeroServices
     }
 
     /**
+     * get tax name from XeroTaxRates
+     *
+     * @param integer $taxTypeId 
+     *
+     * @return mixed $result['name']
+     */
+    private function getTaxRateValue($taxTypeId)
+    {
+        if(!empty($taxTypeId)){
+            $result = $this->xeroTaxRates->select('tax_type')->find($taxTypeId);
+            return $result['tax_type'];
+        }        
+    }
+
+    /**
      * Create contacts in Xero.
      *
      * @param array $request The request data for creating contacts.
@@ -572,6 +587,8 @@ class XeroServices
     public function createContacts($request, $xeroConfig)
     {
         $http = new Client();
+        $request['account_receivable_tax_type'] = $this->getTaxRateValue($request['account_receivable_tax_type']);
+        $request['account_payable_tax_type'] = $this->getTaxRateValue($request['account_payable_tax_type']);   
         $data = $this->prepareDataArray($request);
 
         try {

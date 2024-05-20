@@ -52,7 +52,7 @@ class EntryVisaRenewalExport implements FromQuery, WithHeadings
                         ->where('workers.company_id', $this->companyId)
                         ->select('workers.name as worker_name', 'workers.gender', 'workers.passport_number', 'worker_visa.entry_visa_valid_until as entry_visa_expiry_date');
         } else if($this->notificationType == Config::get('services.COMPANY_NOTIFICATION_TYPE')[1]) {
-            return Workers::join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
+            return Workers::query()->join('worker_visa', 'workers.id', '=', 'worker_visa.worker_id')
                         ->whereDate('worker_visa.entry_visa_valid_until', '>=', Carbon::now()->subDays($this->days))
                         ->whereDate('worker_visa.entry_visa_valid_until', '<', Carbon::now())
                         ->where('workers.company_id', $this->companyId)

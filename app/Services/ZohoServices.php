@@ -444,6 +444,21 @@ class ZohoServices
     }
 
     /**
+     * get tax name from XeroTaxRates
+     *
+     * @param integer $taxTypeId 
+     *
+     * @return mixed $result['name']
+     */
+    private function getTaxRateValue($taxTypeId)
+    {
+        if(!empty($taxTypeId)){
+            $result = $this->xeroTaxRates->select('name')->find($taxTypeId);
+            return $result['name'];
+        }        
+    }
+
+    /**
      * Create the contact
      *
      * @param $request
@@ -454,6 +469,8 @@ class ZohoServices
     public function createContacts($request, $xeroConfig) : mixed
     {
         $http = new Client();
+        $request['account_receivable_tax_type'] = $this->getTaxRateValue($request['account_receivable_tax_type']);
+        $request['account_payable_tax_type'] = $this->getTaxRateValue($request['account_payable_tax_type']);   
         if(isset($request['ContactID']) && !empty($request['ContactID'])){
             $method = 'PUT';
             $contactIdUrl = '/'.$request['ContactID'];
