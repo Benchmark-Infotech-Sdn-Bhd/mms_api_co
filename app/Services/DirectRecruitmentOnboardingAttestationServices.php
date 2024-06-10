@@ -151,7 +151,7 @@ class DirectRecruitmentOnboardingAttestationServices
             'onboarding_attestation_id' => 'required',
             'date' => 'required|date|date_format:Y-m-d',
             'time' => 'required',
-            'reference_number' => 'required',
+            // 'reference_number' => 'required',
             'employee_id' => 'required',
             'from' => 'required',
             'calltime' => 'required|date|date_format:Y-m-d',
