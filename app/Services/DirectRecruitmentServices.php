@@ -144,7 +144,7 @@ class DirectRecruitmentServices
     public function addServiceValidation(): array
     {
         return [
-            'id' => 'required',
+            // 'id' => 'required',
             // 'company_name' => 'required',
             // 'contact_number' => 'required',
             // 'email' => 'required',
