@@ -250,7 +250,7 @@ class DirectRecruitmentServices
      */
     private function getCrmProspect($request)
     {
-        return $this->crmProspect->find($request['id']);
+        return $this->crmProspect->find($request['company_id']);
     }
 
     /**
@@ -356,7 +356,7 @@ class DirectRecruitmentServices
     private function CreateDirectrecruitmentApplications($request, $prospectServiceId): void
     {
         $this->directrecruitmentApplications::create([
-            'crm_prospect_id' => $request['id'],
+            'crm_prospect_id' => $request['company_id'],
             'service_id' => $prospectServiceId,
             'quota_applied' => self::DEFAULT_VALUE,
             'person_incharge' => '',
@@ -577,7 +577,7 @@ class DirectRecruitmentServices
             return $validationResult;
         }
         
-        $crmCompany = $this->getCrmProspect($request);
+        $crmCompany = $this->getCrmProspect($request);        
         if($crmCompany['company_id'] != $request['company_id']) {
             return [
                 'InvalidUser' => true 
@@ -585,7 +585,6 @@ class DirectRecruitmentServices
         }
 
         $prospectService = $this->createProspectService($request);
-
         $prospectServiceId = $prospectService->id ?? '';
         if(!empty($prospectServiceId)){
             // $this->uploadCrmProspectFiles($request, $prospectServiceId);
