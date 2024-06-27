@@ -361,7 +361,7 @@ class DirectRecruitmentServices
             'quota_applied' => self::DEFAULT_VALUE,
             'person_incharge' => '',
             'cost_quoted' => self::DEFAULT_VALUE,
-            'status' => Config::get('services.PENDING_PROPOSAL'),
+            'status' => Config::get('services.CHECKLIST_PENDING'),
             'remarks' => '',
             'created_by' => $request["created_by"] ?? self::DEFAULT_VALUE,
             'company_id' => $request['company_id'] ?? self::DEFAULT_VALUE
@@ -577,12 +577,12 @@ class DirectRecruitmentServices
             return $validationResult;
         }
         
-        $crmCompany = $this->getCrmProspect($request);        
-        if($crmCompany['company_id'] != $request['company_id']) {
-            return [
-                'InvalidUser' => true 
-            ];
-        }
+        // $crmCompany = $this->getCrmProspect($request);        
+        // if($crmCompany['company_id'] != $request['company_id']) {
+        //     return [
+        //         'InvalidUser' => true 
+        //     ];
+        // }
 
         $prospectService = $this->createProspectService($request);
         $prospectServiceId = $prospectService->id ?? '';
