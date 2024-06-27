@@ -145,12 +145,12 @@ class DirectRecruitmentServices
     {
         return [
             'id' => 'required',
-            'company_name' => 'required',
-            'contact_number' => 'required',
-            'email' => 'required',
-            'pic_name' => 'required',
+            // 'company_name' => 'required',
+            // 'contact_number' => 'required',
+            // 'email' => 'required',
+            // 'pic_name' => 'required',
             'sector' => 'required',
-            'contract_type' => 'required',
+            // 'contract_type' => 'required',
             'service_id' => 'required'
         ];
     }
@@ -298,16 +298,18 @@ class DirectRecruitmentServices
     private function createProspectService($request): mixed
     {
         $service = $this->services->findOrFail($request['service_id']);
-        $sector = $this->sectors->findOrFail($request['sector']);
-
+        $sector = $this->sectors->findOrFail($request['sector']);    
         return $this->crmProspectService->create([
-            'crm_prospect_id'   => $request['id'],
+            'crm_prospect_id'   => $request['company_id'],
             'service_id'        => $request['service_id'] ?? self::SERVICE_ID_DEFAULT,
             'service_name'      => $service->service_name ?? self::SERVICE_NAME_DR,
             'sector_id'         => $request['sector'] ?? self::DEFAULT_VALUE,
             'sector_name'       => $sector->sector_name,
-            'contract_type'     => $service->id == self::SERVICE_ID_DEFAULT ? $request['contract_type'] : self::CONTRACT_TYPE_DEFAULT,
-            'status'            => $request['status'] ?? self::DEFAULT_VALUE
+            // 'contract_type'     => $service->id == self::SERVICE_ID_DEFAULT ? $request['contract_type'] : self::CONTRACT_TYPE_DEFAULT,
+            'status'            => $request['status'] ?? self::DEFAULT_VALUE,
+            'applied_auota'     => $request['applied_auota'] ?? self::DEFAULT_VALUE,
+            'ksm_reference_number'     => $request['ksm_reference_number'] ?? self::DEFAULT_VALUE
+
         ]);
     }
 
@@ -586,7 +588,7 @@ class DirectRecruitmentServices
 
         $prospectServiceId = $prospectService->id ?? '';
         if(!empty($prospectServiceId)){
-            $this->uploadCrmProspectFiles($request, $prospectServiceId);
+            // $this->uploadCrmProspectFiles($request, $prospectServiceId);
             $this->CreateDirectrecruitmentApplications($request, $prospectServiceId);
         }
         
@@ -618,7 +620,7 @@ class DirectRecruitmentServices
             $this->applyListStatusFilter($query, $request);
             $this->applyListContractTypeFilter($query, $request);
         })
-        ->select('directrecruitment_applications.id', 'directrecruitment_applications.approval_flag', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'direct_recruitment_application_status.status_name as status', 'crm_prospect_services.status as service_status', 'directrecruitment_applications.onboarding_flag')
+        ->select('directrecruitment_applications.id', 'directrecruitment_applications.approval_flag', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'direct_recruitment_application_status.status_name as status', 'crm_prospect_services.status as service_status', 'directrecruitment_applications.onboarding_flag','crm_prospect_services.applied_auota as service_applied_auota', 'crm_prospect_services.ksm_reference_number as service_ksm_reference_number')
         ->withCount(['fwcms'])
         ->with(['fwcms' => function ($query) {
             $query->leftJoin('application_interviews', 'application_interviews.ksm_reference_number', 'fwcms.ksm_reference_number')

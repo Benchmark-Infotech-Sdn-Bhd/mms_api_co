@@ -178,7 +178,7 @@ return [
     
     'WORKER_BIODATA_TEMPLATE' => ['import_sheet' => 'IMPORT', 'reference_sheet' => 'REFERENCE'],
 
-    'SUPER_ADMIN_MODULES' => [14,15],
+    'SUPER_ADMIN_MODULES' => [14,15,4,7],
 
     'INVOICE_RESUBMISSION_FAILED_MAIL' => env('INVOICE_RESUBMISSION_FAILED_MAIL', "muralidharan.n@codtesma.com"),
 
