@@ -151,7 +151,9 @@ class DirectRecruitmentServices
             // 'pic_name' => 'required',
             'sector' => 'required',
             // 'contract_type' => 'required',
-            'service_id' => 'required'
+            'service_id' => 'required',
+            'applied_quota' => 'required',
+            'ksm_reference_number' => 'required'
         ];
     }
     /**
@@ -307,7 +309,7 @@ class DirectRecruitmentServices
             'sector_name'       => $sector->sector_name,
             // 'contract_type'     => $service->id == self::SERVICE_ID_DEFAULT ? $request['contract_type'] : self::CONTRACT_TYPE_DEFAULT,
             'status'            => $request['status'] ?? self::DEFAULT_VALUE,
-            'applied_auota'     => $request['applied_auota'] ?? self::DEFAULT_VALUE,
+            'applied_quota'     => $request['applied_quota'] ?? self::DEFAULT_VALUE,
             'ksm_reference_number'     => $request['ksm_reference_number'] ?? self::DEFAULT_VALUE
 
         ]);
@@ -619,7 +621,7 @@ class DirectRecruitmentServices
             $this->applyListStatusFilter($query, $request);
             $this->applyListContractTypeFilter($query, $request);
         })
-        ->select('directrecruitment_applications.id', 'directrecruitment_applications.approval_flag', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'direct_recruitment_application_status.status_name as status', 'crm_prospect_services.status as service_status', 'directrecruitment_applications.onboarding_flag','crm_prospect_services.applied_auota as service_applied_auota', 'crm_prospect_services.ksm_reference_number as service_ksm_reference_number')
+        ->select('directrecruitment_applications.id', 'directrecruitment_applications.approval_flag', 'crm_prospects.id as prospect_id', 'crm_prospect_services.id as prospect_service_id','crm_prospects.company_name', 'crm_prospects.pic_name', 'crm_prospect_services.contract_type as type', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.service_name', 'directrecruitment_applications.quota_applied as applied_quota', 'direct_recruitment_application_status.status_name as status', 'crm_prospect_services.status as service_status', 'directrecruitment_applications.onboarding_flag','crm_prospect_services.applied_quota as service_applied_quota', 'crm_prospect_services.ksm_reference_number as service_ksm_reference_number')
         ->withCount(['fwcms'])
         ->with(['fwcms' => function ($query) {
             $query->leftJoin('application_interviews', 'application_interviews.ksm_reference_number', 'fwcms.ksm_reference_number')
