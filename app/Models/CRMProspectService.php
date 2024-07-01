@@ -19,7 +19,7 @@ class CRMProspectService extends Model implements Auditable
      * @var string[]
      */
     protected $fillable = [
-        'crm_prospect_id', 'service_id', 'service_name', 'sector_id', 'sector_name', 'contract_type', 'status', 'from_existing', 'client_quota', 'fomnext_quota', 'initial_quota', 'service_quota', 'air_ticket_deposit', 'applied_auota', 'ksm_reference_number'
+        'crm_prospect_id', 'service_id', 'service_name', 'sector_id', 'sector_name', 'contract_type', 'status', 'from_existing', 'client_quota', 'fomnext_quota', 'initial_quota', 'service_quota', 'air_ticket_deposit', 'applied_quota', 'ksm_reference_number'
     ];
     /**
      * @return HasMany
