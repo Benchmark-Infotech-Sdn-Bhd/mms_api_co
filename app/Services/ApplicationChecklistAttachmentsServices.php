@@ -56,21 +56,25 @@ class ApplicationChecklistAttachmentsServices
     public function create($request) : mixed
     {
         $params = $request->all();
+        
         if(!($this->validationServices->validate($params,$this->applicationChecklistAttachments->rules))){
             return [
                 'validate' => $this->validationServices->errors()
             ];
         }
+        
         $companyArray = [];
         array_push($companyArray, $params['company_id']);
 
         $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" => $params['application_id'], "company_id" => $companyArray]);
-
+        
         if(is_null($directRecruitmentApplicationChecklist)) {
             return [
-                'InvalidUser' => true
+                'InvalidUser' => true                
             ];
         }
+       
+
         $documentChecklistCheck = $this->documentChecklist->with(['sectors' => function ($query) {
             $query->select('id', 'company_id');
         }])->find($request['document_checklist_id']);
@@ -79,12 +83,13 @@ class ApplicationChecklistAttachmentsServices
             return [
                 'InvalidUser' => true
             ];
-        }
-        if($documentChecklistCheck['sectors']['company_id'] != $params['company_id']) {
-            return [
-                'InvalidUser' => true
-            ];
-        }
+        }       
+        
+        // if($documentChecklistCheck['sectors']['company_id'] != $params['company_id']) {
+        //     return [
+        //         'InvalidUser' => true
+        //     ];
+        // }
         if (request()->hasFile('attachment')){
             foreach($request->file('attachment') as $file){
                 $fileName = $file->getClientOriginalName();
@@ -102,7 +107,7 @@ class ApplicationChecklistAttachmentsServices
                             "modified_by"   => $params['created_by'] ?? 0
                         ]);
             }
-        }else{
+        }else{           
             return [
                 "isUploaded" => false,
                 "message" => "Document not found"

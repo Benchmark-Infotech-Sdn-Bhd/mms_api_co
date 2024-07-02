@@ -187,6 +187,7 @@ class DirectRecruitmentApplicationChecklistServices
     public function showBasedOnApplication($request): mixed
     {
         $validationResult = $this->validateRequestApplicationId($request);
+       
         if (!is_null($validationResult)) {
             return $validationResult;
         }
@@ -221,7 +222,7 @@ class DirectRecruitmentApplicationChecklistServices
         return $this->directRecruitmentApplicationChecklist
             ->join('directrecruitment_applications', function ($join) use ($request) {
                 $join->on('directrecruitment_applications.id', '=', 'directrecruitment_application_checklist.application_id')
-                    ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
+                    ->whereIn('directrecruitment_applications.crm_prospect_id', $request['company_id']);
             })
             ->where('directrecruitment_application_checklist.application_id', $request['application_id'])
             ->first('directrecruitment_application_checklist.*');
