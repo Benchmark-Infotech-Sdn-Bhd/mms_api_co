@@ -141,7 +141,7 @@ class DirectRecruitmentApplicationChecklistServices
         $validationStatus = $this->validateRequestId($request);
         if (!is_null($validationStatus)) {
             return $validationStatus;
-        }
+        }       
         return $this->fetchRecruitmentApplication($request['company_id'], $request['id']);
     }
 
@@ -169,10 +169,10 @@ class DirectRecruitmentApplicationChecklistServices
      * @return Model|null Returns the recruitment application checklist if found, otherwise returns null.
      */
     private function fetchRecruitmentApplication($companyId, $appId)
-    {
+    {        
         return $this->directRecruitmentApplicationChecklist->join('directrecruitment_applications', function ($join) use ($companyId) {
             $join->on('directrecruitment_applications.id', '=', 'directrecruitment_application_checklist.application_id')
-                ->whereIn('directrecruitment_applications.company_id', $companyId);
+                ->whereIn('directrecruitment_applications.crm_prospect_id', $companyId);
         })
             ->where('directrecruitment_application_checklist.id', $appId)
             ->first('directrecruitment_application_checklist.*');
@@ -191,6 +191,9 @@ class DirectRecruitmentApplicationChecklistServices
         if (!is_null($validationResult)) {
             return $validationResult;
         }
+
+        // print_r($request);
+        // die();
 
         return $this->retrieveApplicationChecklist($request);
     }
