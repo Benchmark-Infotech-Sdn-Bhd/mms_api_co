@@ -38,10 +38,10 @@ return new class extends Migration
             $table->string('calltime', 255)->nullable();
             // Area column
             $table->string('area', 255)->nullable();
-            // Employer name column
-            $table->string('employer_name', 255)->nullable();
-            // Phone number column
-            $table->string('phone_number', 255)->nullable();
+            // // Employer name column
+            // $table->string('employer_name', 255)->nullable();
+            // // Phone number column
+            // $table->string('phone_number', 255)->nullable();
             // Remarks column
             $table->text('remarks')->nullable();
             // Column for user id who created the onboarding dispatch

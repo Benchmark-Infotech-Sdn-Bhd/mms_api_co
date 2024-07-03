@@ -18,8 +18,8 @@ class OnboardingDispatch extends Model implements Auditable
      *
      * @var string[]
      */
-    protected $fillable = [
-        'onboarding_attestation_id', 'date', 'time', 'reference_number', 'employee_id', 'from', 'calltime', 'area', 'employer_name', 'phone_number', 'remarks', 'created_by', 'modified_by', 'dispatch_status', 'job_type', 'passport', 'document_name', 'payment_amount', 'worker_name', 'acknowledgement_remarks', 'acknowledgement_date'
+    protected $fillable = [        
+        'onboarding_attestation_id', 'date', 'time', 'reference_number', 'employee_id', 'from', 'calltime', 'area', 'remarks', 'created_by', 'modified_by', 'dispatch_status', 'job_type', 'passport', 'document_name', 'payment_amount', 'worker_name', 'acknowledgement_remarks', 'acknowledgement_date'
     ];
 
     /**

@@ -128,38 +128,38 @@ class DispatchManagementUnitTest extends TestCase
             ]
         ]);
     }
-    /**
-     * Functional test for create employer name validation
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementcreateemployernameValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['employer_name' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'employer_name' => ['The employer name field is required.']
-            ]
-        ]);
-    }
-    /**
-     * Functional test for create phone number validation
-     * 
-     * @return void
-     */
-    public function testForDispatchManagementcreatephonenumberValidation(): void
-    {
-        $this->creationSeeder();
-        $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['phone_number' => '']), $this->getHeader(false));
-        $response->seeStatusCode(422);
-        $response->seeJson([
-            'data' => [
-                'phone_number' => ['The phone number field is required.']
-            ]
-        ]);
-    }
+    // /**
+    //  * Functional test for create employer name validation
+    //  * 
+    //  * @return void
+    //  */
+    // public function testForDispatchManagementcreateemployernameValidation(): void
+    // {
+    //     $this->creationSeeder();
+    //     $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['employer_name' => '']), $this->getHeader(false));
+    //     $response->seeStatusCode(422);
+    //     $response->seeJson([
+    //         'data' => [
+    //             'employer_name' => ['The employer name field is required.']
+    //         ]
+    //     ]);
+    // }
+    // /**
+    //  * Functional test for create phone number validation
+    //  * 
+    //  * @return void
+    //  */
+    // public function testForDispatchManagementcreatephonenumberValidation(): void
+    // {
+    //     $this->creationSeeder();
+    //     $response = $this->json('POST', 'api/v1/dispatchManagement/create', array_merge($this->creationData(), ['phone_number' => '']), $this->getHeader(false));
+    //     $response->seeStatusCode(422);
+    //     $response->seeJson([
+    //         'data' => [
+    //             'phone_number' => ['The phone number field is required.']
+    //         ]
+    //     ]);
+    // }
     /**
      * Functional test for update
      * 
@@ -520,8 +520,8 @@ class DispatchManagementUnitTest extends TestCase
             "from" => 'admin',
             "calltime" => Carbon::now()->format('Y-m-d'),
             "area" => "ML",
-            "employer_name" => "employee test",
-            "phone_number" => '0123456789',
+            // "employer_name" => "employee test",
+            // "phone_number" => '0123456789',
             "remarks" => 'remarks test',
             "job_type" => "Submission",
             "passport" => "0123456789",
@@ -545,8 +545,8 @@ class DispatchManagementUnitTest extends TestCase
             "from" => 'admin',
             "calltime" => Carbon::now()->format('Y-m-d'),
             "area" => "ML",
-            "employer_name" => "employee test",
-            "phone_number" => '0123456789',
+            // "employer_name" => "employee test",
+            // "phone_number" => '0123456789',
             "remarks" => 'remarks test',
             "job_type" => "Submission",
             "passport" => "0123456789",

@@ -483,8 +483,8 @@ class DirectRecruitmentOnboardingAttestationUnitTest extends TestCase
                 "from" => "test",
                 "calltime" => Carbon::now()->format('Y-m-d'),
                 "area" => "Malaysia",
-                "employer_name" => "test emp",
-                "phone_number" => "02123456789",
+                // "employer_name" => "test emp",
+                // "phone_number" => "02123456789",
                 "remarks" => "remarks testing"
         ];
     }
