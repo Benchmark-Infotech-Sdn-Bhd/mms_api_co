@@ -156,8 +156,8 @@ class DirectRecruitmentOnboardingAttestationServices
             'from' => 'required',
             'calltime' => 'required|date|date_format:Y-m-d',
             'area' => 'required',
-            'employer_name' => 'required',
-            'phone_number' => 'required'
+            // 'employer_name' => 'required',
+            // 'phone_number' => 'required'
         ];
     }
 
@@ -444,8 +444,8 @@ class DirectRecruitmentOnboardingAttestationServices
             'from' => $request['from'] ?? '',
             'calltime' => $request['calltime'] ?? null,
             'area' => $request['area'] ?? '',
-            'employer_name' => $request['employer_name'] ?? '',
-            'phone_number' => $request['phone_number'] ?? '',
+            // 'employer_name' => $request['employer_name'] ?? '',
+            // 'phone_number' => $request['phone_number'] ?? '',
             'remarks' => $request['remarks'] ?? '',
             'created_by' => $request['created_by'] ?? 0,
             'modified_by' => $request['created_by'] ?? 0
@@ -468,8 +468,8 @@ class DirectRecruitmentOnboardingAttestationServices
             'from' => $request['from'] ?? '',
             'calltime' => $request['calltime'] ?? null,
             'area' => $request['area'] ?? '',
-            'employer_name' => $request['employer_name'] ?? '',
-            'phone_number' => $request['phone_number'] ?? '',
+            // 'employer_name' => $request['employer_name'] ?? '',
+            // 'phone_number' => $request['phone_number'] ?? '',
             'remarks' => $request['remarks'] ?? '',
             'modified_by' => $request['created_by'] ?? 0
         ]);
@@ -550,8 +550,8 @@ class DirectRecruitmentOnboardingAttestationServices
         }
         
         $onboardingDispatch = $this->onboardingDispatch->where(
-            'onboarding_attestation_id', $request['onboarding_attestation_id']
-        )->first(['id', 'onboarding_attestation_id', 'date', 'time', 'reference_number', 'employee_id', 'from', 'calltime', 'area', 'employer_name', 'phone_number', 'remarks']);
+            'onboarding_attestation_id', $request['onboarding_attestation_id']        
+        )->first(['id', 'onboarding_attestation_id', 'date', 'time', 'reference_number', 'employee_id', 'from', 'calltime', 'area', 'remarks']);
 
         $request['reference_number'] = self::REFERENCE_NUMBER_PREFIX . $this->onboardingDispatch->count() + 1;
 

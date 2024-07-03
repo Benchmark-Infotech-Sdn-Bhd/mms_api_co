@@ -91,8 +91,8 @@ class DispatchManagementServices
             'from' => 'required',
             'calltime' => 'required|date|date_format:Y-m-d',
             'area' => 'required',
-            'employer_name' => 'required',
-            'phone_number' => 'required'
+            // 'employer_name' => 'required',
+            // 'phone_number' => 'required'
         ];
     }
     /**
@@ -110,8 +110,8 @@ class DispatchManagementServices
             'from' => 'required',
             'calltime' => 'required|date|date_format:Y-m-d',
             'area' => 'required',
-            'employer_name' => 'required',
-            'phone_number' => 'required',
+            // 'employer_name' => 'required',
+            // 'phone_number' => 'required',
             'acknowledgement_remarks' => 'required'
         ];
     }
@@ -286,8 +286,8 @@ class DispatchManagementServices
 
         return $this->onboardingDispatch->join('employee', function ($join) use ($request) {
             $join->on('employee.id', '=', 'onboarding_dispatch.employee_id')
-                 ->whereIn('employee.company_id', $request['company_id']);
-        })->select('onboarding_dispatch.id', 'onboarding_dispatch.onboarding_attestation_id', 'onboarding_dispatch.date', 'onboarding_dispatch.time', 'onboarding_dispatch.reference_number', 'onboarding_dispatch.employee_id', 'onboarding_dispatch.from', 'onboarding_dispatch.calltime', 'onboarding_dispatch.area', 'onboarding_dispatch.employer_name', 'onboarding_dispatch.phone_number', 'onboarding_dispatch.remarks', 'onboarding_dispatch.created_by', 'onboarding_dispatch.modified_by', 'onboarding_dispatch.created_at', 'onboarding_dispatch.updated_at', 'onboarding_dispatch.deleted_at', 'onboarding_dispatch.dispatch_status', 'onboarding_dispatch.job_type', 'onboarding_dispatch.passport', 'onboarding_dispatch.document_name', 'onboarding_dispatch.payment_amount', 'onboarding_dispatch.worker_name', 'onboarding_dispatch.acknowledgement_remarks', 'onboarding_dispatch.acknowledgement_date')->with('dispatchAttachments')->find($request['id']);
+                 ->whereIn('employee.company_id', $request['company_id']);        
+    })->select('onboarding_dispatch.id', 'onboarding_dispatch.onboarding_attestation_id', 'onboarding_dispatch.date', 'onboarding_dispatch.time', 'onboarding_dispatch.reference_number', 'onboarding_dispatch.employee_id', 'onboarding_dispatch.from', 'onboarding_dispatch.calltime', 'onboarding_dispatch.area', 'onboarding_dispatch.remarks', 'onboarding_dispatch.created_by', 'onboarding_dispatch.modified_by', 'onboarding_dispatch.created_at', 'onboarding_dispatch.updated_at', 'onboarding_dispatch.deleted_at', 'onboarding_dispatch.dispatch_status', 'onboarding_dispatch.job_type', 'onboarding_dispatch.passport', 'onboarding_dispatch.document_name', 'onboarding_dispatch.payment_amount', 'onboarding_dispatch.worker_name', 'onboarding_dispatch.acknowledgement_remarks', 'onboarding_dispatch.acknowledgement_date')->with('dispatchAttachments')->find($request['id']);
     }
 
     /**
@@ -308,8 +308,8 @@ class DispatchManagementServices
             'from' => $request['from'] ?? '',
             'calltime' => $request['calltime'] ?? '',
             'area' => $request['area'] ?? '',
-            'employer_name' => $request['employer_name'] ?? '',
-            'phone_number' => $request['phone_number'] ?? '',
+            // 'employer_name' => $request['employer_name'] ?? '',
+            // 'phone_number' => $request['phone_number'] ?? '',
             'remarks' => $request['remarks'] ?? '',
             'job_type' => $request['job_type'] ?? '',
             'passport' => $request['passport'] ?? '',
@@ -479,8 +479,8 @@ class DispatchManagementServices
         $onboardingDispatch->from =  $request['from'] ?? $onboardingDispatch->from;
         $onboardingDispatch->calltime =  $request['calltime'] ?? $onboardingDispatch->calltime;
         $onboardingDispatch->area =  $request['area'] ?? $onboardingDispatch->area;
-        $onboardingDispatch->employer_name =  $request['employer_name'] ?? $onboardingDispatch->employer_name;
-        $onboardingDispatch->phone_number =  $request['phone_number'] ?? $onboardingDispatch->phone_number;
+        // $onboardingDispatch->employer_name =  $request['employer_name'] ?? $onboardingDispatch->employer_name;
+        // $onboardingDispatch->phone_number =  $request['phone_number'] ?? $onboardingDispatch->phone_number;
         $onboardingDispatch->remarks =  $request['remarks'] ?? $onboardingDispatch->remarks;
         $onboardingDispatch->job_type =  $request['job_type'] ?? $onboardingDispatch->job_type;
         $onboardingDispatch->passport =  $request['passport'] ?? $onboardingDispatch->passport;
