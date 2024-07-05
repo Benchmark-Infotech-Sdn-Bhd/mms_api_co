@@ -56,7 +56,7 @@ class ApplicationChecklistAttachmentsServices
     public function create($request) : mixed
     {
         $params = $request->all();
-        
+
         if(!($this->validationServices->validate($params,$this->applicationChecklistAttachments->rules))){
             return [
                 'validate' => $this->validationServices->errors()
@@ -66,7 +66,8 @@ class ApplicationChecklistAttachmentsServices
         $companyArray = [];
         array_push($companyArray, $params['company_id']);
 
-        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" => $params['application_id'], "company_id" => $companyArray]);
+        // $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" => $params['application_id'], "company_id" => $params['company_id']]);
+        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" => $params['application_id']]);
         
         if(is_null($directRecruitmentApplicationChecklist)) {
             return [

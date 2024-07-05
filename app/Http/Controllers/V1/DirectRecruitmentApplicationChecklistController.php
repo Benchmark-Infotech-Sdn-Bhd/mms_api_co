@@ -92,7 +92,8 @@ class DirectRecruitmentApplicationChecklistController extends Controller
         try {
             $params = $this->getRequest($request);
             $user = JWTAuth::parseToken()->authenticate();
-            $params['company_id'] = $this->authServices->getCompanyIds($user);
+            // $params['company_id'] = $this->authServices->getCompanyIds($user);
+            $params['company_id']=$user['company_id'];
             $data = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication($params);
             if(!empty($data['validationErrors'])){
                 return $this->validationError($data['validationErrors']); 
