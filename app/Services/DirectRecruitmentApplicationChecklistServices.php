@@ -184,7 +184,7 @@ class DirectRecruitmentApplicationChecklistServices
      * @param mixed $request The request data to be used for retrieving the application checklist.
      * @return mixed Returns an array containing the application checklist if the request is valid, otherwise returns the validation errors.
      */
-    public function showBasedOnApplication($request): mixed
+    public function showBasedOnApplication_1($request): mixed
     {
         $validationResult = $this->validateRequestApplicationId($request);
        
@@ -196,6 +196,23 @@ class DirectRecruitmentApplicationChecklistServices
         // die();
 
         return $this->retrieveApplicationChecklist($request);
+    }
+
+    public function showBasedOnApplication($request) : mixed
+    {
+        if(!($this->validationServices->validate($request,['application_id' => 'required']))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklist->where('application_id',$request['application_id'])->first();
+        if(is_null($directRecruitmentApplicationChecklist)){
+            return [
+                "isPresent" => false,
+                "message"=> "Data not found"
+            ];
+        }
+        return $directRecruitmentApplicationChecklist;
     }
 
     /**
@@ -221,11 +238,11 @@ class DirectRecruitmentApplicationChecklistServices
      * @return object|null Returns the application checklist as an object if found, otherwise returns null.
      */
     private function retrieveApplicationChecklist($request): mixed
-    {
+    {      
         return $this->directRecruitmentApplicationChecklist
             ->join('directrecruitment_applications', function ($join) use ($request) {
                 $join->on('directrecruitment_applications.id', '=', 'directrecruitment_application_checklist.application_id')
-                    ->whereIn('directrecruitment_applications.crm_prospect_id', $request['company_id']);
+                   ->whereIn('directrecruitment_applications.company_id', $request['company_id']);
             })
             ->where('directrecruitment_application_checklist.application_id', $request['application_id'])
             ->first('directrecruitment_application_checklist.*');
