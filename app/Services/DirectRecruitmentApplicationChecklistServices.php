@@ -48,9 +48,9 @@ class DirectRecruitmentApplicationChecklistServices
         ];
 
         // Validate the request
-        if (!($this->validationServices->validate($request, $this->directRecruitmentApplicationChecklist->rules))) {
-            return ['validate' => $this->validationServices->errors()];
-        }
+        // if (!($this->validationServices->validate($request, $this->directRecruitmentApplicationChecklist->rules))) {
+        //     return ['validate' => $this->validationServices->errors()];
+        // }
 
         // Create the application checklist
         return $this->directRecruitmentApplicationChecklist->create($data);
