@@ -39,21 +39,19 @@ class DirectRecruitmentApplicationChecklistServices
         $createdBy = $request['created_by'] ?? 0;
 
         // Preparing the input array
-        $data = [
-            'application_id' => isset($request['application_id']) ? (int)$request['application_id'] : 0,
+        if(!($this->validationServices->validate($request,$this->directRecruitmentApplicationChecklist->rules))){
+            return [
+                'validate' => $this->validationServices->errors()
+            ];
+        }
+        $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklist->create([
+            'application_id' => (int)$request['application_id'] ?? 0,
             'item_name' => $request['item_name'] ?? 'Document Checklist',
             'application_checklist_status' => $request['application_checklist_status'] ?? 'Pending',
-            'created_by' => $createdBy,
-            'modified_by' => $createdBy
-        ];
-
-        // Validate the request
-        // if (!($this->validationServices->validate($request, $this->directRecruitmentApplicationChecklist->rules))) {
-        //     return ['validate' => $this->validationServices->errors()];
-        // }
-
-        // Create the application checklist
-        return $this->directRecruitmentApplicationChecklist->create($data);
+            'created_by'    => $request['created_by'] ?? 0,
+            'modified_by'   => $request['created_by'] ?? 0
+        ]);
+        return $directRecruitmentApplicationChecklist;
     }
 
     /**
