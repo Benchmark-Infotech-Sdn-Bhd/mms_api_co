@@ -355,9 +355,9 @@ class DirectRecruitmentServices
      *
      * @return void
      */
-    private function CreateDirectrecruitmentApplications($request, $prospectServiceId): void
+    private function CreateDirectrecruitmentApplications($request, $prospectServiceId): mixed
     {
-        $this->directrecruitmentApplications::create([
+      $res=  $this->directrecruitmentApplications::create([
             'crm_prospect_id' => $request['company_id'],
             'service_id' => $prospectServiceId,
             'quota_applied' => self::DEFAULT_VALUE,
@@ -368,6 +368,7 @@ class DirectRecruitmentServices
             'created_by' => $request["created_by"] ?? self::DEFAULT_VALUE,
             'company_id' => $request['company_id'] ?? self::DEFAULT_VALUE
         ]);
+        return $res;
     }
 
     /**
@@ -574,6 +575,7 @@ class DirectRecruitmentServices
      */
     public function addService($request): bool|array
     {
+        $user = JWTAuth::parseToken()->authenticate();
         $validationResult = $this->validateAddServicehRequest($request);
         if (is_array($validationResult)) {
             return $validationResult;
@@ -589,8 +591,22 @@ class DirectRecruitmentServices
         $prospectService = $this->createProspectService($request);
         $prospectServiceId = $prospectService->id ?? '';
         if(!empty($prospectServiceId)){
+            // die('IN');
             // $this->uploadCrmProspectFiles($request, $prospectServiceId);
-            $this->CreateDirectrecruitmentApplications($request, $prospectServiceId);
+            $applicationID = $this->CreateDirectrecruitmentApplications($request, $prospectServiceId);            
+            $this->directRecruitmentApplicationChecklistServices->create(
+                ['application_id' => $applicationID->id,
+                'item_name' => self::TEXT_DOCUMENT_CHECKLIST,
+                'application_checklist_status' => self::STATUS_PENDING,
+                'created_by' => $user['id']]
+            );      
+            
+            $input['application_id'] = $applicationID->id;
+            $input['created_by'] = $user['id'];
+            $input['action'] = Config::get('services.APPLICATION_SUMMARY_ACTION')[2];
+            $input['status'] = self::STATUS_SUBMITTED;
+            $this->applicationSummaryServices->updateStatus($input);
+            
         }
         
         return true;
