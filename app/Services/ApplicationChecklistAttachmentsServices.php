@@ -68,7 +68,8 @@ class ApplicationChecklistAttachmentsServices
 
         // $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" => $params['application_id'], "company_id" => $params['company_id']]);
         $directRecruitmentApplicationChecklist = $this->directRecruitmentApplicationChecklistServices->showBasedOnApplication(["application_id" => $params['application_id']]);
-        
+               
+
         if(is_null($directRecruitmentApplicationChecklist)) {
             return [
                 'InvalidUser' => true                
