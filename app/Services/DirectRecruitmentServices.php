@@ -360,7 +360,7 @@ class DirectRecruitmentServices
       $res=  $this->directrecruitmentApplications::create([
             'crm_prospect_id' => $request['company_id'],
             'service_id' => $prospectServiceId,
-            'quota_applied' => self::DEFAULT_VALUE,
+            'quota_applied' => $request['applied_quota'],
             'person_incharge' => '',
             'cost_quoted' => self::DEFAULT_VALUE,
             'status' => Config::get('services.CHECKLIST_PENDING'),
