@@ -382,25 +382,27 @@ class DirectRecruitmentOnboardingCountryServices
                 'error' => $validator->errors()
             ];
         }
-
+       
         $applicationCheck = $this->directrecruitmentApplications->find($request[self::REQUEST_APPLICATION_ID]);
-
-        if ($applicationCheck->company_id != $request[self::REQUEST_COMPANY_ID]) {
+        
+        if ($applicationCheck->crm_prospect_id != $request[self::REQUEST_COMPANY_ID]) {
             return [
                 'InvalidUser' => true
             ];
         }
-
-        $levyApproved = $this->getSumLevyApproved($request, $request[self::REQUEST_APPLICATION_ID]);
-
-        $ksmQuota = $this->getSumQuota($request, $request[self::REQUEST_APPLICATION_ID]);
-
-        if ($levyApproved < ($ksmQuota + $request['quota'])) {
-            return [
-                'ksmQuotaError' => true
-            ];
-        }
+        
+        // $levyApproved = $this->getSumLevyApproved($request, $request[self::REQUEST_APPLICATION_ID]);
+       
+        // $ksmQuota = $this->getSumQuota($request, $request[self::REQUEST_APPLICATION_ID]);
+       
+        // if ($levyApproved < ($ksmQuota + $request['quota'])) {
+        //     return [
+        //         'ksmQuotaError' => true
+        //     ];
+        // }
+        
         $onboardingCountry = $this->createDirectRecruitmentOnboardingCountry($request);
+       
 
         $this->createOnboardingCountriesKSMReferenceNumber($request, $onboardingCountry->id);
 
