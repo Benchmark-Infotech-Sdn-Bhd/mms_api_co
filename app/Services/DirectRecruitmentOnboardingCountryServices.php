@@ -394,7 +394,7 @@ class DirectRecruitmentOnboardingCountryServices
         $levyApproved = $this->getSumLevyApproved($request, $request[self::REQUEST_APPLICATION_ID]);
        
         $ksmQuota = $this->getSumQuota($request, $request[self::REQUEST_APPLICATION_ID]);
-        print_r($ksmQuota);
+                
        if($ksmQuota > 0){
             if ($levyApproved < ($ksmQuota + $request['quota'])) {
                 return [
