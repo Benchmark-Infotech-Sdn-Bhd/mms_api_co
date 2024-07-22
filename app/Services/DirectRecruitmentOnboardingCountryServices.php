@@ -395,14 +395,14 @@ class DirectRecruitmentOnboardingCountryServices
        
         $ksmQuota = $this->getSumQuota($request, $request[self::REQUEST_APPLICATION_ID]);
                 
-       if($ksmQuota > 0){
+    //    if($ksmQuota > 0){
             if ($levyApproved < ($ksmQuota + $request['quota'])) {
                 return [
                     'ksmQuotaError' => true
                 ];
             }
 
-       }
+    //    }
         
         
         $onboardingCountry = $this->createDirectRecruitmentOnboardingCountry($request);
