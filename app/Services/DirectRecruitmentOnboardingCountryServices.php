@@ -641,6 +641,12 @@ class DirectRecruitmentOnboardingCountryServices
         $ksmDetails->modified_by = $request['modified_by'] ?? $ksmDetails->modified_by;
         $ksmDetails->save();
 
+        $onboardingCountryDetails = $this->directRecruitmentOnboardingCountry->findOrFail($ksmDetails->onboarding_country_id);
+        $onboardingCountryDetails->quota = $onboardingCountryDetails->quota + $request['quota'];
+        $onboardingCountryDetails->modified_by = $request['modified_by'] ?? $onboardingCountryDetails->modified_by;
+        $onboardingCountryDetails->save();
+
+
         $this->saveOnboardingCountryDetails($ksmDetails, $request['quota']);
 
         return true;
