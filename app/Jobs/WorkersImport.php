@@ -389,7 +389,7 @@ class WorkersImport extends Job
                         'application_id' => $this->workerParameter['application_id'],
                         'onboarding_country_id' => $this->workerParameter['onboarding_country_id']
                     ])->update(['updated_on' => Carbon::now()]);
-                } else {
+                } else {   
                     $workerStatus = WorkerStatus::create([
                         'application_id' => $this->workerParameter['application_id'] ?? 0,
                         'onboarding_country_id' => $this->workerParameter['onboarding_country_id'] ?? 0,
