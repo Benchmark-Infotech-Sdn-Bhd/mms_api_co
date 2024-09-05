@@ -145,8 +145,8 @@ class TotalManagementServices
             'email' => 'required',
             'pic_name' => 'required',
             'from_existing' => 'required',
-            'client_quota' => 'regex:/^[0-9]+$/|max:3',
-            'fomnext_quota' => 'regex:/^[0-9]+$/|max:3',
+            // 'client_quota' => 'regex:/^[0-9]+$/|max:3',
+            // 'fomnext_quota' => 'regex:/^[0-9]+$/|max:3',
             'initial_quota' => 'regex:/^[0-9]+$/',
             'service_quota' => 'regex:/^[0-9]+$/|max:3'
         ];
@@ -344,8 +344,8 @@ class TotalManagementServices
             'sector_name'       => $request['sector_name'] ?? '',
             'status'            => $request['status'] ?? self::DEFAULT_VALUE,
             'from_existing'     => $request['from_existing'] ?? self::DEFAULT_VALUE,
-            'client_quota'      => $request['client_quota'] ?? self::DEFAULT_VALUE,
-            'fomnext_quota'     => $request['fomnext_quota'] ?? self::DEFAULT_VALUE,
+            // 'client_quota'      => $request['client_quota'] ?? self::DEFAULT_VALUE,
+            // 'fomnext_quota'     => $request['fomnext_quota'] ?? self::DEFAULT_VALUE,
             'initial_quota'     => $request['initial_quota'] ?? self::DEFAULT_VALUE,
             'service_quota'     => $request['service_quota'] ?? self::DEFAULT_VALUE,
         ]);
@@ -569,19 +569,20 @@ class TotalManagementServices
      * 
      */
     public function allocateQuota($request): array|bool
-    {
+    {   
         if (isset($request['initial_quota']) && $request['initial_quota'] < $request['service_quota']) {
             return self::ERROR_QUOTA;
         }
-    
+        
         $prospectService = $this->getCrmProspectService($request);
         if (is_null($prospectService)) {
             return self::ERROR_UNAUTHORIZED;
         }
-    
+        die('In');
         $this->updateProspectService($prospectService, $request);
     
         $applicationDetails = $this->getApplicationDetails($request);
+        
         if (is_null($applicationDetails)) {
             return self::ERROR_UNAUTHORIZED;
         }
@@ -601,6 +602,8 @@ class TotalManagementServices
      */
     private function getCrmProspectService(array $request)
     {
+        print_r($request);
+        
         return $this->crmProspectService->join('crm_prospects', function ($join) use ($request) {
             $join->on('crm_prospects.id', '=', 'crm_prospect_services.crm_prospect_id')
                 ->whereIn('crm_prospects.company_id', $request['company_id']);
@@ -623,8 +626,8 @@ class TotalManagementServices
     private function updateProspectService($prospectService, array $request)
     {
         $prospectService->from_existing = $request['from_existing'] ?? self::NOT_FROM_EXISTING;
-        $prospectService->client_quota = $request['client_quota'] ?? $prospectService->client_quota;
-        $prospectService->fomnext_quota = $request['fomnext_quota'] ?? $prospectService->fomnext_quota;
+        // $prospectService->client_quota = $request['client_quota'] ?? $prospectService->client_quota;
+        // $prospectService->fomnext_quota = $request['fomnext_quota'] ?? $prospectService->fomnext_quota;
         $prospectService->initial_quota = $request['initial_quota'] ?? $prospectService->initial_quota;
         $prospectService->service_quota = $request['service_quota'] ?? $prospectService->service_quota;
         $prospectService->save();
@@ -641,6 +644,7 @@ class TotalManagementServices
      */
     private function getApplicationDetails(array $request)
     {
+        print_r($request);
         return $this->totalManagementApplications->whereIn('company_id', $request['company_id'])->find($request['id']);
     }
 
