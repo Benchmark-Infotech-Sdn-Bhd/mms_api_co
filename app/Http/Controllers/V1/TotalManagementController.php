@@ -54,6 +54,39 @@ class TotalManagementController extends Controller
             return $this->sendError(['message' => 'Failed to List Prospect']);
         }
     }
+
+
+    /** Add TotalManagement hidden services  
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function addHiddenservice(Request $request): JsonResponse
+    {
+        try {
+            $app_id=0;
+            $params = $this->getRequest($request);
+            $response = $this->totalManagementServices->addHiddenservice($params);
+
+            if(isset($response))
+            {
+                $app_id=$response;
+            }           
+
+            if (isset($response['error'])) {
+                return $this->validationError($response['error']);            
+            }
+        
+            return $this->sendSuccess(['application_id' => $app_id  
+                                    ]
+                                    );
+        } catch(Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to Add Service'], 400);
+        }
+    }
+
+
     /** Add a services to the prospect.
      * 
      * @param Request $request
