@@ -21,6 +21,7 @@ class TotalManagementServices
 {
     public const ERROR_QUOTA = ['quotaError' => true];
     public const ERROR_UNAUTHORIZED = ['unauthorizedError' => true];
+    public const ERROR_EXISTS = ['existingError' => true];
 
     public const DEFAULT_TRANSFER_FLAG = 0;
     public const CUSTOMER = 'Customer';
@@ -152,6 +153,29 @@ class TotalManagementServices
         ];
     }
 
+
+    /**
+     * Validates the service request.
+     *
+     * @return array The validation rules for the input data
+     */
+    public function AddHiddenserviceValidation(): array
+    {
+        return [
+            'id' => 'required',
+            'company_name' => 'required',
+            'ksm_reference_number' => 'required',
+            'company_name' => 'required',
+            'pic_name' => 'required',
+            'from_existing' => 'required',           
+            'initial_quota' => 'regex:/^[0-9]+$/',
+            'service_quota' => 'regex:/^[0-9]+$/|max:3'
+        ];
+    }
+
+
+    
+
     /**
      * Validate the List service request data.
      *
@@ -183,6 +207,18 @@ class TotalManagementServices
     private function validateAddServicehRequest($request): array|bool
     {
         $validator = Validator::make($request, $this->addServiceValidation());
+        if($validator->fails()) {
+            return [
+                'error' => $validator->errors()
+            ];
+        }
+
+        return true;
+    }
+
+    private function validateAddHiddenservicehRequest($request): array|bool
+    {
+        $validator = Validator::make($request, $this->AddHiddenserviceValidation());
         if($validator->fails()) {
             return [
                 'error' => $validator->errors()
@@ -374,6 +410,154 @@ class TotalManagementServices
         ]);
     }
     /**
+     * Creates a Hidden services.
+     *
+    
+     *
+     * @param array $request The request data containing the service and application detail.
+     *
+     * @return bool Returns true if the service was successfully created.
+     *              Returns self::ERROR_QUOTA if service quota exceed the initial quota
+     * 
+     * @see validateAddServicehRequest()
+     * @see createProspectService()
+     * @see createTotalManagementApplications()
+     * 
+     */
+    
+
+    public function addHiddenservice($request)
+    {
+        $application_id = 0;
+        $existing = 0;
+
+        $validationResult = $this->validateAddHiddenservicehRequest($request);
+        if (is_array($validationResult)) {
+            return $validationResult;
+        }
+
+        $existing = $this->totalManagementApplications->where('ksm_reference_number',$request['ksm_reference_number'])->count('ksm_reference_number');
+       
+        if ($existing == 0) {
+           
+
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['created_by'] = $user['id'];
+        $request['company_id'] = $user['company_id'];
+
+        $service = $this->services->findOrFail(Config::get('services.TOTAL_MANAGEMENT_SERVICE'));
+        $request['service_id'] = $service->id;
+        $request['service_name'] = $service->service_name;
+
+        if(isset($request['sector']) && !empty($request['sector'])) {
+            $sector = $this->sectors->findOrFail($request['sector']);
+            $request['sector_name'] = $sector->sector_name ?? '';
+        }
+
+        $prospectService = $this->crmProspectService->create([
+            'crm_prospect_id'   => $request['id'],
+            'service_id'        => $request['service_id'],
+            'service_name'      => $request['service_name'],
+            'sector_id'         => $request['sector'] ?? self::DEFAULT_VALUE,
+            'sector_name'       => $request['sector_name'] ?? '',
+            'status'            => $request['status'] ?? self::DEFAULT_VALUE,
+            'from_existing'     => $request['from_existing'] ?? self::DEFAULT_VALUE,
+            // 'client_quota'      => $request['client_quota'] ?? self::DEFAULT_VALUE,
+            // 'fomnext_quota'     => $request['fomnext_quota'] ?? self::DEFAULT_VALUE,
+            'initial_quota'     => $request['initial_quota'] ?? self::DEFAULT_VALUE,
+            'service_quota'     => $request['service_quota'] ?? self::DEFAULT_VALUE,
+        ]);
+
+        $prospectService_id = $prospectService->id;
+
+       $totalmanagementapps = $this->totalManagementApplications::create([
+            'crm_prospect_id' => $request['id'],
+            'service_id' => $prospectService->id,
+            'quota_applied' => ($request['from_existing'] == self::NOT_FROM_EXISTING) ? ($prospectService->client_quota + $prospectService->fomnext_quota) : $prospectService->service_quota,
+            'person_incharge' => '',
+            'cost_quoted' => self::DEFAULT_VALUE,
+            'status' => self::PENDING_PROPOSAL,
+            'remarks' => '',
+            'created_by' => $request["created_by"] ?? self::DEFAULT_VALUE,
+            'company_id' => $request['company_id'],
+            'ksm_reference_number' => $request['ksm_reference_number']
+        ]);
+
+        
+        $application_id = $totalmanagementapps->id;
+
+        //  ===================================
+
+        if (isset($request['initial_quota']) && $request['initial_quota'] < $request['service_quota']) {
+            return self::ERROR_QUOTA;
+        }
+        
+        // $prospectService = $this->getCrmProspectService($request);
+
+        $prospectService = $this->crmProspectService->join('crm_prospects', function ($join) use ($request) {
+            $join->on('crm_prospects.id', '=', 'crm_prospect_services.crm_prospect_id');
+                // ->whereIn('crm_prospects.company_id', $request['company_id']);
+        })->select('crm_prospect_services.id', 'crm_prospect_services.crm_prospect_id', 'crm_prospect_services.service_id', 'crm_prospect_services.service_name', 'crm_prospect_services.sector_id', 'crm_prospect_services.sector_name', 'crm_prospect_services.contract_type', 'crm_prospect_services.status', 'crm_prospect_services.from_existing', 'crm_prospect_services.client_quota', 'crm_prospect_services.fomnext_quota', 'crm_prospect_services.initial_quota', 'crm_prospect_services.service_quota', 'crm_prospect_services.air_ticket_deposit', 'crm_prospect_services.created_at', 'crm_prospect_services.updated_at', 'crm_prospect_services.deleted_at')->find($prospectService_id);
+
+        if (is_null($prospectService)) {
+            return self::ERROR_UNAUTHORIZED;
+        }
+    
+        $this->updateProspectService($prospectService, $request);
+    
+        // $applicationDetails = $this->getApplicationDetails($request);
+
+        $applicationDetails_01 = $this->totalManagementApplications->where('company_id', $request['company_id'])->find($application_id);
+
+        if(is_null($applicationDetails_01) && count($applicationDetails_01) > 0){
+            return self::ERROR_UNAUTHORIZED;
+        }
+    
+        $this->updateApplicationQuota($applicationDetails_01, $prospectService, $request);
+         
+        // ====================================
+
+        $applicationDetails = $this->totalManagementApplications->where('company_id', $request['company_id'])->find($application_id);
+
+        if(is_null($applicationDetails)){
+            return self::ERROR_UNAUTHORIZED;
+        }
+
+        $serviceDetails = $this->crmProspectService->findOrFail($applicationDetails->service_id);
+        if($serviceDetails->from_existing == self::NOT_FROM_EXISTING) {
+            $totalQuota = $serviceDetails->client_quota + $serviceDetails->fomnext_quota;
+            if($totalQuota < $request['service_quota']) {
+                return self::ERROR_QUOTA;
+            }
+        }
+        
+        // $params = $request->all();
+        $request['modified_by'] = $user['id'];
+
+        $applicationDetails->quota_applied = $request['service_quota'] ?? $applicationDetails->quota_applied;
+        $applicationDetails->person_incharge = $request['pic_name'] ?? $applicationDetails->person_incharge;
+        $applicationDetails->cost_quoted = 0;
+        $applicationDetails->status = self::PROPOSAL_SUBMITTED;
+        $applicationDetails->remarks = $request['remarks'] ?? $applicationDetails->remarks;
+        $applicationDetails->modified_by = $request['modified_by'];
+        $applicationDetails->save();
+        
+        }
+        else {
+            $totalManagement = $this->totalManagementApplications->where('ksm_reference_number',$request['ksm_reference_number'])
+                        ->select('id')
+                        ->first();
+            // $applicationIds = array_column($totalManagement, 'id');
+
+            $application_id = $totalManagement->id;
+
+        }
+
+        return $application_id;
+
+    }
+
+    /**
      * Creates a new service.
      *
      * This method creates a new service :
@@ -389,6 +573,7 @@ class TotalManagementServices
      * @see createTotalManagementApplications()
      * 
      */
+    
     public function addService($request): bool|array
     {
         $validationResult = $this->validateAddServicehRequest($request);
@@ -578,7 +763,7 @@ class TotalManagementServices
         if (is_null($prospectService)) {
             return self::ERROR_UNAUTHORIZED;
         }
-        die('In');
+    
         $this->updateProspectService($prospectService, $request);
     
         $applicationDetails = $this->getApplicationDetails($request);
@@ -601,8 +786,8 @@ class TotalManagementServices
      * @return mixed Returns prospect service record
      */
     private function getCrmProspectService(array $request)
-    {
-        print_r($request);
+{
+       
         
         return $this->crmProspectService->join('crm_prospects', function ($join) use ($request) {
             $join->on('crm_prospects.id', '=', 'crm_prospect_services.crm_prospect_id')
@@ -644,7 +829,6 @@ class TotalManagementServices
      */
     private function getApplicationDetails(array $request)
     {
-        print_r($request);
         return $this->totalManagementApplications->whereIn('company_id', $request['company_id'])->find($request['id']);
     }
 

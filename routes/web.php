@@ -1007,6 +1007,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('getQuota', 'V1\TotalManagementController@getQuota');                
                     $router->post('submitProposal', 'V1\TotalManagementController@submitProposal');
                     $router->post('allocateQuota', 'V1\TotalManagementController@allocateQuota');
+                    $router->post('addHiddenservice', 'V1\TotalManagementController@addHiddenservice');
                 });
                 
                 $router->group(['prefix' => 'project'], function () use ($router) {
