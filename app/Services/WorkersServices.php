@@ -1279,7 +1279,7 @@ class WorkersServices
         ->leftjoin('directrecruitment_workers', 'workers.id', '=', 'directrecruitment_workers.worker_id');
         $data = $this->listApplyCondition($request,$data);
         $data = $this->listApplySearchFilter($request,$data);
-        $data = $this->listApplyReferenceFilter($user,$data);
+        // $data = $this->listApplyReferenceFilter($user,$data);
         $data = $this->listSelectColumns($data);
         $status = $request['status'] ?? '';
         if(!empty($status)) {
@@ -1317,9 +1317,9 @@ class WorkersServices
     private function listApplySearchFilter($request,$data)
     {
         return $data->where(function ($query) use ($request) {
-            if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
-                $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
-            }
+            // if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
+            //     $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
+            // }
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('workers.name', 'like', '%'.$request['search_param'].'%')
                 ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
@@ -1353,7 +1353,7 @@ class WorkersServices
      */
     private function listSelectColumns($data)
     {
-        return $data->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'worker_employment.service_type', 'worker_employment.id as worker_employment_id', 'worker_employment.project_id')
+        return $data->select('workers.id','workers.name', 'workers.passport_number', 'workers.module_type', 'worker_employment.service_type', 'worker_employment.id as worker_employment_id', 'worker_employment.project_id','worker_visa.ksm_reference_number')
         ->selectRaw("(CASE WHEN (workers.crm_prospect_id = 0) THEN '".Config::get('services.FOMNEXTS_DETAILS')['company_name']."' ELSE crm_prospects.company_name END) as company_name,
 		(CASE WHEN (worker_employment.service_type = 'Total Management') THEN total_management_project.city
         WHEN (worker_employment.service_type = 'e-Contract') THEN econtract_project.city
