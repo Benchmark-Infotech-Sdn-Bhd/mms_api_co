@@ -1320,6 +1320,11 @@ class WorkersServices
             // if((isset($request['crm_prospect_id']) && !empty($request['crm_prospect_id'])) || (isset($request['crm_prospect_id']) && $request['crm_prospect_id'] == 0)) {
             //     $query->where('workers.crm_prospect_id', $request['crm_prospect_id']);
             // }
+            
+            if((isset($request['ksm_reference_number']) && !empty($request['ksm_reference_number'])) || (isset($request['ksm_reference_number']) && $request['ksm_reference_number'] == 0)) {
+                    $query->where('worker_visa.ksm_reference_number', $request['ksm_reference_number']);
+            }    
+        
             if (isset($request['search_param']) && !empty($request['search_param'])) {
                 $query->where('workers.name', 'like', '%'.$request['search_param'].'%')
                 ->orWhere('workers.passport_number', 'like', '%'.$request['search_param'].'%')
@@ -1467,12 +1472,13 @@ class WorkersServices
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
         ->where('directrecruitment_workers.agent_id', $request['agent_id'])
         ->where('worker_visa.status', 'Pending')
+        ->where('worker_visa.ksm_reference_number', $request['ksm_reference_number'])
         ->whereIn('workers.company_id', $request['company_id'])
-        ->where(function ($query) use ($user) {
-            if ($user['user_type'] == self::USER_TYPE_CUSTOMER) {
-                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
-            }
-        })
+        // ->where(function ($query) use ($user) {
+        //     if ($user['user_type'] == self::USER_TYPE_CUSTOMER) {
+        //         $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+        //     }
+        // })
         ->select('workers.id','workers.name')
         ->orderBy('workers.created_at','DESC')->get();
     }
