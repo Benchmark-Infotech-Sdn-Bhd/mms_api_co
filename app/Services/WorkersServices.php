@@ -1481,6 +1481,35 @@ class WorkersServices
         ->select('workers.id','workers.name')
         ->orderBy('workers.created_at','DESC')->get();
     }
+
+    /**
+     * List the KSM Reference numbers
+     *
+     * @param $request
+     *
+     * @return mixed Returns the KSM list
+     */
+    public function ksmDropdown()
+    {
+        $i=0;
+        $ksmdata = array();
+
+        $workerksm = DB::table('worker_visa')          
+            ->select('ksm_reference_number')
+            ->distinct('ksm_reference_number')            
+            ->get();
+
+        foreach($workerksm as $value){
+            $i=$i+1;
+            $a_temp = array('id'=> $i, 
+                            'ksm_reference_number'=> $value->ksm_reference_number, 
+            );
+            array_push($ksmdata, $a_temp);
+        }
+        
+        return $ksmdata;
+    }
+
     /**
      * Update the worker status
      *

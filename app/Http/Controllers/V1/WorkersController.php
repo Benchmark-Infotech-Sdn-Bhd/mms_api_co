@@ -161,6 +161,24 @@ class WorkersController extends Controller
     }
 
     /**
+     * Display the list of KSM Reference number
+     * 
+     * @param Request
+     * @return JsonResponse
+     */
+    public function ksmDropdown(): JsonResponse
+    {
+        try {
+            
+            $response = $this->workersServices->ksmDropdown();    
+            return $this->sendSuccess($response);
+        } catch (Exception $e) {
+            Log::error('Error - ' . print_r($e->getMessage(), true));
+            return $this->sendError(['message' => 'Failed to List of Ksm Reference numbers'], 400);
+        }
+    }
+
+    /**
      * Worker status.
      *
      * @return JsonResponse
