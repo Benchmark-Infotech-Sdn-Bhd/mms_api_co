@@ -1472,13 +1472,12 @@ class WorkersServices
         ->where('directrecruitment_workers.onboarding_country_id', $request['onboarding_country_id'])
         ->where('directrecruitment_workers.agent_id', $request['agent_id'])
         ->where('worker_visa.status', 'Pending')
-        ->where('worker_visa.ksm_reference_number', $request['ksm_reference_number'])
         ->whereIn('workers.company_id', $request['company_id'])
-        // ->where(function ($query) use ($user) {
-        //     if ($user['user_type'] == self::USER_TYPE_CUSTOMER) {
-        //         $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
-        //     }
-        // })
+        ->where(function ($query) use ($user) {
+            if ($user['user_type'] == self::USER_TYPE_CUSTOMER) {
+                $query->where('workers.crm_prospect_id', '=', $user['reference_id']);
+            }
+        })
         ->select('workers.id','workers.name')
         ->orderBy('workers.created_at','DESC')->get();
     }
