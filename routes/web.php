@@ -1234,6 +1234,7 @@ $router->group(['prefix' => 'api/v1', 'middleware' => ['dbSelection']], function
                     $router->post('export', 'V1\WorkersController@export');
                     $router->post('workerStatusList', 'V1\WorkersController@workerStatusList');
                     $router->post('listAttachment', 'V1\WorkersController@listAttachment');
+                    $router->post('ksmDropdown', 'V1\WorkersController@ksmDropdown');
                 });
                 $router->group(['prefix' => '', 'middleware' => ['permissions:10,Add']], function () use ($router) {
                     $router->post('create', 'V1\WorkersController@create');
