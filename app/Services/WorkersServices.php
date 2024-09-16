@@ -1489,16 +1489,20 @@ class WorkersServices
      *
      * @return mixed Returns the KSM list
      */
-    public function ksmDropdown()
+    public function ksmDropdown(): mixed
     {
         $i=0;
         $ksmdata = array();
-
-        $workerksm = DB::table('worker_visa')          
-            ->select('ksm_reference_number')
-            ->distinct('ksm_reference_number')            
-            ->get();
-
+        $user = JWTAuth::parseToken()->authenticate();
+        $request['company_id'] = $this->authServices->getCompanyIds($user);
+        
+        $workerksm = $this->workerVisa->leftjoin('workers', 'workers.id', '=', 'worker_visa.worker_id')                  
+                    ->where('workers.status', 1)
+                    ->distinct('worker_visa.ksm_reference_number')  
+                    ->where('workers.company_id', $request['company_id'])
+                    ->select('worker_visa.ksm_reference_number')         
+                    ->get();
+        // die();
         foreach($workerksm as $value){
             $i=$i+1;
             $a_temp = array('id'=> $i, 
