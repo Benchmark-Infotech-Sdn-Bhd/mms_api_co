@@ -26,6 +26,7 @@ class Kernel extends ConsoleKernel
         Commands\InvoiceFailureResubmit::class,
         Commands\TotalManagementPayrollImportFailure::class,
         Commands\EContractPayrollImportFailure::class,
+        Commands\InactivateUsers::class,
     ];
 
     /**
@@ -56,5 +57,6 @@ class Kernel extends ConsoleKernel
         $schedule->command('command:RenewalNotifications '.Config::get('services.SUB_DOMAIN_DB_NAME_ONE').' '.Config::get('services.COMPANY_NOTIFICATION_TYPE')[1].' '.Config::get('services.NOTIFICATION_FREQUENCY')[0])->daily()->withoutOverlapping();
         $schedule->command('command:RenewalNotifications '.Config::get('services.SUB_DOMAIN_DB_NAME_ONE').' '.Config::get('services.COMPANY_NOTIFICATION_TYPE')[1].' '.Config::get('services.NOTIFICATION_FREQUENCY')[1])->weekly()->withoutOverlapping();
         $schedule->command('command:RenewalNotifications '.Config::get('services.SUB_DOMAIN_DB_NAME_ONE').' '.Config::get('services.COMPANY_NOTIFICATION_TYPE')[1].' '.Config::get('services.NOTIFICATION_FREQUENCY')[2])->monthly()->withoutOverlapping();
+        $schedule->command('command:InactivateUsers '.Config::get('services.SUB_DOMAIN_DB_NAME_ONE'))->dailyAt('00:01');
     }
 }
